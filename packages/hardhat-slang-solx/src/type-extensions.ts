@@ -13,51 +13,51 @@ declare module "hardhat/types/solidity" {
 
 declare module "hardhat/types/config" {
   export interface SolidityCompilerTypeDefinitions {
-    solx: true;
+    slangSolx: true;
   }
 
-  export interface SolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
-    type: "solx";
+  export interface SlangSolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
+    type: "slangSolx";
   }
 
   export interface SolidityCompilerUserConfigPerType {
-    solx: SolxSolidityCompilerUserConfig;
+    slangSolx: SlangSolxSolidityCompilerUserConfig;
   }
 
-  export interface SolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
-    type: "solx";
+  export interface SlangSolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
+    type: "slangSolx";
   }
 
   export interface SolidityCompilerConfigPerType {
-    solx: SolxSolidityCompilerConfig;
+    slangSolx: SlangSolxSolidityCompilerConfig;
   }
 
-  export interface SolxSingleVersionSolidityUserConfig
+  export interface SlangSolxSingleVersionSolidityUserConfig
     extends
-      SolxSolidityCompilerUserConfig,
+      SlangSolxSolidityCompilerUserConfig,
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
-    solx: SolxSingleVersionSolidityUserConfig;
+    slangSolx: SlangSolxSingleVersionSolidityUserConfig;
   }
 
-  export interface SolxUserConfig {
+  export interface SlangSolxUserConfig {
     /**
-     * Allow compiler type `"solx"` in the production build profile.
-     * By default, solx in production is rejected as a safeguard.
+     * Allow compiler type `"slangSolx"` in the production build profile.
+     * By default, `"slangSolx"` in production is rejected as a safeguard.
      */
-    dangerouslyAllowSolxInProduction?: boolean;
+    dangerouslyAllowSlangSolxInProduction?: boolean;
   }
 
-  export interface SolxConfig {
-    dangerouslyAllowSolxInProduction: boolean;
+  export interface SlangSolxConfig {
+    dangerouslyAllowSlangSolxInProduction: boolean;
   }
 
   export interface HardhatUserConfig {
-    solx?: SolxUserConfig;
+    slangSolx?: SlangSolxUserConfig;
   }
 
   export interface HardhatConfig {
-    solx: SolxConfig;
+    slangSolx: SlangSolxConfig;
   }
 }

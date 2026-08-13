@@ -21,7 +21,7 @@ import "../src/type-extensions.js";
 const ELF_MAGIC_HEX = "7f454c46";
 
 describe(
-  "hardhat-solx output augmentation",
+  "hardhat-slang-solx output augmentation",
   { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
   () => {
     useFixtureProject("with-debug-info");
@@ -58,11 +58,11 @@ describe(
       const jobsResult = await hre.solidity.getCompilationJobs(fixturePaths, {
         force: true,
         quiet: true,
-        buildProfile: "solx",
+        buildProfile: "slangSolx",
       });
       assert.ok(
         jobsResult.success,
-        "getCompilationJobs should succeed for the solx profile",
+        "getCompilationJobs should succeed for the slangSolx profile",
       );
 
       // The fixtures are independent (no shared imports) so they can land in
@@ -78,7 +78,7 @@ describe(
         seenJobs.add(job);
         const { output } = await hre.solidity.runCompilationJob(job, {
           quiet: true,
-          buildProfile: "solx",
+          buildProfile: "slangSolx",
         });
         for (const e of output.errors ?? []) {
           mergedErrors.push(e);

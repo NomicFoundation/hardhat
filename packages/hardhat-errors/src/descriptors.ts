@@ -333,11 +333,11 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     min: 110000,
     max: 119999,
-    pluginId: "hardhat-solx",
-    websiteTitle: "Hardhat Solx",
+    pluginId: "hardhat-slang-solx",
+    websiteTitle: "Hardhat Slang Solx",
     CATEGORIES: {
       GENERAL: {
         min: 110000,
@@ -3349,7 +3349,7 @@ Check the error message for more details and verify your foundry.toml configurat
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     GENERAL: {
       UNSUPPORTED_PLATFORM: {
         number: 110000,

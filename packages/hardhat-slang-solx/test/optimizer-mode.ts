@@ -13,10 +13,10 @@ import {
 // Proves the plugin's default optimizer.mode reaches the resolved solcInput
 // (which hardhat persists as build-info) through the real pipeline — asserting
 // the compiler *input*, not compiled output, and without spawning solx.
-describe("hardhat-solx optimizer mode reaches the solc input", () => {
+describe("hardhat-slang-solx optimizer mode reaches the solc input", () => {
   useEphemeralFixtureProject("simple");
 
-  it("defaults optimizer.mode to -O1 in the solx profile's solcInput", async () => {
+  it("defaults optimizer.mode to -O1 in the slangSolx profile's solcInput", async () => {
     const configPath = await resolveHardhatConfigPath();
     const userConfig = await importUserConfig(configPath);
     const hre = await createHardhatRuntimeEnvironment(userConfig);
@@ -28,11 +28,11 @@ describe("hardhat-solx optimizer mode reaches the solc input", () => {
     const jobsResult = await hre.solidity.getCompilationJobs(rootFilePaths, {
       force: true,
       quiet: true,
-      buildProfile: "solx",
+      buildProfile: "slangSolx",
     });
     assert.ok(
       jobsResult.success,
-      "getCompilationJobs should succeed for the solx profile",
+      "getCompilationJobs should succeed for the slangSolx profile",
     );
 
     const job = [...jobsResult.compilationJobsPerFile.values()][0];
