@@ -33,7 +33,7 @@ describe(
       it(`serves every solx ${solxVersion} asset and checksum (mapped from Solidity ${solidityVersion})`, async () => {
         const missing: string[] = [];
         for (const asset of assetNames(solxVersion)) {
-          // Sidecars too: a missing one only soft-warns in the downloader.
+          // Sidecars too: the downloader refuses to use a binary it can't verify
           for (const file of [asset, `${asset}.sha256`]) {
             try {
               const response = await getRequest(
