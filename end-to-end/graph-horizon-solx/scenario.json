@@ -1,0 +1,99 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Graph Horizon (packages/horizon of the graphprotocol contracts pnpm monorepo — the first monorepo solx scenario) compiled at solc 0.8.34, tracking solx, solc, and forge compile times. Upstream's production profile is solc 0.8.35 + optimizer runs 100 + via-IR + cancun; the cells re-express it at 0.8.34, the only solx-mapped version (contracts and tests carry ^0.8.27-style range pragmas, so no source patching). Every command cds into packages/horizon; `workdir` points bench:dump-standard-json there. The forge cells mirror the production optimizer settings via FOUNDRY_ env vars — upstream's foundry.toml is lint-oriented and sets none — so the cross-tool parity row compares like with like. EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill the legacy cells' stack-too-deep past the unannotated assembly in RecurringCollector (see the aave-v4-solx scenario).",
+  "tags": ["external-repo", "solx"],
+  "repo": "NomicFoundation/graphprotocol-contracts",
+  "commit": "68661591b7e2e7d1672667769458aa8d84acc332",
+  "packageManager": "pnpm",
+  "submodules": false,
+  "workdir": "packages/horizon",
+  "preinstall": "./preinstall.sh",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false",
+    "pnpm_config_block_exotic_subdeps": "false",
+    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1"
+  },
+  "defaultCommand": "cd packages/horizon && npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "build workspace deps": {
+            "command": "pnpm --filter '@graphprotocol/horizon^...' run build:self",
+            "measure": false
+          },
+          "assert fresh hardhat-solx": {
+            "command": "cd packages/horizon && diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+            "measure": false
+          },
+          "download solc + solx and warm caches": {
+            "command": "cd packages/horizon && npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          },
+          "warm forge solc cache": {
+            "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build && ./.foundry/forge clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx-0.1.7": {
+        "runs": 2,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.7"
+      },
+      "cold compile solx-0.1.7 via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.7-via-ir"
+      },
+      "cold compile solc": {
+        "runs": 2,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile"
+      },
+      "cold compile solc no-opt": {
+        "runs": 2,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solc-no-opt"
+      },
+      "cold compile solc via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile forge-1.7.1": {
+        "runs": 2,
+        "dependsOn": ["build workspace deps", "warm forge solc cache"],
+        "prepare": "cd packages/horizon && ./.foundry/forge clean",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline"
+      }
+    }
+  }
+}
