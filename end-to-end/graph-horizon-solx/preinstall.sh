@@ -136,6 +136,18 @@ cp -R "$SOLX_PKG/dist/src" "$HORIZON/.solx/expected-dist-src"
 # "solx-0.1.7" profiles point at this binary via the plugin's `path` option.
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "$HORIZON/.solx/solx-v0.1.7"
 
+# The Hardhat 3 migration stack reduced foundry.toml to a lint-only config;
+# reinstate the pre-migration one (vendored from PR #1's 8d148f39, which the
+# migration replaced) so the forge cells compile with upstream's own
+# settings — its [profile.prod] (optimizer runs 100, via-IR) matches the
+# hardhat cells' production-derived settings. Fail loudly if the shape
+# changes under the pin.
+if ! grep -q "lint_on_build" "$HORIZON/foundry.toml"; then
+  echo "graph-horizon-solx preinstall: packages/horizon/foundry.toml is not the expected lint-oriented config — the pinned commit may have changed." >&2
+  exit 1
+fi
+cp "$E2E_TEST_DIR/foundry.toml" "$HORIZON/foundry.toml"
+
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
 # At 1.7.1 forge's codegen is solc (solar is lint-only), so with
 # FOUNDRY_SOLC=0.8.34 the compiler matches the hardhat cells. (FOUNDRY_SOLC,
