@@ -3,6 +3,8 @@ import type { ProviderRpcError } from "../../../types/providers.js";
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
+import { isInternalCallOutOfGasErrorData } from "./edr/type-validation.js";
+
 const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 
 // Codes taken from: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
@@ -117,4 +119,21 @@ export class InternalCallOutOfGasError extends ProviderError {
   ) {
     super(message, InternalCallOutOfGasError.CODE, parent);
   }
+}
+
+/**
+ * Detects an internal-call-out-of-gas estimation failure, whether it was
+ * thrown in-process as an `InternalCallOutOfGasError` or received over
+ * JSON-RPC (e.g. from a `hardhat node` server), where only the error data's
+ * `reason` discriminator survives serialization.
+ */
+export function isInternalCallOutOfGasError(error: Error): boolean {
+  if (error instanceof InternalCallOutOfGasError) {
+    return true;
+  }
+
+  return (
+    ProviderError.isProviderError(error) &&
+    isInternalCallOutOfGasErrorData(error.data)
+  );
 }

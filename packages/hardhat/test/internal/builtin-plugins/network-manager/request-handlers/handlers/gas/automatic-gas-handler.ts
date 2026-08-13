@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
@@ -9,7 +8,10 @@ import {
   getJsonRpcRequest,
   getRequestParams,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
-import { InternalCallOutOfGasError } from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
+import {
+  InternalCallOutOfGasError,
+  ProviderError,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {
   AutomaticGasHandler,
   DEFAULT_GAS_MULTIPLIER,
@@ -141,9 +143,18 @@ describe("AutomaticGasHandler", () => {
   });
 
   describe("when the estimation fails with an internal out-of-gas error", () => {
-    const FALLBACK_GAS = 16_777_216n;
+    // Distinct from the EIP-7825 cap, so these tests can tell a configured
+    // fallback apart from the no-fallback default
+    const FALLBACK_GAS = 5_000_000n;
+    const EIP_7825_CAP = 16_777_216n;
+    const BLOCK_GAS_LIMIT = 60_000_000;
 
     beforeEach(() => {
+      // A block gas limit above the fallback values, so it doesn't cap them
+      mockedProvider.setReturnValue("eth_getBlockByNumber", {
+        gasLimit: numberToHexString(BLOCK_GAS_LIMIT),
+      });
+
       mockedProvider.setReturnValue("eth_estimateGas", () => {
         throw new InternalCallOutOfGasError();
       });
@@ -171,7 +182,13 @@ describe("AutomaticGasHandler", () => {
       assert.equal(tx.gas, numberToHexString(FALLBACK_GAS));
     });
 
-    it("should rethrow the error if no fallback gas was provided", async () => {
+    it("should cap the fallback gas to the current block gas limit", async () => {
+      const LOW_BLOCK_GAS_LIMIT = 1_000_000;
+
+      mockedProvider.setReturnValue("eth_getBlockByNumber", {
+        gasLimit: numberToHexString(LOW_BLOCK_GAS_LIMIT),
+      });
+
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x0000000000000000000000000000000000000011",
@@ -180,11 +197,109 @@ describe("AutomaticGasHandler", () => {
         },
       ]);
 
-      await assertRejects(
-        automaticGasHandler.handle(jsonRpcRequest),
-        (error) => error instanceof InternalCallOutOfGasError,
-        "Expected the InternalCallOutOfGasError to be rethrown",
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        FALLBACK_GAS,
       );
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(LOW_BLOCK_GAS_LIMIT));
+    });
+
+    it("should not use the cached block gas limit to cap the fallback gas", async () => {
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        FALLBACK_GAS,
+      );
+
+      // Populate the block gas limit cache with a successful estimation
+      mockedProvider.setReturnValue(
+        "eth_estimateGas",
+        numberToHexString(FIXED_GAS_LIMIT),
+      );
+      await automaticGasHandler.handle(
+        getJsonRpcRequest(1, "eth_sendTransaction", [
+          {
+            from: "0x0000000000000000000000000000000000000011",
+            to: "0x0000000000000000000000000000000000000011",
+            value: 1,
+          },
+        ]),
+      );
+
+      // Lower the block gas limit (e.g. evm_setBlockGasLimit) and make the
+      // estimation fail: the cap must use the current limit, not the cache
+      const LOW_BLOCK_GAS_LIMIT = 1_000_000;
+      mockedProvider.setReturnValue("eth_getBlockByNumber", {
+        gasLimit: numberToHexString(LOW_BLOCK_GAS_LIMIT),
+      });
+      mockedProvider.setReturnValue("eth_estimateGas", () => {
+        throw new InternalCallOutOfGasError();
+      });
+
+      const jsonRpcRequest = getJsonRpcRequest(2, "eth_sendTransaction", [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: 1,
+        },
+      ]);
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(LOW_BLOCK_GAS_LIMIT));
+    });
+
+    it("should fall back to the EIP-7825 transaction gas cap if no fallback gas was provided", async () => {
+      // e.g. an http connection, where the network's default transaction gas
+      // limit is unknown
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: 1,
+        },
+      ]);
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(EIP_7825_CAP));
+    });
+
+    it("should detect the error by its data reason, as received over JSON-RPC", async () => {
+      // An http connection to a `hardhat node` server receives a plain
+      // ProviderError whose data carries the reason discriminator
+      mockedProvider.setReturnValue("eth_estimateGas", () => {
+        const error = new ProviderError("gas estimation failed", -32000);
+        error.data = {
+          message: "gas estimation failed",
+          reason: "InternalCallOutOfGas",
+        };
+        throw error;
+      });
+
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: 1,
+        },
+      ]);
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(EIP_7825_CAP));
     });
   });
 

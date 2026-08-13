@@ -133,6 +133,18 @@ describe("resolveDefaultTransactionGasLimit", () => {
         USER_TX_GAS_CAP,
       );
     });
+
+    it("caps the user-set cap to the block gas limit when it is higher", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: L1_CHAIN_TYPE,
+          hardfork: L1HardforkName.OSAKA,
+          blockGasLimit: 30_000_000n,
+          transactionGasCap: 40_000_000n,
+        }),
+        30_000_000n,
+      );
+    });
   });
 
   describe("when transactionGasCap is false", () => {

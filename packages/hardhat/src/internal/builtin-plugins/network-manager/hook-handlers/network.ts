@@ -51,7 +51,17 @@ export default async (): Promise<Partial<NetworkHooks>> => {
             return handlersPerConnectionAfterWaiting;
           }
 
-          const result = await createHandlersArray(networkConnection);
+          // The same signal network-manager uses to decide whether the EDR
+          // provider gets the coverage network overrides applied.
+          const shouldEnableCoverage = await context.hooks.hasHandlers(
+            "network",
+            "onCoverageData",
+          );
+
+          const result = await createHandlersArray(
+            networkConnection,
+            shouldEnableCoverage,
+          );
 
           requestHandlersPerConnection.set(networkConnection, result);
 
