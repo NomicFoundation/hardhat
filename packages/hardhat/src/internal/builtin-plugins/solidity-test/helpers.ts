@@ -26,7 +26,10 @@ import {
 } from "@nomicfoundation/hardhat-utils/bytes";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
-import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import {
+  ALWAYS_COLLECT_STACK_TRACES_VERBOSITY,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
 import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
 import { warnIfExperimentalHardfork } from "../network-manager/edr/utils/hardfork.js";
@@ -145,7 +148,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     }
   }
 
-  const shouldAlwaysCollectStackTraces = verbosity > DEFAULT_VERBOSITY;
+  const shouldAlwaysCollectStackTraces =
+    verbosity >= ALWAYS_COLLECT_STACK_TRACES_VERBOSITY;
 
   return {
     projectRoot,
