@@ -20,7 +20,6 @@ import { z } from "zod";
 
 import {
   DEFAULT_SOLX_OPTIMIZER_MODE,
-  RESOLVED_SOLX_COMPILER_TYPE,
   SOLIDITY_TO_SOLX_VERSION_MAP,
   SLANG_SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
@@ -199,18 +198,15 @@ export async function resolveUserConfig(
     solidity: {
       ...resolvedConfig.solidity,
       profiles,
-      // Both names are registered: the one users write, and the one the
-      // resolved config carries for EDR's benefit. Hardhat validates the
-      // resolved config against this list, so the resolved name has to be in
-      // it; the user-facing one is kept so the error listing registered types
-      // still names what a user is meant to type.
-      registeredCompilerTypes: [
-        ...new Set([
-          ...resolvedConfig.solidity.registeredCompilerTypes,
+      registeredCompilerTypes:
+        resolvedConfig.solidity.registeredCompilerTypes.includes(
           SLANG_SOLX_COMPILER_TYPE,
-          RESOLVED_SOLX_COMPILER_TYPE,
-        ]),
-      ],
+        )
+          ? resolvedConfig.solidity.registeredCompilerTypes
+          : [
+              ...resolvedConfig.solidity.registeredCompilerTypes,
+              SLANG_SOLX_COMPILER_TYPE,
+            ],
     },
     slangSolx: resolveSolxConfig(userConfig.slangSolx),
   };
@@ -260,9 +256,6 @@ async function augmentIfSolx<
     : {};
   return {
     ...entry,
-    // Resolved to the compiler's own name, so that EDR can read the build
-    // info this ends up in. See RESOLVED_SOLX_COMPILER_TYPE.
-    type: RESOLVED_SOLX_COMPILER_TYPE,
     settings: {
       ...settings,
       // Defaults added here instead of in SlangSolxCompiler.compile so this reaches
@@ -311,7 +304,7 @@ export async function validateResolvedConfig(
     const solxInOtherProfileMessage = `Compiler type "slangSolx" is only supported in the "slangSolx" build profile. Remove type: "slangSolx" from the "${profileName}" profile compilers, or set slangSolx.dangerouslyAllowSlangSolxInProduction in the plugin config.`;
 
     for (const [i, compiler] of profile.compilers.entries()) {
-      if (compiler.type === RESOLVED_SOLX_COMPILER_TYPE) {
+      if (compiler.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "compilers", i, "type"],
           message: solxInOtherProfileMessage,
@@ -320,7 +313,7 @@ export async function validateResolvedConfig(
     }
 
     for (const [key, override] of Object.entries(profile.overrides)) {
-      if (override.type === RESOLVED_SOLX_COMPILER_TYPE) {
+      if (override.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "overrides", key, "type"],
           message: solxInOtherProfileMessage,

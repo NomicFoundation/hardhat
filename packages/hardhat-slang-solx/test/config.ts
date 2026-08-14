@@ -114,9 +114,10 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    assert.ok(
-      resolvedConfig.solidity.registeredCompilerTypes.includes("slangSolx"),
-      "registeredCompilerTypes should contain 'slangSolx'",
+    assert.deepEqual(
+      resolvedConfig.solidity.registeredCompilerTypes,
+      ["solc", "slangSolx"],
+      "the plugin registers 'slangSolx' and leaves core's 'solc' in place, and registers nothing else",
     );
   });
 
@@ -664,9 +665,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
       solidity: {
         profiles,
         npmFilesToBuild: [],
-        // Both the name the user writes and the name the resolved config
-        // carries, matching what resolveUserConfig registers.
-        registeredCompilerTypes: ["solc", "slangSolx", "solx"],
+        registeredCompilerTypes: ["solc", "slangSolx"],
       },
       slangSolx: {
         dangerouslyAllowSlangSolxInProduction:
@@ -705,7 +704,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         slangSolx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
           overrides: {},
         },
       }),
@@ -719,13 +718,13 @@ describe("hardhat-slang-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
           overrides: {},
         },
         slangSolx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
           overrides: {},
         },
       }),
@@ -752,7 +751,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
           overrides: {
             "MyContract.sol": {
               version: "0.8.34",
-              type: "solx",
+              type: "slangSolx",
               settings: {},
             },
           },
@@ -760,7 +759,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         slangSolx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
           overrides: {},
         },
       }),
@@ -784,13 +783,13 @@ describe("hardhat-slang-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
             overrides: {},
           },
           slangSolx: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
             overrides: {},
           },
         },
@@ -812,7 +811,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         slangSolx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
           overrides: {},
         },
       }),
@@ -827,7 +826,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
             overrides: {},
           },
         },

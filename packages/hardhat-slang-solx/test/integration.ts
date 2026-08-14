@@ -75,17 +75,18 @@ describe("hardhat-slang-solx integration", () => {
     const slangSolxProfile = hre.config.solidity.profiles.slangSolx;
     assert.equal(
       slangSolxProfile.compilers[0].type,
-      "solx",
-      "the resolved compiler carries the name EDR reads from the build info, not the one the user wrote",
+      "slangSolx",
+      "slangSolx profile compiler should have type: 'slangSolx'",
     );
   });
 
   it("registers 'slangSolx' as a compiler type", async () => {
     const hre = await createHre();
 
-    assert.ok(
-      hre.config.solidity.registeredCompilerTypes.includes("slangSolx"),
-      "registeredCompilerTypes should include 'slangSolx'",
+    assert.deepEqual(
+      hre.config.solidity.registeredCompilerTypes,
+      ["solc", "slangSolx"],
+      "the plugin registers 'slangSolx' and leaves core's 'solc' in place, and registers nothing else",
     );
   });
 });
