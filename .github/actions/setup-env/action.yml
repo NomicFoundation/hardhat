@@ -5,7 +5,7 @@ inputs:
   pnpm-version:
     description: Version of pnpm to install
     required: false
-    default: "11.6.0"
+    default: "11.20.0"
   node-version:
     description: Version of node to install
     required: false

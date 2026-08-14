@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/devcontainers/features/node:2": {
       "version": "24",
-      "pnpmVersion": "11.6.0"
+      "pnpmVersion": "11.20.0"
     }
   },
   "onCreateCommand": "scripts/setup.sh",
