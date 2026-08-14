@@ -86,7 +86,7 @@
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
     "c8": "^12.0.0",
-    "eslint": "9.25.1",
+    "eslint": "9.39.5",
     "expect-type": "^1.4.0",
     "prettier": "3.9.6",
     "rimraf": "^6.1.3",

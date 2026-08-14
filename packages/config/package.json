@@ -21,7 +21,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "4.7.2",
     "@tsconfig/node22": "^22.0.5",
     "@types/eslint": "9.6.1",
-    "eslint": "9.25.1",
+    "eslint": "9.39.5",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-no-only-tests": "3.4.0",
@@ -31,6 +31,6 @@
     "typescript-eslint": "8.65.0"
   },
   "peerDependencies": {
-    "eslint": "9.25.1"
+    "eslint": "9.39.5"
   }
 }
