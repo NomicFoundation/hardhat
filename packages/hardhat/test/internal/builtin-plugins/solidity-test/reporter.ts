@@ -5,11 +5,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  type BaseCounterExample,
   CallKind,
   TestStatus,
   type CallTrace,
+  type CounterExampleSequence,
   type TestResult,
 } from "@nomicfoundation/edr";
+import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import { testReporter } from "../../../../src/internal/builtin-plugins/solidity-test/reporter.js";
 
@@ -58,6 +61,7 @@ interface MockSuite {
     consoleLogs?: string[];
     duration?: bigint;
     traces?: MockTrace[];
+    counterexample?: BaseCounterExample | CounterExampleSequence;
   }>;
 }
 
@@ -91,7 +95,7 @@ const mocker = {
                       );
                     },
                     reason: undefined,
-                    counterexample: undefined,
+                    counterexample: result.counterexample,
                     valueSnapshotGroups: undefined,
                   }) satisfies TestResult,
               )
@@ -189,6 +193,126 @@ debug log
   1) TestSuite#failing test
     Error: Unknown error
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
+
+      assert.deepEqual(result.join(""), expectedOutput);
+    });
+
+    it("single suite, 1 failure with counterexample calldata printed as hex", async () => {
+      // `testFuzz_Inc(uint8)` called with 0: the 4-byte selector followed by a
+      // single ABI word
+      const calldata = new Uint8Array([
+        62, 32, 51, 179, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ]);
+
+      const result = await arrayifiedTestReporter(
+        mocker.tests([
+          {
+            source: "TestSuite.sol",
+            name: "TestSuite",
+            results: [
+              {
+                name: "failing test",
+                status: TestStatus.Failure,
+                counterexample: { calldata, args: "0" },
+              },
+            ],
+          },
+        ]),
+        3,
+      );
+
+      const expectedOutput = `
+  TestSuite.sol:TestSuite
+    1) failing test
+
+
+  0 passing
+  1 failing
+
+  1) TestSuite#failing test
+    Error: Unknown error
+    Counterexample:
+      calldata: 0x3e2033b30000000000000000000000000000000000000000000000000000000000000000
+      args: 0
+`.replace("\n", "");
+
+      assert.deepEqual(result.join(""), expectedOutput);
+    });
+
+    it("single suite, 1 failure with a counterexample sequence printed as hex", async () => {
+      const sender = hexStringToBytes(
+        "0x0000000000000000000000000000000000000f4d",
+      );
+      const address = hexStringToBytes(
+        "0x5615deb798bb3e4dfa0139dfa1b3d433cc23b72f",
+      );
+      const contractName = "project/contracts/Trippable.sol:Trippable";
+
+      const counterexample: CounterExampleSequence = {
+        originalSequenceSize: 5n,
+        sequence: [
+          {
+            calldata: hexStringToBytes(
+              `0xbe526409${"00".repeat(31)}0a`, // trip(uint8) called with 10
+            ),
+            sender,
+            address,
+            contractName,
+            signature: "trip(uint8)",
+            args: "10",
+          },
+          {
+            calldata: hexStringToBytes("0x2b58d143"), // reset(), no arguments
+            sender,
+            address,
+            contractName,
+            signature: "reset()",
+          },
+        ],
+      };
+
+      const result = await arrayifiedTestReporter(
+        mocker.tests([
+          {
+            source: "TestSuite.sol",
+            name: "TestSuite",
+            results: [
+              {
+                name: "failing test",
+                status: TestStatus.Failure,
+                counterexample,
+              },
+            ],
+          },
+        ]),
+        3,
+      );
+
+      const expectedOutput = `
+  TestSuite.sol:TestSuite
+    1) failing test
+
+
+  0 passing
+  1 failing
+
+  1) TestSuite#failing test
+    Error: Unknown error
+    Counterexample:
+      calldata: 0xbe526409000000000000000000000000000000000000000000000000000000000000000a
+      sender: 0x0000000000000000000000000000000000000f4d
+      address: 0x5615deb798bb3e4dfa0139dfa1b3d433cc23b72f
+      contractName: project/contracts/Trippable.sol:Trippable
+      signature: trip(uint8)
+      args: 10
+    Counterexample:
+      calldata: 0x2b58d143
+      sender: 0x0000000000000000000000000000000000000f4d
+      address: 0x5615deb798bb3e4dfa0139dfa1b3d433cc23b72f
+      contractName: project/contracts/Trippable.sol:Trippable
+      signature: reset()
+`.replace("\n", "");
 
       assert.deepEqual(result.join(""), expectedOutput);
     });
