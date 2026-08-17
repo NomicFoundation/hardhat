@@ -16,8 +16,6 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
-import { finished } from "node:stream/promises";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
@@ -43,6 +41,7 @@ import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
+  writeTestRunOutput,
 } from "./helpers.js";
 import { buildImportMappings } from "./import-mappings.js";
 import { testReporter } from "./reporter.js";
@@ -377,41 +376,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }
     });
 
-  const outputStream = testReporterStream.pipe(
+  const testRunError = await writeTestRunOutput(
+    runStream,
+    testReporterStream,
     createNonClosingWriter(process.stdout),
   );
 
-  // When the runner reports an error it destroys the run stream with it, which
-  // also destroys the reporter stream composed from it. `pipe()` neither
-  // forwards that error to the output stream nor ends it, so without this
-  // listener the reporter stream emits an `error` event with nothing listening,
-  // crashing the process, and `finished(outputStream)` below never settles.
-  // Attached before any `await` so that it can't miss the event.
-  let reporterStreamError: Error | undefined;
-  testReporterStream.on("error", (error: Error) => {
-    reporterStreamError = error;
-    if (!outputStream.writableEnded) {
-      outputStream.end();
-    }
-  });
-
-  let runError: unknown;
-  try {
-    // NOTE: We're awaiting the original run stream to finish to catch any
-    // errors produced by the runner.
-    await finished(runStream);
-
-    // We also await the output stream to finish, as we want to wait for it
-    // to avoid returning before the whole output was generated.
-    await finished(outputStream);
-  } catch (error) {
-    runError = error;
-  }
-
-  // Neither await above surfaces an error that reached the reporter stream
-  // without failing the run stream, e.g. one thrown by the reporter after the
-  // run stream already ended.
-  const testRunError = runError ?? reporterStreamError;
   if (testRunError !== undefined) {
     console.error(testRunError);
     includesErrors = true;

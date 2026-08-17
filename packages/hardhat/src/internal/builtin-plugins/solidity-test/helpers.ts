@@ -1,3 +1,4 @@
+import type { TestsStream } from "./types.js";
 import type { Abi } from "../../../types/artifacts.js";
 import type { ChainType } from "../../../types/network.js";
 import type { SolidityTestProfileConfig } from "../../../types/test.js";
@@ -7,7 +8,9 @@ import type {
   Artifact,
   ObservabilityConfig,
 } from "@nomicfoundation/edr";
+import type { Writable } from "node:stream";
 
+import { finished } from "node:stream/promises";
 import { styleText } from "node:util";
 
 import {
@@ -250,6 +253,56 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
 
     return false;
   });
+}
+
+/**
+ * Writes the test reporter's output to `output` and waits for the test run to
+ * complete, returning the error that failed it, if any.
+ *
+ * @param runStream The runner's stream of test events.
+ * @param reporterStream The reporter's stream of output, composed from
+ * `runStream`.
+ * @param output Where the reporter's output is written to.
+ * @returns The error that failed the run, or `undefined` if it succeeded.
+ */
+export async function writeTestRunOutput(
+  runStream: TestsStream,
+  reporterStream: NodeJS.ReadableStream,
+  output: Writable,
+): Promise<unknown> {
+  const outputStream = reporterStream.pipe(output);
+
+  // When the runner reports an error it destroys the run stream with it, which
+  // also destroys the reporter stream composed from it. `pipe()` neither
+  // forwards that error to the output stream nor ends it, so without this
+  // listener the reporter stream emits an `error` event with nothing listening,
+  // crashing the process, and `finished(outputStream)` below never settles.
+  // Attached before any `await` so that it can't miss the event.
+  let reporterStreamError: Error | undefined;
+  reporterStream.on("error", (error: Error) => {
+    reporterStreamError = error;
+    if (!outputStream.writableEnded) {
+      outputStream.end();
+    }
+  });
+
+  let runError: unknown;
+  try {
+    // NOTE: We're awaiting the original run stream to finish to catch any
+    // errors produced by the runner.
+    await finished(runStream);
+
+    // We also await the output stream to finish, as we want to wait for it
+    // to avoid returning before the whole output was generated.
+    await finished(outputStream);
+  } catch (error) {
+    runError = error;
+  }
+
+  // Neither await above surfaces an error that reached the reporter stream
+  // without failing the run stream, e.g. one thrown by the reporter after the
+  // run stream already ended.
+  return runError ?? reporterStreamError;
 }
 
 export function warnDeprecatedTestFail(
