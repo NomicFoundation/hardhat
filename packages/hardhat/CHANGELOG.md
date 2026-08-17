@@ -1,5 +1,21 @@
 # hardhat
 
+## 3.13.0
+
+### Minor Changes
+
+- [#8453](https://github.com/NomicFoundation/hardhat/pull/8453) [`38b9f2d`](https://github.com/NomicFoundation/hardhat/commit/38b9f2d909563d7f37d0eb528e995bf7d1c577f5) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add a fallback value for `configVariable`.
+
+- [#8487](https://github.com/NomicFoundation/hardhat/pull/8487) [`7b7af19`](https://github.com/NomicFoundation/hardhat/commit/7b7af198a19220d3ac4b99f79cdfa9f3e525e59b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added a `--tolerance` option to `--snapshot-check` in Solidity tests, allowing snapshot values to drift by a given percentage before the check fails.
+
+### Patch Changes
+
+- [#8486](https://github.com/NomicFoundation/hardhat/pull/8486) [`2ccd059`](https://github.com/NomicFoundation/hardhat/commit/2ccd0594df6f4202d8e4bc0200924acc9c8cd21c) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed the EDR network config validation rejecting `mining.interval: 0`, a valid value which disables interval mining.
+
+- [#8490](https://github.com/NomicFoundation/hardhat/pull/8490) [`22667f6`](https://github.com/NomicFoundation/hardhat/commit/22667f6c961f5ab030f2e1c447e1b2e4a6714ee0) Thanks [@kanej](https://github.com/kanej)! - Added detection and custom error for failed native binding loads (`HHE27`) of `@nomicfoundation/edr` or `@nomicfoundation/solidity-analyzer`.
+
+- [#8454](https://github.com/NomicFoundation/hardhat/pull/8454) [`47793de`](https://github.com/NomicFoundation/hardhat/commit/47793de9fe0326ac1c29b5daca4653f3f5770de6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Only collect Solidity test stack traces at verbosity level 5 (-vvvvv) and above, fixing excessive memory usage when running large test suites with -vvv/-vvvv.
+
 ## 3.12.0
 
 ### Minor Changes

@@ -621,6 +621,41 @@ describe("network-manager/hook-handlers/config", () => {
         makeConfig([1000, 1000], true),
       );
       assert.equal(validationErrors.length, 0);
+
+      // Interval of 0 disables interval mining, so it's always accepted
+      validationErrors = await validateNetworkUserConfig(makeConfig(0, false));
+      assert.equal(validationErrors.length, 0);
+
+      // An interval range enables interval mining, so a minimum of 0 is still
+      // an error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig([0, 5000], false),
+      );
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test", "mining", "interval"],
+          message: errorMessage,
+        },
+      ]);
+    });
+
+    it("should not throw when the mining interval is 0, as it disables interval mining", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            chainType: "l1",
+            mining: {
+              auto: false,
+              interval: 0,
+            },
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+
+      assert.equal(validationErrors.length, 0);
     });
 
     it("should accept a parseable initialDate string", async () => {

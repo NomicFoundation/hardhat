@@ -28,7 +28,7 @@ import { warnAboutUnusedLoadedPlugins } from "../core/plugins/unused-plugins-war
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
 
-import { printErrorMessages } from "./error-handler.js";
+import { printErrorMessages } from "./error-handling/error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import {
