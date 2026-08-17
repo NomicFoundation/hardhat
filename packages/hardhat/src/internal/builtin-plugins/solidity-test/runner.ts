@@ -3,6 +3,7 @@ import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
   Artifact,
+  InlineConfigError,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
@@ -14,9 +15,8 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
-import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../solidity/constants.js";
 
-import { formatArtifactId } from "./formatters.js";
+import { formatArtifactId, formatInlineConfigErrors } from "./formatters.js";
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -101,15 +101,18 @@ export function run(
     } catch (error) {
       ensureError(error);
 
-      // EDR marks errors in the user's inline test config with an
-      // `inlineConfigErrors` property. Report them as a dedicated Hardhat
-      // error instead of an unhandled EDR error.
-      if ("inlineConfigErrors" in error) {
+      // EDR reports the problems it found in the user's inline test config as
+      // an `inlineConfigErrors` property on the error. Report them as a
+      // dedicated Hardhat error instead of an unhandled EDR error.
+      if (hasInlineConfigErrors(error)) {
         stream.destroy(
           new HardhatError(
             HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
             {
-              errors: formatInlineConfigErrorMessage(error.message),
+              errors: formatInlineConfigErrors(
+                error.inlineConfigErrors,
+                sourceNameToUserSourceName,
+              ),
             },
           ),
         );
@@ -132,14 +135,14 @@ export function run(
 }
 
 /**
- * Cleans up EDR's inline-config error message for display: removes its
- * heading line and turns internal source names into user-facing paths.
+ * EDR attaches the structured inline-config problems to the error that rejects
+ * `runSolidityTests`, but as a property of an `Error` rather than a typed
+ * error class, so we have to assert their type here.
  */
-function formatInlineConfigErrorMessage(message: string): string {
-  return message
-    .substring(message.indexOf("\n") + 1)
-    .replaceAll(
-      new RegExp(`^(\\s*)${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`, "gm"),
-      "$1",
-    );
+function hasInlineConfigErrors(
+  error: Error,
+): error is Error & { inlineConfigErrors: InlineConfigError[] } {
+  return (
+    "inlineConfigErrors" in error && Array.isArray(error.inlineConfigErrors)
+  );
 }
