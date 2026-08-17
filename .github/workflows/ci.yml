@@ -227,11 +227,16 @@ jobs:
           fi
         shell: bash
       - uses: actions/download-artifact@v8
+        if: needs.bundle.result == 'success'
+        with:
+          name: hardhat
+          path: bundles/hardhat
       - id: download
-        run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
+        run: mkdir -p bundles && ls -1 bundles | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
         shell: bash
       - id: comment
         if: steps.download.outputs.count != '0'
+        working-directory: bundles
         run: |
           echo 'body<<EOF' >> $GITHUB_OUTPUT
           for bundle in *; do
