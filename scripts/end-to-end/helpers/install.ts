@@ -166,9 +166,12 @@ function writeRegistryConfig(
     // init calls stay idempotent.
     const cleaned = existing
       .replace(/^npmRegistryServer:.*\n?/m, "")
-      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "");
+      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "")
+      .replace(/^enableHardenedMode:.*\n?/m, "");
 
-    const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\n`;
+    // Disable hardened mode (auto-enabled on GitHub CI) because it
+    // refuses the lockfile drift that Verdaccio's republishes cause (YN0028).
+    const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\nenableHardenedMode: false\n`;
 
     writeFileSync(
       yarnrcPath,
