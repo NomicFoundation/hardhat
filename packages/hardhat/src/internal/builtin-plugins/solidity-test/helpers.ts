@@ -22,11 +22,6 @@ import {
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
-import {
-  bytesIndexOfUtf8String,
-  equalsBytes,
-  utf8StringToBytes,
-} from "@nomicfoundation/hardhat-utils/bytes";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
@@ -52,7 +47,6 @@ interface SolidityTestConfigParams {
   generateGasReport: boolean;
   eip712CanonicalTypes?: string[];
   testSourcePaths?: Record<string, string>;
-  importMappings?: Record<string, string>;
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
@@ -67,7 +61,6 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   generateGasReport,
   eip712CanonicalTypes,
   testSourcePaths,
-  importMappings,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -182,59 +175,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : CollectStackTraces.OnFailure,
     eip712CanonicalTypes,
     testSourcePaths,
-    importMappings,
   };
-}
-
-// The directive prefixes are `hardhat-config:` and `forge-config:`. Scanning
-// once for their shared suffix and checking each hit for a preceding head is
-// cheaper than one full scan per prefix.
-const INLINE_CONFIG_PREFIX_SUFFIX = "-config:";
-const INLINE_CONFIG_PREFIX_HEADS = ["hardhat", "forge"].map(utf8StringToBytes);
-
-/**
- * Returns true if the build info bytes may contain an inline config directive.
- * False positives are possible (e.g. a comment merely mentioning
- * `forge-config:`); false negatives are not.
- */
-export function buildInfoContainsInlineConfig(
-  buildInfoBytes: Uint8Array,
-): boolean {
-  let suffixIndex = bytesIndexOfUtf8String(
-    buildInfoBytes,
-    INLINE_CONFIG_PREFIX_SUFFIX,
-  );
-
-  while (suffixIndex !== -1) {
-    if (
-      INLINE_CONFIG_PREFIX_HEADS.some((head) =>
-        bytesEndWithAt(buildInfoBytes, head, suffixIndex),
-      )
-    ) {
-      return true;
-    }
-
-    suffixIndex = bytesIndexOfUtf8String(
-      buildInfoBytes,
-      INLINE_CONFIG_PREFIX_SUFFIX,
-      suffixIndex + 1,
-    );
-  }
-
-  return false;
-}
-
-/**
- * Returns true if the needle's bytes end exactly at (exclusive) index `end`
- * of the haystack.
- */
-function bytesEndWithAt(
-  haystack: Uint8Array,
-  needle: Uint8Array,
-  end: number,
-): boolean {
-  const start = end - needle.length;
-  return start >= 0 && equalsBytes(haystack.subarray(start, end), needle);
 }
 
 export function isTestSuiteArtifact(artifact: Artifact): boolean {
