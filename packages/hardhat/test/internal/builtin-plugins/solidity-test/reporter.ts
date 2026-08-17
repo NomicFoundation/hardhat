@@ -196,9 +196,11 @@ debug log
     });
 
     it("single suite, 1 failure with counterexample calldata printed as hex", async () => {
+      // `testFuzz_Inc(uint8)` called with 0: the 4-byte selector followed by a
+      // single ABI word
       const calldata = new Uint8Array([
         62, 32, 51, 179, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       ]);
 
       const result = await arrayifiedTestReporter(
@@ -229,7 +231,7 @@ debug log
   1) TestSuite#failing test
     Error: Unknown error
     Counterexample:
-      calldata: 0x3e2033b300000000000000000000000000000000000000000000000000000000
+      calldata: 0x3e2033b30000000000000000000000000000000000000000000000000000000000000000
       args: 0
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
