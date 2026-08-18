@@ -280,7 +280,7 @@ describe("edr-provider", () => {
         assert.fail("Function did not throw any error");
       });
 
-      it("should return an estimation when gasEstimationMode is topLevelSuccess", async () => {
+      it("should estimate and mine a transaction whose internal call ran out of gas when gasEstimationMode is topLevelSuccess", async () => {
         const { provider, sender } = await connectWithAlwaysInternalOogContract(
           {
             gasEstimationMode: "topLevelSuccess",
@@ -303,18 +303,48 @@ describe("edr-provider", () => {
           hexStringToNumber(estimation) >= 21_000,
           "The estimation should cover the base transaction cost",
         );
+
+        // The network uses gas: "auto", so the transaction is sent with that
+        // estimate. The internal call runs out of gas, but the contract
+        // ignores its result, so the transaction still succeeds: this is the
+        // silent internal failure that the noInternalOutOfGas mode prevents.
+        const txHash = await provider.request({
+          method: "eth_sendTransaction",
+          params: [{ from: sender, to: contractAddress }],
+        });
+
+        const receipt = await provider.request({
+          method: "eth_getTransactionReceipt",
+          params: [txHash],
+        });
+
+        assertHardhatInvariant(
+          typeof receipt === "object" &&
+            receipt !== null &&
+            "status" in receipt,
+          "The receipt should have a status field",
+        );
+
+        assert.equal(receipt.status, "0x1");
       });
 
       it("should fall back to the default transaction gas limit for transactions with automatic gas", async () => {
-        const { provider, sender } =
-          await connectWithAlwaysInternalOogContract();
+        // A pre-Osaka hardfork, where the default transaction gas limit is
+        // the block gas limit. That makes it distinguishable from the
+        // EIP-7825 cap the handler falls back to when the provider doesn't
+        // expose one, so this test fails if the wiring is removed.
+        const { provider, sender } = await connectWithAlwaysInternalOogContract(
+          {
+            hardfork: "prague",
+            blockGasLimit: 30_000_000,
+          },
+        );
 
         // The network uses gas: "auto" and the default estimation mode
         // (noInternalOutOfGas), so the gas estimation runs as part of the
         // eth_sendTransaction request. The estimation fails because of the
-        // internal out-of-gas error, and the default transaction gas limit
-        // is used instead: the EIP-7825 cap, as the default hardfork is
-        // osaka or later.
+        // internal out-of-gas error, and the provider's default transaction
+        // gas limit is used instead.
         const txHash = await provider.request({
           method: "eth_sendTransaction",
           params: [{ from: sender, to: contractAddress }],
@@ -333,7 +363,7 @@ describe("edr-provider", () => {
           "The transaction should have a gas field",
         );
 
-        assert.equal(hexStringToNumber(tx.gas), 16_777_216);
+        assert.equal(hexStringToNumber(tx.gas), 30_000_000);
       });
 
       it("should cap the automatic gas fallback to a block gas limit lower than the EIP-7825 cap", async () => {
@@ -365,38 +395,6 @@ describe("edr-provider", () => {
         );
 
         assert.equal(hexStringToNumber(tx.gas), 5_000_000);
-      });
-
-      it("should mine a successful transaction whose internal call ran out of gas when gasEstimationMode is topLevelSuccess", async () => {
-        const { provider, sender } = await connectWithAlwaysInternalOogContract(
-          {
-            gasEstimationMode: "topLevelSuccess",
-          },
-        );
-
-        // The network uses gas: "auto", so the transaction is sent with the
-        // topLevelSuccess estimate, which only covers the top-level call.
-        // The internal call runs out of gas, but the contract ignores its
-        // result, so the transaction still succeeds: this is the silent
-        // internal failure that the noInternalOutOfGas mode prevents.
-        const txHash = await provider.request({
-          method: "eth_sendTransaction",
-          params: [{ from: sender, to: contractAddress }],
-        });
-
-        const receipt = await provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [txHash],
-        });
-
-        assertHardhatInvariant(
-          typeof receipt === "object" &&
-            receipt !== null &&
-            "status" in receipt,
-          "The receipt should have a status field",
-        );
-
-        assert.equal(receipt.status, "0x1");
       });
     });
 
@@ -590,23 +588,6 @@ describe("edr-provider", () => {
 
         assert.fail("eth_getProof should have thrown an error");
       });
-    });
-  });
-
-  describe("EdrProvider#defaultTransactionGasLimit", () => {
-    it("exposes the default transaction gas limit the provider was configured with", async () => {
-      // A block gas limit below the Osaka EIP-7825 cap, so it is the
-      // resolved default transaction gas limit
-      const { provider } = await hre.network.create({
-        override: { blockGasLimit: 5_000_000 },
-      });
-
-      assertHardhatInvariant(
-        provider instanceof EdrProvider,
-        "The provider should be an EdrProvider",
-      );
-
-      assert.equal(provider.defaultTransactionGasLimit, 5_000_000n);
     });
   });
 

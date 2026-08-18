@@ -3,8 +3,6 @@ import type { ProviderRpcError } from "../../../types/providers.js";
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { isInternalCallOutOfGasErrorData } from "./edr/type-validation.js";
-
 const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 
 // Codes taken from: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
@@ -119,6 +117,16 @@ export class InternalCallOutOfGasError extends ProviderError {
   ) {
     super(message, InternalCallOutOfGasError.CODE, parent);
   }
+}
+
+/**
+ * Detects the error data of EDR's estimation failure for the
+ * `NoInternalOutOfGas` gas estimation mode, reported when an internal call
+ * runs out of gas even when the transaction is executed with the maximum
+ * amount of gas available.
+ */
+export function isInternalCallOutOfGasErrorData(errorData: unknown): boolean {
+  return isObject(errorData) && errorData.reason === "InternalCallOutOfGas";
 }
 
 /**

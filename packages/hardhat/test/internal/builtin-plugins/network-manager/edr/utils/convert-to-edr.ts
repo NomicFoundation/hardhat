@@ -1,12 +1,8 @@
-import type { EdrNetworkConfig } from "../../../../../../src/types/config.js";
-import type { RequireField } from "../../../../../../src/types/utils.js";
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { AMSTERDAM, GasEstimationMode, SpecId } from "@nomicfoundation/edr";
 
-import { DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   getCurrentHardfork,
   L1HardforkName,
@@ -17,7 +13,6 @@ import {
   hardhatGasEstimationModeToEdrGasEstimationMode,
   hardhatHardforkToEdrSpecId,
   resolveDefaultTransactionGasLimit,
-  resolveEdrDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
 import {
   L1_CHAIN_TYPE,
@@ -51,18 +46,6 @@ describe("resolveDefaultTransactionGasLimit", () => {
             transactionGasCap: undefined,
           }),
           EIP_7825_CAP,
-        );
-      });
-
-      it("caps the EIP-7825 default to the block gas limit on Osaka when it is lower", () => {
-        assert.equal(
-          resolveDefaultTransactionGasLimit({
-            chainType: L1_CHAIN_TYPE,
-            hardfork: L1HardforkName.OSAKA,
-            blockGasLimit: 5_000_000n,
-            transactionGasCap: undefined,
-          }),
-          5_000_000n,
         );
       });
 
@@ -133,18 +116,6 @@ describe("resolveDefaultTransactionGasLimit", () => {
         USER_TX_GAS_CAP,
       );
     });
-
-    it("caps the user-set cap to the block gas limit when it is higher", () => {
-      assert.equal(
-        resolveDefaultTransactionGasLimit({
-          chainType: L1_CHAIN_TYPE,
-          hardfork: L1HardforkName.OSAKA,
-          blockGasLimit: 30_000_000n,
-          transactionGasCap: 40_000_000n,
-        }),
-        30_000_000n,
-      );
-    });
   });
 
   describe("when transactionGasCap is false", () => {
@@ -171,96 +142,6 @@ describe("resolveDefaultTransactionGasLimit", () => {
         ARBITRARY_BLOCK_GAS_LIMIT,
       );
     });
-  });
-});
-
-describe("resolveEdrDefaultTransactionGasLimit", () => {
-  function makeNetworkConfigStub(
-    overrides: Partial<EdrNetworkConfig> = {},
-  ): RequireField<EdrNetworkConfig, "chainType"> {
-    return {
-      type: "edr-simulated",
-      accounts: [],
-      chainId: 31337,
-      chainType: "l1",
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      allowBlocksWithSameTimestamp: false,
-      coinbase: new Uint8Array(20),
-      gasEstimationMode: "topLevelSuccess",
-      hardfork: L1HardforkName.PRAGUE,
-      initialDate: new Date(),
-      loggingEnabled: false,
-      minGasPrice: 0n,
-      mining: { auto: true, interval: 0, mempool: { order: "priority" } },
-      networkId: 31337,
-      throwOnCallFailures: true,
-      throwOnTransactionFailures: true,
-      ...overrides,
-    };
-  }
-
-  it("uses the configured block gas limit when it is a bigint", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(
-        makeNetworkConfigStub({ blockGasLimit: 42_000_000n }),
-      ),
-      42_000_000n,
-    );
-  });
-
-  it("uses the default block gas limit when blockGasLimit is not set", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(makeNetworkConfigStub()),
-      DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT,
-    );
-  });
-
-  it("uses the default block gas limit when blockGasLimit is false", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(
-        makeNetworkConfigStub({ blockGasLimit: false }),
-      ),
-      DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT,
-    );
-  });
-
-  it("applies the hardfork-specific default on Osaka", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(
-        makeNetworkConfigStub({
-          blockGasLimit: 42_000_000n,
-          hardfork: L1HardforkName.OSAKA,
-        }),
-      ),
-      16_777_216n,
-    );
-  });
-
-  it("caps the hardfork-specific default to the block gas limit on Osaka when it is lower", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(
-        makeNetworkConfigStub({
-          blockGasLimit: 5_000_000n,
-          hardfork: L1HardforkName.OSAKA,
-        }),
-      ),
-      5_000_000n,
-    );
-  });
-
-  it("applies the transactionGasCap when it is set", () => {
-    assert.equal(
-      resolveEdrDefaultTransactionGasLimit(
-        makeNetworkConfigStub({
-          blockGasLimit: 42_000_000n,
-          hardfork: L1HardforkName.OSAKA,
-          transactionGasCap: 1_000_000n,
-        }),
-      ),
-      1_000_000n,
-    );
   });
 });
 

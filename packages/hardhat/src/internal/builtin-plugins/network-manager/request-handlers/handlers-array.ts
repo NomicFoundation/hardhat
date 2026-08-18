@@ -3,7 +3,6 @@ import type {
   ChainType,
   NetworkConnection,
 } from "../../../../types/network.js";
-import type { EthereumProvider } from "../../../../types/providers.js";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -72,9 +71,11 @@ export async function createHandlersArray<
     // default. Providers that don't expose it (e.g. HTTP connections) get no
     // fallback here and the handler applies its own default.
     const provider = networkConnection.provider;
-    const fallbackGas = hasDefaultTransactionGasLimit(provider)
-      ? provider.defaultTransactionGasLimit
-      : undefined;
+    const fallbackGas =
+      "defaultTransactionGasLimit" in provider &&
+      typeof provider.defaultTransactionGasLimit === "bigint"
+        ? provider.defaultTransactionGasLimit
+        : undefined;
 
     requestHandlers.push(
       new AutomaticGasHandler(
@@ -124,21 +125,4 @@ export async function createHandlersArray<
   }
 
   return requestHandlers;
-}
-
-/**
- * A provider that exposes the default transaction gas limit it applies to
- * requests that omit a `gas` field (e.g. `EdrProvider`).
- */
-interface ProviderWithDefaultTransactionGasLimit extends EthereumProvider {
-  readonly defaultTransactionGasLimit: bigint;
-}
-
-function hasDefaultTransactionGasLimit(
-  provider: EthereumProvider,
-): provider is ProviderWithDefaultTransactionGasLimit {
-  return (
-    "defaultTransactionGasLimit" in provider &&
-    typeof provider.defaultTransactionGasLimit === "bigint"
-  );
 }

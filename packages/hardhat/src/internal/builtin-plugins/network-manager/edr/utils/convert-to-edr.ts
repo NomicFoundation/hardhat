@@ -9,7 +9,6 @@ import type {
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
-import type { RequireField } from "../../../../../types/utils.js";
 import type { GasMeasurement } from "../../../gas-analytics/types.js";
 import type {
   IntervalRange,
@@ -53,7 +52,6 @@ import {
   HOLOCENE,
   ISTHMUS,
 } from "@nomicfoundation/edr";
-import { min } from "@nomicfoundation/hardhat-utils/bigint";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -64,7 +62,6 @@ import { FixedValueConfigurationVariable } from "../../../../core/configuration-
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
-  DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   EIP_7825_TRANSACTION_GAS_CAP,
   isDefaultEdrNetworkHDAccountsConfig,
@@ -412,12 +409,11 @@ export async function hardhatForkingConfigToEdrForkConfig(
  * Resolves the default transaction gas limit used by RPC call and
  * transaction requests that omit a `gas` field.
  *
- * When `transactionGasCap` is a bigint, that value wins, capped to the
- * block gas limit. When it is `false`, the per-transaction cap is disabled
- * and the block gas limit is used. When it is undefined, the
- * hardfork-specific default applies: from L1's Osaka hardfork onwards, the
- * EIP-7825 transaction gas cap of 16,777,216, capped to the block gas
- * limit; otherwise the block gas limit.
+ * When `transactionGasCap` is a bigint, that value wins. When it is
+ * `false`, the per-transaction cap is disabled and the block gas limit is
+ * used. When it is undefined, the hardfork-specific default applies:
+ * from L1's Osaka hardfork onwards, the EIP-7825 transaction gas cap of
+ * 16,777,216; otherwise the block gas limit.
  */
 export function resolveDefaultTransactionGasLimit(params: {
   chainType: ChainType;
@@ -428,9 +424,7 @@ export function resolveDefaultTransactionGasLimit(params: {
   const { chainType, hardfork, blockGasLimit, transactionGasCap } = params;
 
   if (typeof transactionGasCap === "bigint") {
-    // A transaction with a gas limit above the block gas limit can never be
-    // mined, so the block gas limit wins when it is lower
-    return min(transactionGasCap, blockGasLimit);
+    return transactionGasCap;
   }
 
   if (transactionGasCap === false) {
@@ -443,34 +437,10 @@ export function resolveDefaultTransactionGasLimit(params: {
   }
 
   if (hardforkGte(hardfork, L1HardforkName.OSAKA, chainType)) {
-    // EIP-7825 transaction gas cap; a transaction with a gas limit above the
-    // block gas limit can never be mined, so the block gas limit wins when
-    // it is lower
-    return min(blockGasLimit, EIP_7825_TRANSACTION_GAS_CAP);
+    return EIP_7825_TRANSACTION_GAS_CAP;
   }
 
   return blockGasLimit;
-}
-
-/**
- * Resolves the default transaction gas limit for a resolved EDR network
- * config, applying the same genesis block gas limit fallback that the EDR
- * provider itself is configured with.
- */
-export function resolveEdrDefaultTransactionGasLimit(
-  networkConfig: RequireField<EdrNetworkConfig, "chainType">,
-): bigint {
-  const blockGasLimit =
-    typeof networkConfig.blockGasLimit === "bigint"
-      ? networkConfig.blockGasLimit
-      : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
-
-  return resolveDefaultTransactionGasLimit({
-    chainType: networkConfig.chainType,
-    hardfork: networkConfig.hardfork,
-    blockGasLimit,
-    transactionGasCap: networkConfig.transactionGasCap,
-  });
 }
 
 /**

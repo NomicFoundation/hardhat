@@ -65,16 +65,17 @@ export abstract class MultipliedGasEstimation {
 
       // The user didn't request the estimation, so instead of failing the
       // transaction we fall back to the default transaction gas limit that
-      // the network would use for requests without a gas field.
-      //
-      // When no fallback was configured (e.g. an http connection to a
-      // `hardhat node` server), the EIP-7825 transaction gas cap is used
-      // instead: it is a valid gas limit on every hardfork.
+      // the network would use for requests without a gas field. When no
+      // fallback was configured (e.g. an http connection to a `hardhat node`
+      // server), the EIP-7825 transaction gas cap is used instead: it is a
+      // valid gas limit on every hardfork.
       //
       // The block gas limit is fetched fresh, not from the cache, because it
       // may have changed since the connection was created (e.g. via
-      // evm_setBlockGasLimit) and a transaction with a gas limit above the
-      // block gas limit can never be mined.
+      // evm_setBlockGasLimit). A network with it disabled still reports one
+      // in its headers, so the cap applies there too: that only lowers the
+      // fallback, which stays mineable, whereas skipping the cap on a network
+      // that does enforce a limit would get the transaction rejected.
       if (isInternalCallOutOfGasError(error)) {
         const fallbackGas = this.#fallbackGas ?? EIP_7825_TRANSACTION_GAS_CAP;
         const blockGasLimit = BigInt(await this.#fetchLatestBlockGasLimit());

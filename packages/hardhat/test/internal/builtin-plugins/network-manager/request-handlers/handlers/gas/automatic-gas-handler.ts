@@ -4,6 +4,7 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
+import { EIP_7825_TRANSACTION_GAS_CAP } from "../../../../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   getJsonRpcRequest,
   getRequestParams,
@@ -19,6 +20,16 @@ import {
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("AutomaticGasHandler", () => {
+  function txRequest(id: number = 1) {
+    return getJsonRpcRequest(id, "eth_sendTransaction", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1,
+      },
+    ]);
+  }
+
   let automaticGasHandler: AutomaticGasHandler;
   let mockedProvider: EthereumMockedProvider;
 
@@ -44,13 +55,7 @@ describe("AutomaticGasHandler", () => {
   });
 
   it("should estimate gas automatically if not present", async () => {
-    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-      {
-        from: "0x0000000000000000000000000000000000000011",
-        to: "0x0000000000000000000000000000000000000011",
-        value: 1,
-      },
-    ]);
+    const jsonRpcRequest = txRequest();
 
     await automaticGasHandler.handle(jsonRpcRequest);
     const [tx] = getRequestParams(jsonRpcRequest);
@@ -65,13 +70,7 @@ describe("AutomaticGasHandler", () => {
   it("should support different gas multipliers", async () => {
     const GAS_MULTIPLIER2 = 123;
 
-    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-      {
-        from: "0x0000000000000000000000000000000000000011",
-        to: "0x0000000000000000000000000000000000000011",
-        value: 1,
-      },
-    ]);
+    const jsonRpcRequest = txRequest();
 
     automaticGasHandler = new AutomaticGasHandler(
       mockedProvider,
@@ -89,13 +88,7 @@ describe("AutomaticGasHandler", () => {
   });
 
   it("should have a default multiplier", async () => {
-    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-      {
-        from: "0x0000000000000000000000000000000000000011",
-        to: "0x0000000000000000000000000000000000000011",
-        value: 1,
-      },
-    ]);
+    const jsonRpcRequest = txRequest();
 
     automaticGasHandler = new AutomaticGasHandler(mockedProvider);
 
@@ -146,7 +139,6 @@ describe("AutomaticGasHandler", () => {
     // Distinct from the EIP-7825 cap, so these tests can tell a configured
     // fallback apart from the no-fallback default
     const FALLBACK_GAS = 5_000_000n;
-    const EIP_7825_CAP = 16_777_216n;
     const BLOCK_GAS_LIMIT = 60_000_000;
 
     beforeEach(() => {
@@ -161,13 +153,7 @@ describe("AutomaticGasHandler", () => {
     });
 
     it("should use the fallback gas, without applying the multiplier", async () => {
-      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ]);
+      const jsonRpcRequest = txRequest();
 
       automaticGasHandler = new AutomaticGasHandler(
         mockedProvider,
@@ -189,13 +175,7 @@ describe("AutomaticGasHandler", () => {
         gasLimit: numberToHexString(LOW_BLOCK_GAS_LIMIT),
       });
 
-      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ]);
+      const jsonRpcRequest = txRequest();
 
       automaticGasHandler = new AutomaticGasHandler(
         mockedProvider,
@@ -222,15 +202,7 @@ describe("AutomaticGasHandler", () => {
         "eth_estimateGas",
         numberToHexString(FIXED_GAS_LIMIT),
       );
-      await automaticGasHandler.handle(
-        getJsonRpcRequest(1, "eth_sendTransaction", [
-          {
-            from: "0x0000000000000000000000000000000000000011",
-            to: "0x0000000000000000000000000000000000000011",
-            value: 1,
-          },
-        ]),
-      );
+      await automaticGasHandler.handle(txRequest());
 
       // Lower the block gas limit (e.g. evm_setBlockGasLimit) and make the
       // estimation fail: the cap must use the current limit, not the cache
@@ -242,13 +214,7 @@ describe("AutomaticGasHandler", () => {
         throw new InternalCallOutOfGasError();
       });
 
-      const jsonRpcRequest = getJsonRpcRequest(2, "eth_sendTransaction", [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ]);
+      const jsonRpcRequest = txRequest(2);
 
       await automaticGasHandler.handle(jsonRpcRequest);
       const [tx] = getRequestParams(jsonRpcRequest);
@@ -260,19 +226,13 @@ describe("AutomaticGasHandler", () => {
     it("should fall back to the EIP-7825 transaction gas cap if no fallback gas was provided", async () => {
       // e.g. an http connection, where the network's default transaction gas
       // limit is unknown
-      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ]);
+      const jsonRpcRequest = txRequest();
 
       await automaticGasHandler.handle(jsonRpcRequest);
       const [tx] = getRequestParams(jsonRpcRequest);
 
       assert.ok(isObject(tx), "tx is not an object");
-      assert.equal(tx.gas, numberToHexString(EIP_7825_CAP));
+      assert.equal(tx.gas, numberToHexString(EIP_7825_TRANSACTION_GAS_CAP));
     });
 
     it("should detect the error by its data reason, as received over JSON-RPC", async () => {
@@ -287,19 +247,13 @@ describe("AutomaticGasHandler", () => {
         throw error;
       });
 
-      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ]);
+      const jsonRpcRequest = txRequest();
 
       await automaticGasHandler.handle(jsonRpcRequest);
       const [tx] = getRequestParams(jsonRpcRequest);
 
       assert.ok(isObject(tx), "tx is not an object");
-      assert.equal(tx.gas, numberToHexString(EIP_7825_CAP));
+      assert.equal(tx.gas, numberToHexString(EIP_7825_TRANSACTION_GAS_CAP));
     });
   });
 
@@ -308,18 +262,13 @@ describe("AutomaticGasHandler", () => {
       throw new Error("there was an execution error");
     });
 
-    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-      {
-        from: "0x0000000000000000000000000000000000000011",
-        to: "0x0000000000000000000000000000000000000011",
-        value: 1,
-      },
-    ]);
+    const jsonRpcRequest = txRequest();
 
     automaticGasHandler = new AutomaticGasHandler(
       mockedProvider,
       GAS_MULTIPLIER,
-      16_777_216n,
+      // Not used: an ordinary execution error must still get the block gas limit
+      5_000_000n,
     );
 
     await automaticGasHandler.handle(jsonRpcRequest);

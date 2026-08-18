@@ -41,6 +41,7 @@ import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 import {
   InternalCallOutOfGasError,
+  isInternalCallOutOfGasErrorData,
   InvalidArgumentsError,
   ProviderError,
   UnknownError,
@@ -50,10 +51,7 @@ import { DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT } from "./edr-constants.js";
 import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
-import {
-  isEdrProviderErrorData,
-  isInternalCallOutOfGasErrorData,
-} from "./type-validation.js";
+import { isEdrProviderErrorData } from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -62,7 +60,7 @@ import {
   hardhatHardforkToEdrSpecId,
   hardhatForkingConfigToEdrForkConfig,
   hardhatGasEstimationModeToEdrGasEstimationMode,
-  resolveEdrDefaultTransactionGasLimit,
+  resolveDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
 import { warnIfExperimentalHardfork } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -85,12 +83,9 @@ interface EdrProviderConfig {
 
 export class EdrProvider extends BaseProvider {
   /**
-   * The default transaction gas limit that the underlying EDR provider was
-   * configured with, used for RPC call and transaction requests that omit a
-   * `gas` field.
-   *
-   * Exposed so that other components (e.g. the automatic gas handler's
-   * estimation fallback) can reuse the exact value the provider applies,
+   * The value the underlying EDR provider was configured with, applied to
+   * RPC call and transaction requests that omit a `gas` field. Exposed so
+   * that the automatic gas handler's estimation fallback can reuse it
    * instead of recomputing it.
    */
   public readonly defaultTransactionGasLimit: bigint;
@@ -346,8 +341,13 @@ export class EdrProvider extends BaseProvider {
 
       // The InternalCallOutOfGas estimation failure must win over a solidity
       // stack trace: the automatic gas fallback in MultipliedGasEstimation
-      // relies on receiving an InternalCallOutOfGasError.
-      if (isInternalCallOutOfGasErrorData(errorData)) {
+      // relies on receiving an InternalCallOutOfGasError. It is scoped to
+      // eth_estimateGas, the only method the gas estimation mode affects, so
+      // that no other method loses its stack trace to this branch.
+      if (
+        method === "eth_estimateGas" &&
+        isInternalCallOutOfGasErrorData(errorData)
+      ) {
         error = new InternalCallOutOfGasError();
         error.data = responseError.data;
       } else if (stackTrace?.kind === "StackTrace") {
@@ -516,8 +516,12 @@ export async function getProviderConfig(
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
-  const defaultTransactionGasLimit =
-    resolveEdrDefaultTransactionGasLimit(networkConfig);
+  const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
+    chainType: networkConfig.chainType,
+    hardfork: networkConfig.hardfork,
+    blockGasLimit: genesisBlockGasLimit,
+    transactionGasCap: networkConfig.transactionGasCap,
+  });
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
