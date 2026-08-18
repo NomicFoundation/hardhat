@@ -77,6 +77,11 @@ describe("argumentTypes", () => {
       assert.equal(types.int.parse("arg", "0xA"), 0xa);
       assert.equal(types.int.parse("arg", "0xa"), 0xa);
       assert.equal(types.int.parse("arg", "0x0a"), 0x0a);
+      assert.equal(types.int.parse("arg", "0xF"), 0xf);
+      assert.equal(types.int.parse("arg", "0xf"), 0xf);
+      assert.equal(types.int.parse("arg", "0xff"), 0xff);
+      assert.equal(types.int.parse("arg", "0xdeadbeef"), 0xdeadbeef);
+      assert.equal(types.int.parse("arg", "0xABCDEF"), 0xabcdef);
     });
 
     it("should work with decimal scientific notation", () => {
@@ -124,6 +129,10 @@ describe("argumentTypes", () => {
         () => types.int.parse("arg", "x123"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
+      expectHardhatError(
+        () => types.int.parse("arg", "0xg"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
     });
   });
 
@@ -145,6 +154,11 @@ describe("argumentTypes", () => {
       assert.equal(types.bigint.parse("arg", "0xA"), BigInt(0xa));
       assert.equal(types.bigint.parse("arg", "0xa"), BigInt(0xa));
       assert.equal(types.bigint.parse("arg", "0x0a"), BigInt(0x0a));
+      assert.equal(types.bigint.parse("arg", "0xF"), BigInt(0xf));
+      assert.equal(types.bigint.parse("arg", "0xf"), BigInt(0xf));
+      assert.equal(types.bigint.parse("arg", "0xff"), BigInt(0xff));
+      assert.equal(types.bigint.parse("arg", "0xdeadbeef"), BigInt(0xdeadbeef));
+      assert.equal(types.bigint.parse("arg", "0xABCDEF"), BigInt(0xabcdef));
       assert.equal(
         types.bigint.parse("arg", "0x20000000000000"),
         BigInt("0x20000000000000")
@@ -193,6 +207,10 @@ describe("argumentTypes", () => {
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectHardhatError(
+        () => types.bigint.parse("arg", "0xg"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
         () => types.bigint.parse("arg", "1e0"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
@@ -224,6 +242,11 @@ describe("argumentTypes", () => {
       assert.equal(types.float.parse("arg", "0xA"), 0xa);
       assert.equal(types.float.parse("arg", "0xa"), 0xa);
       assert.equal(types.float.parse("arg", "0x0a"), 0x0a);
+      assert.equal(types.float.parse("arg", "0xF"), 0xf);
+      assert.equal(types.float.parse("arg", "0xf"), 0xf);
+      assert.equal(types.float.parse("arg", "0xff"), 0xff);
+      assert.equal(types.float.parse("arg", "0xdeadbeef"), 0xdeadbeef);
+      assert.equal(types.float.parse("arg", "0xABCDEF"), 0xabcdef);
     });
 
     it("should work with decimal scientific notation", () => {
@@ -280,6 +303,10 @@ describe("argumentTypes", () => {
       );
       expectHardhatError(
         () => types.float.parse("arg", "x123"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.float.parse("arg", "0xg"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
     });
