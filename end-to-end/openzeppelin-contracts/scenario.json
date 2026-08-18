@@ -1,9 +1,9 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "OpenZeppelin's Hardhat 3 migration branch (PR #6542) including their Mocha test suite.",
+  "description": "OpenZeppelin's Hardhat 3 migration (PR #6542, merged) including their Mocha test suite.",
   "tags": ["external-repo", "mocha"],
   "repo": "OpenZeppelin/openzeppelin-contracts",
-  "commit": "b12a51e14e0dd8232d4a8d6756a70e90a7387fea",
+  "commit": "cebdf7bf38f6bd8c3bd83beb1395bd069e3c04c9",
   "packageManager": "npm",
   "submodules": true,
   "preinstall": "./preinstall.sh",
