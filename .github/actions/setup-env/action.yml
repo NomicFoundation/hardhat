@@ -26,7 +26,7 @@ runs:
       with:
         version: ${{ inputs.pnpm-version }}
     - id: setup-node
-      uses: actions/setup-node@v7
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
@@ -36,7 +36,7 @@ runs:
       if: inputs.cache-save == 'false'
       run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
       shell: bash
-    - uses: actions/cache/restore@v6
+    - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       id: cache-restore
       if: inputs.cache-save == 'false'
       with:
