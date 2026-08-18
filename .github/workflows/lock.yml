@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/lock-threads@b2726a6ae6f1e1b06eb0ff28f7e4fb5e4246bbca # v6.0.2
+      - uses: dessant/lock-threads@89ae32b08ed1a541efecbab17912962a5e38981c # v6.0.2
         with:
           issue-inactive-days: "90"
           pr-inactive-days: "90"
