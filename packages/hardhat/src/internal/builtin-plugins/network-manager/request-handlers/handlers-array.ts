@@ -69,7 +69,8 @@ export async function createHandlersArray<
     // without a gas field. The EdrProvider exposes the exact value it was
     // configured with, so the fallback always matches the provider's actual
     // default. Providers that don't expose it (e.g. HTTP connections) get no
-    // fallback here and the handler applies its own default.
+    // fallback, and the handler surfaces the estimation error instead of
+    // guessing a limit that may not suit the remote network.
     const provider = networkConnection.provider;
     const fallbackGas =
       "defaultTransactionGasLimit" in provider &&

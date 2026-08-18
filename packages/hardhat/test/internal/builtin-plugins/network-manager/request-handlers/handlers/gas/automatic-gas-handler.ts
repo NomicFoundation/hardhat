@@ -1,22 +1,24 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { EIP_7825_TRANSACTION_GAS_CAP } from "../../../../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   getJsonRpcRequest,
   getRequestParams,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import {
   InternalCallOutOfGasError,
+  isInternalCallOutOfGasErrorData,
   ProviderError,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {
   AutomaticGasHandler,
   DEFAULT_GAS_MULTIPLIER,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/gas/automatic-gas-handler.js";
+import { BLOCK_GAS_LIMIT_SAFETY_FACTOR } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/gas/multiplied-gas-estimation.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("AutomaticGasHandler", () => {
@@ -136,8 +138,8 @@ describe("AutomaticGasHandler", () => {
   });
 
   describe("when the estimation fails with an internal out-of-gas error", () => {
-    // Distinct from the EIP-7825 cap, so these tests can tell a configured
-    // fallback apart from the no-fallback default
+    // Below the block gas limit, so the cap doesn't interfere unless a test
+    // lowers that limit on purpose
     const FALLBACK_GAS = 5_000_000n;
     const BLOCK_GAS_LIMIT = 60_000_000;
 
@@ -223,37 +225,44 @@ describe("AutomaticGasHandler", () => {
       assert.equal(tx.gas, numberToHexString(LOW_BLOCK_GAS_LIMIT));
     });
 
-    it("should fall back to the EIP-7825 transaction gas cap if no fallback gas was provided", async () => {
+    it("should rethrow if no fallback gas was provided", async () => {
       // e.g. an http connection, where the network's default transaction gas
-      // limit is unknown
+      // limit is unknown. Guessing one risks a limit that doesn't suit the
+      // remote network, so the estimation error reaches the user instead: it
+      // names both an explicit gas limit and the topLevelSuccess mode.
       const jsonRpcRequest = txRequest();
 
-      await automaticGasHandler.handle(jsonRpcRequest);
-      const [tx] = getRequestParams(jsonRpcRequest);
-
-      assert.ok(isObject(tx), "tx is not an object");
-      assert.equal(tx.gas, numberToHexString(EIP_7825_TRANSACTION_GAS_CAP));
+      await assertRejects(
+        automaticGasHandler.handle(jsonRpcRequest),
+        (error) => error instanceof InternalCallOutOfGasError,
+        "The estimation error should reach the caller",
+      );
     });
 
-    it("should detect the error by its data reason, as received over JSON-RPC", async () => {
-      // An http connection to a `hardhat node` server receives a plain
-      // ProviderError whose data carries the reason discriminator
+    it("should rethrow the error received over JSON-RPC, which no fallback can accompany", async () => {
+      // What an http connection to a `hardhat node` server receives: the
+      // error class is lost to serialization, leaving a plain ProviderError
+      // whose data carries the reason discriminator. Such a connection never
+      // exposes a default transaction gas limit, so there is no fallback to
+      // apply and the error reaches the user.
       mockedProvider.setReturnValue("eth_estimateGas", () => {
-        const error = new ProviderError("gas estimation failed", -32000);
-        error.data = {
-          message: "gas estimation failed",
-          reason: "InternalCallOutOfGas",
-        };
+        const error = new ProviderError(
+          new InternalCallOutOfGasError().message,
+          InternalCallOutOfGasError.CODE,
+        );
+        error.data = { reason: "InternalCallOutOfGas" };
         throw error;
       });
 
       const jsonRpcRequest = txRequest();
 
-      await automaticGasHandler.handle(jsonRpcRequest);
-      const [tx] = getRequestParams(jsonRpcRequest);
-
-      assert.ok(isObject(tx), "tx is not an object");
-      assert.equal(tx.gas, numberToHexString(EIP_7825_TRANSACTION_GAS_CAP));
+      await assertRejects(
+        automaticGasHandler.handle(jsonRpcRequest),
+        (error) =>
+          ProviderError.isProviderError(error) &&
+          isInternalCallOutOfGasErrorData(error.data),
+        "The serialized estimation error should reach the caller",
+      );
     });
   });
 
@@ -277,7 +286,9 @@ describe("AutomaticGasHandler", () => {
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
       tx.gas,
-      numberToHexString(Math.floor(FIXED_GAS_LIMIT * 1000 * 0.95)),
+      numberToHexString(
+        Math.floor(FIXED_GAS_LIMIT * 1000 * BLOCK_GAS_LIMIT_SAFETY_FACTOR),
+      ),
     );
   });
 });

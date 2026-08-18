@@ -273,8 +273,8 @@ const _handleError = (error: Error): JsonRpcResponse => {
   // Revert errors (code 3): return raw hex to match the geth/anvil convention
   // that viem/ethers/web3.js rely on. Other errors keep the wrapper for diagnostics.
   // `reason` is the discriminator clients use to recognize specific failures
-  // (e.g. "InternalCallOutOfGas" enables the automatic gas fallback), so it
-  // must survive serialization.
+  // (e.g. "InternalCallOutOfGas") once the error class itself is lost to
+  // serialization, so it must survive it.
   const data: unknown = isRevertError
     ? returnData
     : { message: error.message, txHash, data: returnData, reason };

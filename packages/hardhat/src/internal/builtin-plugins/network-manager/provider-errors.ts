@@ -124,24 +124,10 @@ export class InternalCallOutOfGasError extends ProviderError {
  * `NoInternalOutOfGas` gas estimation mode, reported when an internal call
  * runs out of gas even when the transaction is executed with the maximum
  * amount of gas available.
+ *
+ * The `reason` discriminator it looks for is also what `hardhat node` puts on
+ * the wire, so clients of an http connection can recognize the failure.
  */
 export function isInternalCallOutOfGasErrorData(errorData: unknown): boolean {
   return isObject(errorData) && errorData.reason === "InternalCallOutOfGas";
-}
-
-/**
- * Detects an internal-call-out-of-gas estimation failure, whether it was
- * thrown in-process as an `InternalCallOutOfGasError` or received over
- * JSON-RPC (e.g. from a `hardhat node` server), where only the error data's
- * `reason` discriminator survives serialization.
- */
-export function isInternalCallOutOfGasError(error: Error): boolean {
-  if (error instanceof InternalCallOutOfGasError) {
-    return true;
-  }
-
-  return (
-    ProviderError.isProviderError(error) &&
-    isInternalCallOutOfGasErrorData(error.data)
-  );
 }

@@ -331,8 +331,8 @@ describe("edr-provider", () => {
       it("should fall back to the default transaction gas limit for transactions with automatic gas", async () => {
         // A pre-Osaka hardfork, where the default transaction gas limit is
         // the block gas limit. That makes it distinguishable from the
-        // EIP-7825 cap the handler falls back to when the provider doesn't
-        // expose one, so this test fails if the wiring is removed.
+        // EIP-7825 cap that the default hardfork would resolve to, so this
+        // test fails if the wiring is removed.
         const { provider, sender } = await connectWithAlwaysInternalOogContract(
           {
             hardfork: "prague",

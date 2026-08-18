@@ -8,15 +8,22 @@ import {
   numberToHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 
-import { EIP_7825_TRANSACTION_GAS_CAP } from "../../../edr/edr-constants.js";
-import { isInternalCallOutOfGasError } from "../../../provider-errors.js";
+import { InternalCallOutOfGasError } from "../../../provider-errors.js";
+
+/**
+ * The fraction of the observed block gas limit that gets cached and used as the
+ * gas limit ceiling. The cached value is deliberately lower than what the
+ * latest block reported, to leave room for the block gas limit varying
+ * slightly between blocks after we cached it.
+ */
+export const BLOCK_GAS_LIMIT_SAFETY_FACTOR = 0.95;
 
 /**
  * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.
  * It requests a gas estimation from the provider and multiplies it by a predefined gas multiplier, ensuring the gas does not exceed the block's gas limit.
- * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, capped to the current block gas limit.
+ * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, capped to the current block gas limit, or rethrows when no fallback gas limit is known.
  * If any other execution error occurs, the method returns the block's gas limit instead.
- * The block gas limit is cached after the first retrieval to optimize performance.
+ * The block gas limit is cached after the first retrieval to optimize performance, except when capping the fallback gas limit, which reads the current one.
  */
 export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
@@ -63,24 +70,28 @@ export abstract class MultipliedGasEstimation {
     } catch (error) {
       ensureError(error);
 
-      // The user didn't request the estimation, so instead of failing the
-      // transaction we fall back to the default transaction gas limit that
-      // the network would use for requests without a gas field. When no
-      // fallback was configured (e.g. an http connection to a `hardhat node`
-      // server), the EIP-7825 transaction gas cap is used instead: it is a
-      // valid gas limit on every hardfork.
+      // We fall back instead of failing the transaction, because the user
+      // never asked for this estimation. The fallback is the gas limit the
+      // network itself uses for requests with no gas field. Connections that
+      // don't expose it (e.g. an http connection to a `hardhat node` server)
+      // get no fallback, and the estimation error reaches the user instead of
+      // a guessed limit that may not suit the remote network: the error names
+      // both remedies, an explicit gas limit or the topLevelSuccess mode.
       //
-      // The block gas limit is fetched fresh, not from the cache, because it
-      // may have changed since the connection was created (e.g. via
-      // evm_setBlockGasLimit). A network with it disabled still reports one
-      // in its headers, so the cap applies there too: that only lowers the
-      // fallback, which stays mineable, whereas skipping the cap on a network
-      // that does enforce a limit would get the transaction rejected.
-      if (isInternalCallOutOfGasError(error)) {
-        const fallbackGas = this.#fallbackGas ?? EIP_7825_TRANSACTION_GAS_CAP;
+      // The block gas limit caps the fallback, re-fetched rather than read
+      // from the cache, as evm_setBlockGasLimit may have lowered it since (a
+      // change the latest block's header only reflects once a block is mined
+      // under it). It caps even on networks that don't enforce a limit, since
+      // their headers still report a value: that only lowers a still-mineable
+      // fallback, whereas skipping the cap where a limit is enforced would get
+      // the transaction rejected.
+      if (
+        error instanceof InternalCallOutOfGasError &&
+        this.#fallbackGas !== undefined
+      ) {
         const blockGasLimit = BigInt(await this.#fetchLatestBlockGasLimit());
 
-        return numberToHexString(min(fallbackGas, blockGasLimit));
+        return numberToHexString(min(this.#fallbackGas, blockGasLimit));
       }
 
       if (error.message.toLowerCase().includes("execution error")) {
@@ -97,7 +108,9 @@ export abstract class MultipliedGasEstimation {
       const fetchedGasLimit = await this.#fetchLatestBlockGasLimit();
 
       // We store a lower value in case the gas limit varies slightly
-      this.#blockGasLimit = Math.floor(fetchedGasLimit * 0.95);
+      this.#blockGasLimit = Math.floor(
+        fetchedGasLimit * BLOCK_GAS_LIMIT_SAFETY_FACTOR,
+      );
     }
 
     return this.#blockGasLimit;
