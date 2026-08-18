@@ -6,6 +6,8 @@ Not published to npm and not part of the package build; the scripts run with `ts
 
 ## Usage
 
+The full-corpus sweep can also run in CI: label a PR with `sourcify-sweep` (or dispatch `.github/workflows/sourcify-sweep.yml` manually) to compile the whole pinned corpus across 16 shards and get the outcome breakdown in the run summary. The corpus release asset is pinned (URL + sha256) in `corpus-pin.txt`; bump the pin to sweep a new corpus. Re-label after e.g. a solx version bump to re-run.
+
 ```bash
 # Smoke run over the committed fixtures (10 contracts, one per layout class):
 pnpm sourcify-sweep
