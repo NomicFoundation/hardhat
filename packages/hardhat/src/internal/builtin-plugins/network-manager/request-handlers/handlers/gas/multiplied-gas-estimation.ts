@@ -22,8 +22,8 @@ export const BLOCK_GAS_LIMIT_SAFETY_FACTOR = 0.95;
  * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.
  * It requests a gas estimation from the provider and multiplies it by a predefined gas multiplier, ensuring the gas does not exceed the block's gas limit.
  * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, capped to the current block gas limit, or rethrows when no fallback gas limit is known.
- * If any other execution error occurs, the method returns the block's gas limit instead.
- * The block gas limit is cached after the first retrieval to optimize performance, except when capping the fallback gas limit, which reads the current one.
+ * If any other error whose message contains "execution error" occurs, the method returns the capped block gas limit instead. Every other error is rethrown.
+ * The capped block gas limit is the latest block's gas limit scaled by `BLOCK_GAS_LIMIT_SAFETY_FACTOR`, cached after the first retrieval to optimize performance, except when capping the fallback gas limit, which reads the current, unscaled one.
  */
 export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
