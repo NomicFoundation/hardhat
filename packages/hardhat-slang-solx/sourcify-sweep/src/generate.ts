@@ -1,0 +1,229 @@
+import fs from "node:fs";
+import path from "node:path";
+
+/**
+ * A corpus contract: slang's Sourcify corpus format (format_version 1) plus a
+ * `settings` field carrying the contract's original solc compiler_settings.
+ * See sourcify-sweep/README.md for provenance.
+ */
+export interface CorpusContract {
+  name: string;
+  chain_id: number;
+  version: string;
+  target: string;
+  remappings: string[];
+  sources: Record<string, string>;
+  settings: {
+    evmVersion?: string;
+    libraries?: Record<string, Record<string, string>>;
+    optimizer?: unknown;
+    viaIR?: boolean;
+    metadata?: unknown;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Rewrites URL-style virtual paths (https://...) to plain paths, including
+ * every exact quoted occurrence in import statements. solc accepted them as
+ * standard-JSON source keys; Hardhat's resolver cannot represent them.
+ */
+function sanitizeUrls(sources: Record<string, string>): Record<string, string> {
+  const renames = new Map<string, string>();
+  for (const vpath of Object.keys(sources)) {
+    if (vpath.includes(":")) {
+      renames.set(vpath, vpath.replaceAll("://", "/").replaceAll(":", "_"));
+    }
+  }
+  if (renames.size === 0) {
+    return sources;
+  }
+  const out: Record<string, string> = {};
+  for (const [vpath, original] of Object.entries(sources)) {
+    let content = original;
+    for (const [oldPath, newPath] of renames) {
+      content = content
+        .replaceAll(`"${oldPath}"`, `"${newPath}"`)
+        .replaceAll(`'${oldPath}'`, `'${newPath}'`);
+    }
+    out[renames.get(vpath) ?? vpath] = content;
+  }
+  return out;
+}
+
+/** npm/<name>@<version>/<rest> -> [name, version, rest]; name may be scoped. */
+function splitNpmPath(vpath: string): [string, string, string] | undefined {
+  const match = vpath.match(/^npm\/((?:@[^/]+\/)?[^/@]+)@([^/]+)\/(.+)$/);
+  return match === null ? undefined : [match[1], match[2], match[3]];
+}
+
+function writeFileMkdirp(filePath: string, content: string): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
+}
+
+/**
+ * Generates a self-contained Hardhat project for one corpus contract.
+ *
+ * Layout rules (validated on a 100-contract stratified pilot; see README):
+ * - Contracts verified from a Hardhat 3 project (target under `project/`) are
+ *   reconstructed as real projects: `project/` at the source root,
+ *   `npm/<name>@<ver>/` and other vendored top-level trees as synthesized
+ *   node_modules packages, no remappings (Hardhat resolves natively).
+ * - Everything else: sources verbatim under `s/<virtual path>`, remappings =
+ *   the contract's own (re-rooted under `s/`) + an identity remapping
+ *   `P/=s/P/` per top-level prefix so direct imports of project files resolve.
+ * - The slangSolx profile receives evmVersion, libraries and viaIR (which
+ *   selects solx's Yul pipeline), but not the solc optimizer settings: those
+ *   don't map onto solx's LLVM -O modes, so the plugin default applies.
+ *
+ * `toolchain` is a directory containing a `hardhat` and a
+ * `@nomicfoundation/hardhat-slang-solx` entry (typically symlinks to the
+ * workspace packages) to merge into each fixture's node_modules.
+ */
+export function generateFixture(
+  contract: CorpusContract,
+  out: string,
+  toolchain: string,
+): void {
+  // Regenerate from scratch: a stale remappings.txt or node_modules from a
+  // previous layout mode corrupts the run.
+  fs.rmSync(out, { recursive: true, force: true });
+  fs.mkdirSync(out, { recursive: true });
+
+  const sources = sanitizeUrls(contract.sources);
+  const tops = new Set(
+    Object.keys(sources)
+      .filter((v) => v.includes("/"))
+      .map((v) => v.split("/", 1)[0]),
+  );
+  const hh3Native =
+    tops.has("project") && contract.target.startsWith("project/");
+
+  const srcRoot = path.join(out, "s");
+  const prefixes = new Set<string>();
+  const packages = new Map<string, string>();
+  for (const [vpath, content] of Object.entries(sources)) {
+    let filePath: string;
+    if (hh3Native) {
+      const npm = splitNpmPath(vpath);
+      if (npm !== undefined) {
+        const [name, version, rest] = npm;
+        filePath = path.join(out, "node_modules", name, rest);
+        packages.set(name, version);
+      } else if (vpath.startsWith("project/")) {
+        filePath = path.join(srcRoot, vpath.slice("project/".length));
+      } else {
+        // Other top-level trees (vendored libs imported by their dir name)
+        // become synthesized packages so npm resolution finds them.
+        filePath = path.join(out, "node_modules", vpath);
+        packages.set(vpath.split("/", 1)[0], "0.0.0");
+      }
+    } else {
+      filePath = path.join(srcRoot, vpath);
+      const slash = vpath.indexOf("/");
+      if (slash !== -1) {
+        prefixes.add(vpath.slice(0, slash));
+      }
+    }
+    writeFileMkdirp(filePath, content);
+  }
+
+  for (const [name, version] of packages) {
+    writeFileMkdirp(
+      path.join(out, "node_modules", name, "package.json"),
+      JSON.stringify({ name, version }),
+    );
+  }
+
+  if (!hh3Native) {
+    const remappings = [
+      // The contract's own remappings point at virtual paths; re-root the
+      // targets under s/.
+      ...contract.remappings.map((r) => {
+        const equal = r.indexOf("=");
+        return equal === -1 || r.slice(equal + 1).startsWith("s/")
+          ? r
+          : `${r.slice(0, equal)}=s/${r.slice(equal + 1)}`;
+      }),
+      ...[...prefixes].sort().map((p) => `${p}/=s/${p}/`),
+    ];
+    if (remappings.length > 0) {
+      fs.writeFileSync(
+        path.join(out, "remappings.txt"),
+        remappings.join("\n") + "\n",
+      );
+    }
+  }
+
+  const solxSettings: Record<string, unknown> = {};
+  const solcSettings: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(contract.settings)) {
+    // viaIR selects solx's Yul pipeline; contracts compiled via-IR can rely
+    // on IR-only features (e.g. copying struct arrays to storage), so it must
+    // be passed through.
+    if (key === "evmVersion" || key === "libraries" || key === "viaIR") {
+      solxSettings[key] = value;
+    }
+    if (
+      ["evmVersion", "libraries", "optimizer", "viaIR", "metadata"].includes(
+        key,
+      )
+    ) {
+      solcSettings[key] = value;
+    }
+  }
+
+  fs.writeFileSync(
+    path.join(out, "package.json"),
+    JSON.stringify({
+      name: "sourcify-sweep-fixture",
+      private: true,
+      type: "module",
+    }),
+  );
+  fs.writeFileSync(
+    path.join(out, "hardhat.config.js"),
+    `import { defineConfig } from "hardhat/config";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
+
+export default defineConfig({
+  plugins: [hardhatSlangSolx],
+  paths: { sources: ["s"] },
+  solidity: {
+    profiles: {
+      default: {
+        compilers: [{ version: ${JSON.stringify(contract.version)}, settings: ${JSON.stringify(solcSettings)} }],
+      },
+      slangSolx: {
+        compilers: [{ type: "slangSolx", version: ${JSON.stringify(contract.version)}, settings: ${JSON.stringify(solxSettings)} }],
+      },
+    },
+  },
+});
+`,
+  );
+
+  const nodeModules = path.join(out, "node_modules");
+  if (packages.size > 0) {
+    // Real node_modules holding the synthesized packages; merge the toolchain
+    // in via per-entry symlinks (two levels for scopes, which may collide
+    // with synthesized scoped packages).
+    for (const entry of fs.readdirSync(toolchain)) {
+      const src = path.join(toolchain, entry);
+      const dest = path.join(nodeModules, entry);
+      if (!fs.existsSync(dest)) {
+        fs.symlinkSync(src, dest);
+      } else if (fs.statSync(src).isDirectory()) {
+        for (const sub of fs.readdirSync(src)) {
+          const subDest = path.join(dest, sub);
+          if (!fs.existsSync(subDest)) {
+            fs.symlinkSync(path.join(src, sub), subDest);
+          }
+        }
+      }
+    }
+  } else {
+    fs.symlinkSync(toolchain, nodeModules);
+  }
+}
