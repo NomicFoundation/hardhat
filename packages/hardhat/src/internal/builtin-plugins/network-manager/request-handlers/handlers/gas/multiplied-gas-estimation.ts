@@ -78,18 +78,20 @@ export abstract class MultipliedGasEstimation {
       // a guessed limit that may not suit the remote network: the error names
       // both remedies, an explicit gas limit or the topLevelSuccess mode.
       //
-      // The block gas limit caps the fallback, re-fetched rather than read
-      // from the cache, as evm_setBlockGasLimit may have lowered it since (a
-      // change the latest block's header only reflects once a block is mined
-      // under it). It caps even on networks that don't enforce a limit, since
-      // their headers still report a value: that only lowers a still-mineable
-      // fallback, whereas skipping the cap where a limit is enforced would get
-      // the transaction rejected.
+      // The block gas limit caps the fallback, read from the pending block
+      // rather than from the cache, as evm_setBlockGasLimit may have lowered
+      // it since. The latest block's header only reflects such a change once a
+      // block has been mined under the new limit, whereas the pending block
+      // already does, so reading it is what keeps the fallback mineable. It
+      // caps even on networks that don't enforce a limit, since their headers
+      // still report a value: that only lowers a still-mineable fallback,
+      // whereas skipping the cap where a limit is enforced would get the
+      // transaction rejected.
       if (
         error instanceof InternalCallOutOfGasError &&
         this.#fallbackGas !== undefined
       ) {
-        const blockGasLimit = BigInt(await this.#fetchLatestBlockGasLimit());
+        const blockGasLimit = BigInt(await this.#fetchBlockGasLimit("pending"));
 
         return numberToHexString(min(this.#fallbackGas, blockGasLimit));
       }
@@ -105,7 +107,7 @@ export abstract class MultipliedGasEstimation {
 
   async #getBlockGasLimit(): Promise<number> {
     if (this.#blockGasLimit === undefined) {
-      const fetchedGasLimit = await this.#fetchLatestBlockGasLimit();
+      const fetchedGasLimit = await this.#fetchBlockGasLimit("latest");
 
       // We store a lower value in case the gas limit varies slightly
       this.#blockGasLimit = Math.floor(
@@ -116,20 +118,20 @@ export abstract class MultipliedGasEstimation {
     return this.#blockGasLimit;
   }
 
-  async #fetchLatestBlockGasLimit(): Promise<number> {
-    const latestBlock = await this.#provider.request({
+  async #fetchBlockGasLimit(blockTag: "latest" | "pending"): Promise<number> {
+    const block = await this.#provider.request({
       method: "eth_getBlockByNumber",
-      params: ["latest", false],
+      params: [blockTag, false],
     });
 
     assertHardhatInvariant(
-      typeof latestBlock === "object" &&
-        latestBlock !== null &&
-        "gasLimit" in latestBlock &&
-        typeof latestBlock.gasLimit === "string",
-      "latestBlock should have a gasLimit",
+      typeof block === "object" &&
+        block !== null &&
+        "gasLimit" in block &&
+        typeof block.gasLimit === "string",
+      `the ${blockTag} block should have a gasLimit`,
     );
 
-    return hexStringToNumber(latestBlock.gasLimit);
+    return hexStringToNumber(block.gasLimit);
   }
 }

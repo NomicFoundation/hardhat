@@ -199,6 +199,41 @@ describe("AutomaticGasHandler", () => {
       assert.equal(tx.gas, numberToHexString(LOW_BLOCK_GAS_LIMIT));
     });
 
+    it("should read the pending block's gas limit, which reflects evm_setBlockGasLimit right away", async () => {
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        FALLBACK_GAS,
+      );
+
+      // A successful estimation reads the latest block, to cap the multiplied
+      // estimation
+      mockedProvider.setReturnValue(
+        "eth_estimateGas",
+        numberToHexString(FIXED_GAS_LIMIT),
+      );
+      await automaticGasHandler.handle(txRequest());
+
+      assert.deepEqual(mockedProvider.getLatestParams("eth_getBlockByNumber"), [
+        "latest",
+        false,
+      ]);
+
+      // The fallback instead reads the pending block: after
+      // evm_setBlockGasLimit, the latest block's header still reports the old
+      // limit until a block is mined under the new one, so capping with it
+      // would leave the transaction unmineable
+      mockedProvider.setReturnValue("eth_estimateGas", () => {
+        throw new InternalCallOutOfGasError();
+      });
+      await automaticGasHandler.handle(txRequest(2));
+
+      assert.deepEqual(mockedProvider.getLatestParams("eth_getBlockByNumber"), [
+        "pending",
+        false,
+      ]);
+    });
+
     it("should rethrow if no fallback gas was provided", async () => {
       // e.g. an http connection, where the network's default transaction gas
       // limit is unknown (and serialization reduces the error to a plain
