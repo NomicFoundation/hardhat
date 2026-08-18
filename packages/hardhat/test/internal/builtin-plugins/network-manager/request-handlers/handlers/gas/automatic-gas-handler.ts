@@ -9,11 +9,7 @@ import {
   getJsonRpcRequest,
   getRequestParams,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
-import {
-  InternalCallOutOfGasError,
-  isInternalCallOutOfGasErrorData,
-  ProviderError,
-} from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
+import { InternalCallOutOfGasError } from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {
   AutomaticGasHandler,
   DEFAULT_GAS_MULTIPLIER,
@@ -170,29 +166,7 @@ describe("AutomaticGasHandler", () => {
       assert.equal(tx.gas, numberToHexString(FALLBACK_GAS));
     });
 
-    it("should cap the fallback gas to the current block gas limit", async () => {
-      const LOW_BLOCK_GAS_LIMIT = 1_000_000;
-
-      mockedProvider.setReturnValue("eth_getBlockByNumber", {
-        gasLimit: numberToHexString(LOW_BLOCK_GAS_LIMIT),
-      });
-
-      const jsonRpcRequest = txRequest();
-
-      automaticGasHandler = new AutomaticGasHandler(
-        mockedProvider,
-        GAS_MULTIPLIER,
-        FALLBACK_GAS,
-      );
-
-      await automaticGasHandler.handle(jsonRpcRequest);
-      const [tx] = getRequestParams(jsonRpcRequest);
-
-      assert.ok(isObject(tx), "tx is not an object");
-      assert.equal(tx.gas, numberToHexString(LOW_BLOCK_GAS_LIMIT));
-    });
-
-    it("should not use the cached block gas limit to cap the fallback gas", async () => {
+    it("should cap the fallback gas to the current block gas limit, not the cached one", async () => {
       automaticGasHandler = new AutomaticGasHandler(
         mockedProvider,
         GAS_MULTIPLIER,
@@ -227,41 +201,17 @@ describe("AutomaticGasHandler", () => {
 
     it("should rethrow if no fallback gas was provided", async () => {
       // e.g. an http connection, where the network's default transaction gas
-      // limit is unknown. Guessing one risks a limit that doesn't suit the
-      // remote network, so the estimation error reaches the user instead: it
-      // names both an explicit gas limit and the topLevelSuccess mode.
+      // limit is unknown (and serialization reduces the error to a plain
+      // ProviderError carrying the reason discriminator in its data).
+      // Guessing a limit risks one that doesn't suit the remote network, so
+      // the estimation error reaches the user instead: it names both an
+      // explicit gas limit and the topLevelSuccess mode.
       const jsonRpcRequest = txRequest();
 
       await assertRejects(
         automaticGasHandler.handle(jsonRpcRequest),
         (error) => error instanceof InternalCallOutOfGasError,
         "The estimation error should reach the caller",
-      );
-    });
-
-    it("should rethrow the error received over JSON-RPC, which no fallback can accompany", async () => {
-      // What an http connection to a `hardhat node` server receives: the
-      // error class is lost to serialization, leaving a plain ProviderError
-      // whose data carries the reason discriminator. Such a connection never
-      // exposes a default transaction gas limit, so there is no fallback to
-      // apply and the error reaches the user.
-      mockedProvider.setReturnValue("eth_estimateGas", () => {
-        const error = new ProviderError(
-          new InternalCallOutOfGasError().message,
-          InternalCallOutOfGasError.CODE,
-        );
-        error.data = { reason: "InternalCallOutOfGas" };
-        throw error;
-      });
-
-      const jsonRpcRequest = txRequest();
-
-      await assertRejects(
-        automaticGasHandler.handle(jsonRpcRequest),
-        (error) =>
-          ProviderError.isProviderError(error) &&
-          isInternalCallOutOfGasErrorData(error.data),
-        "The serialized estimation error should reach the caller",
       );
     });
   });

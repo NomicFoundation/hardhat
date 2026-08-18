@@ -350,9 +350,9 @@ describe("JSON-RPC handler", async function () {
   });
 
   it("should preserve the error data reason so clients can recognize the failure", async function () {
-    // The reason discriminator enables the automatic gas fallback on http
-    // connections to a `hardhat node` server, so it must survive
-    // serialization.
+    // The reason discriminator is the only way http clients of a
+    // `hardhat node` server can recognize this failure once the error class
+    // is lost to serialization, so it must survive it.
     const rpcReq: JsonRpcRequest = {
       jsonrpc: "2.0",
       method: "internalCallOutOfGas",
