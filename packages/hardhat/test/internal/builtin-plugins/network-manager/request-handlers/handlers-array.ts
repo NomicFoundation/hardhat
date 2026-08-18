@@ -7,6 +7,7 @@ import { describe, it } from "node:test";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
+import { EIP_7825_TRANSACTION_GAS_CAP } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   getJsonRpcRequest,
@@ -18,14 +19,23 @@ import { createHandlersArray } from "../../../../../src/internal/builtin-plugins
 
 import { EthereumMockedProvider } from "./ethereum-mocked-provider.js";
 
+// Mimics the shape of EdrProvider, which exposes the default transaction gas
+// limit it was configured with.
+class MockedProviderWithDefaultTransactionGasLimit extends EthereumMockedProvider {
+  public readonly defaultTransactionGasLimit: bigint;
+
+  constructor(defaultTransactionGasLimit: bigint) {
+    super();
+    this.defaultTransactionGasLimit = defaultTransactionGasLimit;
+  }
+}
+
 describe("createHandlersArray", () => {
   const BLOCK_GAS_LIMIT = 60_000_000;
 
   function makeEdrConnection(
-    configOverrides: Partial<EdrNetworkConfig> = {},
+    provider: EthereumMockedProvider,
   ): NetworkConnection<"l1"> {
-    const provider = new EthereumMockedProvider();
-
     provider.setReturnValue("eth_getBlockByNumber", {
       gasLimit: numberToHexString(BLOCK_GAS_LIMIT),
     });
@@ -53,7 +63,6 @@ describe("createHandlersArray", () => {
       networkId: 31337,
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
-      ...configOverrides,
     };
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -67,14 +76,10 @@ describe("createHandlersArray", () => {
   }
 
   async function getAutomaticGasFallback(
-    shouldEnableCoverage: boolean,
-    configOverrides: Partial<EdrNetworkConfig> = {},
+    provider: EthereumMockedProvider,
   ): Promise<unknown> {
-    const connection = makeEdrConnection(configOverrides);
-    const handlers = await createHandlersArray(
-      connection,
-      shouldEnableCoverage,
-    );
+    const connection = makeEdrConnection(provider);
+    const handlers = await createHandlersArray(connection);
 
     const automaticGasHandler = handlers.find(
       (handler): handler is AutomaticGasHandler =>
@@ -101,27 +106,29 @@ describe("createHandlersArray", () => {
     return tx.gas;
   }
 
-  it("uses the network's default transaction gas limit as the automatic gas fallback", async () => {
-    // An explicit transactionGasCap below the EIP-7825 cap: the expected
-    // value differs from the handler's no-fallback default (the EIP-7825
-    // cap), so this test fails if the fallback isn't wired at all
-    const USER_TX_GAS_CAP = 5_000_000n;
+  it("uses the provider's default transaction gas limit as the automatic gas fallback", async () => {
+    // A value below the EIP-7825 cap: the expected value differs from the
+    // handler's no-fallback default (the EIP-7825 cap), so this test fails
+    // if the fallback isn't wired at all
+    const DEFAULT_TRANSACTION_GAS_LIMIT = 5_000_000n;
 
     assert.equal(
-      await getAutomaticGasFallback(false, {
-        transactionGasCap: USER_TX_GAS_CAP,
-      }),
-      numberToHexString(USER_TX_GAS_CAP),
+      await getAutomaticGasFallback(
+        new MockedProviderWithDefaultTransactionGasLimit(
+          DEFAULT_TRANSACTION_GAS_LIMIT,
+        ),
+      ),
+      numberToHexString(DEFAULT_TRANSACTION_GAS_LIMIT),
     );
   });
 
-  it("applies the coverage network overrides to the automatic gas fallback", async () => {
-    // Under coverage, blockGasLimit and transactionGasCap default to false,
-    // so the provider's default transaction gas limit is the default block
-    // gas limit; the fallback must match it
+  it("falls back to the EIP-7825 cap when the provider doesn't expose a default transaction gas limit", async () => {
+    // E.g. an http connection to a `hardhat node` server: the remote
+    // provider's configured default isn't observable, so the handler
+    // applies the EIP-7825 cap
     assert.equal(
-      await getAutomaticGasFallback(true),
-      numberToHexString(60_000_000n),
+      await getAutomaticGasFallback(new EthereumMockedProvider()),
+      numberToHexString(EIP_7825_TRANSACTION_GAS_CAP),
     );
   });
 });

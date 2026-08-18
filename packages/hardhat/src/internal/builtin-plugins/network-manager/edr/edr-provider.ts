@@ -84,6 +84,17 @@ interface EdrProviderConfig {
 }
 
 export class EdrProvider extends BaseProvider {
+  /**
+   * The default transaction gas limit that the underlying EDR provider was
+   * configured with, used for RPC call and transaction requests that omit a
+   * `gas` field.
+   *
+   * Exposed so that other components (e.g. the automatic gas handler's
+   * estimation fallback) can reuse the exact value the provider applies,
+   * instead of recomputing it.
+   */
+  public readonly defaultTransactionGasLimit: bigint;
+
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #provider: Provider | undefined;
@@ -184,6 +195,7 @@ export class EdrProvider extends BaseProvider {
 
       edrProvider = new EdrProvider(
         provider,
+        providerConfig.defaultTransactionGasLimit,
         traceOutput,
         jsonRpcRequestWrapper,
       );
@@ -207,12 +219,14 @@ export class EdrProvider extends BaseProvider {
    */
   private constructor(
     provider: Provider,
+    defaultTransactionGasLimit: bigint,
     traceOutput: TraceOutputManager | undefined,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
+    this.defaultTransactionGasLimit = defaultTransactionGasLimit;
     this.#traceOutput = traceOutput;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
 

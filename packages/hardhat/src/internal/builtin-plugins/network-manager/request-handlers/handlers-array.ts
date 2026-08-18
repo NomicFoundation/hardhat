@@ -3,12 +3,11 @@ import type {
   ChainType,
   NetworkConnection,
 } from "../../../../types/network.js";
+import type { EthereumProvider } from "../../../../types/providers.js";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { resolveEdrDefaultTransactionGasLimit } from "../edr/utils/convert-to-edr.js";
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
-import { applyCoverageNetworkOverrides } from "../utils/apply-coverage-network-overrides.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
 import { FixedSenderHandler } from "./handlers/accounts/fixed-sender-handler.js";
@@ -27,10 +26,7 @@ import { FixedGasPriceHandler } from "./handlers/gas/fixed-gas-price-handler.js"
  */
 export async function createHandlersArray<
   ChainTypeT extends ChainType | string,
->(
-  networkConnection: NetworkConnection<ChainTypeT>,
-  shouldEnableCoverage: boolean,
-): Promise<RequestHandler[]> {
+>(networkConnection: NetworkConnection<ChainTypeT>): Promise<RequestHandler[]> {
   const requestHandlers = [];
 
   const networkConfig = networkConnection.networkConfig;
@@ -71,22 +67,14 @@ export async function createHandlersArray<
     // On EDR networks, if the gas estimation fails because an internal call
     // runs out of gas regardless of the gas limit, we fall back to the same
     // default transaction gas limit that the network uses for requests
-    // without a gas field. The EDR provider is configured with the
-    // coverage-overridden config, so the same overrides must be applied here
-    // for the fallback to match the provider's actual default.
-    const fallbackGas =
-      networkConfig.type === "edr-simulated"
-        ? resolveEdrDefaultTransactionGasLimit({
-            ...applyCoverageNetworkOverrides(
-              networkConfig,
-              shouldEnableCoverage,
-            ),
-            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-            EDR network connections always have a valid ChainType: the resolved
-            one that the EDR provider itself is configured with */
-            chainType: networkConnection.chainType as ChainType,
-          })
-        : undefined;
+    // without a gas field. The EdrProvider exposes the exact value it was
+    // configured with, so the fallback always matches the provider's actual
+    // default. Providers that don't expose it (e.g. HTTP connections) get no
+    // fallback here and the handler applies its own default.
+    const provider = networkConnection.provider;
+    const fallbackGas = hasDefaultTransactionGasLimit(provider)
+      ? provider.defaultTransactionGasLimit
+      : undefined;
 
     requestHandlers.push(
       new AutomaticGasHandler(
@@ -136,4 +124,21 @@ export async function createHandlersArray<
   }
 
   return requestHandlers;
+}
+
+/**
+ * A provider that exposes the default transaction gas limit it applies to
+ * requests that omit a `gas` field (e.g. `EdrProvider`).
+ */
+interface ProviderWithDefaultTransactionGasLimit extends EthereumProvider {
+  readonly defaultTransactionGasLimit: bigint;
+}
+
+function hasDefaultTransactionGasLimit(
+  provider: EthereumProvider,
+): provider is ProviderWithDefaultTransactionGasLimit {
+  return (
+    "defaultTransactionGasLimit" in provider &&
+    typeof provider.defaultTransactionGasLimit === "bigint"
+  );
 }

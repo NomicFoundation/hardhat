@@ -593,6 +593,23 @@ describe("edr-provider", () => {
     });
   });
 
+  describe("EdrProvider#defaultTransactionGasLimit", () => {
+    it("exposes the default transaction gas limit the provider was configured with", async () => {
+      // A block gas limit below the Osaka EIP-7825 cap, so it is the
+      // resolved default transaction gas limit
+      const { provider } = await hre.network.create({
+        override: { blockGasLimit: 5_000_000 },
+      });
+
+      assertHardhatInvariant(
+        provider instanceof EdrProvider,
+        "The provider should be an EdrProvider",
+      );
+
+      assert.equal(provider.defaultTransactionGasLimit, 5_000_000n);
+    });
+  });
+
   describe("EdrProvider#onSubscriptionEvent", () => {
     it(
       "should emit notification and message events for each result of the SubscriptionEvent",

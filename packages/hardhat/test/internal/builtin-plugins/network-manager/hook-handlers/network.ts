@@ -145,13 +145,8 @@ async function createHandlersFromFactory(): Promise<
 
 function setupRequestMocks(overrides: Partial<HttpNetworkConfig> = {}) {
   const { connection, provider } = createMockNetworkConnection(overrides);
-  /* eslint-disable @typescript-eslint/consistent-type-assertions -- only the
-  hooks used by the handler are needed in the tests */
-  const context = {
-    hooks: {
-      hasHandlers: async () => false,
-    },
-  } as unknown as HookContext;
+  /* eslint-disable @typescript-eslint/consistent-type-assertions -- the context is only needed for type compatibility in the tests */
+  const context = {} as HookContext;
   const next = createMockNext();
 
   return {
