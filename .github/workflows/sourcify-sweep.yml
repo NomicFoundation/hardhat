@@ -1,8 +1,10 @@
 name: Sourcify sweep
 
 # Compiles the pinned Sourcify corpus (all verified solc 0.8.34 contracts with
-# evmVersion >= cancun) through hardhat-slang-solx and reports the outcome
-# breakdown. Expensive (~16 x 1h), so it only runs when explicitly requested:
+# evmVersion >= cancun) through hardhat-slang-solx, compares the
+# frontend-derived outputs (abi, storageLayout, methodIdentifiers) against
+# stock solc, and reports the outcome breakdown. Expensive (~24 x 1.3h), so it
+# only runs when explicitly requested:
 # label a PR with `sourcify-sweep` (re-label to re-run after e.g. a solx
 # version bump), or dispatch it manually.
 #
@@ -22,7 +24,7 @@ permissions:
   contents: read
 
 env:
-  SHARD_COUNT: 16
+  SHARD_COUNT: 24
 
 jobs:
   sweep:
@@ -33,7 +35,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        # Must stay in sync with SHARD_COUNT above.
+        shard:
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+          ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-env
@@ -54,12 +83,13 @@ jobs:
           tar -xJf "$RUNNER_TEMP/corpus.tar.xz" -C "$RUNNER_TEMP/corpus"
       - name: Run the sweep shard
         id: sweep
-        # Non-zero exit means a solx-only failure; keep going so the results
-        # still get uploaded, and re-fail in the last step.
+        # Non-zero exit means a solx-only failure or an output mismatch; keep
+        # going so the results still get uploaded, and re-fail in the last step.
         continue-on-error: true
         working-directory: packages/hardhat-slang-solx
         run: |
           pnpm sourcify-sweep \
+            --compare \
             --corpus "$RUNNER_TEMP/corpus" \
             --out "$RUNNER_TEMP/results-shard-${{ matrix.shard }}.jsonl" \
             --shard-count "$SHARD_COUNT" \
@@ -71,10 +101,10 @@ jobs:
           name: sourcify-sweep-results-shard-${{ matrix.shard }}
           path: ${{ runner.temp }}/results-shard-${{ matrix.shard }}.jsonl
           if-no-files-found: error
-      - name: Fail on solx-only failures
+      - name: Fail on solx-only failures or output mismatches
         if: ${{ steps.sweep.outcome == 'failure' }}
         run: |
-          echo "Shard ${{ matrix.shard }} found solx-only failures (see the sweep step log)."
+          echo "Shard ${{ matrix.shard }} found solx-only failures or output mismatches (see the sweep step log)."
           exit 1
 
   summarize:
