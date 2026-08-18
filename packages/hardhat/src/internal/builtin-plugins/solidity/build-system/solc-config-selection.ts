@@ -12,6 +12,22 @@ import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
 
+
+/**
+ * Solidity tokenizes version pragmas, so whitespace inside a literal is
+ * insignificant (`^ 0.8 .0` means `^0.8.0`). npm `semver` does not treat
+ * interior whitespace that way, and `maxSatisfying` then returns null
+ * (Hardhat HHE909) even when a compatible compiler is enabled.
+ */
+function normalizeVersionPragma(pragma: string): string {
+  return pragma.replace(/\s+/g, "");
+}
+
+function joinVersionPragmas(pragmas: readonly string[]): string {
+  return Array.from(new Set(pragmas.map(normalizeVersionPragma))).join(" ");
+}
+
+
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
   readonly #buildProfile: SolidityBuildProfileConfig;
@@ -60,7 +76,7 @@ export class SolcConfigSelector {
       .map(({ content }) => content.versionPragmas)
       .flat(1);
 
-    const versionRange = Array.from(new Set(allVersionPragmas)).join(" ");
+    const versionRange = joinVersionPragmas(allVersionPragmas);
 
     const overriddenCompiler = this.#buildProfile.overrides[userSourceName];
 
@@ -121,7 +137,7 @@ export class SolcConfigSelector {
     compilerVersions: string[],
     overridden: boolean,
   ): CompilationJobCreationError {
-    const rootVersionRange = root.content.versionPragmas.join(" ");
+    const rootVersionRange = joinVersionPragmas(root.content.versionPragmas);
 
     // This logic is pretty different depending if we are dealing with a config
     // override or not. If we are, we have a single compiler option, so things
@@ -147,7 +163,7 @@ export class SolcConfigSelector {
         dependencyGraph,
       )) {
         const depOwnRange =
-          transitiveDependency.dependency.content.versionPragmas.join(" ");
+          joinVersionPragmas(transitiveDependency.dependency.content.versionPragmas);
 
         if (maxSatisfying(compilerVersions, depOwnRange) === null) {
           return {
@@ -192,7 +208,7 @@ export class SolcConfigSelector {
     )) {
       const transitiveDependencyVersionRange =
         transitiveDependency.versionPragmasPath
-          .map((pragmas) => pragmas.join(" "))
+          .map((pragmas) => joinVersionPragmas(pragmas))
           .join(" ");
 
       const depOwnRange =

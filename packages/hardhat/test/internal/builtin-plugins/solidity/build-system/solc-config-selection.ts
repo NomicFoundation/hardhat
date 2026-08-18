@@ -223,6 +223,27 @@ describe("SolcConfigSelector", () => {
     });
 
     describe("without a compiler override", () => {
+
+      it("should match a compiler when a pragma has whitespace inside the version literal", () => {
+        root = createProjectResolvedFile("root.sol", ["^ 0.8 .0"]);
+        dependencyGraph = new DependencyGraphImplementation();
+        dependencyGraph.addRootFile(root.inputSourceName, root);
+
+        buildProfile.compilers.push({
+          version: "0.8.34",
+          settings: {},
+        });
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.compilers[0],
+        });
+      });
+
       it("should return the config of the max satisfying compiler for a root with no dependencies", () => {
         buildProfile.compilers.push({
           version: "0.8.0",
