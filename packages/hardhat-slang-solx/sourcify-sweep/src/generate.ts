@@ -30,30 +30,35 @@ export interface CorpusContract {
  */
 function sanitizeUrls(sources: Record<string, string>): Record<string, string> {
   const renames = new Map<string, string>();
-  for (const vpath of Object.keys(sources)) {
-    if (vpath.includes(":")) {
-      renames.set(vpath, vpath.replaceAll("://", "/").replaceAll(":", "_"));
+  for (const virtualPath of Object.keys(sources)) {
+    if (virtualPath.includes(":")) {
+      renames.set(
+        virtualPath,
+        virtualPath.replaceAll("://", "/").replaceAll(":", "_"),
+      );
     }
   }
   if (renames.size === 0) {
     return sources;
   }
   const out: Record<string, string> = {};
-  for (const [vpath, original] of Object.entries(sources)) {
+  for (const [virtualPath, original] of Object.entries(sources)) {
     let content = original;
     for (const [oldPath, newPath] of renames) {
       content = content
         .replaceAll(`"${oldPath}"`, `"${newPath}"`)
         .replaceAll(`'${oldPath}'`, `'${newPath}'`);
     }
-    out[renames.get(vpath) ?? vpath] = content;
+    out[renames.get(virtualPath) ?? virtualPath] = content;
   }
   return out;
 }
 
 /** npm/<name>@<version>/<rest> -> [name, version, rest]; name may be scoped. */
-function splitNpmPath(vpath: string): [string, string, string] | undefined {
-  const match = vpath.match(/^npm\/((?:@[^/]+\/)?[^/@]+)@([^/]+)\/(.+)$/);
+function splitNpmPath(
+  virtualPath: string,
+): [string, string, string] | undefined {
+  const match = virtualPath.match(/^npm\/((?:@[^/]+\/)?[^/@]+)@([^/]+)\/(.+)$/);
   return match === null ? undefined : [match[1], match[2], match[3]];
 }
 
@@ -103,27 +108,27 @@ export function generateFixture(
   const srcRoot = path.join(out, "s");
   const prefixes = new Set<string>();
   const packages = new Map<string, string>();
-  for (const [vpath, content] of Object.entries(sources)) {
+  for (const [virtualPath, content] of Object.entries(sources)) {
     let filePath: string;
     if (hh3Native) {
-      const npm = splitNpmPath(vpath);
+      const npm = splitNpmPath(virtualPath);
       if (npm !== undefined) {
         const [name, version, rest] = npm;
         filePath = path.join(out, "node_modules", name, rest);
         packages.set(name, version);
-      } else if (vpath.startsWith("project/")) {
-        filePath = path.join(srcRoot, vpath.slice("project/".length));
+      } else if (virtualPath.startsWith("project/")) {
+        filePath = path.join(srcRoot, virtualPath.slice("project/".length));
       } else {
         // Other top-level trees (vendored libs imported by their dir name)
         // become synthesized packages so npm resolution finds them.
-        filePath = path.join(out, "node_modules", vpath);
-        packages.set(vpath.split("/", 1)[0], "0.0.0");
+        filePath = path.join(out, "node_modules", virtualPath);
+        packages.set(virtualPath.split("/", 1)[0], "0.0.0");
       }
     } else {
-      filePath = path.join(srcRoot, vpath);
-      const slash = vpath.indexOf("/");
+      filePath = path.join(srcRoot, virtualPath);
+      const slash = virtualPath.indexOf("/");
       if (slash !== -1) {
-        prefixes.add(vpath.slice(0, slash));
+        prefixes.add(virtualPath.slice(0, slash));
       }
     }
     writeFileMkdirp(filePath, content);

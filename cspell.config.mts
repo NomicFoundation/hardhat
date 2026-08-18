@@ -25,6 +25,8 @@ export default defineConfig({
     "packages/*/CHANGELOG.md",
     ".github/config/regression-tests.yml",
     "packages/hardhat-vendored/{src,test}/**/*",
+    // Verbatim on-chain sources from Sourcify; not our prose to spellcheck.
+    "packages/hardhat-slang-solx/sourcify-sweep/fixtures/**/*",
     "**/vendored/**/*",
     "**/vendor/**/*",
     "**/coverage/html/**/*",

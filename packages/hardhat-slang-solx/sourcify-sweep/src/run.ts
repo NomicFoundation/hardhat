@@ -79,9 +79,10 @@ function setUpToolchain(): { toolchain: string; hardhatBin: string } {
   );
   const hardhatBin = path.join(hardhatDir, "dist", "src", "cli.js");
   if (!fs.existsSync(hardhatBin)) {
-    throw new Error(
+    console.error(
       `${hardhatBin} not found - build the workspace first (pnpm build)`,
     );
+    process.exit(1);
   }
   return { toolchain, hardhatBin };
 }
@@ -143,6 +144,18 @@ function listShard(corpusDir: string): string[] {
     .sort();
   const shardCount = Number(args["shard-count"]);
   const shardIndex = Number(args["shard-index"]);
+  if (
+    !Number.isInteger(shardCount) ||
+    shardCount < 1 ||
+    !Number.isInteger(shardIndex) ||
+    shardIndex < 0 ||
+    shardIndex >= shardCount
+  ) {
+    console.error(
+      `Invalid sharding: --shard-count ${args["shard-count"]}, --shard-index ${args["shard-index"]} (need integers, 0 <= index < count)`,
+    );
+    process.exit(1);
+  }
   const shard = all.filter((_, i) => i % shardCount === shardIndex);
   return args.limit === undefined ? shard : shard.slice(0, Number(args.limit));
 }
