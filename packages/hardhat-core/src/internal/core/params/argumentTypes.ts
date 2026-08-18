@@ -86,7 +86,7 @@ export const int: CLIArgumentType<number> = {
   name: "int",
   parse: (argName, strValue) => {
     const decimalPattern = /^\d+(?:[eE]\d+)?$/;
-    const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+    const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
     if (
       strValue.match(decimalPattern) === null &&
@@ -130,7 +130,7 @@ export const bigint: CLIArgumentType<bigint> = {
   name: "bigint",
   parse: (argName, strValue) => {
     const decimalPattern = /^\d+(?:n)?$/;
-    const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+    const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
     if (
       strValue.match(decimalPattern) === null &&
@@ -174,7 +174,7 @@ export const float: CLIArgumentType<number> = {
   name: "float",
   parse: (argName, strValue) => {
     const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
-    const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+    const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
     if (
       strValue.match(decimalPattern) === null &&
