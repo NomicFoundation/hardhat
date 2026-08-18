@@ -222,7 +222,7 @@ describe("AutomaticGasHandler", () => {
       // The fallback instead reads the pending block: after
       // evm_setBlockGasLimit, the latest block's header still reports the old
       // limit until a block is mined under the new one, so capping with it
-      // would leave the transaction unmineable
+      // would produce a transaction that can never be mined
       mockedProvider.setReturnValue("eth_estimateGas", () => {
         throw new InternalCallOutOfGasError();
       });
