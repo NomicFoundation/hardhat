@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.29.1
+
+### Patch Changes
+
+- 5a16885: Fixed the `int`, `bigint` and `float` CLI argument types rejecting hexadecimal values containing the digit `f`/`F` (e.g. `0xff`, `0xdeadbeef`).
+
 ## 2.29.0
 
 ### Minor Changes
@@ -50,11 +56,9 @@
 - e6ddffc: Bumped EDR version to [`0.12.0-next.21`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.21).
 
   ### Minor Changes
-
   - NomicFoundation/edr@44e779c: Added function-level configuration overrides for Solidity tests
 
   ### Patch Changes
-
   - NomicFoundation/edr@b5ad15c: Added support for instrumentation of Solidity `0.8.32` and `0.8.33`
 
 ## 2.28.1
