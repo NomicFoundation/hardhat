@@ -17,6 +17,7 @@ interface SweepRecord {
   outcome: string;
   solx: LegResult;
   solc?: LegResult;
+  compare?: { status: string; checked?: number; mismatches?: string[] };
 }
 
 const { values: args } = parseArgs({
@@ -38,6 +39,13 @@ function percentile(sorted: number[], p: number): number {
 
 /** Groups failures by their most distinctive error line. */
 function signature(record: SweepRecord): string {
+  if (record.compare?.mismatches !== undefined) {
+    // Group output mismatches by the diverging field(s), not the contract.
+    const fields = new Set(
+      record.compare.mismatches.map((m) => m.split(": ").pop() ?? m),
+    );
+    return `mismatch: ${[...fields].sort().join(", ")}`;
+  }
   const tail = record.solx.errorTail ?? [];
   const errorLine = tail.find((l) => l.includes("Error")) ?? tail[0] ?? "?";
   const prefix = record.solx.hhe === undefined ? "" : `${record.solx.hhe}: `;
@@ -83,6 +91,7 @@ if (okWalls.length > 0) {
 
 for (const outcome of [
   "solx-only-fail",
+  "output-mismatch",
   "timeout",
   "solx-unsupported",
   "harness-fail",

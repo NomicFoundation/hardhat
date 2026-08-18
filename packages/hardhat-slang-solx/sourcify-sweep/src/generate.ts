@@ -161,8 +161,17 @@ export function generateFixture(
     }
   }
 
-  const solxSettings: Record<string, unknown> = {};
-  const solcSettings: Record<string, unknown> = {};
+  // Frontend-derived outputs used by the runner's --compare mode: solx embeds
+  // a forked solc frontend, so these must match stock solc exactly.
+  const compareOutputs = {
+    "*": { "*": ["abi", "storageLayout", "evm.methodIdentifiers"] },
+  };
+  const solxSettings: Record<string, unknown> = {
+    outputSelection: compareOutputs,
+  };
+  const solcSettings: Record<string, unknown> = {
+    outputSelection: compareOutputs,
+  };
   for (const [key, value] of Object.entries(contract.settings)) {
     // viaIR selects solx's Yul pipeline; contracts compiled via-IR can rely
     // on IR-only features (e.g. copying struct arrays to storage), so it must

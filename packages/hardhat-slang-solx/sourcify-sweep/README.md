@@ -20,7 +20,9 @@ pnpm sourcify-sweep --corpus <corpus-dir> --out results.jsonl \
 pnpm sourcify-sweep:report --results results.jsonl
 ```
 
-The runner is resumable (contracts already present in `--out` are skipped), bounds each build with `--timeout-s` (default 300), and keeps the generated project on disk for any failing contract (under `--workdir`) for debugging. Exit code is non-zero iff any `solx-only-fail` occurred.
+The runner is resumable (contracts already present in `--out` are skipped), bounds each build with `--timeout-s` (default 300), and keeps the generated project on disk for any failing contract (under `--workdir`) for debugging. Exit code is non-zero iff any `solx-only-fail` or `output-mismatch` occurred.
+
+`--compare` additionally builds every contract with stock solc and diffs the frontend-derived outputs — ABI, storageLayout, `evm.methodIdentifiers` — between the two compilers. solx embeds a forked solc frontend, so these must match exactly; any divergence is reported as `output-mismatch`. Roughly doubles the runtime. Bytecode, gas estimates, source maps and metadata are deliberately not compared (they differ by design).
 
 ## Corpus
 

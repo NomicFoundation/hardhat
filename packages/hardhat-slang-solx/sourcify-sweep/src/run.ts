@@ -22,6 +22,14 @@ interface LegResult {
   unsupported?: boolean;
 }
 
+interface CompareResult {
+  status: "match" | "mismatch" | "skipped";
+  /** Contracts checked (present in both outputs). */
+  checked?: number;
+  /** "<source>:<Contract>: <field>" per divergence, plus set differences. */
+  mismatches?: string[];
+}
+
 interface SweepRecord {
   file: string;
   chainId: number;
@@ -32,6 +40,7 @@ interface SweepRecord {
     "ok" | "solx-only-fail" | "solx-unsupported" | "harness-fail" | "timeout";
   solx: LegResult;
   solc?: LegResult;
+  compare?: CompareResult;
 }
 
 /**
@@ -57,6 +66,10 @@ const { values: args } = parseArgs({
     "shard-index": { type: "string", default: "0" },
     "timeout-s": { type: "string", default: "300" },
     limit: { type: "string" },
+    // Also build every contract with stock solc and diff the frontend-derived
+    // outputs (abi, storageLayout, methodIdentifiers): solx embeds a forked
+    // solc frontend, so any divergence is a bug. Roughly doubles the runtime.
+    compare: { type: "boolean", default: false },
     workdir: {
       type: "string",
       default: path.join(os.tmpdir(), "slang-solx-sourcify-sweep"),
@@ -85,6 +98,77 @@ function setUpToolchain(): { toolchain: string; hardhatBin: string } {
     process.exit(1);
   }
   return { toolchain, hardhatBin };
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(",")}]`;
+  }
+  if (typeof value === "object" && value !== null) {
+    return `{${Object.entries(value)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+const COMPARED_FIELDS = ["abi", "storageLayout", "methodIdentifiers"] as const;
+
+/** Frontend-derived outputs per "<source>:<Contract>" from the build info. */
+function extractOutputs(project: string): Map<string, Record<string, string>> {
+  const buildInfoDir = path.join(project, "artifacts", "build-info");
+  const result = new Map<string, Record<string, string>>();
+  for (const file of fs.readdirSync(buildInfoDir)) {
+    if (!file.endsWith(".output.json")) {
+      continue;
+    }
+    const output = JSON.parse(
+      fs.readFileSync(path.join(buildInfoDir, file), "utf8"),
+    ) as {
+      output: {
+        contracts?: Record<string, Record<string, Record<string, unknown>>>;
+      };
+    };
+    for (const [source, contracts] of Object.entries(
+      output.output.contracts ?? {},
+    )) {
+      for (const [name, contract] of Object.entries(contracts)) {
+        const evm = contract.evm as { methodIdentifiers?: unknown } | undefined;
+        result.set(`${source}:${name}`, {
+          abi: stableStringify(contract.abi),
+          storageLayout: stableStringify(contract.storageLayout),
+          methodIdentifiers: stableStringify(evm?.methodIdentifiers),
+        });
+      }
+    }
+  }
+  return result;
+}
+
+function compareOutputs(
+  solx: Map<string, Record<string, string>>,
+  solc: Map<string, Record<string, string>>,
+): CompareResult {
+  const mismatches: string[] = [];
+  for (const key of new Set([...solx.keys(), ...solc.keys()])) {
+    const a = solx.get(key);
+    const b = solc.get(key);
+    if (a === undefined || b === undefined) {
+      mismatches.push(
+        `${key}: only in ${a === undefined ? "solc" : "solx"} output`,
+      );
+      continue;
+    }
+    for (const field of COMPARED_FIELDS) {
+      if (a[field] !== b[field]) {
+        mismatches.push(`${key}: ${field}`);
+      }
+    }
+  }
+  return mismatches.length === 0
+    ? { status: "match", checked: solx.size }
+    : { status: "mismatch", checked: solx.size, mismatches };
 }
 
 async function build(
@@ -181,6 +265,7 @@ async function main(): Promise<void> {
     "solx-only-fail": 0,
     "solx-unsupported": 0,
     "harness-fail": 0,
+    "output-mismatch": 0,
     timeout: 0,
   };
   let started = 0;
@@ -215,6 +300,31 @@ async function main(): Promise<void> {
       try {
         generateFixture(contract, project, toolchain);
         record.solx = await build(hardhatBin, project, "slangSolx");
+        if (args.compare && record.solx.status === "ok") {
+          const solxOutputs = extractOutputs(project);
+          // Both profiles write into the same artifacts tree, so clear it
+          // between the legs.
+          fs.rmSync(path.join(project, "artifacts"), {
+            recursive: true,
+            force: true,
+          });
+          fs.rmSync(path.join(project, "cache"), {
+            recursive: true,
+            force: true,
+          });
+          record.solc = await build(hardhatBin, project, "default");
+          if (record.solc.status === "ok") {
+            record.compare = compareOutputs(
+              solxOutputs,
+              extractOutputs(project),
+            );
+            if (record.compare.status === "mismatch") {
+              record.outcome = "output-mismatch";
+            }
+          } else {
+            record.compare = { status: "skipped" };
+          }
+        }
         if (record.solx.status !== "ok") {
           // Baseline leg: a contract that also fails with stock solc is a
           // harness/reconstruction artifact, not a solx failure.
@@ -239,7 +349,7 @@ async function main(): Promise<void> {
       counts[record.outcome] += 1;
       fs.appendFileSync(args.out, JSON.stringify(record) + "\n");
       if (record.outcome === "ok") {
-        // Keep failing fixtures on disk for debugging; drop the rest.
+        // Keep failing/mismatching fixtures on disk for debugging; drop the rest.
         fs.rmSync(project, { recursive: true, force: true });
       }
       console.log(
@@ -255,7 +365,8 @@ async function main(): Promise<void> {
   );
 
   console.log(JSON.stringify(counts));
-  process.exitCode = counts["solx-only-fail"] > 0 ? 1 : 0;
+  process.exitCode =
+    counts["solx-only-fail"] > 0 || counts["output-mismatch"] > 0 ? 1 : 0;
 }
 
 await main();
