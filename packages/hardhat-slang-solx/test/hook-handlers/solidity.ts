@@ -8,7 +8,6 @@ import { describe, it } from "node:test";
 
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { RESOLVED_SOLX_COMPILER_TYPE } from "../../src/internal/constants.js";
 import { parseSolxVersion } from "../../src/internal/hook-handlers/solidity.js";
 
 // Helper to create a compiler config
@@ -127,10 +126,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       const context = { config: {} } as any;
 
       const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig({
-          type: RESOLVED_SOLX_COMPILER_TYPE,
-          version: "0.8.34",
-        }),
+        createSolidityCompilerConfig({ type: "slangSolx", version: "0.8.34" }),
       ];
 
       // This will fail to download (no network in tests), but we can
@@ -211,7 +207,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slangSolx",
         version: "0.8.99",
       });
       const mockNext = createGetCompilerMockNext();
@@ -234,7 +230,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slangSolx",
         version: "0.8.34",
         path: "/nonexistent/path/to/solx",
       });
@@ -266,7 +262,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slangSolx",
         version: "0.8.34",
         path: cachedPath,
       });
@@ -299,7 +295,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const configs: SolidityCompilerConfig[] = [
         createSolidityCompilerConfig({
-          type: RESOLVED_SOLX_COMPILER_TYPE,
+          type: "slangSolx",
           version: "0.8.34",
           path: "/custom/path/to/solx",
         }),

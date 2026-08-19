@@ -12,7 +12,7 @@ import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   SOLIDITY_TO_SOLX_VERSION_MAP,
-  RESOLVED_SOLX_COMPILER_TYPE,
+  SLANG_SOLX_COMPILER_TYPE,
 } from "../constants.js";
 import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
 import { SlangSolxCompiler } from "../slang-solx-compiler.js";
@@ -42,7 +42,7 @@ async function getSolxVersionFromBinary(binaryPath: string): Promise<string> {
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (_context, compilerConfigs, quiet) => {
     const solxConfigs = compilerConfigs.filter(
-      (c) => c.type === RESOLVED_SOLX_COMPILER_TYPE,
+      (c) => c.type === SLANG_SOLX_COMPILER_TYPE,
     );
 
     if (solxConfigs.length === 0) {
@@ -85,7 +85,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   },
 
   getCompiler: async (context, compilerConfig, next) => {
-    if (compilerConfig.type !== RESOLVED_SOLX_COMPILER_TYPE) {
+    if (compilerConfig.type !== SLANG_SOLX_COMPILER_TYPE) {
       return await next(context, compilerConfig);
     }
 
