@@ -568,6 +568,30 @@ describe("snapshot-cheatcodes", () => {
       }
     });
 
+    it("should throw SNAPSHOT_READ_ERROR on a non-object JSON root", async () => {
+      // A snapshot file is always a machine-generated JSON object, so any
+      // other root (null, array, primitive) can only mean a hand-edited or
+      // corrupted file. Without an explicit check, `null` would throw a raw
+      // TypeError, `100` would be silently read as an empty group, and
+      // `["100"]` would be read as an entry named "0".
+      for (const root of [null, 100, "100", true, ["100"]]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, root);
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid snapshot file: expected a JSON object, got ${JSON.stringify(root)}`,
+          },
+        );
+      }
+    });
+
     it("should read multiple snapshot groups from separate JSON files", async () => {
       const snapshots: SnapshotCheatcodesWithMetadataMap = new Map<
         string,

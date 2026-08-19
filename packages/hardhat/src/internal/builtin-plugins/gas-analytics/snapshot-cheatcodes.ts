@@ -13,6 +13,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { sanitizeFilename } from "@nomicfoundation/hardhat-utils/path";
 
 import {
@@ -277,7 +278,7 @@ export async function readSnapshotCheatcodes(
       const snapshotGroup = entry.slice(0, -5); // remove .json extension
       const snapshotCheatcodesPath = getSnapshotCheatcodesPath(basePath, entry);
 
-      let parsedSnapshot: Record<string, unknown>;
+      let parsedSnapshot: unknown;
       try {
         parsedSnapshot = await readJsonFile(snapshotCheatcodesPath);
       } catch (error) {
@@ -286,6 +287,16 @@ export async function readSnapshotCheatcodes(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
           { snapshotsPath: snapshotCheatcodesPath, error: error.message },
           error,
+        );
+      }
+
+      if (!isObject(parsedSnapshot)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotCheatcodesPath,
+            error: `Invalid snapshot file: expected a JSON object, got ${JSON.stringify(parsedSnapshot)}`,
+          },
         );
       }
 
