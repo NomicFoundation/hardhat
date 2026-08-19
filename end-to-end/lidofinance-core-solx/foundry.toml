@@ -1,3 +1,10 @@
+# Vendored by the lidofinance-core-solx benchmark scenario: the pre-migration
+# foundry.toml from NomicFoundation/lido-core@242beb163, which the Hardhat 3
+# migration removed. Copied verbatim except for the last compilation_restrictions
+# entry (marked below), which the benchmark adds. Its per-tree
+# additional_compiler_profiles / compilation_restrictions mirror
+# hardhat.config.ts, and that is what makes the forge cells comparable to the
+# hardhat ones.
 [profile.default]
 # The source directory
 src = 'contracts'
@@ -48,6 +55,13 @@ compilation_restrictions = [
     # together with a runs=200 rule on the same import graph, so we keep a merge-safe
     # range here for compatibility.
     { paths = "contracts/0.8.25/vaults/VaultHub.sol", min_optimizer_runs = 100, max_optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    # Benchmark delta, not upstream: the hardhat cells configure exactly one
+    # compiler above 0.8.9 — 0.8.34, the only version in hardhat-solx's map,
+    # which preinstall.sh's pragma relaxation lets the modern tree reach — so
+    # every ranged pragma resolves there. forge otherwise picks the newest solc
+    # it can fetch, which would both diverge from the hardhat cells and drift as
+    # releases land. The exact-pinned legacy trees are unaffected by the cap.
+    { paths = "contracts/**", version = "<=0.8.34" },
 ]
 
 [profile.default.invariant]
