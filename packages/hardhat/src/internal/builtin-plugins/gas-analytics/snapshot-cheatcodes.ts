@@ -306,12 +306,16 @@ export async function readSnapshotCheatcodes(
       // hand-written unquoted JSON numbers (`100` instead of `"100"`).
       const snapshot: Record<string, string> = {};
       for (const [name, value] of Object.entries(parsedSnapshot)) {
-        if (typeof value !== "string" || !SNAPSHOT_VALUE_REGEX.test(value)) {
+        if (
+          typeof value !== "string" ||
+          !SNAPSHOT_VALUE_REGEX.test(value) ||
+          BigInt(value) >= 2n ** 256n
+        ) {
           throw new HardhatError(
             HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
             {
               snapshotsPath: snapshotCheatcodesPath,
-              error: `Invalid value ${JSON.stringify(value)} for "${name}". Snapshot values must be decimal integer strings`,
+              error: `Invalid value ${JSON.stringify(value)} for "${name}". Snapshot values must be uint256 decimal integer strings`,
             },
           );
         }

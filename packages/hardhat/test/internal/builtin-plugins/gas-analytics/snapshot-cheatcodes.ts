@@ -513,6 +513,40 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(bigGroup["big-entry"], "100000000000000000000001");
     });
 
+    it("should read a value at the uint256 maximum", async () => {
+      const uint256Max = (2n ** 256n - 1n).toString();
+      const snapshotPath = getSnapshotCheatcodesPath(tmp.path, "MaxGroup.json");
+      await writeJsonFile(snapshotPath, { "max-entry": uint256Max });
+
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
+
+      const maxGroup = readSnapshots.get("MaxGroup");
+      assert.ok(maxGroup !== undefined, "MaxGroup should be defined");
+      assert.equal(maxGroup["max-entry"], uint256Max);
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on values beyond the uint256 range", async () => {
+      // Values at or above 2^256 can't come from the uint256 cheatcodes, and
+      // ones at or above ~1.8e308 would coerce to Infinity in the tolerance
+      // comparison, marking any change as tolerated
+      for (const value of [(2n ** 256n).toString(), "1" + "0".repeat(309)]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, { "bad-entry": value });
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
+          },
+        );
+      }
+    });
+
     it("should throw SNAPSHOT_READ_ERROR on a hand-edited non-numeric value", async () => {
       // Snapshot values are always machine-generated uint256 decimal strings,
       // so a non-numeric value can only mean a hand-edited or corrupted file
@@ -527,7 +561,7 @@ describe("snapshot-cheatcodes", () => {
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
         {
           snapshotsPath: snapshotPath,
-          error: `Invalid value "abc" for "bad-entry". Snapshot values must be decimal integer strings`,
+          error: `Invalid value "abc" for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
         },
       );
     });
@@ -544,7 +578,7 @@ describe("snapshot-cheatcodes", () => {
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
         {
           snapshotsPath: snapshotPath,
-          error: `Invalid value 100 for "unquoted-entry". Snapshot values must be decimal integer strings`,
+          error: `Invalid value 100 for "unquoted-entry". Snapshot values must be uint256 decimal integer strings`,
         },
       );
     });
@@ -562,7 +596,7 @@ describe("snapshot-cheatcodes", () => {
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
           {
             snapshotsPath: snapshotPath,
-            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be decimal integer strings`,
+            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
           },
         );
       }
