@@ -9,11 +9,13 @@
 // re-pinned to 0.8.34 (preinstall relaxes that tree's exact pragmas to caret
 // ranges). The older trees pass through on upstream's own compilers in every
 // profile — including the solx ones, where solx handles the tree it can and
-// stock solc handles the rest. That mixed shape is what adopting solx would
-// actually look like here, and it keeps every cell compiling the same whole
-// source graph instead of a slice of it. Two paths the base declares stay out
-// of every cell — test/ and contracts/upgrade — for the reasons documented at
-// EXCLUDED_SOURCE_DIRS below; the forge cells skip the same two.
+// stock solc handles the rest — and contracts/upgrade rides the same way on
+// upstream's own 0.8.25 (see the comment above the ballast entry below). That
+// mixed shape is what adopting solx would actually look like here, and it
+// keeps every cell compiling the same whole source graph instead of a slice
+// of it. One path the base declares stays out of every cell — test/, whose
+// contents are harnesses and fixtures the base only lists as a source root to
+// reach ./test/mocks; the forge cells skip it too.
 //
 // Upstream ships the vaults tree via-IR only, and it cannot compile any other
 // way: SRLib hits stack-too-deep, and RefSlotCache copies a struct array to
@@ -75,6 +77,18 @@ if (legacyCompilers.length === 0) {
   );
 }
 
+// contracts/upgrade pins the same 0.8.25 as the vaults tree but cannot follow
+// it to 0.8.34: UpgradeVoteScript.sol compiles via-IR at upstream's 0.8.25 and
+// hits a Yul stack-too-deep ("1 too deep") from solc 0.8.26 on — 0.8.28,
+// 0.8.30, 0.8.32 and 0.8.34 all reproduce it, at every optimizer runs value.
+// solx 0.1.7 does compile it at 0.8.34 (it spills the stack), but a cell with
+// no solc counterpart is not a comparison, so the tree is ballast on
+// upstream's own compiler instead, like the older trees: preinstall's pragma
+// walker leaves its exact 0.8.25 pragmas alone, and every profile carries
+// upstream's 0.8.25 entry verbatim. Its imports from the relaxed vaults tree
+// compile twice per cell — once at 0.8.25 as upgrade dependencies, once at
+// 0.8.34 as the subject — the same constant in every column.
+
 // Independent settings objects per profile so the solx profiles can't bleed into
 // the solc profile. The solx optimization level (-O1) and DWARF debug info both
 // come from the hardhat-solx plugin defaults: DWARF is force-emitted, so solx
@@ -98,37 +112,24 @@ const solcNoOptSettings = {
   optimizer: { enabled: false },
 };
 
-// Source roots: every directory under contracts/, minus the one subtree no
-// solc cell can build. contracts/upgrade/UpgradeVoteScript.sol compiles via-IR
-// at upstream's 0.8.25 but hits a Yul stack-too-deep ("1 too deep") from 0.8.26
-// on — 0.8.28, 0.8.30, 0.8.32 and 0.8.34 all reproduce it, at every optimizer
-// runs value — so it cannot build at the 0.8.34 the solx cells force. solx 0.1.7
-// does compile it (it spills the stack), but a cell with no solc counterpart is
-// not a comparison, so the subtree stays out of every cell rather than turning
-// the solc column into a FAIL. Enumerating the roots rather than listing them
-// keeps a new upstream tree from silently falling out of the benchmark.
+// Source roots: every directory under contracts/. Enumerating them rather
+// than listing them keeps a new upstream tree from silently falling out of
+// the benchmark.
 //
-// test/ is out for a different reason: the base lists it as a source root to
-// reach ./test/mocks, but its contents are harnesses and fixtures, and
-// --no-tests only excludes what the build system scopes as tests. The forge
-// cells skip both paths to match.
-const EXCLUDED_SOURCE_DIRS = new Set(["upgrade"]);
+// test/ is out: the base lists it as a source root to reach ./test/mocks, but
+// its contents are harnesses and fixtures, and --no-tests only excludes what
+// the build system scopes as tests. The forge cells skip it to match.
 const contractDirs = readdirSync(path.join(import.meta.dirname, "contracts"), {
   withFileTypes: true,
 })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
-const missingExclusions = [...EXCLUDED_SOURCE_DIRS].filter(
-  (dir) => !contractDirs.includes(dir),
-);
-if (missingExclusions.length > 0) {
+if (!contractDirs.includes("upgrade")) {
   throw new Error(
-    `lidofinance-core-solx: contracts/${missingExclusions.join(", contracts/")} no longer exists — the pinned commit may have changed; re-check whether the exclusion is still warranted`,
+    "lidofinance-core-solx: contracts/upgrade no longer exists — the pinned commit may have changed; re-check the 0.8.25 ballast entry and preinstall's pragma-walker skip",
   );
 }
-const sourceRoots = contractDirs
-  .filter((dir) => !EXCLUDED_SOURCE_DIRS.has(dir))
-  .map((dir) => `contracts/${dir}`);
+const sourceRoots = contractDirs.map((dir) => `contracts/${dir}`);
 
 // The "solx" profiles always measure the version the plugin ships (its
 // Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
@@ -136,8 +137,11 @@ const sourceRoots = contractDirs
 // the binary (see scripts/benchmark/download-solx.ts).
 const solx017Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
 
-// One profile per cell: the legacy trees on upstream's compilers, plus the
-// modern tree on the compiler under test.
+// One profile per cell: the legacy trees on upstream's compilers, upstream's
+// 0.8.25 for contracts/upgrade (its exact pragmas are the only ones preinstall
+// leaves un-relaxed, so nothing else resolves here — 0.8.34 is the max
+// satisfying version for the caret ranges), plus the modern tree on the
+// compiler under test.
 function profileFor(
   settings: Record<string, unknown>,
   type?: "solx",
@@ -146,6 +150,7 @@ function profileFor(
   return {
     compilers: [
       ...structuredClone(legacyCompilers),
+      structuredClone(modernEntry),
       {
         ...(type === undefined ? {} : { type }),
         ...(solxPath === undefined ? {} : { path: solxPath }),
