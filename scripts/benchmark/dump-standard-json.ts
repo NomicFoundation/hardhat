@@ -35,7 +35,10 @@ DESCRIPTION
   version, scenario pins, per-file sha256) is written to --out LAST, so its
   presence marks a complete dump set — consumers (the corpus publish step,
   downstream solx benchmarks) must treat a dump directory without it as
-  partial.
+  partial. Variants a scenario is known not to compile are recorded under
+  "skippedVariants" with the reason, so an expected hole is legible as one;
+  any other compile failure aborts the run rather than publishing a corpus
+  that is quietly short a dump.
 
 OPTIONS
   --scenario <path>      Scenario folder/file (same as bench:regression)
@@ -89,6 +92,17 @@ function variantsFor(definition: ScenarioDefinition): readonly Variant[] {
   }));
 }
 
+// Variants a scenario is known not to compile, keyed `<scenario>|<file>` and
+// mirroring render-solx-tables' CELL_NOTES: lidofinance-core-solx's vaults tree
+// is IR-only, so the plugin-mandated legacy "solx" profile can never build.
+// Every other compile failure is a regression and aborts the run.
+const EXPECTED_DUMP_FAILURES: Record<string, string> = {
+  "lidofinance-core-solx|solx-legacy-dwarf.json":
+    "the vaults tree is IR-only: stack-too-deep in SRLib, plus RefSlotCache's " +
+    "struct-array copy to storage, which legacy codegen rejects with an " +
+    "UnimplementedFeatureError",
+};
+
 function getArg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
   return i !== -1 && i + 1 < process.argv.length
@@ -102,6 +116,9 @@ interface ManifestScenario {
   repo: string;
   commit: string;
   files: Record<string, string>;
+  // Declared holes: a variant listed here is one the scenario is known not to
+  // compile, so consumers can tell an expected gap from a missing dump.
+  skippedVariants: Record<string, string>;
 }
 
 function sha256(filePath: string): string {
@@ -172,6 +189,7 @@ function main(): void {
       repo: definition.repo,
       commit: definition.commit,
       files: {},
+      skippedVariants: {},
     };
     manifestScenarios[id] = manifestScenario;
 
@@ -196,19 +214,25 @@ function main(): void {
             SOLX_STANDARD_JSON_DEBUG: dumpPath,
           },
         });
-      } catch {
-        // A variant may be legitimately uncompilable (lidofinance-core-solx's
-        // vaults tree is IR-only, so its plugin-mandated legacy "solx" profile
-        // can't build). Skip the variant — leaving it out of the manifest —
-        // instead of aborting the run, which would lose every other
-        // scenario's dumps and block the corpus publish. solx dumps the
-        // standard JSON before compiling, so a failed compile can still leave
-        // a file behind; remove it or the corpus copy would pick up an
-        // unmanifested dump.
+      } catch (error) {
+        const reason = EXPECTED_DUMP_FAILURES[`${id}|${file}`];
+        if (reason === undefined) {
+          throw new Error(
+            `${id}/${file}: compile failed. If this variant is legitimately ` +
+              `uncompilable, declare it in EXPECTED_DUMP_FAILURES; otherwise ` +
+              `it is a regression, and publishing the corpus without it would ` +
+              `hide the hole.`,
+            { cause: error },
+          );
+        }
+        // Skipping beats aborting for a known-uncompilable variant: aborting
+        // would lose every other scenario's dumps and block the corpus
+        // publish. solx dumps the standard JSON before compiling, so a failed
+        // compile can still leave a file behind; remove it or the corpus copy
+        // would pick up a dump the manifest never lists.
         rmSync(dumpPath, { force: true });
-        console.warn(
-          `${id}/${file}: compile failed — skipping this dump variant`,
-        );
+        manifestScenario.skippedVariants[file] = reason;
+        console.warn(`${id}/${file}: expected compile failure (${reason})`);
         continue;
       }
 

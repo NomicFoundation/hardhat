@@ -5,16 +5,17 @@ WORKDIR="$PWD"
 MONOREPO_ROOT="$(cd "$E2E_TEST_DIR/../.." && pwd)"
 SOLX_PKG="$MONOREPO_ROOT/packages/hardhat-solx"
 
-# The benchmark profiles all pin solc 0.8.34 (the only version solx embeds),
-# but the modern vaults tree pins `pragma solidity 0.8.25;` exactly. Relax
-# those exact pragmas to caret ranges so the same sources compile under
-# 0.8.34. The walker also touches exact-0.8.25 files outside contracts/0.8.25
-# (tooling, upgrade helpers, tests) — harmless, the wrapper config's scoped
-# sources and --no-tests keep them out of every cell. The transitive imports
-# (contracts/common, vendored + npm OpenZeppelin) already carry range pragmas
-# and need no patching. Use node for the file transforms to avoid BSD/GNU sed
-# portability issues (matches the convention used by the other scenarios'
-# preinstall scripts).
+# The benchmark moves everything upstream compiles at 0.8.25 to solc 0.8.34
+# (the only version solx embeds), but those sources pin
+# `pragma solidity 0.8.25;` exactly. Relax the exact pragmas to caret ranges so
+# they compile under 0.8.34. The walker deliberately covers every such file,
+# not just contracts/0.8.25: the upgrade and tooling trees pin the same version
+# and are part of the compiled graph. test/ gets relaxed too and stays out of
+# every cell regardless (--no-tests, plus the wrapper's source roots). The
+# transitive imports (contracts/common, vendored + npm OpenZeppelin) already
+# carry range pragmas and need no patching. Use node for the file transforms to
+# avoid BSD/GNU sed portability issues (matches the convention used by the
+# other scenarios' preinstall scripts).
 node -e "
 const fs = require('fs');
 const path = require('path');
@@ -135,7 +136,8 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "
 # pre-migration one (vendored from NomicFoundation/lido-core@242beb163) so
 # the forge cells compile with upstream's own per-tree settings — its
 # compilation_restrictions mirror hardhat.config.ts, including the 0.8.25
-# tree's via-IR/cancun. remappings.txt survives at the pin and resolves
+# tree's via-IR/cancun, plus the benchmark's own 0.8.34 version cap (see the
+# file's header). remappings.txt survives at the pin and resolves
 # forge-std from npm, so the removed foundry/lib submodule isn't needed for
 # builds. Fail loudly if the pin ships its own foundry.toml again.
 if [ -e foundry.toml ]; then
@@ -145,10 +147,10 @@ fi
 cp "$E2E_TEST_DIR/foundry.toml" foundry.toml
 
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
-# At 1.7.1 forge's codegen is solc (solar is lint-only), so with
-# FOUNDRY_SOLC=0.8.34 the compiler matches the hardhat cells. (FOUNDRY_SOLC,
-# not FOUNDRY_SOLC_VERSION, which forge misparses when an [etherscan] table
-# is present — see the aave-v4-solx scenario.)
+# At 1.7.1 forge's codegen is solc (solar is lint-only), so the vendored
+# foundry.toml's per-tree compilation_restrictions are enough to put every tree
+# on the same compiler and settings as the hardhat cells. No FOUNDRY_SOLC
+# override: one global version can't serve trees that predate it.
 rm -rf "$WORKDIR/.foundry"
 node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version 1.7.1 --out "$WORKDIR/.foundry/forge"
 
