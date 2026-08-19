@@ -25,6 +25,7 @@ describe("parseCell", () => {
       noOpt: false,
       dwarf: true,
       parity: false,
+      upgrade: false,
     });
     assert.deepEqual(parseCell("solc no-opt"), {
       compiler: "solc",
@@ -32,6 +33,7 @@ describe("parseCell", () => {
       noOpt: true,
       dwarf: true,
       parity: false,
+      upgrade: false,
     });
     assert.deepEqual(parseCell("solx-0.1.7 via-ir no-dwarf"), {
       compiler: "solx-0.1.7",
@@ -39,6 +41,7 @@ describe("parseCell", () => {
       noOpt: false,
       dwarf: false,
       parity: false,
+      upgrade: false,
     });
   });
 
@@ -51,7 +54,14 @@ describe("parseCell", () => {
       noOpt: false,
       dwarf: true,
       parity: false,
+      upgrade: false,
     });
+  });
+
+  it("parses upgrade cells", () => {
+    const cell = parseCell("solx-0.1.7 via-ir upgrade");
+    assert.equal(cell?.upgrade, true);
+    assert.equal(cell?.viaIR, true);
   });
 
   it("rejects non-cells", () => {
@@ -262,9 +272,9 @@ describe("renderSolxTables", () => {
     // The version-pinned cell fills the solx column (shipped cells retired).
     assert.match(
       md,
-      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5² \| 12\.9 \/ 36\.8² \| 10\.4 \/ 30\.2 \|/,
+      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5³ \| 12\.9 \/ 36\.8³ \| 10\.4 \/ 30\.2 \|/,
     );
-    assert.match(md, /² same-scope matrix cell/);
+    assert.match(md, /³ same-scope matrix cell/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*forge/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*parity/);
   });
@@ -291,7 +301,44 @@ describe("renderSolxTables", () => {
     assert.match(old, /hardhat \+ solx \(shipped\)/);
     assert.match(
       old,
-      /\| legacy-scenario \| via-IR \| — \| 20\.0 \/ 50\.0² \|/,
+      /\| legacy-scenario \| via-IR \| — \| 20\.0 \/ 50\.0³ \|/,
+    );
+  });
+
+  it("renders upgrade-tree cells as their own pivot row", () => {
+    const vaults = renderSolxTables(
+      [
+        entry("lidofinance-vaults-solx / cold compile solc via-ir", 16.5, {
+          times: [16.4, 16.6],
+        }),
+        entry("lidofinance-vaults-solx / cold compile solx-0.1.7 via-ir", 4.7, {
+          times: [4.6, 4.8],
+        }),
+        entry(
+          "lidofinance-vaults-solx / cold compile solx-0.1.7 via-ir upgrade",
+          11.0,
+          { times: [10.9, 11.1] },
+        ),
+        entry(
+          "lidofinance-vaults-solx / cold compile forge-1.7.1 via-ir",
+          14.0,
+          { times: [13.9, 14.1] },
+        ),
+      ],
+      {},
+    );
+    // solx builds the upgrade tree at 0.8.34; solc's FAIL is the datum.
+    assert.match(
+      vaults,
+      /\| via-IR, upgrade tree \| ✗ does not compile² \| 11\.0 \/ — \|/,
+    );
+    assert.match(vaults, /² lido's contracts\/upgrade/);
+    // The matrix and parity cells stay on the matrix sources: the upgrade
+    // cell must not leak into either.
+    assert.match(vaults, /\| via-IR \| 16\.5 \/ — \| 4\.7 \/ — \|/);
+    assert.match(
+      vaults,
+      /\| lidofinance-vaults-solx \| via-IR \| 16\.5 \/ —³ \| 4\.7 \/ —³ \| 14\.0 \/ — \|/,
     );
   });
 
