@@ -103,6 +103,15 @@ const EXPECTED_DUMP_FAILURES: Record<string, string> = {
     "UnimplementedFeatureError",
 };
 
+// Scenarios that never dump: their solx sources are already covered by
+// another scenario's dump, so dumping them would double-count contracts in
+// the corpus.
+const DUMP_SKIPPED_SCENARIOS: Record<string, string> = {
+  "lidofinance-vaults-solx":
+    "its solx sources (the vaults tree at 0.8.34) are a subset of " +
+    "lidofinance-core-solx's dump",
+};
+
 function getArg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
   return i !== -1 && i + 1 < process.argv.length
@@ -173,6 +182,9 @@ function main(): void {
   }
 
   const outDir = path.resolve(getArg("--out") ?? "./solx-standard-json");
+  // Created here, not just per scenario below: the manifest is written even
+  // when every selected scenario is dump-skipped.
+  mkdirSync(outDir, { recursive: true });
   const cloneDir =
     getArg("--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR ?? DEFAULT_CLONE_DIR;
 
@@ -181,6 +193,11 @@ function main(): void {
 
   for (const jsonPath of scenarioPaths) {
     const { id, workingDir, definition } = loadScenario(cloneDir, jsonPath);
+    const skipReason = DUMP_SKIPPED_SCENARIOS[id];
+    if (skipReason !== undefined) {
+      console.log(`${id}: skipped — ${skipReason}`);
+      continue;
+    }
     // Monorepo scenarios keep their Hardhat project in a subdirectory; the
     // scenario's `workdir` points the direct hardhat invocations below there.
     const compileCwd = path.join(workingDir, definition.workdir ?? ".");
