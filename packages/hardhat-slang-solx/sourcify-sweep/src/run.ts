@@ -37,7 +37,12 @@ interface SweepRecord {
   sourceBytes: number;
   evm: string;
   outcome:
-    "ok" | "solx-only-fail" | "solx-unsupported" | "harness-fail" | "timeout";
+    | "ok"
+    | "solx-only-fail"
+    | "output-mismatch"
+    | "solx-unsupported"
+    | "harness-fail"
+    | "timeout";
   solx: LegResult;
   solc?: LegResult;
   compare?: CompareResult;
