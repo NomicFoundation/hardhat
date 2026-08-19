@@ -51,6 +51,11 @@ interface Cell {
   // parity cells compile the same source set as forge (no exposed wrappers
   // etc.); they feed the cross-tool table, not the per-scenario pivot
   parity: boolean;
+  // upgrade cells compile a scenario's upgrade tree instead of its matrix
+  // sources (lidofinance-vaults-solx: contracts/upgrade at 0.8.34, which solx
+  // builds and solc rejects); they get their own pivot row and stay out of
+  // the cross-tool table
+  upgrade: boolean;
 }
 
 interface CellData {
@@ -77,7 +82,7 @@ export function parseCell(raw: string): Cell | undefined {
     return undefined;
   }
   const flags = new Set(tokens);
-  const known = new Set(["via-ir", "no-opt", "no-dwarf", "parity"]);
+  const known = new Set(["via-ir", "no-opt", "no-dwarf", "parity", "upgrade"]);
   if ([...flags].some((f) => !known.has(f))) {
     return undefined;
   }
@@ -87,6 +92,7 @@ export function parseCell(raw: string): Cell | undefined {
     noOpt: flags.has("no-opt"),
     dwarf: !flags.has("no-dwarf"),
     parity: flags.has("parity"),
+    upgrade: flags.has("upgrade"),
   };
 }
 
@@ -97,6 +103,7 @@ function cellKey(c: Cell): string {
     c.viaIR ? "via-ir" : "",
     c.noOpt ? "no-opt" : "",
     c.parity ? "parity" : "",
+    c.upgrade ? "upgrade" : "",
     c.dwarf ? "" : "no-dwarf",
   ]
     .filter(Boolean)
@@ -125,6 +132,10 @@ const CELL_NOTES: Record<string, string> = {
   "lidofinance-core-solx|solc": "✗ does not compile¹",
   "lidofinance-core-solx|solc no-opt": "✗ does not compile¹",
   "lidofinance-core-solx|solx-0.1.7": "✗ does not compile¹",
+  "lidofinance-vaults-solx|solc": "✗ does not compile¹",
+  "lidofinance-vaults-solx|solc no-opt": "✗ does not compile¹",
+  "lidofinance-vaults-solx|solx-0.1.7": "✗ does not compile¹",
+  "lidofinance-vaults-solx|solc upgrade": "✗ does not compile²",
 };
 
 const FOOTNOTES = [
@@ -136,6 +147,12 @@ const FOOTNOTES = [
     "with `--build-profile solc-no-opt` (or lido's plain `solx`) in the " +
     "scenario. The failure, not a time, is the datum — see the scenario's " +
     "wrapper config.",
+  "² lido's contracts/upgrade builds via-IR at upstream's solc 0.8.25 but " +
+    "hits a Yul stack-too-deep from solc 0.8.26 on, at every optimizer " +
+    "setting; solx builds it at 0.8.34 by spilling the stack. Reproduce " +
+    "with `LIDO_BENCH_SOURCES=upgrade` and `--build-profile solc-via-ir` " +
+    "in the lidofinance-vaults-solx scenario. The failure, not a time, is " +
+    "the datum.",
 ];
 
 export function renderSolxTables(
@@ -241,10 +258,31 @@ export function renderSolxTables(
     "",
   );
 
-  const rows: Array<{ title: string; match: (c: Cell) => boolean }> = [
-    { title: "legacy, no optimizer", match: (c) => c.noOpt && !c.viaIR },
-    { title: "legacy", match: (c) => !c.noOpt && !c.viaIR },
-    { title: "via-IR", match: (c) => !c.noOpt && c.viaIR },
+  const rows: Array<{
+    title: string;
+    noteSuffix: string;
+    match: (c: Cell) => boolean;
+  }> = [
+    {
+      title: "legacy, no optimizer",
+      noteSuffix: " no-opt",
+      match: (c) => c.noOpt && !c.viaIR && !c.upgrade,
+    },
+    {
+      title: "legacy",
+      noteSuffix: "",
+      match: (c) => !c.noOpt && !c.viaIR && !c.upgrade,
+    },
+    {
+      title: "via-IR",
+      noteSuffix: "",
+      match: (c) => !c.noOpt && c.viaIR && !c.upgrade,
+    },
+    {
+      title: "via-IR, upgrade tree",
+      noteSuffix: " upgrade",
+      match: (c) => !c.noOpt && c.viaIR && c.upgrade,
+    },
   ];
 
   for (const id of scenarioIds) {
@@ -267,10 +305,7 @@ export function renderSolxTables(
             c.compiler === compiler && c.dwarf && !c.parity && row.match(c)
           );
         });
-        const note =
-          CELL_NOTES[
-            `${id}|${compiler}${row.title === "legacy, no optimizer" ? " no-opt" : ""}`
-          ];
+        const note = CELL_NOTES[`${id}|${compiler}${row.noteSuffix}`];
         return key === undefined
           ? (note ?? "—")
           : wallCpu(scenario.cold.get(key));
@@ -310,7 +345,8 @@ export function renderSolxTables(
                 c.parity === parity &&
                 c.viaIR === fc.viaIR &&
                 c.dwarf &&
-                !c.noOpt
+                !c.noOpt &&
+                !c.upgrade
               );
             });
             if (key !== undefined) {
@@ -336,7 +372,7 @@ export function renderSolxTables(
         }
         record(fallback);
         parityUsedFallback = true;
-        return `${wallCpu(scenario.cold.get(fallback))}²`;
+        return `${wallCpu(scenario.cold.get(fallback))}³`;
       };
       // The solx column matches any solx cell: the version-pinned cells are
       // the shipped measurement since the plugin's map reached 0.1.7 (the
@@ -425,7 +461,7 @@ export function renderSolxTables(
   lines.push("</details>", "", ...FOOTNOTES);
   if (parityUsedFallback) {
     lines.push(
-      "² same-scope matrix cell: this scenario's hardhat cells already " +
+      "³ same-scope matrix cell: this scenario's hardhat cells already " +
         "compile the parity source set, so no separate parity cell exists.",
     );
   }
