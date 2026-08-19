@@ -60,7 +60,8 @@ compilation_restrictions = [
     # which preinstall.sh's pragma relaxation lets the modern tree reach — so
     # every ranged pragma resolves there. forge otherwise picks the newest solc
     # it can fetch, which would both diverge from the hardhat cells and drift as
-    # releases land. The exact-pinned legacy trees are unaffected by the cap.
+    # releases land. The exact-pinned trees (legacy, and contracts/upgrade at
+    # 0.8.25 — the pragmas preinstall leaves alone) are unaffected by the cap.
     { paths = "contracts/**", version = "<=0.8.34" },
 ]
 

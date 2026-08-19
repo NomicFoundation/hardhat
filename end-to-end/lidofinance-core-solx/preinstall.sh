@@ -8,14 +8,17 @@ SOLX_PKG="$MONOREPO_ROOT/packages/hardhat-solx"
 # The benchmark moves everything upstream compiles at 0.8.25 to solc 0.8.34
 # (the only version solx embeds), but those sources pin
 # `pragma solidity 0.8.25;` exactly. Relax the exact pragmas to caret ranges so
-# they compile under 0.8.34. The walker deliberately covers every such file,
-# not just contracts/0.8.25: the upgrade and tooling trees pin the same version
-# and are part of the compiled graph. test/ gets relaxed too and stays out of
-# every cell regardless (--no-tests, plus the wrapper's source roots). The
-# transitive imports (contracts/common, vendored + npm OpenZeppelin) already
-# carry range pragmas and need no patching. Use node for the file transforms to
-# avoid BSD/GNU sed portability issues (matches the convention used by the
-# other scenarios' preinstall scripts).
+# they compile under 0.8.34. The walker covers every such file except
+# contracts/upgrade, which stays pinned at 0.8.25 on purpose: solc 0.8.26+
+# cannot build UpgradeVoteScript.sol via-IR, so the wrapper config keeps that
+# tree on upstream's own 0.8.25 compiler in every cell (see
+# hardhat.config.solx.ts), and the exact pragma is what routes it there.
+# test/ gets relaxed too and stays out of every cell regardless (--no-tests,
+# plus the wrapper's source roots). The transitive imports (contracts/common,
+# vendored + npm OpenZeppelin) already carry range pragmas and need no
+# patching. Use node for the file transforms to avoid BSD/GNU sed portability
+# issues (matches the convention used by the other scenarios' preinstall
+# scripts).
 node -e "
 const fs = require('fs');
 const path = require('path');
@@ -26,6 +29,8 @@ const TO = 'pragma solidity ^0.8.25;';
 // submodules, and contracts/0.8.25/vaults/lib holds first-party sources
 // whose exact pragmas need relaxing too.
 const SKIP_DIRS = new Set(['node_modules', '.git']);
+// contracts/upgrade keeps its exact 0.8.25 pragmas — see the comment above.
+const SKIP_PATHS = new Set(['contracts/upgrade']);
 
 let patched = 0;
 
@@ -33,7 +38,7 @@ let patched = 0;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const entryPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) {
+      if (!SKIP_DIRS.has(entry.name) && !SKIP_PATHS.has(entryPath)) {
         walk(entryPath);
       }
     } else if (entry.name.endsWith('.sol')) {
