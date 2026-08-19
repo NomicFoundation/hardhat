@@ -305,6 +305,20 @@ async function main(): Promise<void> {
       try {
         generateFixture(contract, project, toolchain);
         record.solx = await build(hardhatBin, project, "slangSolx");
+        if (
+          record.solx.status === "ok" &&
+          !fs.existsSync(path.join(project, "artifacts", "build-info"))
+        ) {
+          // An empty build exits 0: nothing under the source roots matched,
+          // i.e. the generator produced a fixture Hardhat finds no sources
+          // in. That is a fixture bug, not a pass.
+          record.outcome = "harness-fail";
+          record.solx = {
+            status: "fail",
+            wallS: record.solx.wallS,
+            errorTail: ["build succeeded without compiling any sources"],
+          };
+        }
         if (args.compare && record.solx.status === "ok") {
           const solxOutputs = extractOutputs(project);
           // Both profiles write into the same artifacts tree, so clear it
@@ -330,7 +344,7 @@ async function main(): Promise<void> {
             record.compare = { status: "skipped" };
           }
         }
-        if (record.solx.status !== "ok") {
+        if (record.outcome === "ok" && record.solx.status !== "ok") {
           // Baseline leg: a contract that also fails with stock solc is a
           // harness/reconstruction artifact, not a solx failure.
           record.solc = await build(hardhatBin, project, "default");
@@ -348,7 +362,7 @@ async function main(): Promise<void> {
         record.solx = {
           status: "fail",
           wallS: 0,
-          errorTail: [`fixture generation threw: ${String(error)}`],
+          errorTail: [`harness step threw: ${String(error)}`],
         };
       }
       counts[record.outcome] += 1;

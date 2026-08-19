@@ -23,35 +23,74 @@ export interface CorpusContract {
   };
 }
 
+/** Number of leading `..` segments after normalization. */
+function parentLevels(virtualPath: string): number {
+  const normalized = path.posix.normalize(virtualPath);
+  return (normalized.match(/^(?:\.\.\/)+/)?.[0].length ?? 0) / 3;
+}
+
 /**
- * Rewrites URL-style virtual paths (https://...) to plain paths, including
- * every exact quoted occurrence in import statements. solc accepted them as
- * standard-JSON source keys; Hardhat's resolver cannot represent them.
+ * Rewrites virtual source paths that Hardhat cannot represent, including
+ * every exact quoted occurrence in import statements:
+ * - URL-style paths (`https://...`): solc accepted them as standard-JSON
+ *   source keys; Hardhat's resolver cannot represent them.
+ * - `..`-prefixed paths (parent-relative verification layouts): joined under
+ *   the fixture's source root they would escape it, leaving an empty project
+ *   that builds successfully. Every path is re-rooted N synthetic levels
+ *   deeper (N = the deepest leading-`..` run), which preserves
+ *   relative-import arithmetic because all paths shift uniformly. Remapping
+ *   targets and the target path shift along.
+ * - Non-lowercase `.sol` extensions (`Token.SOL`): Hardhat's source
+ *   discovery only picks up `.sol` files; solc did not care.
  */
-function sanitizeUrls(sources: Record<string, string>): Record<string, string> {
+function sanitizeVirtualPaths(contract: CorpusContract): {
+  sources: Record<string, string>;
+  remappings: string[];
+  target: string;
+} {
+  const shiftLevels = Math.max(
+    0,
+    ...Object.keys(contract.sources).map(parentLevels),
+  );
+  const shiftPath = (virtualPath: string): string =>
+    shiftLevels === 0
+      ? virtualPath
+      : path.posix.normalize("u/".repeat(shiftLevels) + virtualPath);
   const renames = new Map<string, string>();
-  for (const virtualPath of Object.keys(sources)) {
-    if (virtualPath.includes(":")) {
-      renames.set(
-        virtualPath,
-        virtualPath.replaceAll("://", "/").replaceAll(":", "_"),
-      );
+  for (const virtualPath of Object.keys(contract.sources)) {
+    let newPath = virtualPath;
+    if (newPath.includes(":")) {
+      newPath = newPath.replaceAll("://", "/").replaceAll(":", "_");
+    }
+    newPath = shiftPath(newPath);
+    if (!newPath.endsWith(".sol") && newPath.toLowerCase().endsWith(".sol")) {
+      newPath = `${newPath.slice(0, -4)}.sol`;
+    }
+    if (newPath !== virtualPath) {
+      renames.set(virtualPath, newPath);
     }
   }
+  const remappings = contract.remappings.map((remapping) => {
+    const equal = remapping.indexOf("=");
+    return equal === -1
+      ? remapping
+      : `${remapping.slice(0, equal + 1)}${shiftPath(remapping.slice(equal + 1))}`;
+  });
+  const target = renames.get(contract.target) ?? contract.target;
   if (renames.size === 0) {
-    return sources;
+    return { sources: contract.sources, remappings, target };
   }
-  const out: Record<string, string> = {};
-  for (const [virtualPath, original] of Object.entries(sources)) {
+  const sources: Record<string, string> = {};
+  for (const [virtualPath, original] of Object.entries(contract.sources)) {
     let content = original;
     for (const [oldPath, newPath] of renames) {
       content = content
         .replaceAll(`"${oldPath}"`, `"${newPath}"`)
         .replaceAll(`'${oldPath}'`, `'${newPath}'`);
     }
-    out[renames.get(virtualPath) ?? virtualPath] = content;
+    sources[renames.get(virtualPath) ?? virtualPath] = content;
   }
-  return out;
+  return { sources, remappings, target };
 }
 
 /** npm/<name>@<version>/<rest> -> [name, version, rest]; name may be scoped. */
@@ -96,14 +135,17 @@ export function generateFixture(
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(out, { recursive: true });
 
-  const sources = sanitizeUrls(contract.sources);
+  const {
+    sources,
+    remappings: contractRemappings,
+    target,
+  } = sanitizeVirtualPaths(contract);
   const tops = new Set(
     Object.keys(sources)
       .filter((v) => v.includes("/"))
       .map((v) => v.split("/", 1)[0]),
   );
-  const hh3Native =
-    tops.has("project") && contract.target.startsWith("project/");
+  const hh3Native = tops.has("project") && target.startsWith("project/");
 
   const srcRoot = path.join(out, "s");
   const prefixes = new Set<string>();
@@ -145,7 +187,7 @@ export function generateFixture(
     const remappings = [
       // The contract's own remappings point at virtual paths; re-root the
       // targets under s/.
-      ...contract.remappings.map((r) => {
+      ...contractRemappings.map((r) => {
         const equal = r.indexOf("=");
         return equal === -1 || r.slice(equal + 1).startsWith("s/")
           ? r
