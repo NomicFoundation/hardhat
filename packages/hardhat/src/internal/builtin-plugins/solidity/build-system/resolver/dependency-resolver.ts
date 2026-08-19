@@ -58,6 +58,16 @@ import {
 
 const NPM_PACKAGES_WITH_SIMULATED_PACKAGE_EXPORTS = new Set(["forge-std"]);
 
+function isInputSourceNameWithinRoot(
+  inputSourceName: string,
+  inputSourceNameRoot: string,
+): boolean {
+  return (
+    inputSourceName === inputSourceNameRoot ||
+    inputSourceName.startsWith(`${inputSourceNameRoot}/`)
+  );
+}
+
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
   readonly #npmPackageGraph: RemappedNpmPackagesGraphImplementation;
@@ -174,7 +184,13 @@ export class ResolverImplementation implements Resolver {
   async #resolveProjectFile(
     absoluteFilePath: string,
   ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>> {
-    if (!absoluteFilePath.startsWith(this.#projectRoot)) {
+    const relativeFilePath = path.relative(this.#projectRoot, absoluteFilePath);
+
+    if (
+      relativeFilePath === ".." ||
+      relativeFilePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativeFilePath)
+    ) {
       return {
         success: false,
         error: {
@@ -183,8 +199,6 @@ export class ResolverImplementation implements Resolver {
         },
       };
     }
-
-    const relativeFilePath = path.relative(this.#projectRoot, absoluteFilePath);
 
     // We first check if the file has already been resolved.
     //
@@ -438,7 +452,12 @@ export class ResolverImplementation implements Resolver {
 
     if (isRelativeImport) {
       // If the import is relative, it shouldn't leave its package
-      if (!directImport.startsWith(from.package.inputSourceNameRoot)) {
+      if (
+        !isInputSourceNameWithinRoot(
+          directImport,
+          from.package.inputSourceNameRoot,
+        )
+      ) {
         return {
           success: false,
           error: {
@@ -451,7 +470,8 @@ export class ResolverImplementation implements Resolver {
 
       // It also shouldn't get into its package's node_modules
       if (
-        directImport.startsWith(
+        isInputSourceNameWithinRoot(
+          directImport,
           sourceNamePathJoin(from.package.inputSourceNameRoot, "node_modules"),
         )
       ) {

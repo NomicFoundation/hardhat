@@ -71,7 +71,7 @@ export async function internalVerifyAction(
     } catch (error) {
       ensureError(error);
       // It would be nice to use printErrorMessages
-      // from packages/hardhat/src/internal/cli/error-handler.ts
+      // from packages/hardhat/src/internal/cli/error-handling/error-handler.ts
       // for consistent error formatting
       console.error(styleText("red", error.message));
       errorOccurred = true;

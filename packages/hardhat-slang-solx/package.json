@@ -1,0 +1,68 @@
+{
+  "name": "@nomicfoundation/hardhat-slang-solx",
+  "version": "3.0.0",
+  "description": "Hardhat plugin for using solx compiler in test builds",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-slang-solx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-slang-solx"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "solx",
+    "compiler"
+  ],
+  "scripts": {
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/node": "^22.0.0",
+    "c8": "^12.0.0",
+    "eslint": "9.39.5",
+    "hardhat": "workspace:^3.13.0",
+    "prettier": "3.9.6",
+    "rimraf": "^6.1.3",
+    "tsx": "^4.23.1",
+    "typescript": "~6.0.3"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.17",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.6",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.13.0"
+  }
+}

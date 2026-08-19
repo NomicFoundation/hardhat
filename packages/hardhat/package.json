@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.12.0",
+  "version": "3.13.0",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -86,7 +86,7 @@
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
     "c8": "^12.0.0",
-    "eslint": "9.25.1",
+    "eslint": "9.39.5",
     "expect-type": "^1.4.0",
     "prettier": "3.9.6",
     "rimraf": "^6.1.3",

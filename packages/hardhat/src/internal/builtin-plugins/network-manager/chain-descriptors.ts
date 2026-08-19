@@ -24,23 +24,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
-  // holesky testnet
-  [
-    17_000n,
-    {
-      name: "Holesky",
-      chainType: L1_CHAIN_TYPE,
-      blockExplorers: {
-        etherscan: {
-          url: "https://holesky.etherscan.io",
-        },
-        blockscout: {
-          url: "https://eth-holesky.blockscout.com",
-          apiUrl: "https://eth-holesky.blockscout.com/api",
-        },
-      },
-    },
-  ],
   // hoodi testnet
   [
     560_048n,

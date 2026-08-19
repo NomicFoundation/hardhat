@@ -41,7 +41,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.0",
-    "eslint": "9.25.1",
+    "eslint": "9.39.5",
     "mermaid": "10.9.6",
     "mocha": "^11.0.0",
     "prettier": "3.9.6",
