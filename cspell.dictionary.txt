@@ -35,6 +35,8 @@ DISTROS
 dorny
 dsari
 dtolnay
+eabi
+EBADENGINE
 elif
 enero
 esac
@@ -46,6 +48,7 @@ fqns
 Fqns
 FQNs
 gcda
+gnueabihf
 hdkey
 hdpath
 heco
@@ -99,10 +102,12 @@ PREVRANDAO
 pushd
 randao
 Randao
+recategorize
 recompiles
 reconciliable
 reconiliation
 reserialized
+riscv
 sarasa
 schaable
 sokol
@@ -121,6 +126,7 @@ supath
 synthetix
 Synthetix
 triaging
+trippable
 tset
 txts
 ufixed

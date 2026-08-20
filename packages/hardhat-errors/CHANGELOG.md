@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.20
+
+### Patch Changes
+
+- [#8502](https://github.com/NomicFoundation/hardhat/pull/8502) [`dcce8ef`](https://github.com/NomicFoundation/hardhat/commit/dcce8ef58d2a756fe0ad1fd13365adf8970b7578) Thanks [@kanej](https://github.com/kanej)! - Added `HHE110003` and `HHE110004` for the `hardhat-slang-solx` plugin, raised when the checksum of a solx binary cannot be obtained and when a downloaded solx binary does not match it.
+
+## 3.0.19
+
+### Patch Changes
+
+- [#8490](https://github.com/NomicFoundation/hardhat/pull/8490) [`22667f6`](https://github.com/NomicFoundation/hardhat/commit/22667f6c961f5ab030f2e1c447e1b2e4a6714ee0) Thanks [@kanej](https://github.com/kanej)! - Added detection and custom error for failed native binding loads (`HHE27`) of `@nomicfoundation/edr` or `@nomicfoundation/solidity-analyzer`.
+
+- [#8487](https://github.com/NomicFoundation/hardhat/pull/8487) [`7b7af19`](https://github.com/NomicFoundation/hardhat/commit/7b7af198a19220d3ac4b99f79cdfa9f3e525e59b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added a `--tolerance` option to `--snapshot-check` in Solidity tests, allowing snapshot values to drift by a given percentage before the check fails.
+
 ## 3.0.18
 
 ### Patch Changes

@@ -84,6 +84,21 @@ export function median(values: number[]): number {
     : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+/**
+ * Whether `actual` drifted from `expected` by at most `tolerance` percent.
+ * Cross-multiplied instead of `(diff / expected) * 100 <= tolerance` to
+ * avoid floating-point errors from the division (e.g. `(49 / 700) * 100`
+ * is `7.000000000000001`, which would fail a tolerance of exactly 7).
+ */
+export function isWithinTolerance(
+  expected: number,
+  actual: number,
+  tolerance: number,
+): boolean {
+  const diff = Math.abs(actual - expected);
+  return diff * 100 <= tolerance * Math.abs(expected);
+}
+
 export function formatSectionHeader(
   sectionName: string,
   {

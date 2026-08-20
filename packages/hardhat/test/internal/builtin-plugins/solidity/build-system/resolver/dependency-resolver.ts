@@ -63,6 +63,25 @@ describe("Dependency resolver", () => {
       });
     });
 
+    it("Should error if the file is in a sibling directory whose name shares the project root prefix", async () => {
+      await using project = await useTestProjectTemplate(projectTemplate);
+      const resolver = await ResolverImplementation.create(
+        project.path,
+        readUtf8File,
+      );
+
+      const absoluteFilePath = path.join(project.path + "-sibling", "A.sol");
+      const expectedError: ProjectRootResolutionError = {
+        type: RootResolutionErrorType.PROJECT_ROOT_FILE_NOT_IN_PROJECT,
+        absoluteFilePath,
+      };
+
+      assert.deepEqual(await resolver.resolveProjectFile(absoluteFilePath), {
+        success: false,
+        error: expectedError,
+      });
+    });
+
     it("Should error if the file doesn't exist", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const resolver = await ResolverImplementation.create(
@@ -1237,6 +1256,83 @@ a/=b`,
               success: false,
               error: expectedError,
             },
+          );
+        });
+
+        it("Should error when an import escapes into a source name root with a shared prefix", async () => {
+          const prefixCollisionTemplate: TestProjectTemplate = {
+            name: "relative-import-prefix-collision",
+            version: "1.0.0",
+            files: {
+              "contracts/sub/A.sol": `A`,
+              "x/File.sol": `F`,
+            },
+          };
+
+          await using project = await useTestProjectTemplate(
+            prefixCollisionTemplate,
+          );
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+          const absoluteFilePath = path.join(
+            project.path,
+            "contracts/sub/A.sol",
+          );
+          const result = await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(result.success, "Result should be successful");
+
+          const importPath = "../../../project2x/File.sol";
+          const expectedError: ImportResolutionError = {
+            type: ImportResolutionErrorType.ILLEGAL_RELATIVE_IMPORT,
+            fromFsPath: absoluteFilePath,
+            importPath,
+          };
+
+          assert.deepEqual(
+            await resolver.resolveImport(result.value, importPath),
+            {
+              success: false,
+              error: expectedError,
+            },
+          );
+        });
+
+        it("Should allow relative imports into a directory whose name shares the node_modules prefix", async () => {
+          const nodeModulesPrefixTemplate: TestProjectTemplate = {
+            name: "relative-import-node-modules-prefix",
+            version: "1.0.0",
+            files: {
+              "contracts/A.sol": `A`,
+              "node_modules2/File.sol": `F`,
+            },
+          };
+
+          await using project = await useTestProjectTemplate(
+            nodeModulesPrefixTemplate,
+          );
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+          const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+          const result = await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(result.success, "Result should be successful");
+
+          const imported = await resolver.resolveImport(
+            result.value,
+            "../node_modules2/File.sol",
+          );
+
+          assert.ok(imported.success, "Result should be successful");
+          assert.equal(
+            imported.value.file.inputSourceName,
+            "project/node_modules2/File.sol",
+          );
+          assert.equal(
+            imported.value.file.fsPath,
+            path.join(project.path, "node_modules2/File.sol"),
           );
         });
 
