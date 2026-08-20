@@ -1,3 +1,4 @@
+// cSpell:ignore outpt -- a deliberate misspelling testing flag validation
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
