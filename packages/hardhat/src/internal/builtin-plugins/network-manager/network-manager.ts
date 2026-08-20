@@ -61,6 +61,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #userProvidedConfigPath: Readonly<string | undefined>;
   readonly #projectRoot: string;
   readonly #verbosity: number;
+  readonly #artifactsPath: string | undefined;
 
   #connectCalled = false;
 
@@ -87,6 +88,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     userProvidedConfigPath: string | undefined,
     projectRoot: string,
     verbosity: number,
+    artifactsPath?: string,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
@@ -98,6 +100,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#userProvidedConfigPath = userProvidedConfigPath;
     this.#projectRoot = projectRoot;
     this.#verbosity = verbosity;
+    this.#artifactsPath = artifactsPath;
   }
 
   public async create<ChainTypeT extends ChainType | string = DefaultChainType>(
@@ -351,10 +354,21 @@ export class NetworkManagerImplementation implements NetworkManager {
             // execution context could have already initialized it while we were
             // waiting for the mutex.
             if (this.#contractDecoder === undefined) {
-              this.#contractDecoder = await EdrProvider.createContractDecoder({
-                buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
-                ignoreContracts: false,
-              });
+              // When the artifacts path is known, EDR reads the build info
+              // files from disk itself; the buffer-based path is kept as a
+              // fallback for callers that construct the network manager
+              // without one.
+              this.#contractDecoder =
+                this.#artifactsPath !== undefined
+                  ? await EdrProvider.createContractDecoderFromProject({
+                      artifactsDir: this.#artifactsPath,
+                      ignoreContracts: false,
+                    })
+                  : await EdrProvider.createContractDecoder({
+                      buildInfos:
+                        await this.#getBuildInfosAndOutputsAsBuffers(),
+                      ignoreContracts: false,
+                    });
             }
           });
         }

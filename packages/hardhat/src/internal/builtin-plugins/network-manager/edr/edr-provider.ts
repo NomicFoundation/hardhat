@@ -19,6 +19,7 @@ import type {
   Response,
   Provider,
   ProviderConfig,
+  ProjectArtifactsConfig,
   TracingConfigWithBuffers,
   GasReportConfig,
 } from "@nomicfoundation/edr";
@@ -89,6 +90,16 @@ export class EdrProvider extends BaseProvider {
     tracingConfig: TracingConfigWithBuffers,
   ): Promise<ContractDecoder> {
     return ContractDecoder.withContracts(tracingConfig);
+  }
+
+  /**
+   * Like `createContractDecoder`, but EDR reads the build info files from the
+   * project's artifacts directory instead of receiving them as buffers.
+   */
+  public static async createContractDecoderFromProject(
+    config: ProjectArtifactsConfig,
+  ): Promise<ContractDecoder> {
+    return ContractDecoder.fromProject(config);
   }
 
   /**

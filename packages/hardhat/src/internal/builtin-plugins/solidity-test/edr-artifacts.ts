@@ -31,8 +31,56 @@ export async function getBuildInfosAndOutputs(
 ): Promise<BuildInfoAndOutput[]> {
   const buildInfoIds = await artifactManager.getAllBuildInfoIds();
 
-  return await Promise.all(
+  return await readBuildInfosAndOutputs(
+    artifactManager,
+    Array.from(buildInfoIds),
+  );
+}
+
+/**
+ * Like `getBuildInfosAndOutputs`, but reads only the build infos with the
+ * provided ids. Ids whose build info or output file doesn't exist are
+ * skipped; consumers detect missing build infos by their absence from the
+ * result.
+ *
+ * @param artifactManager The artifact manager.
+ * @param buildInfoIds The ids of the build infos to read.
+ * @returns The build infos in the Hardhat v3 format as expected by the EDR.
+ */
+export async function getBuildInfosAndOutputsByIds(
+  artifactManager: ArtifactManager,
+  buildInfoIds: Iterable<string>,
+): Promise<BuildInfoAndOutput[]> {
+  const results = await Promise.all(
     Array.from(buildInfoIds).map(async (buildInfoId) => {
+      const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
+      const buildInfoOutputPath =
+        await artifactManager.getBuildInfoOutputPath(buildInfoId);
+
+      if (buildInfoPath === undefined || buildInfoOutputPath === undefined) {
+        return undefined;
+      }
+
+      const buildInfo = await readBinaryFile(buildInfoPath);
+      const output = await readBinaryFile(buildInfoOutputPath);
+
+      return {
+        buildInfoId,
+        buildInfo,
+        output,
+      };
+    }),
+  );
+
+  return results.filter((result) => result !== undefined);
+}
+
+async function readBuildInfosAndOutputs(
+  artifactManager: ArtifactManager,
+  buildInfoIds: string[],
+): Promise<BuildInfoAndOutput[]> {
+  return await Promise.all(
+    buildInfoIds.map(async (buildInfoId) => {
       const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
       const buildInfoOutputPath =
         await artifactManager.getBuildInfoOutputPath(buildInfoId);
@@ -74,8 +122,53 @@ export async function buildEdrArtifactsWithMetadata(
 ): Promise<EdrArtifactWithMetadata[]> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
 
+  return await readEdrArtifactsWithMetadata(
+    artifactManager,
+    Array.from(fullyQualifiedNames),
+  );
+}
+
+/**
+ * Like `buildEdrArtifactsWithMetadata`, but reads only the artifacts whose
+ * user source name is selected by the provided predicate. The source name is
+ * derived from the fully qualified name, so unselected artifacts are never
+ * read from disk.
+ *
+ * @param artifactManager The artifact manager.
+ * @param isSourceNameSelected Predicate over user source names.
+ * @returns The selected artifacts in the format expected by the EDR.
+ */
+export async function buildEdrArtifactsWithMetadataForSources(
+  artifactManager: ArtifactManager,
+  isSourceNameSelected: (userSourceName: string) => boolean,
+): Promise<EdrArtifactWithMetadata[]> {
+  const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
+
+  const selectedFullyQualifiedNames = Array.from(fullyQualifiedNames).filter(
+    (fullyQualifiedName) => {
+      // Fully qualified names are `<user source name>:<contract name>`, and
+      // the contract name can't contain `:`.
+      const sourceName = fullyQualifiedName.substring(
+        0,
+        fullyQualifiedName.lastIndexOf(":"),
+      );
+
+      return isSourceNameSelected(sourceName);
+    },
+  );
+
+  return await readEdrArtifactsWithMetadata(
+    artifactManager,
+    selectedFullyQualifiedNames,
+  );
+}
+
+async function readEdrArtifactsWithMetadata(
+  artifactManager: ArtifactManager,
+  fullyQualifiedNames: string[],
+): Promise<EdrArtifactWithMetadata[]> {
   const artifacts = await Promise.all(
-    Array.from(fullyQualifiedNames).map(async (fullyQualifiedName) => {
+    fullyQualifiedNames.map(async (fullyQualifiedName) => {
       return await artifactManager.readArtifact(fullyQualifiedName);
     }),
   );

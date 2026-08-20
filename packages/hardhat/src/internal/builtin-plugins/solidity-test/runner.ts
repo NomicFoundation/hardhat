@@ -2,10 +2,8 @@ import type { TestEvent, TestsStream } from "./types.js";
 import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
-  Artifact,
   InlineConfigError,
   SolidityTestRunnerConfigArgs,
-  TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
 
 import { Readable } from "node:stream";
@@ -36,10 +34,9 @@ import { formatArtifactId, formatInlineConfigErrors } from "./formatters.js";
  */
 export function run(
   chainType: ChainType,
-  artifacts: Artifact[],
+  artifactsDirectories: string[],
   testSuiteIds: ArtifactId[],
   testRunnerConfig: SolidityTestRunnerConfigArgs,
-  tracingConfig: TracingConfigWithBuffers,
   sourceNameToUserSourceName: Map<string, string>,
 ): TestsStream {
   const stream = new Readable({
@@ -68,12 +65,14 @@ export function run(
   void (async () => {
     try {
       const edrContext = await getGlobalEdrContext();
-      const solidityTestResult = await edrContext.runSolidityTests(
+      const solidityTestResult = await edrContext.runSolidityTestsFromPaths(
         hardhatChainTypeToEdrChainType(chainType),
-        artifacts,
-        testSuiteIds,
+        artifactsDirectories,
+        // EDR loads the artifacts and build infos from disk and resolves
+        // these references against them, so neither the artifact contents
+        // nor the tracing config buffers cross N-API anymore.
+        testSuiteIds.map(({ source, name }) => ({ source, name })),
         testRunnerConfig,
-        tracingConfig,
         (suiteResult) => {
           stream.push({
             type: "suite:done",

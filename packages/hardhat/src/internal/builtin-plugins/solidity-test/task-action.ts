@@ -10,11 +10,7 @@ import type {
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
-import type {
-  ObservabilityConfig,
-  TracingConfigWithBuffers,
-  SuiteResult,
-} from "@nomicfoundation/edr";
+import type { ObservabilityConfig, SuiteResult } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
@@ -30,8 +26,9 @@ import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import {
-  buildEdrArtifactsWithMetadata,
+  buildEdrArtifactsWithMetadataForSources,
   getBuildInfosAndOutputs,
+  getBuildInfosAndOutputsByIds,
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
@@ -94,8 +91,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   let testRootPathsToRun: string[];
-  let edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
-  let allBuildInfosAndOutputs: BuildInfoAndOutput[];
+  let scopes: BuildScope[];
 
   if (hre.config.solidity.splitTestsCompilation) {
     if (noCompile !== true) {
@@ -112,8 +108,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }));
     console.log();
 
-    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
-      await loadArtifacts(hre.solidity, ["contracts", "tests"]));
+    scopes = ["contracts", "tests"];
   } else {
     if (noCompile !== true) {
       ({ testRootPaths: testRootPathsToRun } = await hre.tasks
@@ -139,54 +134,80 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
     console.log();
 
-    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
-      await loadArtifacts(hre.solidity, ["contracts"]));
+    scopes = ["contracts"];
+  }
 
-    // When noCompile is enabled, only validate compiled artifacts for test roots
-    // explicitly selected by the user. If no files were specified, skip
-    // validating every discovered test root and run whatever compiled test
-    // suites are available.
-    if (noCompile === true && testFiles.length > 0) {
-      const compiledSources = new Set(
-        edrArtifactsWithMetadata.map(({ userSourceName }) =>
-          resolveFromRoot(hre.config.paths.root, userSourceName),
-        ),
+  const testRootPathsSet = new Set(testRootPathsToRun);
+
+  // NOTE: Destructured before loading so that the EIP-712 configuration can
+  // decide whether every build info needs to be read, or only the ones
+  // required for inline test-config overrides.
+  const { eip712Types, ...solidityTestConfig } =
+    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+
+  // EDR loads all artifacts and build infos from disk itself
+  // (`runSolidityTestsFromPaths`); here we only read what's still consumed on
+  // the JS side: the artifacts of the test root files (test suite detection
+  // and inline config) and the build infos they reference (plus all build
+  // infos when EIP-712 type collection is enabled).
+  const {
+    artifactsDirectories,
+    testRootEdrArtifacts,
+    buildInfosAndOutputs: allBuildInfosAndOutputs,
+    compiledUserSourceNames,
+  } = await loadTestInputs(
+    hre.solidity,
+    scopes,
+    (userSourceName) =>
+      testRootPathsSet.has(
+        resolveFromRoot(hre.config.paths.root, userSourceName),
+      ),
+    eip712Types.include.length > 0,
+  );
+
+  // When noCompile is enabled, only validate compiled artifacts for test roots
+  // explicitly selected by the user. If no files were specified, skip
+  // validating every discovered test root and run whatever compiled test
+  // suites are available.
+  if (
+    !hre.config.solidity.splitTestsCompilation &&
+    noCompile === true &&
+    testFiles.length > 0
+  ) {
+    const compiledSources = new Set(
+      Array.from(compiledUserSourceNames).map((userSourceName) =>
+        resolveFromRoot(hre.config.paths.root, userSourceName),
+      ),
+    );
+
+    const notCompiledFiles: string[] = [];
+    for (const root of testRootPathsToRun) {
+      if (!compiledSources.has(root)) {
+        notCompiledFiles.push(root);
+      }
+    }
+
+    if (notCompiledFiles.length > 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .SELECTED_TEST_FILES_NOT_COMPILED,
+        {
+          files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
+        },
       );
-
-      const notCompiledFiles: string[] = [];
-      for (const root of testRootPathsToRun) {
-        if (!compiledSources.has(root)) {
-          notCompiledFiles.push(root);
-        }
-      }
-
-      if (notCompiledFiles.length > 0) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
-            .SELECTED_TEST_FILES_NOT_COMPILED,
-          {
-            files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
-          },
-        );
-      }
     }
   }
 
   const sourceNameToUserSourceName = new Map(
-    edrArtifactsWithMetadata.map(({ userSourceName, edrArtifact }) => [
+    testRootEdrArtifacts.map(({ userSourceName, edrArtifact }) => [
       edrArtifact.id.source,
       userSourceName,
     ]),
   );
 
-  const testRootPathsSet = new Set(testRootPathsToRun);
-  const testSuiteArtifacts = edrArtifactsWithMetadata
-    .filter(({ userSourceName }) =>
-      testRootPathsSet.has(
-        resolveFromRoot(hre.config.paths.root, userSourceName),
-      ),
-    )
-    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+  const testSuiteArtifacts = testRootEdrArtifacts.filter(({ edrArtifact }) =>
+    isTestSuiteArtifact(edrArtifact),
+  );
 
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
@@ -214,9 +235,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   let includesFailures = false;
   let includesErrors = false;
-
-  const { eip712Types, ...solidityTestConfig } =
-    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -266,13 +284,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       eip712CanonicalTypes,
       testSourcePaths,
     });
-  const tracingConfig: TracingConfigWithBuffers = {
-    buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({
-      buildInfo,
-      output,
-    })),
-    ignoreContracts: false,
-  };
   await hre.hooks.runHandlerChain(
     "test",
     "onTestRunStart",
@@ -282,10 +293,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const runStream = run(
     chainType,
-    edrArtifactsWithMetadata.map(({ edrArtifact }) => edrArtifact),
+    artifactsDirectories,
     testSuiteIds,
     testRunnerConfig,
-    tracingConfig,
     sourceNameToUserSourceName,
   );
 
@@ -428,26 +438,84 @@ async function validateThatProvidedFilesAreTests(
   }
 }
 
-async function loadArtifacts(
+/**
+ * Loads the test inputs that are still consumed on the JS side. The full
+ * artifact and build info set is loaded from disk by EDR itself via
+ * `runSolidityTestsFromPaths`, so this only reads:
+ *
+ * - the artifacts of the test root files, for test suite detection, inline
+ *   test-config overrides, and result formatting;
+ * - the build infos referenced by those artifacts, for inline test-config
+ *   overrides — or every build info when EIP-712 type collection needs them
+ *   (`needAllBuildInfos`);
+ * - the fully qualified names of every artifact (an fs listing, no file
+ *   contents), to validate `--no-compile` runs.
+ */
+async function loadTestInputs(
   solidity: SolidityBuildSystem,
   scopes: BuildScope[],
+  isTestRootSourceName: (userSourceName: string) => boolean,
+  needAllBuildInfos: boolean,
 ): Promise<{
-  edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
-  allBuildInfosAndOutputs: BuildInfoAndOutput[];
+  artifactsDirectories: string[];
+  testRootEdrArtifacts: EdrArtifactWithMetadata[];
+  buildInfosAndOutputs: BuildInfoAndOutput[];
+  compiledUserSourceNames: Set<string>;
 }> {
-  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
-  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
+  const artifactsDirectories: string[] = [];
+  const artifactManagers: ArtifactManagerImplementation[] = [];
+  const testRootEdrArtifacts: EdrArtifactWithMetadata[] = [];
+  const compiledUserSourceNames = new Set<string>();
+
   for (const scope of scopes) {
     const artifactsDir = await solidity.getArtifactsDirectory(scope);
+    artifactsDirectories.push(artifactsDir);
+
     const artifactManager = new ArtifactManagerImplementation(artifactsDir);
-    edrArtifactsWithMetadata.push(
-      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
-    );
-    allBuildInfosAndOutputs.push(
-      ...(await getBuildInfosAndOutputs(artifactManager)),
+    artifactManagers.push(artifactManager);
+
+    for (const fullyQualifiedName of await artifactManager.getAllFullyQualifiedNames()) {
+      compiledUserSourceNames.add(
+        fullyQualifiedName.substring(0, fullyQualifiedName.lastIndexOf(":")),
+      );
+    }
+
+    testRootEdrArtifacts.push(
+      ...(await buildEdrArtifactsWithMetadataForSources(
+        artifactManager,
+        isTestRootSourceName,
+      )),
     );
   }
-  return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
+
+  const buildInfosAndOutputs: BuildInfoAndOutput[] = [];
+  if (needAllBuildInfos) {
+    for (const artifactManager of artifactManagers) {
+      buildInfosAndOutputs.push(
+        ...(await getBuildInfosAndOutputs(artifactManager)),
+      );
+    }
+  } else {
+    const testRootBuildInfoIds = new Set(
+      testRootEdrArtifacts.map(({ buildInfoId }) => buildInfoId),
+    );
+
+    for (const artifactManager of artifactManagers) {
+      buildInfosAndOutputs.push(
+        ...(await getBuildInfosAndOutputsByIds(
+          artifactManager,
+          testRootBuildInfoIds,
+        )),
+      );
+    }
+  }
+
+  return {
+    artifactsDirectories,
+    testRootEdrArtifacts,
+    buildInfosAndOutputs,
+    compiledUserSourceNames,
+  };
 }
 
 export default runSolidityTests;

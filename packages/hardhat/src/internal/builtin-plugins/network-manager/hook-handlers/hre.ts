@@ -79,5 +79,6 @@ async function createNetworkManager(
     hre.globalOptions.config,
     hre.config.paths.root,
     hre.globalOptions.verbosity,
+    hre.config.paths.artifacts,
   );
 }
