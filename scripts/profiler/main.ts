@@ -165,6 +165,7 @@ interface RunRecord {
   mode: Mode;
   exitCode: number | null;
   signal: NodeJS.Signals | null;
+  spawnError: string | null;
   wallSeconds: number;
   artifactDir: string;
   /** Whether perf script succeeded; only set for system-mode runs. */
@@ -313,12 +314,7 @@ export async function runProfile(args: ProfileArgs): Promise<void> {
   logStep("Profiling complete");
 
   for (const run of runs) {
-    const outcome =
-      run.exitCode === 0
-        ? fmt.success("ok")
-        : run.signal !== null
-          ? `killed by ${run.signal}`
-          : `exit ${String(run.exitCode)}`;
+    const outcome = runOutcome(run);
     log(
       `${run.scenario} · ${run.resolvedFrom ?? run.command} · ${run.mode}: ` +
         `${outcome}, ${run.wallSeconds.toFixed(1)}s → ${run.artifactDir}`,
@@ -341,6 +337,25 @@ export async function runProfile(args: ProfileArgs): Promise<void> {
   if (runs.some((run) => run.exitCode !== 0 || run.symbolized === false)) {
     process.exitCode = 1;
   }
+}
+
+/** The summary-line outcome of a run, e.g. "ok" or "killed by SIGKILL". */
+function runOutcome(run: RunRecord): string {
+  if (run.exitCode === 0) {
+    return fmt.success("ok");
+  }
+
+  if (run.signal !== null) {
+    return `killed by ${run.signal}`;
+  }
+
+  if (run.exitCode === null) {
+    return run.spawnError !== null
+      ? `failed to spawn (${run.spawnError})`
+      : "failed to spawn";
+  }
+
+  return `exit ${String(run.exitCode)}`;
 }
 
 /** The flamegraph title for a run, e.g. "uniswap-v4-core — test solidity". */
@@ -436,14 +451,40 @@ function profileSystem(
 
 /** Runs a post-processing shell pipeline; returns whether it succeeded. */
 function runPostProcess(pipeline: string): boolean {
-  const result = spawnSync("bash", ["-c", pipeline], { stdio: "ignore" });
+  // The pipelines write their data to files themselves, so only stderr —
+  // which carries the diagnosis on failure — is captured. perf can emit
+  // megabytes of non-fatal stderr noise even on success, so the buffer is
+  // sized well above the default to not kill a healthy pipeline.
+  const result = spawnSync("bash", ["-c", pipeline], {
+    stdio: ["ignore", "ignore", "pipe"],
+    encoding: "utf-8",
+    maxBuffer: 16 * 1024 * 1024,
+  });
 
   if (result.status !== 0) {
-    logWarning(`post-processing failed: ${pipeline}`);
+    logWarning(
+      `post-processing failed (exit ${String(result.status)}): ${pipeline}\n` +
+        `    ${stderrTail(result.stderr)}`,
+    );
     return false;
   }
 
   return true;
+}
+
+/**
+ * The last few stderr lines of a failed command, as an indented block for a
+ * warning message.
+ *
+ * The tail is taken — not the head — because perf prints the fatal error
+ * last, after any warning noise. Five lines fit the diagnosis without
+ * drowning the run output. An empty stderr is made explicit, so that the
+ * reader knows capturing worked.
+ */
+function stderrTail(stderr: string | null): string {
+  const tail = (stderr ?? "").trim().split("\n").slice(-5).join("\n    ");
+
+  return tail === "" ? "(no stderr)" : tail;
 }
 
 function profileJs(
@@ -502,6 +543,7 @@ function profileJs(
 interface CommandOutcome {
   exitCode: number | null;
   signal: NodeJS.Signals | null;
+  spawnError: string | null;
   wallSeconds: number;
 }
 
@@ -543,7 +585,12 @@ function runInScenario(
     logWarning(`command exited with ${String(result.status)}: ${command}`);
   }
 
-  return { exitCode: result.status, signal: result.signal, wallSeconds };
+  return {
+    exitCode: result.status,
+    signal: result.signal,
+    spawnError: result.error?.message ?? null,
+    wallSeconds,
+  };
 }
 
 function toRunRecord(
@@ -560,6 +607,7 @@ function toRunRecord(
     mode,
     exitCode: outcome.exitCode,
     signal: outcome.signal,
+    spawnError: outcome.spawnError,
     wallSeconds: outcome.wallSeconds,
     artifactDir: runDir,
   };
