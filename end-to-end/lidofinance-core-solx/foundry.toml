@@ -1,7 +1,7 @@
 # Vendored by the lidofinance-core-solx benchmark scenario: the pre-migration
 # foundry.toml from NomicFoundation/lido-core@242beb163, which the Hardhat 3
-# migration removed. Copied verbatim except for the last compilation_restrictions
-# entry (marked below), which the benchmark adds. Its per-tree
+# migration removed. Copied verbatim except for the last two
+# compilation_restrictions entries (marked below), which the benchmark adds. Its per-tree
 # additional_compiler_profiles / compilation_restrictions mirror
 # hardhat.config.ts, and that is what makes the forge cells comparable to the
 # hardhat ones.
@@ -63,6 +63,15 @@ compilation_restrictions = [
     # releases land. The exact-pinned trees (legacy, and contracts/upgrade at
     # 0.8.25 — the pragmas preinstall leaves alone) are unaffected by the cap.
     { paths = "contracts/**", version = "<=0.8.34" },
+    # Benchmark delta, not upstream: this file's pragma floor (>=0.8.9) is a lie —
+    # its `assembly ("memory-safe")` dialect string only parses from solc 0.8.13.
+    # forge 1.7.1's compilation-unit partition depends on which solc versions
+    # ~/.svm already holds, and with only 0.8.34 installed (the persistent
+    # runner's state after the graph-horizon cells) it groups this file into a
+    # 0.8.9 unit and dies on the parse error (CI run 32305937072). The floor pins
+    # it where every cache state can compile it; its only importer is the
+    # 0.8.25-pinned upgrade tree, so no legacy-tree restriction merge conflicts.
+    { paths = "contracts/common/lib/Bytes32String.sol", version = ">=0.8.13" },
 ]
 
 [profile.default.invariant]
