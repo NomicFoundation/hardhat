@@ -4,7 +4,9 @@ set -euo pipefail
 WORKDIR="$PWD"
 HORIZON="$WORKDIR/packages/horizon"
 MONOREPO_ROOT="$(cd "$E2E_TEST_DIR/../.." && pwd)"
-SOLX_PKG="$MONOREPO_ROOT/packages/hardhat-solx"
+
+# Pinned solx/forge versions shared by every solx scenario.
+source "$MONOREPO_ROOT/scripts/benchmark/pinned-tool-versions.sh"
 
 # The repo pins `engines: { pnpm: "^10.28" }` and pnpm enforces engines.pnpm
 # unconditionally (engine-strict only gates engines.node), so the harness's
@@ -93,48 +95,18 @@ fs.writeFileSync('pnpm-workspace.yaml', stripped.join('\n'));
 # local version, so no further patching is needed.
 rm -f pnpm-lock.yaml
 
-# hardhat-solx is `private` and excluded from the Verdaccio publish set, so it
-# never reaches the registry. Pack it instead (pack ignores `private`) and
-# consume the tarball as a file: dependency. `pnpm pack` — not `npm pack` —
-# rewrites the plugin's `workspace:` deps to real version ranges, so its own
-# dependencies (hardhat-errors/utils/zod-utils, peer hardhat) still resolve
-# from the registry like every other scenario dependency.
-if [ ! -d "$SOLX_PKG/dist/src" ]; then
-  echo "hardhat-solx dist not found at $SOLX_PKG/dist/src — run 'pnpm build' before benchmarking." >&2
-  exit 1
-fi
-
-# Start from an empty .solx so the glob below can only match the tarball we
-# just produced (a stale one from a prior run would make `mv` fail). The
-# plugin bits live under packages/horizon — the workspace package that
-# consumes them — not the repo root.
-rm -rf "$HORIZON/.solx"
-mkdir -p "$HORIZON/.solx"
-(cd "$SOLX_PKG" && pnpm pack --pack-destination "$HORIZON/.solx")
-# Name the tarball by content hash: npm never re-reads a changed `file:`
-# tarball when the spec and the packed version are unchanged (this froze
-# aave's shipped plugin at a stale version map on the persistent runner), so
-# a content change must change the spec. Hash via node for BSD/GNU portability.
-TARBALL="$(echo "$HORIZON/.solx/"nomicfoundation-hardhat-solx-*.tgz)"
-TARBALL_HASH="$(node -e "
-const { createHash } = require('crypto');
-const { readFileSync } = require('fs');
-console.log(createHash('sha256').update(readFileSync(process.argv[1])).digest('hex').slice(0, 12));
-" "$TARBALL")"
-mv "$TARBALL" "$HORIZON/.solx/hardhat-solx-$TARBALL_HASH.tgz"
-
-# `npm pkg set` only edits package.json (no lockfile involved). Run it inside
-# packages/horizon — not via --prefix — so the file: spec stays relative to
-# the declaring package, which is how pnpm resolves file: deps in a workspace.
-(cd "$HORIZON" && npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-solx-$TARBALL_HASH.tgz")
-
-# Freshness oracle for the "assert fresh hardhat-solx" prime step: the
-# installed plugin must match this monorepo build byte-for-byte.
-cp -R "$SOLX_PKG/dist/src" "$HORIZON/.solx/expected-dist-src"
+# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# and wire it in as a content-hash-named file: devDependency, plus the
+# freshness oracle at .solx/expected-dist-src — see
+# scripts/benchmark/pack-hardhat-solx.ts for the how and why. The plugin bits
+# live under packages/horizon — the workspace package that consumes them —
+# not the repo root, so the file: spec stays relative to the declaring
+# package (how pnpm resolves file: deps in a workspace).
+node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$HORIZON"
 
 # Pinned solx for the version-comparison cells: the wrapper config's
 # "solx-0.1.7" profiles point at this binary via the plugin's `path` option.
-node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "$HORIZON/.solx/solx-v0.1.7"
+node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$HORIZON/.solx/solx-v$SOLX_PINNED_VERSION"
 
 # The Hardhat 3 migration stack reduced foundry.toml to a lint-only config;
 # reinstate the pre-migration one (vendored from PR #1's 8d148f39, which the
@@ -154,10 +126,13 @@ cp "$E2E_TEST_DIR/foundry.toml" "$HORIZON/foundry.toml"
 # not FOUNDRY_SOLC_VERSION, which forge misparses when an [etherscan] table
 # is present — see the aave-v4-solx scenario.)
 rm -rf "$HORIZON/.foundry"
-node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version 1.7.1 --out "$HORIZON/.foundry/forge"
+node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINNED_VERSION" --out "$HORIZON/.foundry/forge"
 
-# Swap in the wrapper config that adds the solx build profile. The original is
-# kept as hardhat.config.base.ts, which the wrapper composes with — see
-# hardhat.config.solx.ts. Both live in packages/horizon.
+# Swap in the wrapper config that adds the solx build profiles. The original
+# is kept as hardhat.config.base.ts, which the wrapper composes with — see
+# hardhat.config.solx.ts. The shared profile factory is copied in beside it
+# (the monorepo isn't importable from the checkout at hardhat runtime). All
+# three live in packages/horizon.
 mv "$HORIZON/hardhat.config.ts" "$HORIZON/hardhat.config.base.ts"
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" "$HORIZON/hardhat.config.ts"
+cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" "$HORIZON/solx-profiles.ts"

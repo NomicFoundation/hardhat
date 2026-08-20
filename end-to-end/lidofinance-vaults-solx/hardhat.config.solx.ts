@@ -1,5 +1,6 @@
 // Wrapper config dropped over the pinned Lido core fork's hardhat.config.ts
-// by preinstall.sh (which renames the original to hardhat.config.base.ts).
+// by preinstall.sh (which renames the original to hardhat.config.base.ts and
+// copies the shared profile factory in as ./solx-profiles.ts).
 //
 // One of two lido scenarios answering different questions. The
 // lidofinance-core-solx scenario measures the whole-repo adoption cost:
@@ -12,8 +13,10 @@
 // of profiles, {solc, solx} x {legacy, via-IR}, all seeded from the base's
 // 0.8.25 compiler settings and re-pinned to 0.8.34 (the only version in
 // hardhat-solx's Solidity→solx map; preinstall relaxes the exact pragmas to
-// caret ranges). The tree's transitive imports (contracts/common, vendored +
-// npm OpenZeppelin) carry range pragmas and compile at 0.8.34 unpatched.
+// caret ranges, and because the settings ship viaIR: true the factory's
+// legacy cells explicitly flip it to false — see solx-profiles.ts). The
+// tree's transitive imports (contracts/common, vendored + npm OpenZeppelin)
+// carry range pragmas and compile at 0.8.34 unpatched.
 //
 // LIDO_BENCH_SOURCES=upgrade redirects the build to contracts/upgrade
 // instead: that tree builds via-IR at upstream's 0.8.25 but hits a Yul
@@ -27,18 +30,22 @@
 // other way: SRLib hits stack-too-deep, and RefSlotCache copies a struct
 // array to storage, which solc's legacy codegen rejects with an
 // UnimplementedFeatureError (IR-only feature).
-// So only the via-IR cells are benchmarked; the legacy/no-opt profiles below
-// exist for the plugin's mandatory "solx" profile and for reproducing the
-// failure (`--build-profile solc-no-opt`), and their FAIL is the datum,
-// annotated in render-solx-tables' CELL_NOTES. The base's
-// npmFilesToBuild (Aragon/OZ roots) belong to the dropped legacy trees; the
-// contract sizer's compile hook would time an unrelated post-compile pass in
-// every cell, so it's disabled. Everything else (plugins, tasks, test,
-// warnings) is preserved from the base.
-import path from "node:path";
-
+// So only the via-IR cells are benchmarked; the legacy/no-opt profiles exist
+// for the plugin's mandatory "solx" profile and for reproducing the failure
+// (`--build-profile solc-no-opt`), and their FAIL is the datum, annotated in
+// render-solx-tables' CELL_NOTES. The base's npmFilesToBuild (Aragon/OZ
+// roots) belong to the dropped legacy trees; the contract sizer's compile
+// hook would time an unrelated post-compile pass in every cell, so it's
+// disabled. Everything else (plugins, tasks, test, warnings) is preserved
+// from the base.
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
+
 import baseConfig from "./hardhat.config.base.ts";
+import {
+  buildSolxProfiles,
+  overrideEntry,
+  type SolxProfileCell,
+} from "./solx-profiles.ts";
 
 const base = baseConfig as unknown as {
   plugins: unknown[];
@@ -58,35 +65,7 @@ if (modernEntry === undefined) {
     "lidofinance-vaults-solx: no 0.8.25 compiler entry in the base config — the pinned commit may have changed",
   );
 }
-
-// Independent settings objects per profile so the solx profiles can't bleed into
-// the solc profile. The solx optimization level (-O1) and DWARF debug info both
-// come from the hardhat-solx plugin defaults: DWARF is force-emitted, so solx
-// maps sources just as solc does (Hardhat force-emits solc sourceMaps), keeping
-// the comparison apples-to-apples. We intentionally don't override the optimizer
-// here so the benchmark measures the realistic plugin-default config.
 const baseSettings = modernEntry.settings;
-const solcViaIRSettings = structuredClone(baseSettings);
-const solxViaIRSettings = structuredClone(baseSettings);
-
-// Legacy variants: same settings, only `viaIR` flips (the base default is IR).
-// Both solc and solx read `settings.viaIR` (there is no `--via-ir` CLI flag —
-// it's config-only).
-const solcSettings = { ...structuredClone(baseSettings), viaIR: false };
-const solxSettings = { ...structuredClone(baseSettings), viaIR: false };
-
-// Optimizer-off legacy solc — the Foundry test-run default and solc at its
-// fastest, so it's the real-world compile-time bar for a test-only compiler.
-const solcNoOptSettings = {
-  ...structuredClone(solcSettings),
-  optimizer: { enabled: false },
-};
-
-// The "solx" profiles always measure the version the plugin ships (its
-// Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
-// comparison via the plugin's `path` compiler option; preinstall.sh downloads
-// the binary (see scripts/benchmark/download-solx.ts).
-const solx017Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
 
 // Source scope, switched per cell by scenario.json (see the header comment).
 function benchSources(): string[] {
@@ -104,22 +83,18 @@ function benchSources(): string[] {
   return selected;
 }
 
-// Upstream's single per-file escape hatch, re-pinned to 0.8.34: VaultHub
-// builds via-IR at optimizer runs 100 in every profile (upstream ships it
-// that way to keep the contract under the size limit; keeping it in the
-// legacy cells is the aave precedent for per-file via-IR overrides).
-function vaultHubOverride(type?: "solx", solxPath?: string) {
+// Upstream's single per-file escape hatch, re-pinned to 0.8.34 and following
+// each cell's compiler: VaultHub builds via-IR at optimizer runs 100 in every
+// profile (upstream ships it that way to keep the contract under the size
+// limit; keeping it in the legacy cells is the aave precedent for per-file
+// via-IR overrides).
+function vaultHubOverride(cell: SolxProfileCell) {
   return {
-    "contracts/0.8.25/vaults/VaultHub.sol": {
-      ...(type === undefined ? {} : { type }),
-      ...(solxPath === undefined ? {} : { path: solxPath }),
-      version: "0.8.34",
-      settings: {
-        ...structuredClone(baseSettings),
-        optimizer: { enabled: true, runs: 100 },
-        viaIR: true,
-      },
-    },
+    "contracts/0.8.25/vaults/VaultHub.sol": overrideEntry(cell, {
+      ...structuredClone(baseSettings),
+      optimizer: { enabled: true, runs: 100 },
+      viaIR: true,
+    }),
   };
 }
 
@@ -142,53 +117,9 @@ export default {
     // No npmFilesToBuild on purpose: the base's Aragon/OZ roots belong to the
     // legacy trees; the modern tree's OpenZeppelin needs are ordinary imports
     // that Hardhat resolves automatically.
-    profiles: {
-      default: {
-        compilers: [{ version: "0.8.34", settings: solcSettings }],
-        overrides: vaultHubOverride(),
-      },
-      "solc-no-opt": {
-        compilers: [{ version: "0.8.34", settings: solcNoOptSettings }],
-        overrides: vaultHubOverride(),
-      },
-      "solc-via-ir": {
-        compilers: [{ version: "0.8.34", settings: solcViaIRSettings }],
-        overrides: vaultHubOverride(),
-      },
-      solx: {
-        compilers: [
-          { type: "solx", version: "0.8.34", settings: solxSettings },
-        ],
-        overrides: vaultHubOverride("solx"),
-      },
-      "solx-via-ir": {
-        compilers: [
-          { type: "solx", version: "0.8.34", settings: solxViaIRSettings },
-        ],
-        overrides: vaultHubOverride("solx"),
-      },
-      "solx-0.1.7": {
-        compilers: [
-          {
-            type: "solx",
-            version: "0.8.34",
-            path: solx017Path,
-            settings: structuredClone(solxSettings),
-          },
-        ],
-        overrides: vaultHubOverride("solx", solx017Path),
-      },
-      "solx-0.1.7-via-ir": {
-        compilers: [
-          {
-            type: "solx",
-            version: "0.8.34",
-            path: solx017Path,
-            settings: structuredClone(solxViaIRSettings),
-          },
-        ],
-        overrides: vaultHubOverride("solx", solx017Path),
-      },
-    },
+    profiles: buildSolxProfiles({
+      baseSettings,
+      overrides: vaultHubOverride,
+    }),
   },
 };
