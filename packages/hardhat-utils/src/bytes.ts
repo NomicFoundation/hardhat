@@ -75,50 +75,27 @@ export function bytesIncludesUtf8String(
   haystack: Uint8Array,
   needle: string,
 ): boolean {
-  return bytesIndexOfUtf8String(haystack, needle) !== -1;
-}
-
-/**
- * Returns the index of the first occurrence of the UTF-8 byte sequence of a
- * given string within a Uint8Array. Searches the raw bytes without allocating
- * a full string for the haystack, using the Knuth-Morris-Pratt (KMP)
- * algorithm.
- *
- * @param haystack The Uint8Array to search in.
- * @param needle The string whose UTF-8 encoding to search for.
- * @param fromIndex The byte index to start the search at. Defaults to 0.
- * @returns The byte index of the first match at or after `fromIndex`, or -1
- * if there is none. An empty needle matches at `fromIndex` (clamped to the
- * haystack's bounds), mirroring `String.prototype.indexOf`.
- */
-export function bytesIndexOfUtf8String(
-  haystack: Uint8Array,
-  needle: string,
-  fromIndex: number = 0,
-): number {
-  const haystackLen = haystack.length;
-  const start = Math.min(Math.max(fromIndex, 0), haystackLen);
-
   if (needle.length === 0) {
-    return start;
+    return true;
   }
 
   const needleBytes = utf8StringToBytes(needle);
   const needleLen = needleBytes.length;
-  if (needleLen > haystackLen - start) {
-    return -1;
+  const haystackLen = haystack.length;
+  if (needleLen > haystackLen) {
+    return false;
   }
 
   const lps = buildLpsTable(needleBytes);
 
-  let haystackI = start;
+  let haystackI = 0;
   let needleI = 0;
   while (haystackI < haystackLen) {
     if (haystack[haystackI] === needleBytes[needleI]) {
       haystackI++;
       needleI++;
       if (needleI === needleLen) {
-        return haystackI - needleLen;
+        return true;
       }
     } else if (needleI > 0) {
       needleI = lps[needleI - 1];
@@ -127,7 +104,7 @@ export function bytesIndexOfUtf8String(
     }
   }
 
-  return -1;
+  return false;
 }
 
 /**
