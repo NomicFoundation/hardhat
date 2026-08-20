@@ -197,7 +197,15 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const downloadPath = this.#getCompilerBinaryPathFromBuild(build);
 
-    return await exists(downloadPath);
+    if (!(await exists(downloadPath))) {
+      return false;
+    }
+
+    // Re-verify the cached download on every hit, not just once at download
+    // time: a cached binary can be altered between runs (a poisoned shared CI
+    // cache, another user on the machine, a malicious dependency). A mismatch
+    // is reported as "not downloaded" so the caller re-fetches a clean copy.
+    return await this.#isCachedCompilerValid(build);
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
@@ -255,6 +263,18 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       await exists(compilerPath),
       `Trying to get a compiler ${version} before it was downloaded`,
     );
+
+    // The compiler is about to be executed, so re-verify the cached download
+    // against its pinned SHA-256 rather than trusting that the file present on
+    // disk is the one that was originally verified at download time.
+    if (!(await this.#isCachedCompilerValid(build))) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
+        {
+          remoteVersion: build.longVersion,
+        },
+      );
+    }
 
     if (await exists(this.#getCompilerDoesNotWorkFile(build))) {
       return undefined;
@@ -453,6 +473,27 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     return true;
   }
 
+  /**
+   * Re-computes the SHA-256 of an already-cached download and compares it to
+   * the digest pinned in the compiler list. Unlike {@link #verifyCompilerDownload}
+   * this is non-destructive: it never deletes the file, leaving the caller to
+   * decide whether to re-download (a cache check) or fail (a compile-time use).
+   */
+  async #isCachedCompilerValid(build: CompilerBuild): Promise<boolean> {
+    const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
+
+    if (!(await exists(downloadPath))) {
+      return false;
+    }
+
+    const expectedSha = getPrefixedHexString(build.sha256);
+    const actualSha = bytesToHexString(
+      await sha256(await readBinaryFile(downloadPath)),
+    );
+
+    return expectedSha === actualSha;
+  }
+
   async #postProcessCompilerDownload(
     build: CompilerBuild,
     downloadPath: string,
@@ -476,7 +517,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       await ensureDir(solcFolder);
 
       const zip = new AdmZip(downloadPath);
-      zip.extractAllTo(solcFolder);
+      // Overwrite on extraction so a pre-planted solc.exe cannot survive a
+      // freshly verified download (AdmZip defaults to overwrite = false).
+      zip.extractAllTo(solcFolder, true);
     }
 
     log("Checking native solc binary");
