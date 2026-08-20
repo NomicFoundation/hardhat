@@ -166,9 +166,17 @@ function writeRegistryConfig(
     // init calls stay idempotent.
     const cleaned = existing
       .replace(/^npmRegistryServer:.*\n?/m, "")
-      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "");
+      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "")
+      .replace(/^enableHardenedMode:.*\n?/m, "");
 
-    const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\n`;
+    // Yarn Berry auto-enables hardened mode on public-repo pull_request CI
+    // runs, and its post-resolution validation re-fetches metadata from the
+    // active registry and refuses any lockfile drift (YN0028). --use-local
+    // republishes same-version packages to Verdaccio with different metadata
+    // (e.g. bumped hardhat peer ranges), so that refusal is guaranteed here:
+    // the benchmark IS a deliberate registry swap-out. Disable it; Classic
+    // ignores .yarnrc.yml and has no hardened mode.
+    const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\nenableHardenedMode: false\n`;
 
     writeFileSync(
       yarnrcPath,
