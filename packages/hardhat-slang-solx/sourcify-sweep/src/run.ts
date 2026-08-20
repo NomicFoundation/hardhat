@@ -57,6 +57,9 @@ const SOLX_UNSUPPORTED_PATTERNS = [
   // of its intentional instruction rejections this way.
   /The `[A-Z0-9]+` instruction is not supported/,
   /memory-unsafe assembly block and a stack-too-deep error/,
+  // Recursive function whose stack-too-deep can't be fixed by spilling; solx
+  // >= 0.1.8 reports this per contract (older versions dropped it silently).
+  /Stackification failed for '[^']+' function\. It is recursive/,
 ];
 
 const { values: args } = parseArgs({
