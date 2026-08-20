@@ -1,5 +1,6 @@
 // Wrapper config dropped over the pinned Lido core fork's hardhat.config.ts
-// by preinstall.sh (which renames the original to hardhat.config.base.ts).
+// by preinstall.sh (which renames the original to hardhat.config.base.ts and
+// copies the shared profile factory in as ./solx-profiles.ts).
 //
 // The fork's config compiles five solc versions: the 0.4.24-0.8.9 legacy trees
 // plus the modern vaults tree at 0.8.25 (via-IR, cancun). solx only embeds
@@ -7,21 +8,23 @@
 // benchmark re-expresses the modern tree as its matrix of profiles, {solc,
 // solx} x {legacy, via-IR}, seeded from the base's 0.8.25 settings and
 // re-pinned to 0.8.34 (preinstall relaxes that tree's exact pragmas to caret
-// ranges). The older trees pass through on upstream's own compilers in every
-// profile — including the solx ones, where solx handles the tree it can and
-// stock solc handles the rest — and contracts/upgrade rides the same way on
-// upstream's own 0.8.25 (see the comment above the ballast entry below). That
-// mixed shape is what adopting solx would actually look like here, and it
-// keeps every cell compiling the same whole source graph instead of a slice
-// of it. One path the base declares stays out of every cell — test/, whose
-// contents are harnesses and fixtures the base only lists as a source root to
-// reach ./test/mocks; the forge cells skip it too.
+// ranges; because the settings ship viaIR: true, the factory's legacy cells
+// explicitly flip it to false — see solx-profiles.ts). The older trees pass
+// through on upstream's own compilers in every profile — including the solx
+// ones, where solx handles the tree it can and stock solc handles the rest —
+// and contracts/upgrade rides the same way on upstream's own 0.8.25 (see the
+// comment above the ballast entries below). That mixed shape is what
+// adopting solx would actually look like here, and it keeps every cell
+// compiling the same whole source graph instead of a slice of it. One path
+// the base declares stays out of every cell — test/, whose contents are
+// harnesses and fixtures the base only lists as a source root to reach
+// ./test/mocks; the forge cells skip it too.
 //
 // Upstream ships the vaults tree via-IR only, and it cannot compile any other
 // way: SRLib hits stack-too-deep, and RefSlotCache copies a struct array to
 // storage, which solc's legacy codegen rejects with an UnimplementedFeatureError
 // (IR-only feature). So only the via-IR cells are benchmarked; the legacy/no-opt
-// profiles below exist for the plugin's mandatory "solx" profile and for
+// profiles exist for the plugin's mandatory "solx" profile and for
 // reproducing the failure (`--build-profile solc-no-opt`), and their FAIL is the
 // datum, annotated in render-solx-tables' CELL_NOTES. The contract sizer's
 // compile hook would time an unrelated post-compile pass in every cell, so it's
@@ -31,7 +34,13 @@ import { readdirSync } from "node:fs";
 import path from "node:path";
 
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
+
 import baseConfig from "./hardhat.config.base.ts";
+import {
+  buildSolxProfiles,
+  overrideEntry,
+  type SolxProfileCell,
+} from "./solx-profiles.ts";
 
 interface CompilerEntry {
   version: string;
@@ -49,10 +58,10 @@ const base = baseConfig as unknown as {
   [key: string]: unknown;
 };
 
-// Upstream's modern-tree compiler, and the version every cell re-pins it to:
-// 0.8.34 is the only entry in hardhat-solx's Solidity→solx version map.
+// Upstream's modern-tree compiler; every cell re-pins that tree to 0.8.34
+// (the factory's version — the only entry in hardhat-solx's Solidity→solx
+// version map).
 const MODERN_VERSION = "0.8.25";
-const BENCHMARK_VERSION = "0.8.34";
 
 // Seed every profile's modern-tree entry from upstream's (optimizer runs 200,
 // viaIR: true, evmVersion cancun — cancun is in solx's supported set).
@@ -64,6 +73,7 @@ if (modernEntry === undefined) {
     `lidofinance-core-solx: no ${MODERN_VERSION} compiler entry in the base config — the pinned commit may have changed`,
   );
 }
+const baseSettings = modernEntry.settings;
 
 // The legacy trees are benchmark ballast, not a subject: no compiler under
 // comparison can build them, so they carry upstream's own settings unchanged
@@ -85,32 +95,10 @@ if (legacyCompilers.length === 0) {
 // no solc counterpart is not a comparison, so the tree is ballast on
 // upstream's own compiler instead, like the older trees: preinstall's pragma
 // walker leaves its exact 0.8.25 pragmas alone, and every profile carries
-// upstream's 0.8.25 entry verbatim. Its imports from the relaxed vaults tree
-// compile twice per cell — once at 0.8.25 as upgrade dependencies, once at
-// 0.8.34 as the subject — the same constant in every column.
-
-// Independent settings objects per profile so the solx profiles can't bleed into
-// the solc profile. The solx optimization level (-O1) and DWARF debug info both
-// come from the hardhat-solx plugin defaults: DWARF is force-emitted, so solx
-// maps sources just as solc does (Hardhat force-emits solc sourceMaps), keeping
-// the comparison apples-to-apples. We intentionally don't override the optimizer
-// here so the benchmark measures the realistic plugin-default config.
-const baseSettings = modernEntry.settings;
-const solcViaIRSettings = structuredClone(baseSettings);
-const solxViaIRSettings = structuredClone(baseSettings);
-
-// Legacy variants: same settings, only `viaIR` flips (the base default is IR).
-// Both solc and solx read `settings.viaIR` (there is no `--via-ir` CLI flag —
-// it's config-only).
-const solcSettings = { ...structuredClone(baseSettings), viaIR: false };
-const solxSettings = { ...structuredClone(baseSettings), viaIR: false };
-
-// Optimizer-off legacy solc — the Foundry test-run default and solc at its
-// fastest, so it's the real-world compile-time bar for a test-only compiler.
-const solcNoOptSettings = {
-  ...structuredClone(solcSettings),
-  optimizer: { enabled: false },
-};
+// upstream's 0.8.25 entry verbatim (the modernEntry ballast below). Its
+// imports from the relaxed vaults tree compile twice per cell — once at
+// 0.8.25 as upgrade dependencies, once at 0.8.34 as the subject — the same
+// constant in every column.
 
 // Source roots: every directory under contracts/. Enumerating them rather
 // than listing them keeps a new upstream tree from silently falling out of
@@ -131,53 +119,18 @@ if (!contractDirs.includes("upgrade")) {
 }
 const sourceRoots = contractDirs.map((dir) => `contracts/${dir}`);
 
-// The "solx" profiles always measure the version the plugin ships (its
-// Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
-// comparison via the plugin's `path` compiler option; preinstall.sh downloads
-// the binary (see scripts/benchmark/download-solx.ts).
-const solx017Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
-
-// One profile per cell: the legacy trees on upstream's compilers, upstream's
-// 0.8.25 for contracts/upgrade (its exact pragmas are the only ones preinstall
-// leaves un-relaxed, so nothing else resolves here — 0.8.34 is the max
-// satisfying version for the caret ranges), plus the modern tree on the
-// compiler under test.
-function profileFor(
-  settings: Record<string, unknown>,
-  type?: "solx",
-  solxPath?: string,
-) {
+// Upstream's single per-file escape hatch, re-pinned to 0.8.34 and following
+// each cell's compiler: VaultHub builds via-IR at optimizer runs 100 in every
+// profile (upstream ships it that way to keep the contract under the size
+// limit; keeping it in the legacy cells is the aave precedent for per-file
+// via-IR overrides).
+function vaultHubOverride(cell: SolxProfileCell) {
   return {
-    compilers: [
-      ...structuredClone(legacyCompilers),
-      structuredClone(modernEntry),
-      {
-        ...(type === undefined ? {} : { type }),
-        ...(solxPath === undefined ? {} : { path: solxPath }),
-        version: BENCHMARK_VERSION,
-        settings,
-      },
-    ],
-    overrides: vaultHubOverride(type, solxPath),
-  };
-}
-
-// Upstream's single per-file escape hatch, re-pinned to 0.8.34: VaultHub
-// builds via-IR at optimizer runs 100 in every profile (upstream ships it
-// that way to keep the contract under the size limit; keeping it in the
-// legacy cells is the aave precedent for per-file via-IR overrides).
-function vaultHubOverride(type?: "solx", solxPath?: string) {
-  return {
-    "contracts/0.8.25/vaults/VaultHub.sol": {
-      ...(type === undefined ? {} : { type }),
-      ...(solxPath === undefined ? {} : { path: solxPath }),
-      version: BENCHMARK_VERSION,
-      settings: {
-        ...structuredClone(baseSettings),
-        optimizer: { enabled: true, runs: 100 },
-        viaIR: true,
-      },
-    },
+    "contracts/0.8.25/vaults/VaultHub.sol": overrideEntry(cell, {
+      ...structuredClone(baseSettings),
+      optimizer: { enabled: true, runs: 100 },
+      viaIR: true,
+    }),
   };
 }
 
@@ -196,22 +149,14 @@ export default {
     // The base's Aragon/OZ roots belong to the legacy trees, which every
     // profile still compiles, so they stay part of the build.
     npmFilesToBuild: base.solidity.npmFilesToBuild,
-    profiles: {
-      default: profileFor(solcSettings),
-      "solc-no-opt": profileFor(solcNoOptSettings),
-      "solc-via-ir": profileFor(solcViaIRSettings),
-      solx: profileFor(solxSettings, "solx"),
-      "solx-via-ir": profileFor(solxViaIRSettings, "solx"),
-      "solx-0.1.7": profileFor(
-        structuredClone(solxSettings),
-        "solx",
-        solx017Path,
-      ),
-      "solx-0.1.7-via-ir": profileFor(
-        structuredClone(solxViaIRSettings),
-        "solx",
-        solx017Path,
-      ),
-    },
+    profiles: buildSolxProfiles({
+      baseSettings,
+      // Every cell: the legacy trees on upstream's compilers, plus upstream's
+      // 0.8.25 for contracts/upgrade (its exact pragmas are the only ones
+      // preinstall leaves un-relaxed, so nothing else resolves here — 0.8.34
+      // is the max satisfying version for the caret ranges).
+      ballastCompilers: [...legacyCompilers, modernEntry],
+      overrides: vaultHubOverride,
+    }),
   },
 };
