@@ -1,5 +1,39 @@
 # hardhat
 
+## 3.14.0
+
+### Minor Changes
+
+- [#8540](https://github.com/NomicFoundation/hardhat/pull/8540) [`99306ea`](https://github.com/NomicFoundation/hardhat/commit/99306ea3112ac97577cfdacc98f027ff3a261669) Thanks [@kanej](https://github.com/kanej)! - EDR now uses platform specific `optionalDependencies`, reducing Hardhat's install size.
+
+### Patch Changes
+
+- [#8514](https://github.com/NomicFoundation/hardhat/pull/8514) [`f7c6228`](https://github.com/NomicFoundation/hardhat/commit/f7c6228b057ce95309834714697c2164c14d1cd4) Thanks [@questfever](https://github.com/questfever)! - Fixed Solidity resolver containment checks for paths whose names share a prefix with the project root, a package source-name root, or `node_modules`.
+
+- [#8540](https://github.com/NomicFoundation/hardhat/pull/8540) [`99306ea`](https://github.com/NomicFoundation/hardhat/commit/99306ea3112ac97577cfdacc98f027ff3a261669) Thanks [@kanej](https://github.com/kanej)! - Fixed missing Solidity test stack trace when `setUp()` fails and stack traces are collected with `CollectStackTraces::Always`.
+
+- [#8500](https://github.com/NomicFoundation/hardhat/pull/8500) [`54973b2`](https://github.com/NomicFoundation/hardhat/commit/54973b2e0a10a1ba734c9eeda5ffe0aeae54fb83) Thanks [@SnowingFox](https://github.com/SnowingFox)! - Fixed the format of fuzz test counterexamples: byte array values such as `calldata`, `sender` and `address` are now printed as hexadecimal strings (e.g. `0x3e2033b3...`) instead of comma-separated byte lists.
+
+- [#8522](https://github.com/NomicFoundation/hardhat/pull/8522) [`8640b4b`](https://github.com/NomicFoundation/hardhat/commit/8640b4b9b7938e539cb35158445da1cd7d5bd92d) Thanks [@JasonColapietro](https://github.com/JasonColapietro)! - Remove Holesky testnet (chain id 17000) as a supported chain as it has been shut down.
+
+- [#8488](https://github.com/NomicFoundation/hardhat/pull/8488) [`edd1069`](https://github.com/NomicFoundation/hardhat/commit/edd1069ad5d2f17e164eb0e8871457a88855cb94) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Stores gas snapshot cheatcode values as raw strings and calculates diffs using BigInt.
+
+## 3.13.0
+
+### Minor Changes
+
+- [#8453](https://github.com/NomicFoundation/hardhat/pull/8453) [`38b9f2d`](https://github.com/NomicFoundation/hardhat/commit/38b9f2d909563d7f37d0eb528e995bf7d1c577f5) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add a fallback value for `configVariable`.
+
+- [#8487](https://github.com/NomicFoundation/hardhat/pull/8487) [`7b7af19`](https://github.com/NomicFoundation/hardhat/commit/7b7af198a19220d3ac4b99f79cdfa9f3e525e59b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added a `--tolerance` option to `--snapshot-check` in Solidity tests, allowing snapshot values to drift by a given percentage before the check fails.
+
+### Patch Changes
+
+- [#8486](https://github.com/NomicFoundation/hardhat/pull/8486) [`2ccd059`](https://github.com/NomicFoundation/hardhat/commit/2ccd0594df6f4202d8e4bc0200924acc9c8cd21c) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed the EDR network config validation rejecting `mining.interval: 0`, a valid value which disables interval mining.
+
+- [#8490](https://github.com/NomicFoundation/hardhat/pull/8490) [`22667f6`](https://github.com/NomicFoundation/hardhat/commit/22667f6c961f5ab030f2e1c447e1b2e4a6714ee0) Thanks [@kanej](https://github.com/kanej)! - Added detection and custom error for failed native binding loads (`HHE27`) of `@nomicfoundation/edr` or `@nomicfoundation/solidity-analyzer`.
+
+- [#8454](https://github.com/NomicFoundation/hardhat/pull/8454) [`47793de`](https://github.com/NomicFoundation/hardhat/commit/47793de9fe0326ac1c29b5daca4653f3f5770de6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Only collect Solidity test stack traces at verbosity level 5 (-vvvvv) and above, fixing excessive memory usage when running large test suites with -vvv/-vvvv.
+
 ## 3.12.0
 
 ### Minor Changes

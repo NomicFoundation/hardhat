@@ -12,25 +12,26 @@ import {
 import path from "node:path";
 
 const USAGE = `
-scripts/benchmark/pack-hardhat-solx.ts — Wire the monorepo's hardhat-solx into a scenario checkout
+scripts/benchmark/pack-hardhat-solx.ts — Wire the monorepo's
+hardhat-slang-solx into a scenario checkout
 
 DESCRIPTION
-  hardhat-solx is \`private\` and excluded from the Verdaccio publish set, so
-  it never reaches the registry. This script packs it instead (pack ignores
+  hardhat-slang-solx is \`private\` and excluded from the Verdaccio publish
+  set, so it never reaches the registry. This script packs it instead (pack ignores
   \`private\`) and wires the tarball into the target package as a file:
   devDependency. Solx scenario preinstall scripts (any end-to-end/ dir with a
   hardhat.config.solx.ts, conventionally named <project>-solx) run it
   inside the cloned repo checkout. Concretely, it:
 
-  - packs packages/hardhat-solx with \`pnpm pack\` — not \`npm pack\` — so the
-    plugin's \`workspace:\` deps are rewritten to real version ranges and its
+  - packs packages/hardhat-slang-solx with \`pnpm pack\` — not \`npm pack\` —
+    so the plugin's \`workspace:\` deps are rewritten to real version ranges and its
     own dependencies (hardhat-errors/utils/zod-utils, peer hardhat) still
     resolve from the registry like every other scenario dependency;
   - starts from an empty <target-dir>/.solx, so the tarball just produced is
     the only thing that can be there (a stale one from a prior run would
     make the rename ambiguous);
-  - names the tarball by content hash (hardhat-solx-<12-hex>.tgz): npm never
-    re-reads a changed \`file:\` tarball when the spec and the packed version
+  - names the tarball by content hash (hardhat-slang-solx-<12-hex>.tgz): npm
+    never re-reads a changed \`file:\` tarball when the spec and the packed version
     are unchanged (this froze aave's shipped plugin at a stale version map
     on the persistent runner), so a content change must change the spec;
   - \`npm pkg set\`s the file: devDependency — package.json only, no lockfile
@@ -38,7 +39,7 @@ DESCRIPTION
     the declaring package, which is how pnpm resolves file: deps in a
     workspace;
   - copies the plugin's dist/src to <target-dir>/.solx/expected-dist-src,
-    the freshness oracle for the scenarios' "assert fresh hardhat-solx"
+    the freshness oracle for the scenarios' "assert fresh hardhat-slang-solx"
     prime step (the installed plugin must match this monorepo build
     byte-for-byte).
 
@@ -92,11 +93,11 @@ function main(): void {
   }
 
   const monorepoRoot = path.resolve(import.meta.dirname, "..", "..");
-  const solxPkg = path.join(monorepoRoot, "packages", "hardhat-solx");
+  const solxPkg = path.join(monorepoRoot, "packages", "hardhat-slang-solx");
 
   if (!existsSync(path.join(solxPkg, "dist", "src"))) {
     console.error(
-      `hardhat-solx dist not found at ${solxPkg}/dist/src — run 'pnpm build' before benchmarking.`,
+      `hardhat-slang-solx dist not found at ${solxPkg}/dist/src — run 'pnpm build' before benchmarking.`,
     );
     process.exit(1);
   }
@@ -112,7 +113,8 @@ function main(): void {
 
   const tarballs = readdirSync(solxDir).filter(
     (name) =>
-      name.startsWith("nomicfoundation-hardhat-solx-") && name.endsWith(".tgz"),
+      name.startsWith("nomicfoundation-hardhat-slang-solx-") &&
+      name.endsWith(".tgz"),
   );
   if (tarballs.length !== 1) {
     console.error(
@@ -125,7 +127,7 @@ function main(): void {
     .update(readFileSync(path.join(solxDir, tarballs[0])))
     .digest("hex")
     .slice(0, 12);
-  const tarballName = `hardhat-solx-${hash}.tgz`;
+  const tarballName = `hardhat-slang-solx-${hash}.tgz`;
   renameSync(path.join(solxDir, tarballs[0]), path.join(solxDir, tarballName));
 
   execFileSync(
@@ -133,7 +135,7 @@ function main(): void {
     [
       "pkg",
       "set",
-      `devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/${tarballName}`,
+      `devDependencies.@nomicfoundation/hardhat-slang-solx=file:./.solx/${tarballName}`,
     ],
     { cwd: targetDir, stdio: "inherit" },
   );
@@ -145,7 +147,7 @@ function main(): void {
   );
 
   console.log(
-    `pack-hardhat-solx: wired @nomicfoundation/hardhat-solx as file:./.solx/${tarballName} into ${targetDir}`,
+    `pack-hardhat-solx: wired @nomicfoundation/hardhat-slang-solx as file:./.solx/${tarballName} into ${targetDir}`,
   );
 }
 

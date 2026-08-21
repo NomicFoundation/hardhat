@@ -11,9 +11,11 @@ import {
   BENCHMARK_SOLC_VERSION,
   buildSolxProfiles,
   FUZZ_SEED_ENV_VAR,
+  MANDATORY_PROFILE,
   overrideEntry,
   PINNED_FUZZ_SEED,
   resolveFuzzSeed,
+  SOLX_COMPILER_TYPE,
   withPinnedFuzzSeed,
 } from "./solx-profiles.ts";
 
@@ -89,13 +91,24 @@ describe("withPinnedFuzzSeed", () => {
 describe("buildSolxProfiles", () => {
   it("emits the whole matrix at the benchmark solc version", () => {
     const profiles = buildSolxProfiles({ baseSettings: { optimizer: {} } });
-    assert.deepEqual(Object.keys(profiles).length, 7);
+    assert.deepEqual(Object.keys(profiles).length, 8);
     for (const profile of Object.values(profiles)) {
       assert.equal(
         (profile as { version: string }).version,
         BENCHMARK_SOLC_VERSION,
       );
     }
+  });
+
+  it('emits the profile the plugin mandates, mirroring "solx"', () => {
+    // The plugin refuses to load without a profile of exactly this name. It
+    // is never benchmarked, so it must not diverge from the "solx" cell it
+    // stands in for.
+    const profiles = buildSolxProfiles({
+      baseSettings: { optimizer: {} },
+    }) as Record<string, Record<string, unknown>>;
+    assert.deepEqual(profiles[MANDATORY_PROFILE], profiles.solx);
+    assert.equal(profiles[MANDATORY_PROFILE].type, SOLX_COMPILER_TYPE);
   });
 
   it("gives every profile its own settings object", () => {
@@ -139,7 +152,7 @@ describe("overrideEntry", () => {
       overrideEntry(
         {
           name: "solx-pinned",
-          type: "solx",
+          type: "slangSolx",
           path: "/tmp/solx",
           version: "0.8.34",
           viaIR: true,
@@ -147,7 +160,7 @@ describe("overrideEntry", () => {
         { viaIR: true },
       ),
       {
-        type: "solx",
+        type: "slangSolx",
         path: "/tmp/solx",
         version: "0.8.34",
         settings: { viaIR: true },

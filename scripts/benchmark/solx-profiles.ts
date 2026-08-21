@@ -20,6 +20,8 @@
 //   solx-via-ir        solx, via-IR
 //   solx-0.1.8         pinned solx, legacy
 //   solx-0.1.8-via-ir  pinned solx, via-IR
+//   slangSolx          alias of "solx" — the plugin refuses to load without a
+//                      profile of exactly this name (see MANDATORY_PROFILE)
 //
 // The "solx" profiles always measure the version the plugin ships (its
 // Solidity→solx version map). The "solx-0.1.8" profiles pin a release under
@@ -33,14 +35,14 @@
 // Settings hygiene: every profile gets an independent structuredClone of the
 // seed settings, so the solx profiles can't bleed into the solc ones. The
 // solx optimization level (-O1) and DWARF debug info both come from the
-// hardhat-solx plugin defaults. The optimizer is intentionally not overridden
-// so the benchmark measures the realistic plugin-default config.
+// hardhat-slang-solx plugin defaults. The optimizer is intentionally not
+// overridden so the benchmark measures the realistic plugin-default config.
 //
 // Source mapping is NOT equivalent between the two compilers, and the timed
 // cells inherit that asymmetry. solx 0.1.4 and later leave the standard-JSON
 // `sourceMap` empty and ship DWARF in `debugInfo` instead (see
-// packages/hardhat-solx/src/type-extensions.ts). Every profile still requests
-// the same `outputSelection`, so the two compilers are asked for the same
+// packages/hardhat-slang-solx/src/type-extensions.ts). Every profile still
+// requests the same `outputSelection`, so the two compilers are asked for the same
 // artifacts, but solc generates and pays for sourceMaps while solx returns
 // them empty and pays for DWARF instead. Treat compile-time deltas on the
 // timed cells as including that difference rather than as like-for-like work,
@@ -62,8 +64,8 @@ export type CompilerSettings = Record<string, unknown>;
 export interface SolxProfileCell {
   /** Profile name, e.g. "solc-no-opt" or "solx-0.1.8-via-ir". */
   name: string;
-  /** "solx" on the solx cells; undefined on the solc cells. */
-  type?: "solx";
+  /** "slangSolx" on the solx cells; undefined on the solc cells. */
+  type?: "slangSolx";
   /** Pinned solx binary path — only set on the "solx-0.1.8*" cells. */
   path?: string;
   /** The solc version every cell compiles at (0.8.34). */
@@ -96,11 +98,28 @@ export interface SolxProfilesOptions {
   ballastCompilers?: Array<Record<string, unknown>>;
 }
 
-// 0.8.34 is the only version in hardhat-solx's Solidity→solx map, so it's
-// the version every cell compiles the subject sources at. Exported for the
+// 0.8.34 is the only version in hardhat-slang-solx's Solidity→solx map, so
+// it's the version every cell compiles the subject sources at. Exported for the
 // test-execution evaluation (test-under-solx.ts), which scopes its build-info
 // provenance assert to this version.
 export const BENCHMARK_SOLC_VERSION = "0.8.34";
+
+/**
+ * The compiler type the hardhat-slang-solx plugin registers. Also the value
+ * the build system writes to build-info's `compilerType` and into the
+ * buildInfoId's type segment, which test-under-solx.ts asserts on.
+ */
+export const SOLX_COMPILER_TYPE = "slangSolx";
+
+/**
+ * The plugin refuses to load unless a build profile of exactly this name
+ * exists, and it is also the one profile allowed to use the solx compiler
+ * type without `dangerouslyAllowSlangSolxInProduction`. The benchmark's own
+ * profile and cell names predate the plugin's rename and stay as they are, so
+ * the factory emits this profile as an alias of "solx" purely to satisfy the
+ * check. Nothing runs it: every scenario command names a profile explicitly.
+ */
+export const MANDATORY_PROFILE = "slangSolx";
 
 // This file sits next to the wrapper config in the checkout (or in the
 // workspace package for monorepo scenarios), so the pinned binary preinstall
@@ -109,7 +128,7 @@ const PINNED_SOLX_PATH = path.join(import.meta.dirname, ".solx", "solx-v0.1.8");
 
 /**
  * A compiler entry (for `overrides` maps) that follows the cell's compiler:
- * solc for the solc cells, `type: "solx"` for the solx cells, plus the
+ * solc for the solc cells, `type: "slangSolx"` for the solx cells, plus the
  * pinned binary `path` on the pinned cells.
  */
 export function overrideEntry(
@@ -223,21 +242,28 @@ export function buildSolxProfiles(
     { name: "default", version, viaIR: false },
     { name: "solc-no-opt", version, viaIR: false },
     { name: "solc-via-ir", version, viaIR: true },
-    { name: "solx", type: "solx", version, viaIR: false },
-    { name: "solx-via-ir", type: "solx", version, viaIR: true },
+    { name: "solx", type: SOLX_COMPILER_TYPE, version, viaIR: false },
+    { name: "solx-via-ir", type: SOLX_COMPILER_TYPE, version, viaIR: true },
     {
       name: "solx-0.1.8",
-      type: "solx",
+      type: SOLX_COMPILER_TYPE,
       path: PINNED_SOLX_PATH,
       version,
       viaIR: false,
     },
     {
       name: "solx-0.1.8-via-ir",
-      type: "solx",
+      type: SOLX_COMPILER_TYPE,
       path: PINNED_SOLX_PATH,
       version,
       viaIR: true,
+    },
+    // The guard profile, last: same compiler and settings as "solx".
+    {
+      name: MANDATORY_PROFILE,
+      type: SOLX_COMPILER_TYPE,
+      version,
+      viaIR: false,
     },
   ];
 

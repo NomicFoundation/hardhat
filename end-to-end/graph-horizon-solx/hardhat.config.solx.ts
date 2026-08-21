@@ -11,7 +11,7 @@
 // via-IR, cancun — from @graphprotocol/toolshed's base config), the deployed
 // configuration. We seed the benchmark's matrix of profiles — {solc, solx} x
 // {legacy, via-IR} — from the production settings, re-pinned to 0.8.34 (the
-// only version in hardhat-solx's Solidity→solx map; contracts and tests
+// only version in hardhat-slang-solx's Solidity→solx map; contracts and tests
 // carry ^0.8.27-style range pragmas, so no source patching). Because the
 // production settings ship viaIR: true, the factory's legacy cells
 // explicitly flip it to false (see solx-profiles.ts). Upstream's fast
@@ -20,7 +20,7 @@
 // `solc-no-opt`. npmFilesToBuild (the two OZ proxy roots) is part of
 // upstream's build and is kept in every profile. Everything else (plugins,
 // tasks, networks, paths, typechain) is preserved from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import { buildSolxProfiles, withPinnedFuzzSeed } from "./solx-profiles.ts";
@@ -45,11 +45,12 @@ if (baseSettings === undefined) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSolx],
-  // The plugin only allows type: "solx" in the profile named "solx"; this
-  // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
-  // so opt out of that guard. Throwaway benchmark scenario, not production.
-  solx: { dangerouslyAllowSolxInProduction: true },
+  plugins: [...base.plugins, hardhatSlangSolx],
+  // The plugin only allows type: "slangSolx" in the profile named
+  // "slangSolx"; this benchmark's solx cells live in profiles named after the
+  // compiler version they measure, so opt out of that guard. Throwaway
+  // benchmark scenario, not production.
+  slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.

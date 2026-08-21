@@ -35,8 +35,11 @@ for dir in $dirs; do
   # we should either add a more robust way of detecting such tests or version
   # all the test result files.
   result_file_name="result"
+  node_major_version="$(node --version | cut -d. -f1)"
   if [ "$dir" == "integration-tests/fixture-tests/nested-test" ]; then
-    node_major_version="$(node --version | cut -d. -f1)"
+    result_file_name="result.$node_major_version"
+  elif [ "$dir" == "integration-tests/fixture-tests/async-describe-test" ] && [ "$node_major_version" == "v26" ]; then
+    # Only v26 currently diverges from the generic result.txt for this fixture.
     result_file_name="result.$node_major_version"
   fi
 

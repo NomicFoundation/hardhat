@@ -37,7 +37,10 @@ export const COMMENT_MARKER = "<!-- solx-bench-tables -->";
 // that scripts/tsconfig.json doesn't know about).
 export function readShippedSolxVersion(repoRoot: string): string | undefined {
   const constants = readFileSync(
-    path.join(repoRoot, "packages/hardhat-solx/src/internal/constants.ts"),
+    path.join(
+      repoRoot,
+      "packages/hardhat-slang-solx/src/internal/constants.ts",
+    ),
     "utf8",
   );
   return /"0\.8\.34":\s*"(\d+\.\d+\.\d+)"/.exec(constants)?.[1];

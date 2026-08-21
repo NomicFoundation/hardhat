@@ -333,11 +333,11 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     min: 110000,
     max: 119999,
-    pluginId: "hardhat-solx",
-    websiteTitle: "Hardhat Solx",
+    pluginId: "hardhat-slang-solx",
+    websiteTitle: "Hardhat Slang Solx",
     CATEGORIES: {
       GENERAL: {
         min: 110000,
@@ -560,6 +560,28 @@ The available templates are:
 Remove them or move them to a different place and try again.`,
         websiteTitle: "Non-interactive init failed due to existing files",
         websiteDescription: `The non-interactive project initialization refuses to overwrite existing files. Remove the conflicting files and retry.`,
+      },
+      NATIVE_BINDING_LOAD_FAILED: {
+        number: 27,
+        messageTemplate: `Hardhat couldn't load the native binding for {parentPackage}.
+
+Missing platform package: {missingPackage}
+
+This is usually caused by a known npm bug with optional dependencies (https://github.com/npm/cli/issues/4828), fixed in npm 11.3.0. Node.js 22 bundles npm 10, which doesn't include the fix.
+
+To fix it, update npm and reinstall your dependencies:
+
+  npm install --global npm@latest
+  rm -rf node_modules package-lock.json
+  npm install
+
+If that command fails with EBADENGINE, update Node.js to its latest patch release first (or to a newer major), then retry.`,
+        websiteTitle: "Native binding failed to load",
+        websiteDescription: `Hardhat depends on packages that ship prebuilt native binaries, one per platform, declared as optional dependencies. The binary for your platform is missing from your installation.
+
+This is usually caused by a known npm bug with optional dependencies (https://github.com/npm/cli/issues/4828), which npm fixed in version 11.3.0. Node.js 22 bundles npm 10, which never received the backport, so it can write a lockfile that omits the platform packages.
+
+Updating npm to 11.3.0 or later and regenerating the lockfile fixes it. Note that the npm fix is not retroactive: an already-affected lockfile has to be regenerated at least once. If updating npm fails with an EBADENGINE error, update Node.js to a newer version first, then retry.`,
       },
     },
     INTERNAL: {
@@ -1329,6 +1351,22 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
 EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. {remediation}`,
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
+      },
+      SNAPSHOT_TOLERANCE_REQUIRES_CHECK: {
+        number: 819,
+        messageTemplate:
+          "The --tolerance option can only be used with --snapshot-check.",
+        websiteTitle: "Snapshot tolerance requires snapshot check",
+        websiteDescription:
+          "The `--tolerance` option only affects snapshot checks, so it can only be used together with `--snapshot-check`.",
+      },
+      INVALID_SNAPSHOT_TOLERANCE: {
+        number: 820,
+        messageTemplate:
+          "Invalid --tolerance value {value}. Expected a non-negative finite number.",
+        websiteTitle: "Invalid snapshot tolerance",
+        websiteDescription:
+          "The `--tolerance` option expects a non-negative finite number representing the allowed gas drift percentage.",
       },
     },
     SOLIDITY: {
@@ -3311,7 +3349,7 @@ Check the error message for more details and verify your foundry.toml configurat
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     GENERAL: {
       UNSUPPORTED_PLATFORM: {
         number: 110000,
@@ -3338,6 +3376,28 @@ Check your internet connection, ensure that the solx releases mirror (https://so
         websiteDescription: `The configured custom path for the solx binary does not exist.
 
 Verify that the path in your Hardhat config points to a valid solx binary.`,
+      },
+      CHECKSUM_DOWNLOAD_FAILED: {
+        number: 110003,
+        messageTemplate: `Couldn't download the checksum for solx {version} from {url}: {reason}`,
+        websiteTitle: "Couldn't obtain the solx checksum",
+        websiteDescription: `Every solx binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
+
+Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment. If you are behind a proxy that intercepts HTTPS traffic, it may be blocking or rewriting the request.`,
+      },
+      INVALID_DOWNLOAD: {
+        number: 110004,
+        messageTemplate: `Couldn't download solx {version}: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
+        websiteTitle: "Downloaded solx checksum verification failed",
+        websiteDescription: `Hardhat downloaded a solx binary, and its checksum didn't match the one published alongside it. The binary was deleted instead of being used.
+
+The likeliest cause is a corrupted or incomplete download.
+
+Please check your internet connection and try again. If this error persists, run \`npx hardhat clean --global\`.`,
       },
     },
   },

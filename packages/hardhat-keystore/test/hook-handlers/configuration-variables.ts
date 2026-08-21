@@ -342,6 +342,105 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           { key: "key3-prod" },
         );
       });
+
+      it("should delegate to the next handler (and use the default) when the key is in neither keystore and the variable has a default", async () => {
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              _type: "ConfigurationVariable",
+              name: "non-existent-key-in-keystore",
+              default: "the-default-value",
+            },
+          ],
+          async (_context, configVar) => {
+            // Mirrors the built-in terminal handler: env var, then default.
+            return process.env[configVar.name] ?? configVar.default ?? "unset";
+          },
+        );
+
+        assert.equal(res, "the-default-value");
+      });
+
+      it("should delegate to the next handler (and use the default) when the production keystore is not initialized and the variable has a default", async () => {
+        await remove(configurationVariableProdKeystoreFilePath);
+
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              _type: "ConfigurationVariable",
+              name: "non-existent-key-in-keystore",
+              default: "the-default-value",
+            },
+          ],
+          async (_context, configVar) => configVar.default ?? "unset",
+        );
+
+        assert.equal(res, "the-default-value");
+      });
+
+      it("should throw instead of using the default when the key exists in the production keystore, without prompting for the password", async () => {
+        // `key4-prod` exists only in the production keystore. Even though the
+        // variable declares a default, the stored value must not be silently
+        // replaced by it, so the handler keeps throwing. The check reads the
+        // production keystore's plaintext key names, so no password is
+        // requested.
+        let passwordRequested = false;
+
+        const trackingPasswordPlugin: HardhatPlugin = {
+          id: "tracking-keystore-password",
+          hookHandlers: {
+            userInterruptions: async () => ({
+              default: async () => ({
+                requestSecretInput: async () => {
+                  passwordRequested = true;
+                  return TEST_PASSWORD_PROD;
+                },
+              }),
+            }),
+          },
+        };
+
+        const localHre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            hardhatKeystorePlugin,
+            setupKeystoreFileLocationOverrideAt(
+              configurationVariableProdKeystoreFilePath,
+              configurationVariableDevKeystoreFilePath,
+              configurationVariableDevKeystorePasswordFilePath,
+            ),
+            trackingPasswordPlugin,
+          ],
+        });
+
+        await assertRejectsWithHardhatError(
+          () =>
+            localHre.hooks.runHandlerChain(
+              "configurationVariables",
+              "fetchValue",
+              [
+                {
+                  _type: "ConfigurationVariable",
+                  name: "key4-prod",
+                  default: "the-default-value",
+                },
+              ],
+              async (_context, configVar) => configVar.default ?? "unset",
+            ),
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+          { key: "key4-prod" },
+        );
+
+        assert.equal(
+          passwordRequested,
+          false,
+          "the production keystore password should not be requested when checking for the key's existence",
+        );
+      });
     });
 
     describe("when an environment variable is set for the same key", () => {
@@ -451,6 +550,110 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
             "keystore should not be opened when env var is set",
           );
         });
+      });
+    });
+
+    describe("when the variable has a default and the production keystore would be opened", () => {
+      let passwordRequestCount: number;
+
+      beforeEach(async () => {
+        passwordRequestCount = 0;
+
+        const trackingPasswordPlugin: HardhatPlugin = {
+          id: "tracking-keystore-password",
+          hookHandlers: {
+            userInterruptions: async () => ({
+              default: async () => ({
+                requestSecretInput: async () => {
+                  passwordRequestCount++;
+                  return TEST_PASSWORD_PROD;
+                },
+              }),
+            }),
+          },
+        };
+
+        hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            hardhatKeystorePlugin,
+            setupKeystoreFileLocationOverrideAt(
+              configurationVariableProdKeystoreFilePath,
+              configurationVariableDevKeystoreFilePath,
+              configurationVariableDevKeystorePasswordFilePath,
+            ),
+            trackingPasswordPlugin,
+          ],
+        });
+      });
+
+      it("should resolve to the default without prompting for the production keystore password when the key is missing", async () => {
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              _type: "ConfigurationVariable",
+              name: "non-existent-key-in-keystore",
+              default: "the-default-value",
+            },
+          ],
+          async (_context, configVar) =>
+            process.env[configVar.name] ?? configVar.default ?? "unset",
+        );
+
+        assert.equal(res, "the-default-value");
+        assert.equal(
+          passwordRequestCount,
+          0,
+          "the production keystore password should not be requested when the key is absent and a default is set",
+        );
+      });
+
+      it("should prefer the production keystore value over the default when the key is present", async () => {
+        // `key4-prod` exists only in the production keystore, so the keystore
+        // must be opened (prompting once) and its value wins over the default.
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              _type: "ConfigurationVariable",
+              name: "key4-prod",
+              default: "the-default-value",
+            },
+          ],
+          async (_context, configVar) => configVar.default ?? "unset",
+        );
+
+        assert.equal(res, "value4-prod");
+        assert.equal(
+          passwordRequestCount,
+          1,
+          "the production keystore should be opened when it actually holds the key",
+        );
+      });
+
+      it("should still prompt for the password when the key is missing and no default is set", async () => {
+        // Without a default the behaviour is unchanged: the production keystore
+        // is opened (prompting for the password) before falling through.
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              _type: "ConfigurationVariable",
+              name: "non-existent-key-in-keystore",
+            },
+          ],
+          async (_context, _configVar) => "value-from-next-handler",
+        );
+
+        assert.equal(res, "value-from-next-handler");
+        assert.equal(
+          passwordRequestCount,
+          1,
+          "without a default the production keystore is still opened",
+        );
       });
     });
 

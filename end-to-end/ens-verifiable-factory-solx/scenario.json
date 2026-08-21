@@ -17,8 +17,8 @@
       "prime compilers": {
         "runs": 1,
         "steps": {
-          "assert fresh hardhat-solx": {
-            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+          "assert fresh hardhat-slang-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
           "download solc + solx and warm caches": {
@@ -34,7 +34,7 @@
       "cold compile solx-0.1.8": {
         "runs": 3,
         "dependsOn": [
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",
@@ -43,7 +43,7 @@
       "cold compile solx-0.1.8 via-ir": {
         "runs": 3,
         "dependsOn": [
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",
@@ -52,7 +52,7 @@
       "cold compile solc": {
         "runs": 3,
         "dependsOn": [
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",
@@ -61,7 +61,7 @@
       "cold compile solc no-opt": {
         "runs": 3,
         "dependsOn": [
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",
@@ -70,7 +70,7 @@
       "cold compile solc via-ir": {
         "runs": 3,
         "dependsOn": [
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",

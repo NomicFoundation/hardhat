@@ -111,6 +111,24 @@ describe("config-resolution", () => {
       assert.equal(httpNetworkConfig.timeout, 300_000);
       assert.deepEqual(httpNetworkConfig.httpHeaders, {});
     });
+
+    it("should resolve a url configuration variable to its default value when it is not set", async () => {
+      const userConfig: HttpNetworkUserConfig = {
+        type: "http",
+        url: configVariable("CONFIG_RESOLUTION_RPC_URL", {
+          default: "http://localhost:8545",
+        }),
+      };
+      const httpNetworkConfig = resolveHttpNetwork(
+        userConfig,
+        configVarResolver,
+      );
+
+      assert.equal(
+        await httpNetworkConfig.url.getUrl(),
+        "http://localhost:8545",
+      );
+    });
   });
 
   describe("resolveEdrNetwork", () => {
@@ -690,7 +708,7 @@ describe("config-resolution", () => {
     it("should only override the provided fields", async () => {
       const mainnetChainId = 1;
       const sepoliaChainId = 11_155_111;
-      const holeskyChainId = 17_000;
+      const opSepoliaChainId = 11_155_420;
       const hoodiChainId = 560_048;
 
       const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = {
@@ -720,8 +738,8 @@ describe("config-resolution", () => {
             },
           } as BlockExplorersUserConfig,
         },
-        [holeskyChainId]: {
-          name: "Holesky Testnet",
+        [opSepoliaChainId]: {
+          name: "OP Sepolia Testnet",
           chainType: GENERIC_CHAIN_TYPE,
         },
         [hoodiChainId]: {
@@ -787,22 +805,22 @@ describe("config-resolution", () => {
         (sepoliaUserConfig.blockExplorers as any)?.customExplorer,
       );
 
-      const holeskyUserConfig = chainDescriptorsUserConfig[holeskyChainId];
-      const holeskyConfig = chainDescriptorsConfig.get(
-        toBigInt(holeskyChainId),
+      const opSepoliaUserConfig = chainDescriptorsUserConfig[opSepoliaChainId];
+      const opSepoliaConfig = chainDescriptorsConfig.get(
+        toBigInt(opSepoliaChainId),
       );
-      const holeskyDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
-        toBigInt(holeskyChainId),
+      const opSepoliaDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
+        toBigInt(opSepoliaChainId),
       );
-      assert.equal(holeskyConfig?.name, holeskyUserConfig.name);
-      assert.equal(holeskyConfig?.chainType, holeskyUserConfig.chainType);
+      assert.equal(opSepoliaConfig?.name, opSepoliaUserConfig.name);
+      assert.equal(opSepoliaConfig?.chainType, opSepoliaUserConfig.chainType);
       assert.deepEqual(
-        holeskyConfig?.hardforkHistory,
-        holeskyDefault?.hardforkHistory,
+        opSepoliaConfig?.hardforkHistory,
+        opSepoliaDefault?.hardforkHistory,
       );
       assert.deepEqual(
-        holeskyConfig?.blockExplorers,
-        holeskyDefault?.blockExplorers,
+        opSepoliaConfig?.blockExplorers,
+        opSepoliaDefault?.blockExplorers,
       );
 
       const hoodiUserConfig = chainDescriptorsUserConfig[hoodiChainId];

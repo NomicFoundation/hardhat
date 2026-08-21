@@ -24,8 +24,8 @@
             "command": "pnpm --filter '@graphprotocol/horizon^...' run build:self",
             "measure": false
           },
-          "assert fresh hardhat-solx": {
-            "command": "cd packages/horizon && diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+          "assert fresh hardhat-slang-solx": {
+            "command": "cd packages/horizon && diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
           "download solc + solx and warm caches": {
@@ -42,7 +42,7 @@
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
@@ -52,7 +52,7 @@
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
@@ -62,7 +62,7 @@
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
@@ -72,7 +72,7 @@
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
@@ -82,7 +82,7 @@
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",

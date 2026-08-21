@@ -24,16 +24,15 @@
 // way: SRLib hits stack-too-deep, and RefSlotCache copies a struct array to
 // storage, which solc's legacy codegen rejects with an UnimplementedFeatureError
 // (IR-only feature). So only the via-IR cells are benchmarked; the legacy/no-opt
-// profiles exist for the plugin's mandatory "solx" profile and for
-// reproducing the failure (`--build-profile solc-no-opt`), and their FAIL is the
-// datum, annotated in render-solx-tables' CELL_NOTES. The contract sizer's
-// compile hook would time an unrelated post-compile pass in every cell, so it's
-// disabled. Everything else (plugins, tasks, npmFilesToBuild, test, warnings) is
-// preserved from the base.
+// profiles exist for reproducing the failure (`--build-profile solc-no-opt`),
+// and their FAIL is the datum, annotated in render-solx-tables' CELL_NOTES. The
+// contract sizer's compile hook would time an unrelated post-compile pass in
+// every cell, so it's disabled. Everything else (plugins, tasks,
+// npmFilesToBuild, test, warnings) is preserved from the base.
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import {
@@ -60,8 +59,8 @@ const base = baseConfig as unknown as {
 };
 
 // Upstream's modern-tree compiler; every cell re-pins that tree to 0.8.34
-// (the factory's version — the only entry in hardhat-solx's Solidity→solx
-// version map).
+// (the factory's version — the only entry in hardhat-slang-solx's
+// Solidity→solx version map).
 const MODERN_VERSION = "0.8.25";
 
 // Seed every profile's modern-tree entry from upstream's (optimizer runs 200,
@@ -149,11 +148,12 @@ function vaultHubOverride(cell: SolxProfileCell) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSolx],
-  // The plugin only allows type: "solx" in the profile named "solx"; this
-  // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
-  // so opt out of that guard. Throwaway benchmark scenario, not production.
-  solx: { dangerouslyAllowSolxInProduction: true },
+  plugins: [...base.plugins, hardhatSlangSolx],
+  // The plugin only allows type: "slangSolx" in the profile named
+  // "slangSolx"; this benchmark's solx cells live in profiles named after the
+  // compiler version they measure, so opt out of that guard. Throwaway
+  // benchmark scenario, not production.
+  slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.

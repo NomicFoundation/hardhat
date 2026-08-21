@@ -29,6 +29,7 @@ import {
   BENCHMARK_SOLC_VERSION,
   FUZZ_SEED_ENV_VAR,
   PINNED_FUZZ_SEED,
+  SOLX_COMPILER_TYPE,
 } from "./solx-profiles.ts";
 
 const USAGE = `
@@ -551,9 +552,10 @@ function scanProject(projectDir: string, sinceMs: number): ProjectScan {
  * build-info, and a solx run with no subject build-info at all.
  *
  * Every build-info entry at the benchmark solc version (0.8.34) must be
- * compilerType "solx" with the pin in solcLongVersion on solx runs; control
- * runs must contain no solx build-info at all. Scoped to the subject version
- * because lido-core legitimately carries solc ballast build-infos.
+ * compilerType "slangSolx" (SOLX_COMPILER_TYPE — the type the plugin
+ * registers) with the pin in solcLongVersion on solx runs; control runs must
+ * contain no solx build-info at all. Scoped to the subject version because
+ * lido-core legitimately carries solc ballast build-infos.
  *
  * Note what this does NOT establish: which compiler produced the bytecode
  * that actually executed, or that any bytecode was produced at all. The
@@ -588,17 +590,19 @@ export function evaluateProvenance(
       );
       continue;
     }
-    if (side === "control" && compilerType === "solx") {
-      problems.push(`${name}: compilerType "solx" on a control run`);
+    if (side === "control" && compilerType === SOLX_COMPILER_TYPE) {
+      problems.push(
+        `${name}: compilerType "${SOLX_COMPILER_TYPE}" on a control run`,
+      );
     }
     if (solcVersion !== BENCHMARK_SOLC_VERSION) {
       continue;
     }
     subjectCount++;
     if (side === "solx") {
-      if (compilerType !== "solx") {
+      if (compilerType !== SOLX_COMPILER_TYPE) {
         problems.push(
-          `${name}: solcVersion ${solcVersion} has compilerType "${compilerType}", expected "solx"`,
+          `${name}: solcVersion ${solcVersion} has compilerType "${compilerType}", expected "${SOLX_COMPILER_TYPE}"`,
         );
       }
       if (
@@ -2275,9 +2279,9 @@ function captureEnvironment(
       projectDir,
       "@nomicfoundation/edr",
     ),
-    "@nomicfoundation/hardhat-solx": installedVersion(
+    "@nomicfoundation/hardhat-slang-solx": installedVersion(
       projectDir,
-      "@nomicfoundation/hardhat-solx",
+      "@nomicfoundation/hardhat-slang-solx",
     ),
     "@nomicfoundation/hardhat-vendored": installedVersion(
       projectDir,
@@ -2965,7 +2969,7 @@ export function diffSharedFailures(
 }
 
 /**
- * Assert the packed hardhat-solx in the checkout matches this monorepo's
+ * Assert the packed hardhat-slang-solx in the checkout matches this monorepo's
  * build byte-for-byte, so no run measures a stale plugin.
  */
 function assertFreshHardhatSolx(
@@ -2977,13 +2981,13 @@ function assertFreshHardhatSolx(
     [
       "-rq",
       ".solx/expected-dist-src",
-      "node_modules/@nomicfoundation/hardhat-solx/dist/src",
+      "node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
     ],
     { cwd: projectDir, env, encoding: "utf8" },
   );
   if (result.status !== 0) {
     throw new Error(
-      `stale hardhat-solx in ${projectDir}: ${result.stdout} ${result.stderr} — re-init the scenario`,
+      `stale hardhat-slang-solx in ${projectDir}: ${result.stdout} ${result.stderr} — re-init the scenario`,
     );
   }
 }

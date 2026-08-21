@@ -12,9 +12,10 @@
 // realistically move to solx — and re-expresses it as the benchmark's matrix
 // of profiles, {solc, solx} x {legacy, via-IR}, all seeded from the base's
 // 0.8.25 compiler settings and re-pinned to 0.8.34 (the only version in
-// hardhat-solx's Solidity→solx map; preinstall relaxes the exact pragmas to
-// caret ranges, and because the settings ship viaIR: true the factory's
-// legacy cells explicitly flip it to false — see solx-profiles.ts). The
+// hardhat-slang-solx's Solidity→solx map; preinstall relaxes the exact
+// pragmas to caret ranges, and because the settings ship viaIR: true the
+// factory's legacy cells explicitly flip it to false — see solx-profiles.ts).
+// The
 // tree's transitive imports (contracts/common, vendored + npm OpenZeppelin)
 // carry range pragmas and compile at 0.8.34 unpatched.
 //
@@ -31,14 +32,14 @@
 // array to storage, which solc's legacy codegen rejects with an
 // UnimplementedFeatureError (IR-only feature).
 // So only the via-IR cells are benchmarked; the legacy/no-opt profiles exist
-// for the plugin's mandatory "solx" profile and for reproducing the failure
-// (`--build-profile solc-no-opt`), and their FAIL is the datum, annotated in
-// render-solx-tables' CELL_NOTES. The base's npmFilesToBuild (Aragon/OZ
-// roots) belong to the dropped legacy trees; the contract sizer's compile
+// for reproducing the failure (`--build-profile solc-no-opt`), and their FAIL
+// is the datum, annotated in render-solx-tables' CELL_NOTES. The base's
+// npmFilesToBuild (Aragon/OZ roots) belong to the dropped legacy trees; the
+// contract sizer's compile
 // hook would time an unrelated post-compile pass in every cell, so it's
 // disabled. Everything else (plugins, tasks, test, warnings) is preserved
 // from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import {
@@ -100,11 +101,12 @@ function vaultHubOverride(cell: SolxProfileCell) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSolx],
-  // The plugin only allows type: "solx" in the profile named "solx"; this
-  // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
-  // so opt out of that guard. Throwaway benchmark scenario, not production.
-  solx: { dangerouslyAllowSolxInProduction: true },
+  plugins: [...base.plugins, hardhatSlangSolx],
+  // The plugin only allows type: "slangSolx" in the profile named
+  // "slangSolx"; this benchmark's solx cells live in profiles named after the
+  // compiler version they measure, so opt out of that guard. Throwaway
+  // benchmark scenario, not production.
+  slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
   // Scope to the modern tree, or to contracts/upgrade for the upgrade-tree
   // cells (see the header comment). test/ stays out via --no-tests on every
   // cell: paths.tests.solidity defaults to test/, whose fixtures span

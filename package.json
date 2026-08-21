@@ -5,7 +5,7 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@11.6.0",
+  "packageManager": "pnpm@11.20.0",
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.1",

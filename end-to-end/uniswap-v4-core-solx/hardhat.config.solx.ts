@@ -12,7 +12,7 @@
 // `metadata.bytecodeHash: "none"` carry over to every cell. The base's
 // `debug` profile is dropped. Everything else (paths, test) is preserved
 // from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import { buildSolxProfiles, withPinnedFuzzSeed } from "./solx-profiles.ts";
@@ -29,11 +29,12 @@ const base = baseConfig as unknown as {
 
 export default {
   ...base,
-  plugins: [...(base.plugins ?? []), hardhatSolx],
-  // The plugin only allows type: "solx" in the profile named "solx"; this
-  // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
-  // so opt out of that guard. Throwaway benchmark scenario, not production.
-  solx: { dangerouslyAllowSolxInProduction: true },
+  plugins: [...(base.plugins ?? []), hardhatSlangSolx],
+  // The plugin only allows type: "slangSolx" in the profile named
+  // "slangSolx"; this benchmark's solx cells live in profiles named after the
+  // compiler version they measure, so opt out of that guard. Throwaway
+  // benchmark scenario, not production.
+  slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.

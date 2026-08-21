@@ -36,6 +36,8 @@ DISTROS
 dorny
 dsari
 dtolnay
+eabi
+EBADENGINE
 elif
 enero
 esac
@@ -47,6 +49,7 @@ Fqns
 FQNs
 gcda
 Ghiglia
+gnueabihf
 hdkey
 hdpath
 heco
@@ -94,6 +97,7 @@ normalise
 NOTOK
 Numberish
 onuncaughtexception
+packument
 perché
 perché
 popd
@@ -101,10 +105,12 @@ PREVRANDAO
 pushd
 randao
 Randao
+recategorize
 recompiles
 reconciliable
 reconiliation
 reserialized
+riscv
 sarasa
 schaable
 sokol
@@ -126,6 +132,7 @@ supath
 synthetix
 Synthetix
 triaging
+trippable
 tset
 txts
 ufixed
@@ -162,6 +169,7 @@ xcom
 xdai
 yalc
 Yalc
+yarnrc
 zkevm
 zksync
 zoey

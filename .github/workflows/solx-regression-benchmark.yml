@@ -102,7 +102,7 @@ jobs:
       # job keeps squatting the port while checkout's clean erases its PID
       # file, so `verdaccio stop` alone can't see it — kill by process
       # pattern too. The scenarios' node_modules go as well so installs can't
-      # serve stale content (npm kept a months-old hardhat-solx tarball
+      # serve stale content (npm kept a months-old hardhat-slang-solx tarball
       # there). Compiler binaries and package-manager caches stay: those are
       # version/content-addressed.
       - name: Clean stale runner state

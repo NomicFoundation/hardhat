@@ -14,7 +14,7 @@ source "$MONOREPO_ROOT/scripts/benchmark/pinned-tool-versions.sh"
 # the pinned pragma; submodules (lib/) are left untouched.
 node "$MONOREPO_ROOT/scripts/benchmark/relax-pragmas.ts" --scenario uniswap-v4-core-solx --from 0.8.26 --skip-dir lib
 
-# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
 # into ./.solx and wire it in as a content-hash-named file: devDependency,
 # plus the freshness oracle at .solx/expected-dist-src — see
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why. The scenario's

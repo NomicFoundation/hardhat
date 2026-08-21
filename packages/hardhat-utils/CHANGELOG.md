@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.8
+
+### Patch Changes
+
+- [#8533](https://github.com/NomicFoundation/hardhat/pull/8533) [`cbe361a`](https://github.com/NomicFoundation/hardhat/commit/cbe361a667804f71fef69e608cf50030221380d2) Thanks [@kanej](https://github.com/kanej)! - Update the `fast-equals` runtime dependency to its latest major version.
+
 ## 4.1.7
 
 ### Patch Changes

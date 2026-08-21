@@ -13,6 +13,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { sanitizeFilename } from "@nomicfoundation/hardhat-utils/path";
 
 import {
@@ -20,9 +21,17 @@ import {
   parseFullyQualifiedName,
 } from "../../../utils/contract-names.js";
 
-import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
+import {
+  formatSectionHeader,
+  getUserFqn,
+  isWithinTolerance,
+} from "./helpers/utils.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
+
+// Snapshot cheatcode values are uint256 decimal strings, so a stored value
+// that doesn't match this can only come from a hand-edited or corrupted file.
+const SNAPSHOT_VALUE_REGEX = /^\d+$/;
 
 export interface RenamedSnapshotGroup {
   original: string;
@@ -64,8 +73,11 @@ export interface SnapshotCheatcode {
 export interface SnapshotCheatcodeChange {
   group: string;
   name: string;
-  expected: number;
-  actual: number;
+  // Raw snapshot values: uint256 decimal strings, kept as strings because
+  // they can exceed Number.MAX_SAFE_INTEGER and coercing them to `number`
+  // would round them.
+  expected: string;
+  actual: string;
   source: string;
 }
 
@@ -73,6 +85,10 @@ export interface SnapshotCheatcodesComparison {
   added: SnapshotCheatcode[];
   removed: SnapshotCheatcode[];
   changed: SnapshotCheatcodeChange[];
+  // Diffs within the allowed tolerance: they don't fail the check. They are
+  // included in the result for programmatic inspection, but are not shown in
+  // the default console output.
+  tolerated: SnapshotCheatcodeChange[];
 }
 
 export interface SnapshotCheatcodesCheckResult {
@@ -262,9 +278,9 @@ export async function readSnapshotCheatcodes(
       const snapshotGroup = entry.slice(0, -5); // remove .json extension
       const snapshotCheatcodesPath = getSnapshotCheatcodesPath(basePath, entry);
 
-      let snapshot: Record<string, string>;
+      let parsedSnapshot: unknown;
       try {
-        snapshot = await readJsonFile(snapshotCheatcodesPath);
+        parsedSnapshot = await readJsonFile(snapshotCheatcodesPath);
       } catch (error) {
         ensureError(error);
         throw new HardhatError(
@@ -272,6 +288,39 @@ export async function readSnapshotCheatcodes(
           { snapshotsPath: snapshotCheatcodesPath, error: error.message },
           error,
         );
+      }
+
+      if (!isObject(parsedSnapshot)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotCheatcodesPath,
+            error: `Invalid snapshot file: expected a JSON object, got ${JSON.stringify(parsedSnapshot)}`,
+          },
+        );
+      }
+
+      // Snapshot cheatcode values are always machine-generated uint256
+      // decimal strings (vm.snapshotValue/vm.snapshotGas*), so anything else
+      // can only come from a hand-edited or corrupted file. This also rejects
+      // hand-written unquoted JSON numbers (`100` instead of `"100"`).
+      const snapshot: Record<string, string> = {};
+      for (const [name, value] of Object.entries(parsedSnapshot)) {
+        if (
+          typeof value !== "string" ||
+          !SNAPSHOT_VALUE_REGEX.test(value) ||
+          BigInt(value) >= 2n ** 256n
+        ) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+            {
+              snapshotsPath: snapshotCheatcodesPath,
+              error: `Invalid value ${JSON.stringify(value)} for "${name}". Snapshot values must be uint256 decimal integer strings`,
+            },
+          );
+        }
+
+        snapshot[name] = value;
       }
 
       snapshots.set(snapshotGroup, snapshot);
@@ -295,10 +344,12 @@ export function stringifySnapshotCheatcodes(
 export function compareSnapshotCheatcodes(
   previousSnapshotsMap: SnapshotCheatcodesMap,
   currentSnapshotsMap: SnapshotCheatcodesWithMetadataMap,
+  tolerance: number,
 ): SnapshotCheatcodesComparison {
   const added: SnapshotCheatcode[] = [];
   const removed: SnapshotCheatcode[] = [];
   const changed: SnapshotCheatcodeChange[] = [];
+  const tolerated: SnapshotCheatcodeChange[] = [];
   const seenPreviousEntries = new Set<string>();
 
   for (const [group, currentSnapshots] of currentSnapshotsMap) {
@@ -316,13 +367,29 @@ export function compareSnapshotCheatcodes(
         seenPreviousEntries.add(key);
         const previousValue = previousSnapshots[name];
         if (previousValue !== currentEntry.value) {
-          changed.push({
+          const change: SnapshotCheatcodeChange = {
             group,
             name,
-            expected: Number(previousValue),
-            actual: Number(currentEntry.value),
+            expected: previousValue,
+            actual: currentEntry.value,
             source: currentEntry.metadata.source,
-          });
+          };
+
+          // Values above 2^53 lose precision when coerced to `number`, but
+          // the resulting relative error (~1e-14%) is far below any usable
+          // tolerance, so it can't change the outcome of this check.
+          if (
+            tolerance > 0 &&
+            isWithinTolerance(
+              Number(previousValue),
+              Number(currentEntry.value),
+              tolerance,
+            )
+          ) {
+            tolerated.push(change);
+          } else {
+            changed.push(change);
+          }
         }
       }
     }
@@ -347,12 +414,14 @@ export function compareSnapshotCheatcodes(
     added: added.sort(sortByKey),
     removed: removed.sort(sortByKey),
     changed: changed.sort(sortByKey),
+    tolerated: tolerated.sort(sortByKey),
   };
 }
 
 export async function checkSnapshotCheatcodes(
   basePath: string,
   suiteResults: SuiteResult[],
+  tolerance: number,
 ): Promise<SnapshotCheatcodesCheckResult> {
   const { snapshotCheatcodes, renamedGroups } = sanitizeSnapshotCheatcodes(
     extractSnapshotCheatcodes(suiteResults),
@@ -372,6 +441,7 @@ export async function checkSnapshotCheatcodes(
           added: [],
           removed: [],
           changed: [],
+          tolerated: [],
         },
         noBaseline,
         renamedGroups,
@@ -384,6 +454,7 @@ export async function checkSnapshotCheatcodes(
   const comparison = compareSnapshotCheatcodes(
     previousSnapshotCheatcodes,
     snapshotCheatcodes,
+    tolerance,
   );
 
   return {
@@ -480,12 +551,19 @@ export function printSnapshotCheatcodeChanges(
     logger(`  ${change.group}#${change.name}`);
     logger(styleText("grey", `    (in ${change.source})`));
 
-    const diff = change.actual - change.expected;
+    logger(styleText("grey", `    Expected: ${change.expected}`));
+
+    // Snapshot values are uint256 decimal strings that can exceed 2^53, so
+    // the exact diff needs BigInt.
+    const diff = BigInt(change.actual) - BigInt(change.expected);
+
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
 
     let gasChange = `${formattedDiff}`;
-    if (change.expected > 0) {
-      const percent = (diff / change.expected) * 100;
+
+    const expected = Number(change.expected);
+    if (expected > 0) {
+      const percent = (Number(diff) / expected) * 100;
       const formattedPercent =
         percent >= 0 ? `+${percent.toFixed(2)}%` : `${percent.toFixed(2)}%`;
       gasChange = `${formattedPercent}, ${formattedDiff}`;
@@ -495,7 +573,6 @@ export function printSnapshotCheatcodeChanges(
     const formattedGasChange =
       diff < 0 ? styleText("green", gasChange) : styleText("red", gasChange);
 
-    logger(styleText("grey", `    Expected: ${change.expected}`));
     logger(
       styleText("grey", `    Actual:   ${change.actual} (`) +
         formattedGasChange +

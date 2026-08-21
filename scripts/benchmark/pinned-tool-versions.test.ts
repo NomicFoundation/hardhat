@@ -93,10 +93,10 @@ describe("pinned-tool-versions", () => {
     // Regex over the sources, not an import: constants.ts pulls in hardhat
     // types that scripts/tsconfig.json typechecks without the plugin's
     // type-extensions (see readShippedSolxVersion).
-    const mapFile = "packages/hardhat-solx/src/internal/constants.ts";
+    const mapFile = "packages/hardhat-slang-solx/src/internal/constants.ts";
     const manifestFile = "scripts/benchmark/pinned-tool-versions.sh";
     const workflowFile = ".github/workflows/solx-regression-benchmark.yml";
-    const readmeFile = "packages/hardhat-solx/README.md";
+    const readmeFile = "packages/hardhat-slang-solx/README.md";
     const alignmentHint =
       `— align SOLIDITY_TO_SOLX_VERSION_MAP in ${mapFile}, ` +
       `SOLX_PINNED_VERSION in ${manifestFile}, the --solx-version flag ` +

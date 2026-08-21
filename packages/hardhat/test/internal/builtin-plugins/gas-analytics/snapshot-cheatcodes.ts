@@ -12,6 +12,7 @@ import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
   assertThrowsHardhatError,
   createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -19,6 +20,7 @@ import {
   exists,
   FileNotFoundError,
   readJsonFile,
+  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -498,6 +500,132 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(calculatorTest["calculator-subtract"], "47891");
     });
 
+    it("should read values above 2^53 as exact strings", async () => {
+      const snapshotPath = getSnapshotCheatcodesPath(tmp.path, "BigGroup.json");
+      await writeJsonFile(snapshotPath, {
+        "big-entry": "100000000000000000000001",
+      });
+
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
+
+      const bigGroup = readSnapshots.get("BigGroup");
+      assert.ok(bigGroup !== undefined, "BigGroup should be defined");
+      assert.equal(bigGroup["big-entry"], "100000000000000000000001");
+    });
+
+    it("should read a value at the uint256 maximum", async () => {
+      const uint256Max = (2n ** 256n - 1n).toString();
+      const snapshotPath = getSnapshotCheatcodesPath(tmp.path, "MaxGroup.json");
+      await writeJsonFile(snapshotPath, { "max-entry": uint256Max });
+
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
+
+      const maxGroup = readSnapshots.get("MaxGroup");
+      assert.ok(maxGroup !== undefined, "MaxGroup should be defined");
+      assert.equal(maxGroup["max-entry"], uint256Max);
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on values beyond the uint256 range", async () => {
+      // Values at or above 2^256 can't come from the uint256 cheatcodes, and
+      // ones at or above ~1.8e308 would coerce to Infinity in the tolerance
+      // comparison, marking any change as tolerated
+      for (const value of [(2n ** 256n).toString(), "1" + "0".repeat(309)]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, { "bad-entry": value });
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
+          },
+        );
+      }
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on a hand-edited non-numeric value", async () => {
+      // Snapshot values are always machine-generated uint256 decimal strings,
+      // so a non-numeric value can only mean a hand-edited or corrupted file
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "HandEdited.json",
+      );
+      await writeJsonFile(snapshotPath, { "bad-entry": "abc" });
+
+      await assertRejectsWithHardhatError(
+        readSnapshotCheatcodes(tmp.path),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath: snapshotPath,
+          error: `Invalid value "abc" for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
+        },
+      );
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on a hand-written unquoted JSON number", async () => {
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "HandEdited.json",
+      );
+      await writeJsonFile(snapshotPath, { "unquoted-entry": 100 });
+
+      await assertRejectsWithHardhatError(
+        readSnapshotCheatcodes(tmp.path),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath: snapshotPath,
+          error: `Invalid value 100 for "unquoted-entry". Snapshot values must be uint256 decimal integer strings`,
+        },
+      );
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on non-decimal numeric string forms", async () => {
+      for (const value of ["", " 100", "1e2", "-5", "1.5", "0x64"]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, { "bad-entry": value });
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be uint256 decimal integer strings`,
+          },
+        );
+      }
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on a non-object JSON root", async () => {
+      // A snapshot file is always a machine-generated JSON object, so any
+      // other root (null, array, primitive) can only mean a hand-edited or
+      // corrupted file. Without an explicit check, `null` would throw a raw
+      // TypeError, `100` would be silently read as an empty group, and
+      // `["100"]` would be read as an entry named "0".
+      for (const root of [null, 100, "100", true, ["100"]]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, root);
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid snapshot file: expected a JSON object, got ${JSON.stringify(root)}`,
+          },
+        );
+      }
+    });
+
     it("should read multiple snapshot groups from separate JSON files", async () => {
       const snapshots: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
@@ -620,12 +748,13 @@ ZGroup#entry-z: 300`;
 
   describe("compareSnapshotCheatcodes", () => {
     it("should return empty comparison when both snapshots are empty", () => {
-      const result = compareSnapshotCheatcodes(new Map(), new Map());
+      const result = compareSnapshotCheatcodes(new Map(), new Map(), 0);
 
       assert.deepEqual(result, {
         added: [],
         removed: [],
         changed: [],
+        tolerated: [],
       });
     });
 
@@ -643,7 +772,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 0);
@@ -661,7 +790,7 @@ ZGroup#entry-z: 300`;
       ]);
       const current: SnapshotCheatcodesWithMetadataMap = new Map();
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 1);
@@ -689,7 +818,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -697,8 +826,8 @@ ZGroup#entry-z: 300`;
       assert.deepEqual(result.changed[0], {
         group: "GroupA",
         name: "entry-a",
-        expected: 100,
-        actual: 200,
+        expected: "100",
+        actual: "200",
         source: "contracts/GroupA.t.sol",
       });
     });
@@ -745,7 +874,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 1);
@@ -774,7 +903,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -830,7 +959,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 4);
       assert.equal(
@@ -870,6 +999,88 @@ ZGroup#entry-z: 300`;
         "ZGroup#entry-z",
       );
     });
+
+    describe("with tolerance", () => {
+      const previousWith = (value: string): SnapshotCheatcodesMap =>
+        new Map([["GroupA", { "entry-a": value }]]);
+
+      const currentWith = (value: string): SnapshotCheatcodesWithMetadataMap =>
+        new Map([
+          [
+            "GroupA",
+            {
+              "entry-a": {
+                value,
+                metadata: { source: "contracts/GroupA.t.sol" },
+              },
+            },
+          ],
+        ]);
+
+      it("should tolerate a numeric diff within the tolerance", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("1000"),
+          currentWith("1005"),
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 1);
+        assert.deepEqual(result.tolerated[0], {
+          group: "GroupA",
+          name: "entry-a",
+          expected: "1000",
+          actual: "1005",
+          source: "contracts/GroupA.t.sol",
+        });
+      });
+
+      it("should flag as changed a numeric diff over the tolerance", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("1000"),
+          currentWith("1006"),
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should flag as changed a diff from a zero baseline even with a large tolerance", () => {
+        // The percentage change from 0 is undefined, so no tolerance can
+        // absorb it.
+        const result = compareSnapshotCheatcodes(
+          previousWith("0"),
+          currentWith("1"),
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should tolerate a diff within the tolerance for values above 2^53", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("100000000000000000000000"),
+          currentWith("100500000000000000000000"),
+          1,
+        );
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 1);
+      });
+
+      it("should flag as changed a diff over the tolerance for values above 2^53", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("100000000000000000000000"),
+          currentWith("102000000000000000000000"),
+          1,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+    });
   });
 
   describe("printSnapshotCheatcodeChanges", () => {
@@ -888,8 +1099,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 10000,
-          actual: 15000,
+          expected: "10000",
+          actual: "15000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -910,8 +1121,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 15000,
-          actual: 10000,
+          expected: "15000",
+          actual: "10000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -930,8 +1141,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 0,
-          actual: 5000,
+          expected: "0",
+          actual: "5000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -945,20 +1156,60 @@ ZGroup#entry-z: 300`;
       assert.doesNotMatch(text, /%/);
     });
 
+    it("should print values above 2^53 exactly, with an exact diff", () => {
+      const changes: SnapshotCheatcodeChange[] = [
+        {
+          group: "GroupA",
+          name: "entry-a",
+          expected: "100000000000000000000001",
+          actual: "100000000000000000000999",
+          source: "contracts/GroupA.t.sol",
+        },
+      ];
+
+      printSnapshotCheatcodeChanges(changes, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Expected: 100000000000000000000001/);
+      assert.match(text, /Actual:\s+100000000000000000000999/);
+      assert.match(text, /Δ\+998/);
+    });
+
+    it("should print a non-zero diff for values that only differ beyond 2^53 precision", () => {
+      // Both values round to the same `number`, so a float-based diff would
+      // print them as identical with Δ0
+      const changes: SnapshotCheatcodeChange[] = [
+        {
+          group: "GroupA",
+          name: "entry-a",
+          expected: "9007199254740993",
+          actual: "9007199254740992",
+          source: "contracts/GroupA.t.sol",
+        },
+      ];
+
+      printSnapshotCheatcodeChanges(changes, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Expected: 9007199254740993/);
+      assert.match(text, /Actual:\s+9007199254740992/);
+      assert.match(text, /Δ-1/);
+    });
+
     it("should print multiple changes", () => {
       const changes: SnapshotCheatcodeChange[] = [
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 10000,
-          actual: 15000,
+          expected: "10000",
+          actual: "15000",
           source: "contracts/GroupA.t.sol",
         },
         {
           group: "GroupB",
           name: "entry-b",
-          expected: 20000,
-          actual: 18000,
+          expected: "20000",
+          actual: "18000",
           source: "contracts/GroupB.t.sol",
         },
       ];
@@ -1135,9 +1386,15 @@ ZGroup#entry-z: 300`;
       const comparison = compareSnapshotCheatcodes(
         previous,
         snapshotCheatcodes,
+        0,
       );
 
-      assert.deepEqual(comparison, { added: [], removed: [], changed: [] });
+      assert.deepEqual(comparison, {
+        added: [],
+        removed: [],
+        changed: [],
+        tolerated: [],
+      });
     });
   });
 

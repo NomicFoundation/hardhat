@@ -22,8 +22,8 @@
             "command": "node ./relax-dep-pragmas.cjs",
             "measure": false
           },
-          "assert fresh hardhat-solx": {
-            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+          "assert fresh hardhat-slang-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
           "download solc and warm caches": {
@@ -40,7 +40,7 @@
         "runs": 2,
         "dependsOn": [
           "relax dependency pragmas",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc and warm caches"
         ],
         "prepare": "npx hardhat clean",
@@ -50,7 +50,7 @@
         "runs": 2,
         "dependsOn": [
           "relax dependency pragmas",
-          "assert fresh hardhat-solx",
+          "assert fresh hardhat-slang-solx",
           "download solc and warm caches"
         ],
         "prepare": "npx hardhat clean",

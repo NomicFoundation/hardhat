@@ -11,7 +11,7 @@ MONOREPO_ROOT="$(cd "$E2E_TEST_DIR/../.." && pwd)"
 # Pinned solx/forge versions shared by every solx scenario.
 source "$MONOREPO_ROOT/scripts/benchmark/pinned-tool-versions.sh"
 
-# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
 # into ./.solx and wire it in as a content-hash-named file: devDependency,
 # plus the freshness oracle at .solx/expected-dist-src — see
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why.

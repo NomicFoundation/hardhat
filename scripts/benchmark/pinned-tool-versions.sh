@@ -6,13 +6,13 @@
 #
 # What this file does NOT control — pinned-tool-versions.test.ts asserts
 # each of these stays coherent with it:
-#   - the solx version the hardhat-solx plugin ships, via
-#     SOLIDITY_TO_SOLX_VERSION_MAP in packages/hardhat-solx. The plain
+#   - the solx version the hardhat-slang-solx plugin ships, via
+#     SOLIDITY_TO_SOLX_VERSION_MAP in packages/hardhat-slang-solx. The plain
 #     "solx" profiles (the standard-JSON dump step, gas-compare) resolve
 #     through that map.
 #   - the replay pin in .github/workflows/solx-regression-benchmark.yml
 #     (its --solx-version flag). It replays the shipped map's version.
-#   - the "Currently supported" line in packages/hardhat-solx/README.md.
+#   - the "Currently supported" line in packages/hardhat-slang-solx/README.md.
 #     It documents the mapped version to users.
 #   - the "solx-0.1.7" profile names (solx-profiles.ts), the scenario.json
 #     cell names ("cold compile solx-0.1.7", "cold compile forge-1.7.1"),

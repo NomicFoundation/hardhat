@@ -59,11 +59,11 @@ function buildInfo(
   overrides: Partial<BuildInfoSummary> = {},
 ): BuildInfoSummary {
   return {
-    name: "artifacts/build-info/solc-0_8_34-solx-abc.json",
+    name: "artifacts/build-info/solc-0_8_34-slangSolx-abc.json",
     id: SUBJECT_BUILD_INFO,
     solcVersion: "0.8.34",
     solcLongVersion: `0.8.34+commit.ebeac7c2+solx-${PIN}`,
-    compilerType: "solx",
+    compilerType: "slangSolx",
     ...overrides,
   };
 }
@@ -116,7 +116,10 @@ describe("evaluateProvenance", () => {
   it("rejects a control run carrying solx build-info", () => {
     const result = evaluateProvenance([buildInfo()], "control", PIN);
     assert.equal(result.ok, false);
-    assert.match(result.problems.join(" "), /compilerType "solx" on a control/);
+    assert.match(
+      result.problems.join(" "),
+      /compilerType "slangSolx" on a control/,
+    );
   });
 
   it("accepts a control run with only solc build-info", () => {
@@ -847,7 +850,7 @@ const SUBJECT_BUILD_INFO_FILE = {
   id: SUBJECT_BUILD_INFO,
   solcVersion: "0.8.34",
   solcLongVersion: "0.8.34+commit.ebeac7c2+solx-0.1.8",
-  compilerType: "solx",
+  compilerType: "slangSolx",
 };
 
 describe("collectInventory", () => {
