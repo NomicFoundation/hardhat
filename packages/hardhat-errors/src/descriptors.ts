@@ -333,11 +333,11 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     min: 110000,
     max: 119999,
-    pluginId: "hardhat-solx",
-    websiteTitle: "Hardhat Solx",
+    pluginId: "hardhat-slang-solx",
+    websiteTitle: "Hardhat Slang Solx",
     CATEGORIES: {
       GENERAL: {
         min: 110000,
@@ -3365,7 +3365,7 @@ Check the error message for more details and verify your foundry.toml configurat
       },
     },
   },
-  HARDHAT_SOLX: {
+  HARDHAT_SLANG_SOLX: {
     GENERAL: {
       UNSUPPORTED_PLATFORM: {
         number: 110000,
@@ -3392,6 +3392,28 @@ Check your internet connection, ensure that the solx releases mirror (https://so
         websiteDescription: `The configured custom path for the solx binary does not exist.
 
 Verify that the path in your Hardhat config points to a valid solx binary.`,
+      },
+      CHECKSUM_DOWNLOAD_FAILED: {
+        number: 110003,
+        messageTemplate: `Couldn't download the checksum for solx {version} from {url}: {reason}`,
+        websiteTitle: "Couldn't obtain the solx checksum",
+        websiteDescription: `Every solx binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
+
+Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment. If you are behind a proxy that intercepts HTTPS traffic, it may be blocking or rewriting the request.`,
+      },
+      INVALID_DOWNLOAD: {
+        number: 110004,
+        messageTemplate: `Couldn't download solx {version}: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
+        websiteTitle: "Downloaded solx checksum verification failed",
+        websiteDescription: `Hardhat downloaded a solx binary, and its checksum didn't match the one published alongside it. The binary was deleted instead of being used.
+
+The likeliest cause is a corrupted or incomplete download.
+
+Please check your internet connection and try again. If this error persists, run \`npx hardhat clean --global\`.`,
       },
     },
   },

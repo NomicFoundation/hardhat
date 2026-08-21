@@ -13,6 +13,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { sanitizeFilename } from "@nomicfoundation/hardhat-utils/path";
 
 import {
@@ -27,6 +28,10 @@ import {
 } from "./helpers/utils.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
+
+// Snapshot cheatcode values are uint256 decimal strings, so a stored value
+// that doesn't match this can only come from a hand-edited or corrupted file.
+const SNAPSHOT_VALUE_REGEX = /^\d+$/;
 
 export interface RenamedSnapshotGroup {
   original: string;
@@ -68,8 +73,11 @@ export interface SnapshotCheatcode {
 export interface SnapshotCheatcodeChange {
   group: string;
   name: string;
-  expected: number;
-  actual: number;
+  // Raw snapshot values: uint256 decimal strings, kept as strings because
+  // they can exceed Number.MAX_SAFE_INTEGER and coercing them to `number`
+  // would round them.
+  expected: string;
+  actual: string;
   source: string;
 }
 
@@ -270,9 +278,9 @@ export async function readSnapshotCheatcodes(
       const snapshotGroup = entry.slice(0, -5); // remove .json extension
       const snapshotCheatcodesPath = getSnapshotCheatcodesPath(basePath, entry);
 
-      let snapshot: Record<string, string>;
+      let parsedSnapshot: unknown;
       try {
-        snapshot = await readJsonFile(snapshotCheatcodesPath);
+        parsedSnapshot = await readJsonFile(snapshotCheatcodesPath);
       } catch (error) {
         ensureError(error);
         throw new HardhatError(
@@ -280,6 +288,39 @@ export async function readSnapshotCheatcodes(
           { snapshotsPath: snapshotCheatcodesPath, error: error.message },
           error,
         );
+      }
+
+      if (!isObject(parsedSnapshot)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotCheatcodesPath,
+            error: `Invalid snapshot file: expected a JSON object, got ${JSON.stringify(parsedSnapshot)}`,
+          },
+        );
+      }
+
+      // Snapshot cheatcode values are always machine-generated uint256
+      // decimal strings (vm.snapshotValue/vm.snapshotGas*), so anything else
+      // can only come from a hand-edited or corrupted file. This also rejects
+      // hand-written unquoted JSON numbers (`100` instead of `"100"`).
+      const snapshot: Record<string, string> = {};
+      for (const [name, value] of Object.entries(parsedSnapshot)) {
+        if (
+          typeof value !== "string" ||
+          !SNAPSHOT_VALUE_REGEX.test(value) ||
+          BigInt(value) >= 2n ** 256n
+        ) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+            {
+              snapshotsPath: snapshotCheatcodesPath,
+              error: `Invalid value ${JSON.stringify(value)} for "${name}". Snapshot values must be uint256 decimal integer strings`,
+            },
+          );
+        }
+
+        snapshot[name] = value;
       }
 
       snapshots.set(snapshotGroup, snapshot);
@@ -329,19 +370,21 @@ export function compareSnapshotCheatcodes(
           const change: SnapshotCheatcodeChange = {
             group,
             name,
-            expected: Number(previousValue),
-            actual: Number(currentEntry.value),
+            expected: previousValue,
+            actual: currentEntry.value,
             source: currentEntry.metadata.source,
           };
 
-          // The tolerance only applies when both values are strictly numeric;
-          // otherwise the exact string comparison stands. Snapshot cheatcode
-          // values can be arbitrary strings, unlike function gas snapshots.
+          // Values above 2^53 lose precision when coerced to `number`, but
+          // the resulting relative error (~1e-14%) is far below any usable
+          // tolerance, so it can't change the outcome of this check.
           if (
             tolerance > 0 &&
-            isStrictlyNumeric(previousValue) &&
-            isStrictlyNumeric(currentEntry.value) &&
-            isWithinTolerance(change.expected, change.actual, tolerance)
+            isWithinTolerance(
+              Number(previousValue),
+              Number(currentEntry.value),
+              tolerance,
+            )
           ) {
             tolerated.push(change);
           } else {
@@ -373,13 +416,6 @@ export function compareSnapshotCheatcodes(
     changed: changed.sort(sortByKey),
     tolerated: tolerated.sort(sortByKey),
   };
-}
-
-// The emptiness check is needed because `Number("")` is `0`, so a bare
-// `Number.isFinite(Number(value))` would treat empty/whitespace values as
-// numeric.
-function isStrictlyNumeric(value: string): boolean {
-  return value.trim() !== "" && Number.isFinite(Number(value));
 }
 
 export async function checkSnapshotCheatcodes(
@@ -515,12 +551,19 @@ export function printSnapshotCheatcodeChanges(
     logger(`  ${change.group}#${change.name}`);
     logger(styleText("grey", `    (in ${change.source})`));
 
-    const diff = change.actual - change.expected;
+    logger(styleText("grey", `    Expected: ${change.expected}`));
+
+    // Snapshot values are uint256 decimal strings that can exceed 2^53, so
+    // the exact diff needs BigInt.
+    const diff = BigInt(change.actual) - BigInt(change.expected);
+
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
 
     let gasChange = `${formattedDiff}`;
-    if (change.expected > 0) {
-      const percent = (diff / change.expected) * 100;
+
+    const expected = Number(change.expected);
+    if (expected > 0) {
+      const percent = (Number(diff) / expected) * 100;
       const formattedPercent =
         percent >= 0 ? `+${percent.toFixed(2)}%` : `${percent.toFixed(2)}%`;
       gasChange = `${formattedPercent}, ${formattedDiff}`;
@@ -530,7 +573,6 @@ export function printSnapshotCheatcodeChanges(
     const formattedGasChange =
       diff < 0 ? styleText("green", gasChange) : styleText("red", gasChange);
 
-    logger(styleText("grey", `    Expected: ${change.expected}`));
     logger(
       styleText("grey", `    Actual:   ${change.actual} (`) +
         formattedGasChange +

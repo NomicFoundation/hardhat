@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.20
+
+### Patch Changes
+
+- [#8502](https://github.com/NomicFoundation/hardhat/pull/8502) [`dcce8ef`](https://github.com/NomicFoundation/hardhat/commit/dcce8ef58d2a756fe0ad1fd13365adf8970b7578) Thanks [@kanej](https://github.com/kanej)! - Added `HHE110003` and `HHE110004` for the `hardhat-slang-solx` plugin, raised when the checksum of a solx binary cannot be obtained and when a downloaded solx binary does not match it.
+
 ## 3.0.19
 
 ### Patch Changes

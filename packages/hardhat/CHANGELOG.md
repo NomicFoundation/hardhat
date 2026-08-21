@@ -1,5 +1,23 @@
 # hardhat
 
+## 3.14.0
+
+### Minor Changes
+
+- [#8540](https://github.com/NomicFoundation/hardhat/pull/8540) [`99306ea`](https://github.com/NomicFoundation/hardhat/commit/99306ea3112ac97577cfdacc98f027ff3a261669) Thanks [@kanej](https://github.com/kanej)! - EDR now uses platform specific `optionalDependencies`, reducing Hardhat's install size.
+
+### Patch Changes
+
+- [#8514](https://github.com/NomicFoundation/hardhat/pull/8514) [`f7c6228`](https://github.com/NomicFoundation/hardhat/commit/f7c6228b057ce95309834714697c2164c14d1cd4) Thanks [@questfever](https://github.com/questfever)! - Fixed Solidity resolver containment checks for paths whose names share a prefix with the project root, a package source-name root, or `node_modules`.
+
+- [#8540](https://github.com/NomicFoundation/hardhat/pull/8540) [`99306ea`](https://github.com/NomicFoundation/hardhat/commit/99306ea3112ac97577cfdacc98f027ff3a261669) Thanks [@kanej](https://github.com/kanej)! - Fixed missing Solidity test stack trace when `setUp()` fails and stack traces are collected with `CollectStackTraces::Always`.
+
+- [#8500](https://github.com/NomicFoundation/hardhat/pull/8500) [`54973b2`](https://github.com/NomicFoundation/hardhat/commit/54973b2e0a10a1ba734c9eeda5ffe0aeae54fb83) Thanks [@SnowingFox](https://github.com/SnowingFox)! - Fixed the format of fuzz test counterexamples: byte array values such as `calldata`, `sender` and `address` are now printed as hexadecimal strings (e.g. `0x3e2033b3...`) instead of comma-separated byte lists.
+
+- [#8522](https://github.com/NomicFoundation/hardhat/pull/8522) [`8640b4b`](https://github.com/NomicFoundation/hardhat/commit/8640b4b9b7938e539cb35158445da1cd7d5bd92d) Thanks [@JasonColapietro](https://github.com/JasonColapietro)! - Remove Holesky testnet (chain id 17000) as a supported chain as it has been shut down.
+
+- [#8488](https://github.com/NomicFoundation/hardhat/pull/8488) [`edd1069`](https://github.com/NomicFoundation/hardhat/commit/edd1069ad5d2f17e164eb0e8871457a88855cb94) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Stores gas snapshot cheatcode values as raw strings and calculates diffs using BigInt.
+
 ## 3.13.0
 
 ### Minor Changes
