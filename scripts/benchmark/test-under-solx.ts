@@ -41,6 +41,11 @@ DESCRIPTION
   excluded from the solx verdict but recorded. Each solx-only failure is
   re-run once (--grep) to screen flakes.
 
+  A set-difference only means something when both sides ran the same suite, so
+  a solx test count below 90% of the control's is a harness-failures verdict,
+  not a pass. Compile-error patterns found in a green run's log are recorded on
+  the pair record too.
+
   Results are checkpointed after every pair: a per-pair JSON under
   <out>/results/, full logs under <out>/logs/, and a regenerated
   <out>/summary.json + <out>/report.md.
@@ -272,6 +277,13 @@ const EIP170_RE =
 // next line; a bare match would also catch JavaScript runtime TypeErrors.
 const COMPILE_ERROR_RE =
   /compilation failed|failed to compile|CompilationJobCreationError|Error HHE\d+|HardhatError: HHE\d+|ParserError|DeclarationError|CompilerError|Stack too deep|Subprocess exited with code|TypeError:[^\n]*\n\s*-->/i;
+
+// Below this share of the control's test count, the two sides did not run the
+// same suite, so a set-difference over their failures is not a solx result.
+// Test counts are expected to match exactly; the slack absorbs a suite whose
+// own count varies (a conditional skip, a timing-dependent case) without
+// letting a wholesale disappearance of suites read as a pass.
+const UNIVERSE_SHORTFALL_FLOOR = 0.9;
 
 // ---------------------------------------------------------------------------
 // Child processes
@@ -619,7 +631,21 @@ interface PairRecord {
   controlOnlyFailures: string[];
   eip170Failures: string[];
   determinism: DeterminismEntry[];
+  compileErrorMarker: { solx: boolean; control: boolean };
   timestamp: string;
+}
+
+/**
+ * A compile-error pattern found in a run's own log. Worth surfacing even when
+ * the run exited green: solx can print a fatal compiler error and still exit 0,
+ * which is exactly how the empty-build defect stayed invisible. Recorded rather
+ * than promoted to a verdict, so a green run with a suspicious log is visible
+ * without a regex deciding the result.
+ */
+function markerNote(run: RunRecord): string {
+  return run.compileErrorMarker
+    ? ` (compile-error pattern present in the ${run.side} log despite the run reporting success — inspect ${run.logFile})`
+    : "";
 }
 
 /** A run whose printed summary is trustworthy for set-difference math. */
@@ -676,9 +702,25 @@ function classify(
     return {
       verdict: "harness-failures",
       detail:
-        `solx executed no tests (the control executed ${controlTotal}) — ` +
-        `a green exit that ran nothing is not a pass (check the build log ` +
-        `for swallowed compiler errors)`,
+        `test universe mismatch: solx executed no tests (the control executed ` +
+        `${controlTotal}) — a green exit that ran nothing is not a pass (check ` +
+        `the build log for swallowed compiler errors)`,
+    };
+  }
+
+  // A partial shortfall is the same defect with some suites surviving. Only the
+  // all-or-nothing case was caught originally, so a 700-of-706 disappearance
+  // would have read as a pass.
+  if (controlTotal > 0 && solxTotal < controlTotal * UNIVERSE_SHORTFALL_FLOOR) {
+    const share = ((solxTotal / controlTotal) * 100).toFixed(1);
+    return {
+      verdict: "harness-failures",
+      detail:
+        `test universe mismatch: solx executed ${solxTotal} tests against the ` +
+        `control's ${controlTotal} (${share}%, below the ` +
+        `${(UNIVERSE_SHORTFALL_FLOOR * 100).toFixed(0)}% floor) — the two sides ` +
+        `did not run the same suite, so the set-difference is not a solx result ` +
+        `(check the build log for swallowed compiler errors)`,
     };
   }
 
@@ -695,7 +737,10 @@ function classify(
         : controlTotal === 0
           ? " (control-side issue: the control executed no tests)"
           : "";
-    return { verdict: "pass", detail: controlNote.trim() };
+    return {
+      verdict: "pass",
+      detail: (controlNote + markerNote(solx) + markerNote(control)).trim(),
+    };
   }
 
   // solx has failures: without a control that ran the suite, the
@@ -725,7 +770,10 @@ function classify(
       detail: `control run untrustworthy — set-difference not computable: ${controlProblem}`,
     };
   }
-  return { verdict: "pass", detail: "" };
+  return {
+    verdict: "pass",
+    detail: (markerNote(solx) + markerNote(control)).trim(),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -854,6 +902,12 @@ function regenerateReports(outDir: string, pin: string): string {
         controlOnlyFailures: r.controlOnlyFailures,
         eip170Failures: r.eip170Failures,
         determinism: r.determinism,
+        // Per-pair JSONs written before this field existed carry the marker
+        // only inside the two run records, so fall back to those.
+        compileErrorMarker: r.compileErrorMarker ?? {
+          solx: r.solx.compileErrorMarker,
+          control: r.control?.compileErrorMarker ?? false,
+        },
         timestamp: r.timestamp,
       })),
       null,
@@ -1090,6 +1144,10 @@ async function main(): Promise<void> {
         controlOnlyFailures: controlOnly.map((f) => f.id),
         eip170Failures: eip170,
         determinism,
+        compileErrorMarker: {
+          solx: solx.compileErrorMarker,
+          control: control.compileErrorMarker,
+        },
         timestamp: new Date().toISOString(),
       };
 
