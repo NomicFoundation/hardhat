@@ -3,6 +3,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { Artifact } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
+import { Readable, Writable } from "node:stream";
 import { before, describe, it } from "node:test";
 
 import {
@@ -21,6 +22,7 @@ import { resolveSolidityTestForkingConfig } from "../../../../src/internal/built
 import {
   isTestSuiteArtifact,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
+  writeTestRunOutput,
 } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import {
   ALWAYS_COLLECT_STACK_TRACES_VERBOSITY,
@@ -526,5 +528,43 @@ describe("isTestSuiteArtifact", () => {
     });
 
     assert.equal(isTestSuiteArtifact(artifact), false);
+  });
+});
+
+describe("writeTestRunOutput", () => {
+  it("returns the error that failed the reporter stream instead of leaving it unhandled", async () => {
+    const runStream = new Readable({ objectMode: true, read() {} });
+    const reporterError = new Error("The reporter failed");
+
+    // A reporter that fails while formatting an event, e.g. because of an
+    // unexpected event shape. The composed stream emits an `error` event that
+    // nothing but `writeTestRunOutput` listens to, which would otherwise crash
+    // the process with an uncaught exception, failing this test.
+    const reporterStream = runStream.compose(async function* (
+      source: AsyncIterable<{ type: string }>,
+    ) {
+      for await (const event of source) {
+        assert.equal(event.type, "run:done");
+        throw reporterError;
+      }
+    });
+
+    runStream.push({ type: "run:done" });
+
+    const error = await writeTestRunOutput(
+      runStream,
+      reporterStream,
+      new Writable({
+        write(_chunk, _encoding, callback) {
+          callback();
+        },
+      }),
+    );
+
+    assert.equal(error, reporterError);
+
+    // Give the reporter stream's `error` event a chance to surface while this
+    // test is still running, so that an unhandled one is reported here.
+    await new Promise((resolve) => setImmediate(resolve));
   });
 });
