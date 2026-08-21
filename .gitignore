@@ -127,3 +127,7 @@ pnpm-publish-summary.json
 
 # CPU Profiler output
 *.cpuprofile
+
+# Evaluation evidence trees live only as committed .tar.gz archives
+solx-test-evaluation-evidence/
+solx-0.1.8-test-evaluation-evidence/
