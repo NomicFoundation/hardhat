@@ -44,7 +44,7 @@
     "@uniswap/v4-core": "1.0.2",
     "chai": "^6.2.2",
     "ethers": "^6.14.0",
-    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "forge-std": "foundry-rs/forge-std#v1.16.2",
     "hardhat": "workspace:^3.14.0",
     "mocha": "^11.0.0",
     "permit2": "uniswap/permit2#cc56ad0f3439c502c246fc5cfcc3db92bb8b7219",
