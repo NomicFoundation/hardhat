@@ -45,7 +45,7 @@ jobs:
         github.repository == github.event.pull_request.head.repo.full_name)
 
     # Every scenario now runs the symmetrical 11-cell matrix — {solc, shipped
-    # solx, pinned 0.1.7} x {legacy, via-IR}, solx cells doubled by the DWARF
+    # solx, pinned 0.1.8} x {legacy, via-IR}, solx cells doubled by the DWARF
     # on/off twin, plus a solc optimizer-off legacy cell (the Foundry test-run
     # default, solc at its fastest). OZ skips the no-opt cell — the repo
     # doesn't compile unoptimized (see its wrapper config); that FAIL is the
@@ -169,7 +169,7 @@ jobs:
         run: pnpm bench:dump-standard-json --tag solx --out solx-standard-json
 
       # Raw solx over a dump subset — no Hardhat in the loop. The delta vs
-      # the same scenario's "cold compile solx-0.1.7" cell is Hardhat's
+      # the same scenario's "cold compile solx-0.1.8" cell is Hardhat's
       # overhead, tracked over time on this same runner. Both sides run the
       # same binary: the coherence test keeps that pin, the plugin's map,
       # and this flag equal. The subset is deliberately small (one small +
@@ -186,7 +186,7 @@ jobs:
           pnpm bench:replay-standard-json \
             --dumps solx-standard-json \
             --report solx-regression-report.json \
-            --solx-version 0.1.7 \
+            --solx-version 0.1.8 \
             --dump ens-verifiable-factory-solx/solx-legacy-dwarf.json \
             --dump uniswap-v4-core-solx/solx-legacy-dwarf.json
 

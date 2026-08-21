@@ -105,7 +105,7 @@ rm -f pnpm-lock.yaml
 node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$HORIZON"
 
 # Pinned solx for the version-comparison cells: the wrapper config's
-# "solx-0.1.7" profiles point at this binary via the plugin's `path` option.
+# "solx-0.1.8" profiles point at this binary via the plugin's `path` option.
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$HORIZON/.solx/solx-v$SOLX_PINNED_VERSION"
 
 # The Hardhat 3 migration stack reduced foundry.toml to a lint-only config;

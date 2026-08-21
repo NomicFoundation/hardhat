@@ -21,9 +21,9 @@ node "$MONOREPO_ROOT/scripts/benchmark/relax-pragmas.ts" --scenario 1inch-swap-v
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why.
 node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORKDIR"
 
-# Pinned solx for the version cells: the wrapper config's "solx-0.1.7"
+# Pinned solx for the version cells: the wrapper config's "solx-0.1.8"
 # profiles point at this binary via the plugin's `path` option. The pinned
-# cells are the shipped measurement (the plugin maps 0.8.34 to 0.1.7);
+# cells are the shipped measurement (the plugin maps 0.8.34 to 0.1.8);
 # 0.1.4, the map when this scenario was written, fails via-IR on this repo
 # with a YulException that 0.1.7 fixes.
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$WORKDIR/.solx/solx-v$SOLX_PINNED_VERSION"

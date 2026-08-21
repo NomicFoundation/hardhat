@@ -18,13 +18,13 @@
 //   solc-via-ir        solc, via-IR
 //   solx               solx, legacy
 //   solx-via-ir        solx, via-IR
-//   solx-0.1.7         pinned solx, legacy
-//   solx-0.1.7-via-ir  pinned solx, via-IR
+//   solx-0.1.8         pinned solx, legacy
+//   solx-0.1.8-via-ir  pinned solx, via-IR
 //
 // The "solx" profiles always measure the version the plugin ships (its
-// Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
+// Solidity→solx version map). The "solx-0.1.8" profiles pin a release under
 // comparison via the plugin's `path` compiler option; preinstall.sh downloads
-// the binary to ./.solx/solx-v0.1.7 (see scripts/benchmark/download-solx.ts).
+// the binary to ./.solx/solx-v0.1.8 (see scripts/benchmark/download-solx.ts).
 // The pinned names and path are deliberate literals — workflow and
 // scenario.json cells refer to the profile names — and must stay in lockstep
 // with SOLX_PINNED_VERSION in scripts/benchmark/pinned-tool-versions.sh;
@@ -60,11 +60,11 @@ export type CompilerSettings = Record<string, unknown>;
 
 /** One cell of the profile matrix, as handed to the `overrides` callback. */
 export interface SolxProfileCell {
-  /** Profile name, e.g. "solc-no-opt" or "solx-0.1.7-via-ir". */
+  /** Profile name, e.g. "solc-no-opt" or "solx-0.1.8-via-ir". */
   name: string;
   /** "solx" on the solx cells; undefined on the solc cells. */
   type?: "solx";
-  /** Pinned solx binary path — only set on the "solx-0.1.7*" cells. */
+  /** Pinned solx binary path — only set on the "solx-0.1.8*" cells. */
   path?: string;
   /** The solc version every cell compiles at (0.8.34). */
   version: string;
@@ -105,7 +105,7 @@ export const BENCHMARK_SOLC_VERSION = "0.8.34";
 // This file sits next to the wrapper config in the checkout (or in the
 // workspace package for monorepo scenarios), so the pinned binary preinstall
 // downloaded is a sibling .solx directory away.
-const PINNED_SOLX_PATH = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
+const PINNED_SOLX_PATH = path.join(import.meta.dirname, ".solx", "solx-v0.1.8");
 
 /**
  * A compiler entry (for `overrides` maps) that follows the cell's compiler:
@@ -226,14 +226,14 @@ export function buildSolxProfiles(
     { name: "solx", type: "solx", version, viaIR: false },
     { name: "solx-via-ir", type: "solx", version, viaIR: true },
     {
-      name: "solx-0.1.7",
+      name: "solx-0.1.8",
       type: "solx",
       path: PINNED_SOLX_PATH,
       version,
       viaIR: false,
     },
     {
-      name: "solx-0.1.7-via-ir",
+      name: "solx-0.1.8-via-ir",
       type: "solx",
       path: PINNED_SOLX_PATH,
       version,
