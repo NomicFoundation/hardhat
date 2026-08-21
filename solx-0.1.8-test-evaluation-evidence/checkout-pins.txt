@@ -1,0 +1,12 @@
+# Checkout HEAD vs pinned commit
+1inch-aqua-solx: MATCH head=19277969b5e67b5b55968422b4cba4029544807c pinned=19277969b5e67b5b55968422b4cba4029544807c
+1inch-swap-vm-solx: MATCH head=7102f412db16aaf10dafa8dd40c4b85f99f0bb4e pinned=7102f412db16aaf10dafa8dd40c4b85f99f0bb4e
+aave-v4-solx: MATCH head=f729aeff7cc61d576e8f89e818e05265ec9f65e9 pinned=f729aeff7cc61d576e8f89e818e05265ec9f65e9
+ens-verifiable-factory-solx: MATCH head=cd6622442c298ae89c4d92bcbc93a0faca4fbfae pinned=cd6622442c298ae89c4d92bcbc93a0faca4fbfae
+graph-horizon-solx: MATCH head=68661591b7e2e7d1672667769458aa8d84acc332 pinned=68661591b7e2e7d1672667769458aa8d84acc332
+lidofinance-core-solx: MATCH head=28bc9f7ff2c4425849bbd883b7e52820feecd4c6 pinned=28bc9f7ff2c4425849bbd883b7e52820feecd4c6
+lidofinance-vaults-solx: not cloned
+openzeppelin-contracts-0.34: MATCH head=f72b6b4616806a0cb29eb61d6baf05ab5ff01558 pinned=f72b6b4616806a0cb29eb61d6baf05ab5ff01558
+solady-solx: MATCH head=13d87ff27de01eb671dbee41b6d84ef98d5e2c32 pinned=13d87ff27de01eb671dbee41b6d84ef98d5e2c32
+uniswap-v4-core-solx: MATCH head=ab2b22eef19e0abe29d67420dde81b5d54455ae5 pinned=ab2b22eef19e0abe29d67420dde81b5d54455ae5
+# 9 clones checked, 0 mismatched
