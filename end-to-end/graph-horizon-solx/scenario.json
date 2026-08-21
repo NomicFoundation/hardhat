@@ -38,7 +38,7 @@
           }
         }
       },
-      "cold compile solx-0.1.7": {
+      "cold compile solx-0.1.8": {
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
@@ -46,9 +46,9 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
-        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.7"
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8"
       },
-      "cold compile solx-0.1.7 via-ir": {
+      "cold compile solx-0.1.8 via-ir": {
         "runs": 2,
         "dependsOn": [
           "build workspace deps",
@@ -56,7 +56,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
-        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.7-via-ir"
+        "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8-via-ir"
       },
       "cold compile solc": {
         "runs": 2,

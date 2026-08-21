@@ -20,5 +20,5 @@
 #     versions, so a bump here means renaming them in lockstep. Renamed
 #     cells start NEW series in the benchmark-results history; the old
 #     series stop updating.
-SOLX_PINNED_VERSION="0.1.7"
+SOLX_PINNED_VERSION="0.1.8"
 FORGE_PINNED_VERSION="1.7.1"

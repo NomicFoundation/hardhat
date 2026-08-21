@@ -70,7 +70,7 @@ interface Scenario {
   replay: Map<string, CellData>;
 }
 
-// "solc no-opt" / "solx-0.1.7 via-ir no-dwarf" -> Cell; undefined if it
+// "solc no-opt" / "solx-0.1.8 via-ir no-dwarf" -> Cell; undefined if it
 // doesn't look like a matrix cell.
 export function parseCell(raw: string): Cell | undefined {
   const tokens = raw.split(" ");
@@ -131,10 +131,10 @@ const CELL_NOTES: Record<string, string> = {
   "solady-solx|solc no-opt": "✗ does not compile¹",
   "lidofinance-core-solx|solc": "✗ does not compile¹",
   "lidofinance-core-solx|solc no-opt": "✗ does not compile¹",
-  "lidofinance-core-solx|solx-0.1.7": "✗ does not compile¹",
+  "lidofinance-core-solx|solx-0.1.8": "✗ does not compile¹",
   "lidofinance-vaults-solx|solc": "✗ does not compile¹",
   "lidofinance-vaults-solx|solc no-opt": "✗ does not compile¹",
-  "lidofinance-vaults-solx|solx-0.1.7": "✗ does not compile¹",
+  "lidofinance-vaults-solx|solx-0.1.8": "✗ does not compile¹",
   "lidofinance-vaults-solx|solc upgrade": "✗ does not compile²",
 };
 
