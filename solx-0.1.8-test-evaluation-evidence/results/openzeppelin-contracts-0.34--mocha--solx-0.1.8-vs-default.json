@@ -1,0 +1,200 @@
+{
+  "scenarioId": "openzeppelin-contracts-0.34",
+  "runner": "mocha",
+  "pair": "solx-0.1.8-vs-default",
+  "solxProfile": "solx-0.1.8",
+  "controlProfile": "default",
+  "repetition": 1,
+  "repetitions": 1,
+  "fuzzSeed": "0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31",
+  "verdict": "pass",
+  "verdictDetail": "",
+  "solx": {
+    "profile": "solx-0.1.8",
+    "side": "solx",
+    "command": "npx hardhat test mocha --build-profile solx-0.1.8",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 103131,
+    "passing": 7654,
+    "failing": null,
+    "skipped": 1,
+    "failures": [],
+    "provenance": {
+      "ok": true,
+      "buildInfoCount": 1,
+      "subjectCount": 1,
+      "problems": []
+    },
+    "inventory": {
+      "artifactCount": 811,
+      "withBytecode": 545,
+      "withoutBytecode": 266,
+      "maxRuntimeBytes": 41862,
+      "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+      "overLimit": [
+        "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (41862B)",
+        "test/utils/Packing.t.sol:PackingTest (35356B)",
+        "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32246B)",
+        "contracts-exposed/contracts/utils/Packing.sol:$Packing (28744B)",
+        "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (28402B)",
+        "contracts-exposed/contracts/mocks/governance/GovernorTimelockAccessMock.sol:$GovernorTimelockAccessMock (26328B)",
+        "contracts-exposed/contracts/mocks/governance/GovernorTimelockCompoundMock.sol:$GovernorTimelockCompoundMock (24671B)"
+      ],
+      "overLimitCount": 7,
+      "empty": false,
+      "unparseable": [],
+      "unparseableCount": 0,
+      "truncatedAt": [],
+      "unreadable": [],
+      "subjectBuildInfoCount": 1,
+      "subject": {
+        "artifactCount": 811,
+        "withBytecode": 545,
+        "withoutBytecode": 266,
+        "maxRuntimeBytes": 41862,
+        "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+        "overLimit": [
+          "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (41862B)",
+          "test/utils/Packing.t.sol:PackingTest (35356B)",
+          "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32246B)",
+          "contracts-exposed/contracts/utils/Packing.sol:$Packing (28744B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (28402B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorTimelockAccessMock.sol:$GovernorTimelockAccessMock (26328B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorTimelockCompoundMock.sol:$GovernorTimelockCompoundMock (24671B)"
+        ],
+        "overLimitCount": 7
+      },
+      "subjectDeployable": {
+        "artifactCount": 771,
+        "withBytecode": 505,
+        "withoutBytecode": 266,
+        "maxRuntimeBytes": 28744,
+        "maxRuntimeContract": "contracts-exposed/contracts/utils/Packing.sol:$Packing",
+        "overLimit": [
+          "contracts-exposed/contracts/utils/Packing.sol:$Packing (28744B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (28402B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorTimelockAccessMock.sol:$GovernorTimelockAccessMock (26328B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorTimelockCompoundMock.sol:$GovernorTimelockCompoundMock (24671B)"
+        ],
+        "overLimitCount": 4
+      },
+      "subjectTestHarness": {
+        "artifactCount": 40,
+        "withBytecode": 40,
+        "withoutBytecode": 0,
+        "maxRuntimeBytes": 41862,
+        "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+        "overLimit": [
+          "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (41862B)",
+          "test/utils/Packing.t.sol:PackingTest (35356B)",
+          "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32246B)"
+        ],
+        "overLimitCount": 3
+      }
+    },
+    "compileErrorMarker": false,
+    "resourceLimited": false,
+    "logFile": "solx-0.1.8-test-evaluation-evidence/logs/openzeppelin-contracts-0.34--mocha--solx-0.1.8-vs-default.solx.log"
+  },
+  "control": {
+    "profile": "default",
+    "side": "control",
+    "command": "npx hardhat test mocha --build-profile default",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 124565,
+    "passing": 7654,
+    "failing": null,
+    "skipped": 1,
+    "failures": [],
+    "provenance": {
+      "ok": true,
+      "buildInfoCount": 1,
+      "subjectCount": 1,
+      "problems": []
+    },
+    "inventory": {
+      "artifactCount": 811,
+      "withBytecode": 545,
+      "withoutBytecode": 266,
+      "maxRuntimeBytes": 34422,
+      "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+      "overLimit": [
+        "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (34422B)",
+        "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32978B)",
+        "test/utils/Packing.t.sol:PackingTest (32675B)",
+        "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (25277B)"
+      ],
+      "overLimitCount": 4,
+      "empty": false,
+      "unparseable": [],
+      "unparseableCount": 0,
+      "truncatedAt": [],
+      "unreadable": [],
+      "subjectBuildInfoCount": 1,
+      "subject": {
+        "artifactCount": 811,
+        "withBytecode": 545,
+        "withoutBytecode": 266,
+        "maxRuntimeBytes": 34422,
+        "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+        "overLimit": [
+          "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (34422B)",
+          "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32978B)",
+          "test/utils/Packing.t.sol:PackingTest (32675B)",
+          "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (25277B)"
+        ],
+        "overLimitCount": 4
+      },
+      "subjectDeployable": {
+        "artifactCount": 771,
+        "withBytecode": 505,
+        "withoutBytecode": 266,
+        "maxRuntimeBytes": 25277,
+        "maxRuntimeContract": "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock",
+        "overLimit": [
+          "contracts-exposed/contracts/mocks/governance/GovernorStorageMock.sol:$GovernorStorageMock (25277B)"
+        ],
+        "overLimitCount": 1
+      },
+      "subjectTestHarness": {
+        "artifactCount": 40,
+        "withBytecode": 40,
+        "withoutBytecode": 0,
+        "maxRuntimeBytes": 34422,
+        "maxRuntimeContract": "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest",
+        "overLimit": [
+          "test/token/ERC20/extensions/ERC4626.t.sol:ERC4626StdTest (34422B)",
+          "test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol:GovernorSuperQuorumGreaterThanQuorum (32978B)",
+          "test/utils/Packing.t.sol:PackingTest (32675B)"
+        ],
+        "overLimitCount": 3
+      }
+    },
+    "compileErrorMarker": false,
+    "resourceLimited": false,
+    "logFile": "solx-0.1.8-test-evaluation-evidence/logs/openzeppelin-contracts-0.34--mocha--solx-0.1.8-vs-default.control.log"
+  },
+  "solxOnlyFailures": [],
+  "bothFailures": [],
+  "sharedFailureDiffs": [],
+  "controlOnlyFailures": [],
+  "eip170Failures": [],
+  "inventoryComparison": {
+    "comparable": true,
+    "emptyUnderSolx": [],
+    "missingUnderSolx": [],
+    "extraUnderSolx": [],
+    "bothNonEmpty": 545
+  },
+  "determinism": [],
+  "compileErrorMarker": {
+    "solx": false,
+    "control": false
+  },
+  "resourceLimited": false,
+  "gasSnapshot": null,
+  "buildRepro": null,
+  "timestamp": "2026-08-21T09:03:25.607Z"
+}

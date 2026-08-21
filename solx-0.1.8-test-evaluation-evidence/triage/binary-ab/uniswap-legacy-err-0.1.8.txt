@@ -1,0 +1,23 @@
+	Command being timed: "/tmp/e2e-solx-0.1.8/uniswap-v4-core-solx/.solx/solx-v0.1.8 --standard-json"
+	User time (seconds): 29.65
+	System time (seconds): 3.79
+	Percent of CPU this job got: 425%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:07.86
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2724796
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 5
+	Minor (reclaiming a frame) page faults: 1036030
+	Voluntary context switches: 23087
+	Involuntary context switches: 2161
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88376
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
