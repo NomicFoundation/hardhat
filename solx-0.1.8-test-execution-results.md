@@ -464,10 +464,33 @@ inventory, then clean again, then the same for the control profile, then the set
 verdicts, then a per-pair JSON and a regenerated report. Each scenario's declared preparation steps
 run from `scenario.json`, except the forge warm-cache steps.
 
+The sweep command, per scenario and runner:
+`node scripts/benchmark/test-under-solx.ts --scenario ./end-to-end/<s> --runner <r> --out <dir>`.
+Pairs default to the pinned legacy and via-IR pairs. A scenario that throws is recorded as
+`results/<scenario>.error.json` and the sweep continues. Every per-pair record stores the exact
+command it ran, including lido's 45-file scoping.
+
 Evidence archive `solx-0.1.8-test-evaluation-evidence.tar.gz`, committed next to this file, holds
 the 18 per-pair JSON records with full failure text, provenance results and artifact inventories;
 the regenerated matrix and summary; the per-run environment captures; the resolved served-versions
 and checkout-pin listings; the 1inch-swap-vm triage with its captured standard-JSON input, the
 direct-binary output and the error census; the binary A/B bundle behind the memory and size tables;
-and the sweep state log. All per-run suite logs are included in full.
+and the sweep state log (`STATE.md`, the working log with the full ledger of collection incidents
+and corrections). All per-run suite logs are included in full.
 `solx-0.1.8-test-execution-summary.json` next to this file is the machine-readable summary.
+
+Archive pruning. The raw evidence reached 476 MB, almost all of it full standard-JSON compiler
+output. The eleven `*-out-*.json` triage outputs and the dump-standard-json corpus were dropped.
+Each dropped output left an `*.errors.json` behind: severity counts, contract counts,
+empty-bytecode counts, total deployed bytes, and the full text of every severity-error entry. Two
+dropped outputs were unparseable because the 0.1.7 binary was killed mid-write; their
+`.errors.json` records that and the truncated byte count. Everything load-bearing stayed. Result:
+18 MB on disk, 1.8 MB compressed.
+
+Reproduction notes, learned during collection:
+- Merge `scenario.definition.env` when replaying a harness run by hand. A first A/B attempt left
+  `EVM_DISABLE_MEMORY_SAFE_ASM_CHECK` unset and produced 22 phantom errors on an input the sweep
+  never compiled. The memory figures survived, since both binaries still received identical input.
+  The artifact counts from that run were meaningless.
+- Do not read package versions from pnpm store directory names; resolve them the way the runtime
+  does (see the environment section).

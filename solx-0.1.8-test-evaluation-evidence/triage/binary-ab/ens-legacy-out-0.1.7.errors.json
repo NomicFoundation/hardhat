@@ -1,9 +1,0 @@
-{
-  "bySeverity": {
-    "warning": 256
-  },
-  "contracts": 62,
-  "emptyDeployedBytecode": 31,
-  "totalDeployedBytes": 72805,
-  "errors": []
-}
