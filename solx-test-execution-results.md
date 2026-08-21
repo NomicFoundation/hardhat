@@ -199,13 +199,21 @@ The real finding is the size gap. Verified maxima from the compile warnings in e
 | aave-v4 | legacy | — | — | 0 | — |
 
 Every one of the nine repositories overshoots under solx on at least one pipeline. The controls
-overshoot once, in lidofinance-core, at 24,708 B. aave-v4's legacy solx cell is blank because
-that build never completed.
+overshoot once, in lidofinance-core, at 24,708 B.
 
-Two caveats on the table. The two compilers use different warning text, so raw warning counts are
-not directly comparable. And most of the oversized contracts are test harnesses, which never
-deploy to a chain. The gap in magnitude is the point: 162,624 B against a 24,576 B limit is not a
-marginal overshoot.
+Four caveats on the table.
+
+- The two compilers use different warning text, so raw warning counts are not comparable across
+  the solx and control columns.
+- Three cells are blank because no build completed. aave-v4's legacy solx build was OOM-killed.
+  aave-v4's via-IR control failed to compile, so its zero is an absence of output, not compliant
+  output.
+- 1inch-swap-vm's 77 solx warnings describe contracts that ended up with empty bytecode. solx
+  reported their sizes and then emitted nothing.
+- Most of the oversized contracts are test harnesses, which never deploy to a chain.
+
+The gap in magnitude is the point. 162,624 B against a 24,576 B limit is not a marginal
+overshoot.
 
 ## Finding 5: stack-trace quality under solx is degraded, and we do not know whose fault it is
 
@@ -282,7 +290,7 @@ Neither has an established mechanism. Both were attributed to solc because that 
 went red.
 
 - openzeppelin-contracts, mocha, solc-via-ir: `MerkleTree > push > pushing to a full tree
-  reverts` fails under the control only. solx passes it. This one is a gas-budget difference.
+  reverts` fails under the control only. solx passes it. It reads as a gas-budget difference.
 - openzeppelin-contracts, solidity, solc-via-ir:
   `BlockhashTest#testFuzzHistoryBlocks(uint16,uint256,bytes32)` fails under the control only.
   solx passes it. An unexplained blockhash divergence.
@@ -360,13 +368,13 @@ Method notes.
     establishing a mechanism.
 15. The harness flags a solx test count far below the control's. It does not assert that both
     sides discovered the same tests by name. In this data the totals matched exactly on every
-    passing row, verified from the per-pair records.
-16. We verified for every run which compiler produced the artifacts. We also confirmed the check
-    fails when deliberately pointed at the wrong compiler. That check answers who compiled, not
-    what was produced. Some executed bytecode reaches the EVM by other routes, including
-    typechain factories with embedded bytecode and `vm.etch` with vendored hex.
-17. Reproducing this needs two manual setup steps not shown in the commands below, plus the
-    archived evidence and a pinned commit.
+    passing row except row 16, where the control ran nothing at all.
+16. We verified, for every run that produced a build, which compiler produced the artifacts. We
+    also confirmed the check fails when deliberately pointed at the wrong compiler. That check
+    answers who compiled, not what was produced. Some executed bytecode reaches the EVM by other
+    routes, including typechain factories with embedded bytecode and `vm.etch` with vendored hex.
+17. Reproducing this needs two manual setup steps that the harness does not run, plus the
+    archived evidence and a pinned commit. The branch is unmerged and has no pull request.
 18. "pass" in the matrix means no test failed under solx that passed under its control. Two pass
     rows contain a test failing identically under both compilers. One pass row has no control at
     all.
