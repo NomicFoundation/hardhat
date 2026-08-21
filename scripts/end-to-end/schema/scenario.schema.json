@@ -116,15 +116,6 @@
                     "items": { "type": "string", "minLength": 1 },
                     "minItems": 1,
                     "description": "Names of other entries (command or step names in this scenario) that must run before this one for its measurement to be valid. Used by bench:regression's --benchmarks filter to run prerequisites and skip unrelated work."
-                  },
-                  "skip": {
-                    "type": "boolean",
-                    "description": "Set to true to keep this command defined but never run it, for a cell whose failure is itself the datum. Nothing may dependsOn a skipped command."
-                  },
-                  "skipReason": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Why this command is skipped, for whoever re-enables it"
                   }
                 }
               },

@@ -433,41 +433,6 @@ describe("isCommandConfig", () => {
     );
   });
 
-  it("accepts skip with a reason", () => {
-    assert.equal(
-      isCommandConfig({
-        runs: 2,
-        command: "npx hardhat compile --build-profile solx",
-        skip: true,
-        skipReason: "solx cannot compile these sources",
-      }),
-      true,
-    );
-  });
-
-  it("rejects a non-boolean skip", () => {
-    assert.equal(
-      isCommandConfig({
-        runs: 2,
-        command: "npx hardhat compile",
-        skip: "yes",
-      }),
-      false,
-    );
-  });
-
-  it("rejects an empty skipReason", () => {
-    assert.equal(
-      isCommandConfig({
-        runs: 2,
-        command: "npx hardhat compile",
-        skip: true,
-        skipReason: "",
-      }),
-      false,
-    );
-  });
-
   it("rejects when runs is missing", () => {
     assert.equal(isCommandConfig({ command: "npx hardhat compile" }), false);
   });

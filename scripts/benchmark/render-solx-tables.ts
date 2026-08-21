@@ -139,7 +139,6 @@ const CELL_NOTES: Record<string, string> = {
   "lidofinance-vaults-solx|solc no-opt": "✗ does not compile¹",
   "lidofinance-vaults-solx|solx-0.1.8": "✗ does not compile¹",
   "lidofinance-vaults-solx|solc upgrade": "✗ does not compile²",
-  "1inch-swap-vm-solx|solx-0.1.8 via-ir": "✗ does not compile³",
 };
 
 const FOOTNOTES = [
@@ -157,12 +156,6 @@ const FOOTNOTES = [
     "with `LIDO_BENCH_SOURCES=upgrade` and `--build-profile solc-via-ir` " +
     "in the lidofinance-vaults-solx scenario. The failure, not a time, is " +
     "the datum.",
-  "³ solx cannot compile SwapVM's recursive runLoop via-IR: LLVM reports " +
-    '"Stackification failed ... It is recursive and has stack too deep ' +
-    'errors". This repo is via-IR only, so solx has no cell here at all. ' +
-    "solx 0.1.7 exited 0 on the same sources while emitting empty bytecode " +
-    "for every contract, so timings this cell recorded before solx 0.1.8 " +
-    "measured a build that produced nothing and are not comparable.",
 ];
 
 export function renderSolxTables(

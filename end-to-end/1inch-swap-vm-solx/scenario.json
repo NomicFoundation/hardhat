@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "1inch SwapVM fork compiled at solc 0.8.34 \u2014 a genuinely via-IR-forced repo (upstream ships via-IR + custom Yul optimizerSteps only). Legacy compiles are impossible for both compilers: solc is stack-too-deep, and solx's LLVM stackification rejects the recursive SwapVM runLoop. solx 0.1.4 (the shipped map when this scenario was written) hits a YulException on via-IR that 0.1.7 fixes; the version-pinned solx-0.1.8 cell is the shipped measurement now that the plugin maps 0.8.34 to 0.1.8. The repo's @1inch npm deps pin pragma 0.8.30 exactly; the 'relax dependency pragmas' prime step relaxes them post-install (preinstall covers the repo's own sources).",
+  "description": "1inch SwapVM fork compiled at solc 0.8.34 — a genuinely via-IR-forced repo (upstream ships via-IR + custom Yul optimizerSteps only). Legacy compiles are impossible for both compilers: solc is stack-too-deep, and solx's LLVM stackification rejects the recursive SwapVM runLoop. solx 0.1.4 (the shipped map when this scenario was written) hits a YulException on via-IR that 0.1.7 fixes; the version-pinned solx-0.1.8 cell is the shipped measurement now that the plugin maps 0.8.34 to 0.1.8. The repo's @1inch npm deps pin pragma 0.8.30 exactly; the 'relax dependency pragmas' prime step relaxes them post-install (preinstall covers the repo's own sources).",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/1inch-swap-vm",
   "commit": "7102f412db16aaf10dafa8dd40c4b85f99f0bb4e",
@@ -54,9 +54,7 @@
           "download solc and warm caches"
         ],
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir",
-        "skip": true,
-        "skipReason": "solx 0.1.8 cannot compile SwapVM's recursive runLoop via-IR: LLVM reports \"Stackification failed for 'fun_runLoop_62748' ... It is recursive and has stack too deep errors\" as five severity-error entries, and the build fails with HHE910. solx 0.1.7 exited 0 on the same sources while emitting empty bytecode for all 242 contracts, so every timing this cell recorded before 0.1.8 measured a build that produced nothing. Re-enable once solx compiles recursive Yul functions that hit stack-too-deep; this repo has no legacy pipeline to fall back on."
+        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir"
       },
       "cold compile forge-1.7.1 via-ir": {
         "runs": 2,
