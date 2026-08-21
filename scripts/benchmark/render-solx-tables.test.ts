@@ -35,8 +35,8 @@ describe("parseCell", () => {
       parity: false,
       upgrade: false,
     });
-    assert.deepEqual(parseCell("solx-0.1.7 via-ir no-dwarf"), {
-      compiler: "solx-0.1.7",
+    assert.deepEqual(parseCell("solx-0.1.8 via-ir no-dwarf"), {
+      compiler: "solx-0.1.8",
       viaIR: true,
       noOpt: false,
       dwarf: false,
@@ -59,7 +59,7 @@ describe("parseCell", () => {
   });
 
   it("parses upgrade cells", () => {
-    const cell = parseCell("solx-0.1.7 via-ir upgrade");
+    const cell = parseCell("solx-0.1.8 via-ir upgrade");
     assert.equal(cell?.upgrade, true);
     assert.equal(cell?.viaIR, true);
   });
@@ -93,20 +93,20 @@ describe("renderSolxTables", () => {
       user: 43,
       system: 1,
     }),
-    entry("uniswap-v4-core-solx / cold compile solx-0.1.7 via-ir", 12.9, {
+    entry("uniswap-v4-core-solx / cold compile solx-0.1.8 via-ir", 12.9, {
       times: [12.8, 13.0],
     }),
-    entry("uniswap-v4-core-solx / cold compile solx-0.1.7 via-ir (cpu)", 36.8, {
+    entry("uniswap-v4-core-solx / cold compile solx-0.1.8 via-ir (cpu)", 36.8, {
       user: 36,
       system: 0.8,
     }),
     entry(
-      "uniswap-v4-core-solx / cold compile solx-0.1.7 via-ir no-dwarf (cpu)",
+      "uniswap-v4-core-solx / cold compile solx-0.1.8 via-ir no-dwarf (cpu)",
       33.4,
       { user: 33, system: 0.4 },
     ),
     entry(
-      "uniswap-v4-core-solx / cold compile solx-0.1.7 via-ir (peak RSS)",
+      "uniswap-v4-core-solx / cold compile solx-0.1.8 via-ir (peak RSS)",
       812,
       {},
       "MB",
@@ -140,11 +140,11 @@ describe("renderSolxTables", () => {
       user: 21.5,
       system: 0.5,
     }),
-    entry("lidofinance-core-solx / cold compile solx-0.1.7 via-ir", 9.4, {
+    entry("lidofinance-core-solx / cold compile solx-0.1.8 via-ir", 9.4, {
       times: [9.3, 9.5],
     }),
     entry(
-      "lidofinance-core-solx / cold compile solx-0.1.7 via-ir (cpu)",
+      "lidofinance-core-solx / cold compile solx-0.1.8 via-ir (cpu)",
       25.1,
       {
         user: 24.6,
@@ -201,7 +201,7 @@ describe("renderSolxTables", () => {
     assert.match(md, /\| legacy, no optimizer \| 9\.1 \/ 9\.9 \| — \| — \|/);
     assert.match(
       md,
-      /\| cold compile \| solc 0\.8\.34 \| solx 0\.1\.6 \(shipped\) \| solx 0\.1\.7 \|/,
+      /\| cold compile \| solc 0\.8\.34 \| solx 0\.1\.6 \(shipped\) \| solx 0\.1\.8 \|/,
     );
   });
 
@@ -235,7 +235,7 @@ describe("renderSolxTables", () => {
   });
 
   it("renders RSS, replay and leftovers", () => {
-    assert.match(md, /solx-0\.1\.7 via-ir \| 812 \|/);
+    assert.match(md, /solx-0\.1\.8 via-ir \| 812 \|/);
     assert.match(md, /raw replay/i);
     assert.match(md, /something \/ unrecognized entry \| 1\.23 \| s \|/);
   });
@@ -263,7 +263,7 @@ describe("renderSolxTables", () => {
   it("renders the cross-tool parity table, forge out of the pivot", () => {
     assert.match(
       md,
-      /\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx 0\.1\.7 \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
+      /\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx 0\.1\.8 \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
     );
     assert.match(
       md,
@@ -289,7 +289,7 @@ describe("renderSolxTables", () => {
           user: 49,
           system: 1,
         }),
-        entry("legacy-scenario / cold compile solx-0.1.7 via-ir", 12.0, {
+        entry("legacy-scenario / cold compile solx-0.1.8 via-ir", 12.0, {
           times: [11.9, 12.1],
         }),
         entry("legacy-scenario / cold compile forge-1.7.1 via-ir", 10.0, {
@@ -311,11 +311,11 @@ describe("renderSolxTables", () => {
         entry("lidofinance-vaults-solx / cold compile solc via-ir", 16.5, {
           times: [16.4, 16.6],
         }),
-        entry("lidofinance-vaults-solx / cold compile solx-0.1.7 via-ir", 4.7, {
+        entry("lidofinance-vaults-solx / cold compile solx-0.1.8 via-ir", 4.7, {
           times: [4.6, 4.8],
         }),
         entry(
-          "lidofinance-vaults-solx / cold compile solx-0.1.7 via-ir upgrade",
+          "lidofinance-vaults-solx / cold compile solx-0.1.8 via-ir upgrade",
           11.0,
           { times: [10.9, 11.1] },
         ),
