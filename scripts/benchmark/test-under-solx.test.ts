@@ -41,6 +41,7 @@ import {
   type InventoryResult,
   isForgeStep,
   isResourceLimited,
+  installedVersion,
   isTestSource,
   type PairRecord,
   parseGasSectionCounts,
@@ -1687,5 +1688,99 @@ describe("renderMarkdown", () => {
     );
     assert.match(markdown, /NOT COMPARED/);
     assert.match(markdown, /missing on both sides/);
+  });
+});
+
+describe("installedVersion", () => {
+  // The 0.1.8 sweep's environment captures recorded null for
+  // @nomicfoundation/edr, a transitive dependency under pnpm's isolated
+  // layout. These pin each layout the corpus actually presents.
+  it("reads a flat node_modules layout", () => {
+    const root = makeProject({
+      "node_modules/pkg/package.json": { name: "pkg", version: "1.2.3" },
+    });
+    assert.equal(installedVersion(root, "pkg"), "1.2.3");
+  });
+
+  it("walks up to a hoisted dependency", () => {
+    // graph-horizon's shape: the project dir is a workspace package and the
+    // dependency is installed at the clone root.
+    const root = makeProject({
+      "node_modules/pkg/package.json": { name: "pkg", version: "4.5.6" },
+      "packages/inner/package.json": { name: "inner", version: "0.0.0" },
+    });
+    assert.equal(
+      installedVersion(path.join(root, "packages/inner"), "pkg"),
+      "4.5.6",
+    );
+  });
+
+  it("finds a transitive package reachable only through pnpm's store", () => {
+    // No node_modules/<pkg> symlink exists, so nothing resolves it from the
+    // project dir. This is the @nomicfoundation/edr case.
+    const root = makeProject({
+      "node_modules/.pnpm/@scope+pkg@1.2.3/node_modules/@scope/pkg/package.json":
+        { name: "@scope/pkg", version: "1.2.3" },
+    });
+    assert.equal(installedVersion(root, "@scope/pkg"), "1.2.3");
+  });
+
+  it("reports every version when the store holds more than one", () => {
+    // Different dependents can pull different ranges. Picking one would report
+    // a transitive copy as the version in use, so an ambiguous answer reads as
+    // ambiguous.
+    const root = makeProject({
+      "node_modules/.pnpm/pkg@1.0.0/node_modules/pkg/package.json": {
+        name: "pkg",
+        version: "1.0.0",
+      },
+      "node_modules/.pnpm/pkg@2.0.0/node_modules/pkg/package.json": {
+        name: "pkg",
+        version: "2.0.0",
+      },
+    });
+    assert.equal(installedVersion(root, "pkg"), "1.0.0, 2.0.0");
+  });
+
+  it("reads the store's real manifest, not the directory name", () => {
+    // A directory name is not evidence: this one disagrees with the manifest
+    // inside it, and the manifest wins.
+    const root = makeProject({
+      "node_modules/.pnpm/pkg@9.9.9/node_modules/pkg/package.json": {
+        name: "pkg",
+        version: "3.0.0",
+      },
+    });
+    assert.equal(installedVersion(root, "pkg"), "3.0.0");
+  });
+
+  it("prefers the resolvable dependency over a stale store copy", () => {
+    const root = makeProject({
+      "node_modules/pkg/package.json": { name: "pkg", version: "5.0.0" },
+      "node_modules/.pnpm/pkg@1.0.0/node_modules/pkg/package.json": {
+        name: "pkg",
+        version: "1.0.0",
+      },
+    });
+    assert.equal(installedVersion(root, "pkg"), "5.0.0");
+  });
+
+  it("finds a workspace package's store at the repo root", () => {
+    // graph-horizon's real shape: it runs in packages/horizon and the pnpm
+    // store is two levels up. This is the case that still read null after the
+    // first version of this fix.
+    const root = makeProject({
+      "node_modules/.pnpm/@scope+pkg@7.7.7/node_modules/@scope/pkg/package.json":
+        { name: "@scope/pkg", version: "7.7.7" },
+      "packages/inner/package.json": { name: "inner", version: "0.0.0" },
+    });
+    assert.equal(
+      installedVersion(path.join(root, "packages/inner"), "@scope/pkg"),
+      "7.7.7",
+    );
+  });
+
+  it("returns null when the package is absent", () => {
+    assert.equal(installedVersion(makeProject({}), "nope"), null);
   });
 });
