@@ -311,3 +311,46 @@ describe("planCommands", () => {
     );
   });
 });
+
+describe("planCommands with a skipped command", () => {
+  const cells = {
+    "cold compile solc": { runs: 2, command: "compile solc" },
+    "cold compile solx": {
+      runs: 2,
+      command: "compile solx",
+      skip: true,
+      skipReason: "solx cannot compile these sources",
+    },
+  };
+
+  it("leaves the skipped command out of the plan", () => {
+    const plan = planCommands(cells, undefined);
+
+    assert.deepEqual(
+      plan.map((p) => p.name),
+      ["cold compile solc"],
+    );
+  });
+
+  it("does not select a skipped command even when named directly", () => {
+    assert.deepEqual(planCommands(cells, ["cold compile solx"]), []);
+  });
+
+  it("rejects a dependency on a skipped command, naming the skip", () => {
+    assert.throws(
+      () =>
+        planCommands(
+          {
+            ...cells,
+            "cold compile forge": {
+              runs: 2,
+              command: "forge build",
+              dependsOn: ["cold compile solx"],
+            },
+          },
+          undefined,
+        ),
+      /dependsOn "cold compile solx", which is skipped/,
+    );
+  });
+});
