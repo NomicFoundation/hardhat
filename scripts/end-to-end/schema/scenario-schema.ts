@@ -167,8 +167,6 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     "prepare",
     "command",
     "dependsOn",
-    "skip",
-    "skipReason",
   ]);
 
   for (const key of Object.keys(obj)) {
@@ -185,9 +183,6 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
-    (obj.skip === undefined || typeof obj.skip === "boolean") &&
-    (obj.skipReason === undefined ||
-      (typeof obj.skipReason === "string" && obj.skipReason.length > 0)) &&
     isDependsOn(obj.dependsOn)
   );
 }

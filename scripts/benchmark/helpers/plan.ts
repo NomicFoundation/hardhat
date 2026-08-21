@@ -173,19 +173,7 @@ export function planCommands(
 ): PlannedCommand[] {
   const res = compilePatterns(benchmarkFilters);
 
-  // Skipped commands stay in the scenario file but never run, so they are not
-  // part of the plan and cannot satisfy anyone's dependency.
-  const skipped = new Set(
-    Object.entries(commands)
-      .filter(([, cfg]) => !("steps" in cfg) && cfg.skip === true)
-      .map(([name]) => name),
-  );
-
-  const entries = flattenEntries(
-    Object.fromEntries(
-      Object.entries(commands).filter(([name]) => !skipped.has(name)),
-    ),
-  );
+  const entries = flattenEntries(commands);
   const byName = new Map(entries.map((e) => [e.name, e]));
 
   for (const e of entries) {
@@ -193,9 +181,7 @@ export function planCommands(
       const depEntry = byName.get(dep);
       if (depEntry === undefined) {
         throw new Error(
-          skipped.has(dep)
-            ? `Entry "${e.name}" dependsOn "${dep}", which is skipped — drop the dependency or un-skip it`
-            : `Entry "${e.name}" dependsOn "${dep}", which is not a command or step in this scenario`,
+          `Entry "${e.name}" dependsOn "${dep}", which is not a command or step in this scenario`,
         );
       }
       if (depEntry.index >= e.index) {
