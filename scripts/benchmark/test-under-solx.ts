@@ -29,9 +29,9 @@ scripts/benchmark/test-under-solx.ts — can solx output actually RUN the tests?
 DESCRIPTION
   Runs a scenario's test suite twice per pair — once with a solx build profile
   and once with a solc control profile — and diffs the failing-test sets.
-  The verdict per (scenario x runner x pair) follows the evaluation plan's
-  taxonomy: pass / test-failures / harness-failures / cannot-compile, with
-  EIP-170 deploy reverts tagged as their own sub-category.
+  Verdict per (scenario x runner x pair): pass / test-failures /
+  harness-failures / cannot-compile, with EIP-170 deploy reverts tagged as
+  their own sub-category.
 
   Mechanics per run: env-merge (scenario.definition.env into the child env —
   the gap gas-compare has) -> hardhat clean -> one command that builds AND
@@ -643,7 +643,7 @@ function classify(
   control: RunRecord,
 ): { verdict: Verdict; detail: string } {
   // A solx compile failure first: build-info is only written when the whole
-  // build succeeds, so the provenance gate would otherwise mask the plan's
+  // build succeeds, so the provenance gate would otherwise mask a
   // cannot-compile verdict as invalid-provenance.
   const solxRanNoTests =
     solx.passing === null && solx.failing === null && solx.skipped === null;
@@ -899,7 +899,10 @@ function captureEnvironment(
   );
 }
 
-/** Plan §7: assert the packed hardhat-solx in the checkout is fresh. */
+/**
+ * Assert the packed hardhat-solx in the checkout matches this monorepo's
+ * build byte-for-byte, so no run measures a stale plugin.
+ */
 function assertFreshHardhatSolx(
   projectDir: string,
   env: Record<string, string | undefined>,
