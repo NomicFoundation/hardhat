@@ -2,19 +2,53 @@ import type { TestEvent, TestsStream } from "./types.js";
 import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
+  EdrContext,
   InlineConfigError,
+  SolidityTestResult,
   SolidityTestRunnerConfigArgs,
+  SuiteResult,
 } from "@nomicfoundation/edr";
 
 import { Readable } from "node:stream";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
 
 import { formatArtifactId, formatInlineConfigErrors } from "./formatters.js";
+
+/**
+ * A reference to a test suite contract within an artifacts directory, as
+ * accepted by EDR's `runSolidityTestsFromPaths`.
+ */
+interface TestSuiteReference {
+  source: string;
+  name: string;
+}
+
+/**
+ * `EdrContext` extended with the path-based test runner entry point.
+ *
+ * This is declared locally (instead of using the `@nomicfoundation/edr`
+ * typings) because this branch is compiled against the published EDR, which
+ * doesn't have the API yet; at runtime the locally-built EDR provides it.
+ * TODO: Drop this and use the EDR typings once a version with
+ * `runSolidityTestsFromPaths` is published.
+ */
+type EdrContextWithFromPaths = EdrContext & {
+  runSolidityTestsFromPaths?: (
+    chainType: string,
+    artifactsDirectories: string[],
+    testSuites: TestSuiteReference[],
+    configArgs: SolidityTestRunnerConfigArgs,
+    onTestSuiteCompletedCallback: (result: SuiteResult) => void,
+  ) => Promise<SolidityTestResult>;
+};
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -64,7 +98,17 @@ export function run(
   // TODO: Add support for predeploys once EDR supports them.
   void (async () => {
     try {
-      const edrContext = await getGlobalEdrContext();
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- See EdrContextWithFromPaths: the API exists at runtime but not in the
+      published typings this branch compiles against. */
+      const edrContext =
+        (await getGlobalEdrContext()) as EdrContextWithFromPaths;
+
+      assertHardhatInvariant(
+        edrContext.runSolidityTestsFromPaths !== undefined,
+        "The EDR version in use doesn't support runSolidityTestsFromPaths",
+      );
+
       const solidityTestResult = await edrContext.runSolidityTestsFromPaths(
         hardhatChainTypeToEdrChainType(chainType),
         artifactsDirectories,

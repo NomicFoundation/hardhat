@@ -19,7 +19,6 @@ import type {
   Response,
   Provider,
   ProviderConfig,
-  ProjectArtifactsConfig,
   TracingConfigWithBuffers,
   GasReportConfig,
 } from "@nomicfoundation/edr";
@@ -65,6 +64,21 @@ import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = createDebug("hardhat:core:network-manager:edr:provider");
 
+/**
+ * Configuration accepted by EDR's `ContractDecoder.fromProject`.
+ *
+ * This is declared locally (instead of using the `@nomicfoundation/edr`
+ * typings) because this branch is compiled against the published EDR, which
+ * doesn't have the API yet; at runtime the locally-built EDR provides it.
+ * TODO: Drop this and use the EDR typings once a version with
+ * `ContractDecoder.fromProject` is published.
+ */
+interface ProjectArtifactsConfig {
+  artifactsDir: string;
+  buildInfoDir?: string;
+  ignoreContracts?: boolean;
+}
+
 interface EdrProviderConfig {
   chainDescriptors: ChainDescriptorsConfig;
   networkConfig: RequireField<EdrNetworkConfig, "chainType">;
@@ -99,7 +113,19 @@ export class EdrProvider extends BaseProvider {
   public static async createContractDecoderFromProject(
     config: ProjectArtifactsConfig,
   ): Promise<ContractDecoder> {
-    return ContractDecoder.fromProject(config);
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- See ProjectArtifactsConfig: the API exists at runtime but not in the
+    published typings this branch compiles against. */
+    const contractDecoderClass = ContractDecoder as typeof ContractDecoder & {
+      fromProject?: (config: ProjectArtifactsConfig) => ContractDecoder;
+    };
+
+    assertHardhatInvariant(
+      contractDecoderClass.fromProject !== undefined,
+      "The EDR version in use doesn't support ContractDecoder.fromProject",
+    );
+
+    return contractDecoderClass.fromProject(config);
   }
 
   /**
