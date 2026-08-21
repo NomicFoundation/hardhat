@@ -72,37 +72,64 @@ function runPackageManager(
   execFileSync(which(packageManager), args, {
     cwd: workDir,
     stdio: "inherit",
-    env: {
-      ...process.env,
-      ...env,
-      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
-      ...(packageManager === "pnpm"
-        ? {
-            // The local packages (hardhat, @nomicfoundation/*) are published to
-            // Verdaccio minutes before this runs; pnpm 11 defaults minimumReleaseAge
-            // to one day and would block them.
-            pnpm_config_minimum_release_age: "0",
-            // pnpm 11 re-verifies every lockfile entry's tarball URL against the
-            // active registry (ERR_PNPM_TARBALL_URL_MISMATCH). Scenario lockfiles
-            // pin absolute registry.npmjs.org tarballs, but installing through
-            // Verdaccio serves them from 127.0.0.1, so the check fails on entries
-            // a targeted update doesn't touch. The scenario lockfile is a trusted
-            // benchmark fixture, so trust it. Set as config (not a flag) so it
-            // applies to both `pnpm install` and `pnpm update`.
-            pnpm_config_trust_lockfile: "true",
-          }
-        : {
-            // The local packages (hardhat, @nomicfoundation/*) are published to
-            // Verdaccio minutes before this runs; so disable any release-age gate.
-            npm_config_minimum_release_age: "0",
-            // Yarn Classic doesn't honor project .yarnrc for `registry` on the
-            // GitHub Actions runner, so force the registry via env var. This is
-            // the highest-priority npm config source, so it overrides any
-            // user/global .npmrc that might be present.
-            npm_config_registry: VERDACCIO_URL,
-          }),
-    },
+    env: buildPackageManagerEnv(packageManager, env),
   });
+}
+
+/**
+ * Environment for a scenario's package-manager run.
+ *
+ * Drops NPM_CONFIG_USERCONFIG. On GitHub CI setup-node writes a user-level
+ * .npmrc holding `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` and
+ * points that variable at it. This job never publishes, so the token is
+ * unset. Yarn Classic treats an unexpandable `${VAR}` in npm config as fatal
+ * ("Failed to replace env in config") where npm and pnpm only warn, so every
+ * yarn-Classic scenario died on `yarn add`. Scenario installs take their
+ * registry from the config this harness writes, so ambient user config has
+ * nothing to contribute. NODE_AUTH_TOKEN is defined too — empty unless the
+ * caller already has it — for repos whose own committed .npmrc names it.
+ */
+export function buildPackageManagerEnv(
+  packageManager: ScenarioDefinition["packageManager"],
+  scenarioEnv?: Record<string, string>,
+  baseEnv: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {
+    ...baseEnv,
+    ...scenarioEnv,
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+    NODE_AUTH_TOKEN: baseEnv.NODE_AUTH_TOKEN ?? "",
+    ...(packageManager === "pnpm"
+      ? {
+          // The local packages (hardhat, @nomicfoundation/*) are published to
+          // Verdaccio minutes before this runs; pnpm 11 defaults minimumReleaseAge
+          // to one day and would block them.
+          pnpm_config_minimum_release_age: "0",
+          // pnpm 11 re-verifies every lockfile entry's tarball URL against the
+          // active registry (ERR_PNPM_TARBALL_URL_MISMATCH). Scenario lockfiles
+          // pin absolute registry.npmjs.org tarballs, but installing through
+          // Verdaccio serves them from 127.0.0.1, so the check fails on entries
+          // a targeted update doesn't touch. The scenario lockfile is a trusted
+          // benchmark fixture, so trust it. Set as config (not a flag) so it
+          // applies to both `pnpm install` and `pnpm update`.
+          pnpm_config_trust_lockfile: "true",
+        }
+      : {
+          // The local packages (hardhat, @nomicfoundation/*) are published to
+          // Verdaccio minutes before this runs; so disable any release-age gate.
+          npm_config_minimum_release_age: "0",
+          // Yarn Classic doesn't honor project .yarnrc for `registry` on the
+          // GitHub Actions runner, so force the registry via env var. This is
+          // the highest-priority npm config source, so it overrides any
+          // user/global .npmrc that might be present.
+          npm_config_registry: VERDACCIO_URL,
+        }),
+  };
+
+  delete env.NPM_CONFIG_USERCONFIG;
+  delete env.npm_config_userconfig;
+
+  return env;
 }
 
 /**
