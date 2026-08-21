@@ -1188,7 +1188,9 @@ export class ResolverImplementation implements Resolver {
     return {
       text,
       importPaths: imports,
-      versionPragmas,
+      versionPragmas: versionPragmas.map((p) =>
+        p.replace(/(\d)\s+\./g, "$1.").replace(/\.\s+(\d)/g, ".$1"),
+      ),
     };
   }
 }
