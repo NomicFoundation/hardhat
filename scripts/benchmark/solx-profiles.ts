@@ -89,8 +89,10 @@ export interface SolxProfilesOptions {
 }
 
 // 0.8.34 is the only version in hardhat-solx's Solidity→solx map, so it's
-// the version every cell compiles the subject sources at.
-const BENCHMARK_SOLC_VERSION = "0.8.34";
+// the version every cell compiles the subject sources at. Exported for the
+// test-execution evaluation (test-under-solx.ts), which scopes its build-info
+// provenance assert to this version.
+export const BENCHMARK_SOLC_VERSION = "0.8.34";
 
 // This file sits next to the wrapper config in the checkout (or in the
 // workspace package for monorepo scenarios), so the pinned binary preinstall
@@ -112,6 +114,52 @@ export function overrideEntry(
     version: cell.version,
     settings,
   };
+}
+
+/**
+ * Fuzz seed pinned by the test-execution evaluation (decision 6 of its plan):
+ * solx and control runs must see identical fuzz inputs, and failures must
+ * reproduce. Hardhat 3 already defaults the solidity-test fuzz seed to a
+ * fixed constant (DEFAULT_FUZZ_SEED in the solidity-test builtin's
+ * config.ts), so runs are deterministic by default; the explicit pin makes
+ * the evaluation independent of that default and of any seed an upstream
+ * base config might set. The value is arbitrary: the ASCII bytes of
+ * "solx-test-execution-evaluation.1".
+ */
+export const PINNED_FUZZ_SEED =
+  "0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31";
+
+/**
+ * The wrapper configs' `test` entry: the base config's `test` with the
+ * solidity-test fuzz seed pinned to PINNED_FUZZ_SEED. Handles both shapes of
+ * `test.solidity` — flat, and the `{ profiles: { default: ... } }` wrapper —
+ * and preserves every other setting (mocha config, fuzz runs, fsPermissions,
+ * ffi, ...).
+ */
+export function withPinnedFuzzSeed(baseTest: unknown): Record<string, unknown> {
+  const test = { ...((baseTest ?? {}) as Record<string, unknown>) };
+  const solidity = (test.solidity ?? {}) as Record<string, unknown>;
+
+  const pinProfile = (profile: unknown): Record<string, unknown> => {
+    const p = (profile ?? {}) as Record<string, unknown>;
+    return {
+      ...p,
+      fuzz: {
+        ...((p.fuzz ?? {}) as Record<string, unknown>),
+        seed: PINNED_FUZZ_SEED,
+      },
+    };
+  };
+
+  if ("profiles" in solidity) {
+    const profiles = solidity.profiles as Record<string, unknown>;
+    const pinned: Record<string, unknown> = {};
+    for (const [name, profile] of Object.entries(profiles)) {
+      pinned[name] = pinProfile(profile);
+    }
+    return { ...test, solidity: { ...solidity, profiles: pinned } };
+  }
+  return { ...test, solidity: pinProfile(solidity) };
 }
 
 /** Build the benchmark's 7-profile map. See the header for the matrix. */

@@ -193,6 +193,9 @@ describe("pinned-tool-versions", () => {
     const files = [
       path.join(repoRoot, "scripts/benchmark/solx-profiles.ts"),
       path.join(repoRoot, "scripts/benchmark/render-solx-tables.ts"),
+      // The test-execution evaluation script derives its default pair names
+      // from the manifest pin; scan it so no literal pinned name strands.
+      path.join(repoRoot, "scripts/benchmark/test-under-solx.ts"),
       // The regression workflow's comments name pinned cells (e.g. the
       // replay step's "cold compile solx-<pin>" pairing). Its prose writes
       // historical versions bare, so the name tokens are scannable.
