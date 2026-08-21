@@ -456,6 +456,16 @@ async function runScenario(
     );
   }
 
+  for (const [name, cfg] of Object.entries(commands)) {
+    if (!("steps" in cfg) && cfg.skip === true) {
+      logWarning(
+        `Skipping "${name}" in "${scenario.id}" (skip is set)${
+          cfg.skipReason === undefined ? "" : `: ${cfg.skipReason}`
+        }`,
+      );
+    }
+  }
+
   const plan = planCommands(commands, args.benchmarks);
 
   if (plan.length === 0) {

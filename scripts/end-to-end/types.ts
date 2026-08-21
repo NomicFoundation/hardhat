@@ -85,6 +85,19 @@ export interface CommandVariant {
    * entry has no prerequisites and runs in isolation when selected.
    */
   dependsOn?: string[];
+  /**
+   * Set to true to keep this command defined but never run it. Use it when the
+   * command cannot succeed and that failure is itself the datum: the cell stays
+   * reviewable next to its working siblings, and re-enabling it is a one-line
+   * change once the underlying limitation lifts. Nothing may `dependsOn` a
+   * skipped command.
+   */
+  skip?: boolean;
+  /**
+   * Why this command is skipped. JSON carries no comments, so the reason lives
+   * here — whoever re-enables the cell needs to know what to re-check.
+   */
+  skipReason?: string;
 }
 
 export interface StepsVariant {
