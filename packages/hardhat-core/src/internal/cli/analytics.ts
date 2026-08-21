@@ -4,6 +4,7 @@ import debug from "debug";
 import os from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
@@ -236,9 +237,8 @@ async function getClientId() {
       (await readFirstLegacyAnalyticsId());
 
     if (clientId === undefined) {
-      const { v4: uuid } = await import("uuid");
       log("Client Id not found, generating a new one");
-      clientId = uuid();
+      clientId = randomUUID();
     }
 
     await writeAnalyticsId(clientId);

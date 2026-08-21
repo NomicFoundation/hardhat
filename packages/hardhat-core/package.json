@@ -77,7 +77,6 @@
     "@types/resolve": "^1.17.1",
     "@types/semver": "^6.0.2",
     "@types/sinon": "^9.0.8",
-    "@types/uuid": "^8.3.1",
     "@types/ws": "^7.2.1",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
@@ -106,7 +105,7 @@
     "@nomicfoundation/edr": "0.12.0-next.23",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
-    "adm-zip": "^0.4.16",
+    "adm-zip": "^0.6.0",
     "aggregate-error": "^3.0.0",
     "ansi-escapes": "^4.3.0",
     "boxen": "^5.1.2",
@@ -137,8 +136,7 @@
     "stacktrace-parser": "^0.1.10",
     "tinyglobby": "^0.2.6",
     "tsort": "0.0.1",
-    "undici": "^5.14.0",
-    "uuid": "^8.3.2",
+    "undici": "^6.28.0",
     "ws": "^7.4.6"
   },
   "peerDependencies": {
