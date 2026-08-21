@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.29.2
+
+### Patch Changes
+
+- c2d21a6: Update dependencies for `undici` and `adm-zip` and others, and drop `uuid` in favour of `node:crypto`.
+
 ## 2.29.1
 
 ### Patch Changes
