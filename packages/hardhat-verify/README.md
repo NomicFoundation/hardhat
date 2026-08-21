@@ -89,8 +89,6 @@ export default defineConfig({
 });
 ```
 
-The key is sent as the `apikey` query param of the verification requests. Unlike Etherscan, the chain id isn't sent as a query param: the Blockscout instance is addressed by the `apiUrl` of its chain descriptor, which already encodes the chain id when the API requires it (e.g. `https://api.blockscout.com/{chainId}/api`).
-
 ### Programmatic verification
 
 You can also verify contracts programmatically by using the `verifyContract` function from the plugin:
