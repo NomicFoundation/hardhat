@@ -1,4 +1,4 @@
-# Can solx output actually run the test suites? — evaluation results
+# Can solx 0.1.7 output actually run the test suites? — evaluation results
 
 solx is an LLVM-based Solidity compiler from a third party. This is a differential evaluation of
 whether the bytecode it produces can run real test suites. It ran once, on 2026-08-20/21, over
@@ -419,12 +419,12 @@ the control profile, then its provenance assert, then the set-difference verdict
 JSON and a regenerated report. Two setup steps were done by hand and are not in that script: a
 monorepo sub-build for graph-horizon, and a pragma-relaxation step for 1inch-swap-vm.
 
-Evidence archive. `solx-test-evaluation-evidence.tar.gz`, committed next to this file, is the
+Evidence archive. `solx-0.1.7-test-evaluation-evidence.tar.gz`, committed next to this file, is the
 evaluation's raw evidence. It contains the 18 per-pair JSON records with full failure text and
 provenance results, the regenerated matrix and summary, the per-run environment captures with the
 solx `--version` output, the two triage bundles for the compile-stage failures, the
 negative-provenance-control record, the complete positive-control run pair with its perturbation
 patch, and a sweep state log. All 72 per-run suite logs are included in full and untruncated, so
 the compile-warning lines behind the Finding 4 table can be recounted from source.
-`solx-test-execution-summary.json` next to this file is the same machine-readable summary,
+`solx-0.1.7-test-execution-summary.json` next to this file is the same machine-readable summary,
 uncompressed.
