@@ -39,6 +39,7 @@ import baseConfig from "./hardhat.config.base.ts";
 import {
   buildSolxProfiles,
   overrideEntry,
+  withPinnedFuzzSeed,
   type SolxProfileCell,
 } from "./solx-profiles.ts";
 
@@ -119,6 +120,17 @@ if (!contractDirs.includes("upgrade")) {
 }
 const sourceRoots = contractDirs.map((dir) => `contracts/${dir}`);
 
+// Test-execution evaluation opt-in (decision 3 of its plan): the benchmark
+// cells keep test/ out of the source roots for measurement hygiene and forge
+// parity, but the evaluation needs the Mocha suite's harnesses compiled.
+// LIDO_BENCH_INCLUDE_TESTS=1 re-adds "test" — fixtures compile with
+// upstream's own solc ballast entries, and the ^0.8.25 harnesses follow the
+// modern tree to the compiler under test at 0.8.34. Benchmark runs never set
+// the variable, so every timed cell is unchanged.
+if (process.env.LIDO_BENCH_INCLUDE_TESTS === "1") {
+  sourceRoots.push("test");
+}
+
 // Upstream's single per-file escape hatch, re-pinned to 0.8.34 and following
 // each cell's compiler: VaultHub builds via-IR at optimizer runs 100 in every
 // profile (upstream ships it that way to keep the contract under the size
@@ -141,6 +153,10 @@ export default {
   // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
   // so opt out of that guard. Throwaway benchmark scenario, not production.
   solx: { dangerouslyAllowSolxInProduction: true },
+  // The test-execution evaluation (test-under-solx.ts) pins the
+  // solidity-test fuzz seed. The solx and solc control runs then see
+  // identical fuzz inputs, and failures reproduce (evaluation decision 6).
+  test: withPinnedFuzzSeed(base.test),
   paths: { ...base.paths, sources: { solidity: sourceRoots } },
   // Upstream runs the sizer on every compile unless SKIP_CONTRACT_SIZE is
   // set; it would time an unrelated post-compile pass in every cell.
