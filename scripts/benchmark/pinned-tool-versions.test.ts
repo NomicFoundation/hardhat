@@ -193,6 +193,10 @@ describe("pinned-tool-versions", () => {
     const files = [
       path.join(repoRoot, "scripts/benchmark/solx-profiles.ts"),
       path.join(repoRoot, "scripts/benchmark/render-solx-tables.ts"),
+      // The renderer's own fixture names pinned cells and feeds them to
+      // CELL_NOTES, so a stale name there silently stops exercising the
+      // annotation it was written for.
+      path.join(repoRoot, "scripts/benchmark/render-solx-tables.test.ts"),
       // The test-execution evaluation script derives its default pair names
       // from the manifest pin; scan it so no literal pinned name strands.
       path.join(repoRoot, "scripts/benchmark/test-under-solx.ts"),
@@ -205,7 +209,10 @@ describe("pinned-tool-versions", () => {
     assert.ok(files.length > 2, "no solx scenario files found");
 
     for (const file of files) {
-      const content = readFileSync(file, "utf8");
+      // Escaped dots collapsed first: the renderer's fixture writes pinned
+      // names inside regex literals ("solx-0\\.1\\.7"), and a raw scan reads
+      // straight past them.
+      const content = readFileSync(file, "utf8").replaceAll("\\.", ".");
       for (const [, v] of content.matchAll(/solx-v?(\d+\.\d+\.\d+)/g)) {
         assert.equal(v, solxPin, `stale solx pin ${v} in ${file}`);
       }
