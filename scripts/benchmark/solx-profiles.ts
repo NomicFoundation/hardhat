@@ -33,10 +33,18 @@
 // Settings hygiene: every profile gets an independent structuredClone of the
 // seed settings, so the solx profiles can't bleed into the solc ones. The
 // solx optimization level (-O1) and DWARF debug info both come from the
-// hardhat-solx plugin defaults: DWARF is force-emitted, so solx maps sources
-// just as solc does (Hardhat force-emits solc sourceMaps), keeping the
-// comparison apples-to-apples. The optimizer is intentionally not overridden
+// hardhat-solx plugin defaults. The optimizer is intentionally not overridden
 // so the benchmark measures the realistic plugin-default config.
+//
+// Source mapping is NOT equivalent between the two compilers, and the timed
+// cells inherit that asymmetry. solx 0.1.4 and later leave the standard-JSON
+// `sourceMap` empty and ship DWARF in `debugInfo` instead (see
+// packages/hardhat-solx/src/type-extensions.ts). Every profile still requests
+// the same `outputSelection`, so the two compilers are asked for the same
+// artifacts, but solc generates and pays for sourceMaps while solx returns
+// them empty and pays for DWARF instead. Treat compile-time deltas on the
+// timed cells as including that difference rather than as like-for-like work,
+// and expect Solidity stack frames to decode differently between the two.
 //
 // via-IR handling: both solc and solx read `settings.viaIR` (there is no
 // `--via-ir` CLI flag — it's config-only), and the factory derives the flag
@@ -130,8 +138,37 @@ export const PINNED_FUZZ_SEED =
   "0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31";
 
 /**
+ * Env var that overrides PINNED_FUZZ_SEED for one run of the wrapper config.
+ *
+ * A single pinned seed makes one comparison exact and explores exactly one
+ * corpus, forever. Repeated runs want a different corpus each time while both
+ * sides of a single pair still see identical inputs, and the wrapper config
+ * executes inside the cloned repo where no CLI flag reaches it — so the seed
+ * arrives through the child environment instead. test-under-solx.ts sets it
+ * per repetition and holds it fixed across the pair's two runs.
+ */
+export const FUZZ_SEED_ENV_VAR = "SOLX_BENCH_FUZZ_SEED";
+
+/** The seed this process should pin: the env override, else PINNED_FUZZ_SEED. */
+export function resolveFuzzSeed(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const override = env[FUZZ_SEED_ENV_VAR];
+  if (override === undefined || override === "") {
+    return PINNED_FUZZ_SEED;
+  }
+  if (!/^0x[0-9a-fA-F]{1,64}$/.test(override)) {
+    throw new Error(
+      `${FUZZ_SEED_ENV_VAR} must be a 0x-prefixed hex value of at most 32 bytes, got: ${override}`,
+    );
+  }
+  return override;
+}
+
+/**
  * The wrapper configs' `test` entry: the base config's `test` with the
- * solidity-test fuzz seed pinned to PINNED_FUZZ_SEED. Handles both shapes of
+ * solidity-test fuzz seed pinned to resolveFuzzSeed() — PINNED_FUZZ_SEED
+ * unless SOLX_BENCH_FUZZ_SEED overrides it. Handles both shapes of
  * `test.solidity` — flat, and the `{ profiles: { default: ... } }` wrapper —
  * and preserves every other setting (mocha config, fuzz runs, fsPermissions,
  * ffi, ...).
@@ -139,6 +176,7 @@ export const PINNED_FUZZ_SEED =
 export function withPinnedFuzzSeed(baseTest: unknown): Record<string, unknown> {
   const test = { ...((baseTest ?? {}) as Record<string, unknown>) };
   const solidity = (test.solidity ?? {}) as Record<string, unknown>;
+  const seed = resolveFuzzSeed();
 
   const pinProfile = (profile: unknown): Record<string, unknown> => {
     const p = (profile ?? {}) as Record<string, unknown>;
@@ -146,7 +184,7 @@ export function withPinnedFuzzSeed(baseTest: unknown): Record<string, unknown> {
       ...p,
       fuzz: {
         ...((p.fuzz ?? {}) as Record<string, unknown>),
-        seed: PINNED_FUZZ_SEED,
+        seed,
       },
     };
   };
