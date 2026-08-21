@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.1.4
+
+### Patch Changes
+
+- c2d21a6: Updated `undici` to v6.
+
 ## 2.1.3
 
 ### Patch Changes
