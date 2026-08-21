@@ -117,12 +117,12 @@ export function overrideEntry(
 }
 
 /**
- * Fuzz seed pinned by the test-execution evaluation (decision 6 of its plan):
- * solx and control runs must see identical fuzz inputs, and failures must
- * reproduce. Hardhat 3 already defaults the solidity-test fuzz seed to a
- * fixed constant (DEFAULT_FUZZ_SEED in the solidity-test builtin's
- * config.ts), so runs are deterministic by default; the explicit pin makes
- * the evaluation independent of that default and of any seed an upstream
+ * Pinned fuzz seed for solx-vs-solc test comparisons (test-under-solx.ts).
+ * Runs under both compilers must see identical fuzz inputs, and failures
+ * must reproduce. Hardhat 3 already defaults the solidity-test fuzz seed to
+ * a fixed constant (DEFAULT_FUZZ_SEED in the solidity-test builtin's
+ * config.ts), so runs are deterministic by default. The explicit pin makes
+ * the comparison independent of that default, and of any seed an upstream
  * base config might set. The value is arbitrary: the ASCII bytes of
  * "solx-test-execution-evaluation.1".
  */

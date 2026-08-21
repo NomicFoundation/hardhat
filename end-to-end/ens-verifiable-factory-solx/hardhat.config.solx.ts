@@ -31,7 +31,7 @@ export default {
   solx: { dangerouslyAllowSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
-  // identical fuzz inputs, and failures reproduce (evaluation decision 6).
+  // identical fuzz inputs, and failures reproduce.
   test: withPinnedFuzzSeed(base.test),
   solidity: {
     profiles: buildSolxProfiles({

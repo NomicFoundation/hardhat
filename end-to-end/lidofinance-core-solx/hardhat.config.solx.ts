@@ -120,13 +120,14 @@ if (!contractDirs.includes("upgrade")) {
 }
 const sourceRoots = contractDirs.map((dir) => `contracts/${dir}`);
 
-// Test-execution evaluation opt-in (decision 3 of its plan): the benchmark
-// cells keep test/ out of the source roots for measurement hygiene and forge
-// parity, but the evaluation needs the Mocha suite's harnesses compiled.
-// LIDO_BENCH_INCLUDE_TESTS=1 re-adds "test" — fixtures compile with
-// upstream's own solc ballast entries, and the ^0.8.25 harnesses follow the
-// modern tree to the compiler under test at 0.8.34. Benchmark runs never set
-// the variable, so every timed cell is unchanged.
+// Opt-in for running the Mocha suite against these builds
+// (test-under-solx.ts). The benchmark cells keep test/ out of the source
+// roots — it holds harnesses and fixtures, not the compile subject, and the
+// forge cells skip it to match — but running the tests needs those
+// harnesses compiled. LIDO_BENCH_INCLUDE_TESTS=1 re-adds "test". Fixtures
+// compile with upstream's own solc ballast entries, and the ^0.8.25
+// harnesses follow the modern tree to the compiler under test at 0.8.34.
+// Benchmark runs never set the variable, so every timed cell is unchanged.
 if (process.env.LIDO_BENCH_INCLUDE_TESTS === "1") {
   sourceRoots.push("test");
 }
@@ -155,7 +156,7 @@ export default {
   solx: { dangerouslyAllowSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
-  // identical fuzz inputs, and failures reproduce (evaluation decision 6).
+  // identical fuzz inputs, and failures reproduce.
   test: withPinnedFuzzSeed(base.test),
   paths: { ...base.paths, sources: { solidity: sourceRoots } },
   // Upstream runs the sizer on every compile unless SKIP_CONTRACT_SIZE is
