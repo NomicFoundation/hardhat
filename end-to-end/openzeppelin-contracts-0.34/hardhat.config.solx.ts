@@ -23,7 +23,7 @@
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
-import { buildSolxProfiles } from "./solx-profiles.ts";
+import { buildSolxProfiles, withPinnedFuzzSeed } from "./solx-profiles.ts";
 
 const base = baseConfig as unknown as {
   plugins: unknown[];
@@ -38,6 +38,10 @@ export default {
   // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
   // so opt out of that guard. Throwaway benchmark scenario, not production.
   solx: { dangerouslyAllowSolxInProduction: true },
+  // The test-execution evaluation (test-under-solx.ts) pins the
+  // solidity-test fuzz seed. The solx and solc control runs then see
+  // identical fuzz inputs, and failures reproduce (evaluation decision 6).
+  test: withPinnedFuzzSeed(base.test),
   solidity: {
     profiles: buildSolxProfiles({
       baseSettings: base.solidity.settings,
