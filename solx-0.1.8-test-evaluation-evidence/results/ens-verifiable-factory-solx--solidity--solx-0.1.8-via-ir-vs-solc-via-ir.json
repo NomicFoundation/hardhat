@@ -1,0 +1,171 @@
+{
+  "scenarioId": "ens-verifiable-factory-solx",
+  "runner": "solidity",
+  "pair": "solx-0.1.8-via-ir-vs-solc-via-ir",
+  "solxProfile": "solx-0.1.8-via-ir",
+  "controlProfile": "solc-via-ir",
+  "repetition": 1,
+  "repetitions": 1,
+  "fuzzSeed": "0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31",
+  "verdict": "pass",
+  "verdictDetail": "",
+  "solx": {
+    "profile": "solx-0.1.8-via-ir",
+    "side": "solx",
+    "command": "npx hardhat test solidity --build-profile solx-0.1.8-via-ir",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 3019,
+    "passing": 23,
+    "failing": null,
+    "skipped": null,
+    "failures": [],
+    "provenance": {
+      "ok": true,
+      "buildInfoCount": 1,
+      "subjectCount": 1,
+      "problems": []
+    },
+    "inventory": {
+      "artifactCount": 13,
+      "withBytecode": 10,
+      "withoutBytecode": 3,
+      "maxRuntimeBytes": 36786,
+      "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+      "overLimit": [
+        "test/VerifiableFactory.t.sol:VerifiableFactoryTest (36786B)"
+      ],
+      "overLimitCount": 1,
+      "empty": false,
+      "unparseable": [],
+      "unparseableCount": 0,
+      "truncatedAt": [],
+      "unreadable": [],
+      "subjectBuildInfoCount": 1,
+      "subject": {
+        "artifactCount": 13,
+        "withBytecode": 10,
+        "withoutBytecode": 3,
+        "maxRuntimeBytes": 36786,
+        "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+        "overLimit": [
+          "test/VerifiableFactory.t.sol:VerifiableFactoryTest (36786B)"
+        ],
+        "overLimitCount": 1
+      },
+      "subjectDeployable": {
+        "artifactCount": 9,
+        "withBytecode": 6,
+        "withoutBytecode": 3,
+        "maxRuntimeBytes": 3544,
+        "maxRuntimeContract": "src/mock/MockRegistryV2.sol:MockRegistryV2",
+        "overLimit": [],
+        "overLimitCount": 0
+      },
+      "subjectTestHarness": {
+        "artifactCount": 4,
+        "withBytecode": 4,
+        "withoutBytecode": 0,
+        "maxRuntimeBytes": 36786,
+        "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+        "overLimit": [
+          "test/VerifiableFactory.t.sol:VerifiableFactoryTest (36786B)"
+        ],
+        "overLimitCount": 1
+      }
+    },
+    "compileErrorMarker": false,
+    "resourceLimited": false,
+    "logFile": "solx-0.1.8-test-evaluation-evidence/logs/ens-verifiable-factory-solx--solidity--solx-0.1.8-via-ir-vs-solc-via-ir.solx.log"
+  },
+  "control": {
+    "profile": "solc-via-ir",
+    "side": "control",
+    "command": "npx hardhat test solidity --build-profile solc-via-ir",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 4962,
+    "passing": 23,
+    "failing": null,
+    "skipped": null,
+    "failures": [],
+    "provenance": {
+      "ok": true,
+      "buildInfoCount": 1,
+      "subjectCount": 1,
+      "problems": []
+    },
+    "inventory": {
+      "artifactCount": 13,
+      "withBytecode": 10,
+      "withoutBytecode": 3,
+      "maxRuntimeBytes": 31422,
+      "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+      "overLimit": [
+        "test/VerifiableFactory.t.sol:VerifiableFactoryTest (31422B)"
+      ],
+      "overLimitCount": 1,
+      "empty": false,
+      "unparseable": [],
+      "unparseableCount": 0,
+      "truncatedAt": [],
+      "unreadable": [],
+      "subjectBuildInfoCount": 1,
+      "subject": {
+        "artifactCount": 13,
+        "withBytecode": 10,
+        "withoutBytecode": 3,
+        "maxRuntimeBytes": 31422,
+        "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+        "overLimit": [
+          "test/VerifiableFactory.t.sol:VerifiableFactoryTest (31422B)"
+        ],
+        "overLimitCount": 1
+      },
+      "subjectDeployable": {
+        "artifactCount": 9,
+        "withBytecode": 6,
+        "withoutBytecode": 3,
+        "maxRuntimeBytes": 2582,
+        "maxRuntimeContract": "src/mock/MockRegistryV2.sol:MockRegistryV2",
+        "overLimit": [],
+        "overLimitCount": 0
+      },
+      "subjectTestHarness": {
+        "artifactCount": 4,
+        "withBytecode": 4,
+        "withoutBytecode": 0,
+        "maxRuntimeBytes": 31422,
+        "maxRuntimeContract": "test/VerifiableFactory.t.sol:VerifiableFactoryTest",
+        "overLimit": [
+          "test/VerifiableFactory.t.sol:VerifiableFactoryTest (31422B)"
+        ],
+        "overLimitCount": 1
+      }
+    },
+    "compileErrorMarker": false,
+    "resourceLimited": false,
+    "logFile": "solx-0.1.8-test-evaluation-evidence/logs/ens-verifiable-factory-solx--solidity--solx-0.1.8-via-ir-vs-solc-via-ir.control.log"
+  },
+  "solxOnlyFailures": [],
+  "bothFailures": [],
+  "sharedFailureDiffs": [],
+  "controlOnlyFailures": [],
+  "eip170Failures": [],
+  "inventoryComparison": {
+    "comparable": true,
+    "emptyUnderSolx": [],
+    "missingUnderSolx": [],
+    "extraUnderSolx": [],
+    "bothNonEmpty": 10
+  },
+  "determinism": [],
+  "compileErrorMarker": {
+    "solx": false,
+    "control": false
+  },
+  "resourceLimited": false,
+  "gasSnapshot": null,
+  "buildRepro": null,
+  "timestamp": "2026-08-21T08:57:41.364Z"
+}
