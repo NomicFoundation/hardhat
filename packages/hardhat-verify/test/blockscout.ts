@@ -8,7 +8,10 @@ import querystring from "node:querystring";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import { Blockscout } from "../src/internal/blockscout.js";
@@ -50,6 +53,7 @@ describe("blockscout", () => {
     const constructorArguments = "";
     /* cspell:disable-next-line */
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
+    const apiKey = "someApiKey";
 
     describe("constructor", () => {
       it("should create an instance with the correct properties", () => {
@@ -58,6 +62,30 @@ describe("blockscout", () => {
         assert.equal(blockscout.name, blockscoutConfig.name);
         assert.equal(blockscout.url, blockscoutConfig.url);
         assert.equal(blockscout.apiUrl, blockscoutConfig.apiUrl);
+        assert.equal(blockscout.apiKey, undefined);
+      });
+
+      it("should create an instance with an apiKey if one is provided", () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+        });
+
+        assert.equal(blockscout.apiKey, apiKey);
+      });
+
+      it("should throw an error if the apiKey is empty", () => {
+        assertThrowsHardhatError(
+          () =>
+            new Blockscout({
+              ...blockscoutConfig,
+              apiKey: "",
+            }),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_API_KEY_EMPTY,
+          {
+            verificationProvider: blockscoutConfig.name,
+          },
+        );
       });
 
       it('should default to "Blockscout" if no name is provided', () => {
@@ -253,6 +281,38 @@ describe("blockscout", () => {
         );
       });
 
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "getsourcecode",
+              address,
+              apikey: apiKey,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [
+              {
+                SourceCode: sourceCode,
+              },
+            ],
+          });
+
+        assert.equal(await blockscout.isVerified(address), true);
+      });
+
       it("should throw an error if the response status code is 300-399", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
@@ -326,6 +386,50 @@ describe("blockscout", () => {
         } catch {
           assert.fail("Expected verify to not throw an error");
         }
+
+        assert.equal(response, guid);
+      });
+
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "POST",
+            query: {
+              module: "contract",
+              action: "verifysourcecode",
+              apikey: apiKey,
+            },
+            body: querystring.stringify({
+              contractaddress: address,
+              sourceCode: JSON.stringify(compilerInput),
+              codeformat: "solidity-standard-json-input",
+              contractname: contract,
+              compilerversion: compilerVersion,
+              constructorArguments,
+            }),
+          })
+          .reply(200, {
+            status: "1",
+            message: "OK",
+            result: guid,
+          });
+
+        const response = await blockscout.verify({
+          contractAddress: address,
+          compilerInput,
+          contractName: contract,
+          compilerVersion,
+          constructorArguments,
+        });
 
         assert.equal(response, guid);
       });
@@ -632,6 +736,40 @@ describe("blockscout", () => {
         assert.equal(callCount, 3);
       });
 
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "checkverifystatus",
+              guid,
+              apikey: apiKey,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: "Pass - Verified",
+          });
+
+        const response = await blockscout.pollVerificationStatus(
+          guid,
+          address,
+          contract,
+        );
+
+        assert.equal(response.success, true);
+      });
+
       it("should throw an error if the request fails", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
@@ -804,6 +942,44 @@ describe("blockscout", () => {
         result.blockExplorerConfig,
         testChainDescriptor.blockExplorers.blockscout,
       );
+      assert.deepEqual(
+        result.verificationProviderConfig,
+        verificationProvidersConfig.blockscout,
+      );
+    });
+
+    it("should return the blockscout verification provider config, including the apiKey", async () => {
+      const testChainDescriptor: ChainDescriptorConfig = {
+        name: "TestNet",
+        chainType: "l1",
+        blockExplorers: {
+          blockscout: {
+            url: "https://blockscout.test.com",
+            apiUrl: "https://api.blockscout.test.com/api",
+          },
+        },
+      };
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [123n, testChainDescriptor],
+      ]);
+
+      const blockscoutConfig = {
+        enabled: true,
+        apiKey: new MockResolvedConfigurationVariable("blockscout-key"),
+      };
+
+      const result = await Blockscout.resolveConfig({
+        chainId: 123,
+        networkName: "testnet",
+        chainDescriptors,
+        verificationProvidersConfig: {
+          ...verificationProvidersConfig,
+          blockscout: blockscoutConfig,
+        },
+      });
+
+      assert.deepEqual(result.verificationProviderConfig, blockscoutConfig);
     });
 
     it("should fetch from API when chain not in descriptors", async () => {
@@ -929,6 +1105,38 @@ describe("blockscout", () => {
           chainId: 100,
         },
       );
+    });
+  });
+
+  describe("create", () => {
+    const blockExplorerConfig = {
+      url: "https://blockscout.test.com",
+      apiUrl: "https://blockscout.test.com/api",
+    };
+
+    it("should create an instance with the resolved apiKey", async () => {
+      const blockscout = await Blockscout.create({
+        blockExplorerConfig,
+        verificationProviderConfig: {
+          enabled: true,
+          apiKey: new MockResolvedConfigurationVariable("blockscout-key"),
+        },
+      });
+
+      assert.equal(blockscout.apiKey, "blockscout-key");
+    });
+
+    it("should create an instance without an apiKey when none is configured", async () => {
+      const blockscout = await Blockscout.create({
+        blockExplorerConfig,
+        verificationProviderConfig: {
+          enabled: true,
+        },
+      });
+
+      assert.equal(blockscout.apiKey, undefined);
+      assert.equal(blockscout.url, blockExplorerConfig.url);
+      assert.equal(blockscout.apiUrl, blockExplorerConfig.apiUrl);
     });
   });
 

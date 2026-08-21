@@ -32,6 +32,7 @@ const userConfigType = z.object({
     .object({
       blockscout: z
         .object({
+          apiKey: sensitiveStringSchema.optional(),
           enabled: z.boolean().optional(),
         })
         .optional(),
@@ -86,7 +87,10 @@ export async function resolveUserConfig(
     ...resolvedConfig,
     verify: {
       ...resolvedConfig.verify,
-      blockscout: resolveBlockscoutConfig(userConfig.verify?.blockscout),
+      blockscout: resolveBlockscoutConfig(
+        userConfig.verify?.blockscout,
+        resolveConfigurationVariable,
+      ),
       etherscan: resolveEtherscanConfig(
         userConfig.verify?.etherscan,
         resolveConfigurationVariable,
@@ -100,8 +104,15 @@ function resolveBlockscoutConfig(
   blockscoutConfig: BlockscoutUserConfig | undefined = {
     enabled: true,
   },
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): BlockscoutConfig {
   return {
+    // Unlike Etherscan, the Blockscout API key is optional, so it's left
+    // undefined when the user doesn't configure one.
+    apiKey:
+      blockscoutConfig.apiKey !== undefined
+        ? resolveConfigurationVariable(blockscoutConfig.apiKey)
+        : undefined,
     enabled: blockscoutConfig.enabled ?? true,
   };
 }
