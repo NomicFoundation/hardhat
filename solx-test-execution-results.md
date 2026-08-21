@@ -1,8 +1,7 @@
 # Can solx output actually run the test suites? — evaluation results
 
 One-shot evaluation, 2026-08-20/21. Branch `solx-test-execution-evaluation`, never intended to
-merge. Data feeds a blogpost. Method and taxonomy follow
-`solx-test-execution-evaluation-plan.md` in the planning worktree.
+merge. Data feeds a blogpost.
 
 Each cell below ran the scenario's FULL suite twice. Once with a pinned solx build profile.
 Once with the matching solc control profile. Verdicts come from the set-difference of
@@ -77,7 +76,7 @@ green, in 211s. The solc-via-ir control cannot compile the test tree at all:
 `YulException: Variable var_user is 1 too deep in the stack`, then `Error HHE910`. The
 failure is solc's, not solx's. solx is the only via-IR compiler that can run this suite.
 
-Legacy pair (single structural attempt, as planned): the solc control compiles (the
+Legacy pair (single structural attempt): the solc control compiles (the
 wrapper's two per-file via-IR overrides rescue Hub/SpokeInstance) and runs the same 1559
 tests green. solx's legacy pipeline dies: Hardhat reports "Subprocess exited with code
 null". Direct replay of the dumped input exits 137 = SIGKILL. The kernel OOM-kills solx on
@@ -103,13 +102,13 @@ spills past unannotated assembly.
 
 The solidity test runner does NOT enforce the deploy-size limit. solady's test harnesses
 exceed it hugely under solx (compile warnings up to 52,128 B vs the 24,576 B limit) and
-under solc, and every deploy succeeds. This answers the plan's empirical question.
+under solc, and every deploy succeeds. This was previously unverified.
 
 The Mocha/EDR path enforces the limit unless `allowUnlimitedContractSize` is set. OZ sets
 it. Lido does not, so its Mocha run was the live EIP-170 probe (row 18). The predicted
 VaultHub deploy-revert did not happen: all 1266 tests pass with the limit enforced. The
-plan's decision-7 sub-category (EIP-170 deploy reverts standing as the verdict) therefore
-ends the evaluation EMPTY — no scenario produced one.
+EIP-170 sub-category (deploy reverts standing as the verdict) therefore ends the
+evaluation EMPTY — no scenario produced one.
 
 ## Finding 5: stack-trace quality under solx is degraded
 
@@ -126,8 +125,8 @@ still pass/fail correctly; this is a debugging-experience gap, recorded as harne
 evidence, not a verdict change.
 
 Bonus determinism proof from the same failure: the fuzz counterexample calldata is
-byte-identical under solx and solc, and across legacy and via-IR. The pinned fuzz seed does
-what decision 6 wanted.
+byte-identical under solx and solc, and across legacy and via-IR. The pinned fuzz seed
+does exactly its job.
 
 ## Finding 6: gas-sensitive assertions never fired
 
