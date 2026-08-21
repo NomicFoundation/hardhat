@@ -25,6 +25,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:56:59.731Z"
   },
   {
@@ -53,6 +57,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:56:46.165Z"
   },
   {
@@ -61,7 +69,7 @@
     "solxProfile": "solx-0.1.7-via-ir",
     "controlProfile": "solc-via-ir",
     "verdict": "harness-failures",
-    "verdictDetail": "test universe mismatch: 0 tests executed under solx vs 706 under the control — a side that silently runs nothing is not comparable (check the build log for swallowed compiler errors)",
+    "verdictDetail": "test universe mismatch: 0 tests executed under solx vs 706 under the control \u2014 a side that silently runs nothing is not comparable (check the build log for swallowed compiler errors)",
     "solx": {
       "passing": 0,
       "failing": null,
@@ -81,6 +89,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": true,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:35:14.655Z"
   },
   {
@@ -109,6 +121,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": true
+    },
     "timestamp": "2026-08-21T00:23:55.612Z"
   },
   {
@@ -137,6 +153,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": true,
+      "control": false
+    },
     "timestamp": "2026-08-21T00:31:44.550Z"
   },
   {
@@ -165,6 +185,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:37:24.467Z"
   },
   {
@@ -193,6 +217,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:08:19.330Z"
   },
   {
@@ -221,6 +249,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:15:37.917Z"
   },
   {
@@ -249,6 +281,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:10:14.724Z"
   },
   {
@@ -277,6 +313,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-21T00:34:49.429Z"
   },
   {
@@ -307,6 +347,10 @@
     ],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:49:02.791Z"
   },
   {
@@ -335,6 +379,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:44:01.319Z"
   },
   {
@@ -365,6 +413,10 @@
     ],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:55:42.670Z"
   },
   {
@@ -393,6 +445,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T22:51:40.283Z"
   },
   {
@@ -423,6 +479,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:39:14.754Z"
   },
   {
@@ -453,6 +513,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:36:24.327Z"
   },
   {
@@ -481,6 +545,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:18:46.715Z"
   },
   {
@@ -509,6 +577,10 @@
     "controlOnlyFailures": [],
     "eip170Failures": [],
     "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
     "timestamp": "2026-08-20T23:17:11.214Z"
   }
 ]
