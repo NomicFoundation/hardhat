@@ -305,9 +305,6 @@ importers:
       undici:
         specifier: ^6.28.0
         version: 6.28.0
-      uuid:
-        specifier: ^8.3.2
-        version: 8.3.2
       ws:
         specifier: ^7.4.6
         version: 7.5.10(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -360,9 +357,6 @@ importers:
       '@types/sinon':
         specifier: ^9.0.8
         version: 9.0.11
-      '@types/uuid':
-        specifier: ^8.3.1
-        version: 8.3.4
       '@types/ws':
         specifier: ^7.2.1
         version: 7.4.7
@@ -3725,9 +3719,6 @@ packages:
 
   '@types/unist@2.0.11':
     resolution: {integrity: sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==}
-
-  '@types/uuid@8.3.4':
-    resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
 
   '@types/w3c-web-usb@1.0.14':
     resolution: {integrity: sha512-Qu3Nn6JFuF4+sHKYl+IcX9vYiI40ogleXzFFSxoE1W94rG98o/kXs8uJ0QSfFzuwBCZWlGfUGpPkgwuuX4PchA==}
@@ -10804,8 +10795,6 @@ snapshots:
       '@types/node': 20.19.41
 
   '@types/unist@2.0.11': {}
-
-  '@types/uuid@8.3.4': {}
 
   '@types/w3c-web-usb@1.0.14': {}
 
