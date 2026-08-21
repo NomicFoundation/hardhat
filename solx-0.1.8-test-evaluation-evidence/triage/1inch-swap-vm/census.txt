@@ -1,0 +1,8 @@
+errors array length: 338
+by severity: {"warning":333,"error":5}
+  [error] Error: LLVM error: Stackification failed for 'fun_runLoop_62748' function. It is recursive and has stack too deep errors. Consider refactoring it to use a no
+  [error] Error: LLVM error: Stackification failed for 'fun_runLoop_62748' function. It is recursive and has stack too deep errors. Consider refactoring it to use a no
+  [error] Error: LLVM error: Stackification failed for 'fun_runLoop_62748' function. It is recursive and has stack too deep errors. Consider refactoring it to use a no
+  [error] Error: LLVM error: Stackification failed for 'fun_runLoop_62748' function. It is recursive and has stack too deep errors. Consider refactoring it to use a no
+  [error] Error: LLVM error: Stackification failed for 'fun_runLoop_62748' function. It is recursive and has stack too deep errors. Consider refactoring it to use a no
+contracts emitted: 0, with EMPTY deployed bytecode: 0
