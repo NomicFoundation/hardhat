@@ -2080,25 +2080,130 @@ function tryRegenerateReports(outDir: string, pin: string): boolean {
 // Environment metadata
 // ---------------------------------------------------------------------------
 
-/** The version field of a package as the checkout resolves it, if resolvable. */
-function installedVersion(
+/** The `version` field of a package.json, or null when it cannot be read. */
+function readManifestVersion(manifest: string): string | null {
+  try {
+    return JSON.parse(readFileSync(manifest, "utf8")).version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Walk up from a resolved file to the package.json that owns it, matched by
+ * name so a parent package's manifest cannot be mistaken for the target's.
+ */
+function owningVersion(entry: string, packageName: string): string | null {
+  let dir = path.dirname(entry);
+  for (;;) {
+    const manifest = path.join(dir, "package.json");
+    if (existsSync(manifest)) {
+      try {
+        const pkg = JSON.parse(readFileSync(manifest, "utf8"));
+        if (pkg.name === packageName) {
+          return pkg.version ?? null;
+        }
+      } catch {
+        // Keep walking; an unreadable manifest on the way up is not the answer.
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      return null;
+    }
+    dir = parent;
+  }
+}
+
+/**
+ * Versions of a package as it sits in pnpm's isolated store, read from the real
+ * manifest rather than parsed out of the directory name.
+ *
+ * The store encodes `<name-with-+>@<version>`, and several versions of one
+ * package can coexist there because different dependents asked for different
+ * ranges. Returning one of them arbitrarily reports a transitive dependency's
+ * copy as the one in use — measured during the 0.1.8 sweep, where a
+ * name-scanning probe reported hardhat 2.23.0 and EDR 0.10.0 for a Hardhat 3
+ * scenario. So every distinct version found is returned, and the caller renders
+ * an ambiguous answer as ambiguous.
+ */
+function pnpmStoreVersions(projectDir: string, packageName: string): string[] {
+  // Walking up, because a workspace package's store sits at the repo root:
+  // graph-horizon runs in packages/horizon and its store is two levels above.
+  let store: string | null = null;
+  let dir = projectDir;
+  for (;;) {
+    const candidate = path.join(dir, "node_modules", ".pnpm");
+    if (existsSync(candidate)) {
+      store = candidate;
+      break;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      break;
+    }
+    dir = parent;
+  }
+  if (store === null) {
+    return [];
+  }
+  const prefix = `${packageName.replace("/", "+")}@`;
+  const versions = new Set<string>();
+  let entries: string[];
+  try {
+    entries = readdirSync(store);
+  } catch {
+    return [];
+  }
+  for (const entry of entries) {
+    if (!entry.startsWith(prefix)) {
+      continue;
+    }
+    const version = readManifestVersion(
+      path.join(store, entry, "node_modules", packageName, "package.json"),
+    );
+    if (version !== null) {
+      versions.add(version);
+    }
+  }
+  return [...versions].sort();
+}
+
+/**
+ * The version of a package as the checkout resolves it, if resolvable.
+ *
+ * Four strategies, because no single one covers the layouts in this corpus. A
+ * transitive dependency under pnpm has no `node_modules/<pkg>` symlink and may
+ * not export `./package.json`, so the first three all miss it and only the
+ * store scan answers — which is why the 0.1.8 sweep's environment captures
+ * recorded null for `@nomicfoundation/edr`.
+ */
+export function installedVersion(
   projectDir: string,
   packageName: string,
 ): string | null {
-  // Node's own resolver first: under pnpm's isolated layout the real package
-  // lives in node_modules/.pnpm/<name>@<version>/node_modules/<name>, which
-  // the directory walk below cannot see, and graph-horizon uses that layout.
+  const require_ = createRequire(path.join(projectDir, "index.js"));
+
+  // 1. Direct dependencies that export ./package.json.
   try {
-    const manifest = createRequire(path.join(projectDir, "index.js")).resolve(
-      `${packageName}/package.json`,
-    );
-    return JSON.parse(readFileSync(manifest, "utf8")).version ?? null;
+    return readManifestVersion(require_.resolve(`${packageName}/package.json`));
   } catch {
-    // Packages that do not export ./package.json fall through to the walk.
+    // Not exported, or not resolvable from here.
   }
 
-  // Walking up from the project dir: monorepo scenarios hoist to the clone
-  // root rather than the workdir's own node_modules.
+  // 2. Resolvable packages that do not export their manifest: resolve the
+  //    entry point and walk up to the manifest that owns it.
+  try {
+    const version = owningVersion(require_.resolve(packageName), packageName);
+    if (version !== null) {
+      return version;
+    }
+  } catch {
+    // Not resolvable from the project dir at all.
+  }
+
+  // 3. Flat node_modules, walking up: monorepo scenarios hoist to the clone
+  //    root rather than the workdir's own node_modules.
   let dir = projectDir;
   for (;;) {
     const manifest = path.join(
@@ -2108,18 +2213,20 @@ function installedVersion(
       "package.json",
     );
     if (existsSync(manifest)) {
-      try {
-        return JSON.parse(readFileSync(manifest, "utf8")).version ?? null;
-      } catch {
-        return null;
-      }
+      return readManifestVersion(manifest);
     }
     const parent = path.dirname(dir);
     if (parent === dir) {
-      return null;
+      break;
     }
     dir = parent;
   }
+
+  // 4. pnpm's isolated store, for transitive packages the resolver cannot see
+  //    from here. Several versions means the answer is ambiguous, and it is
+  //    reported as ambiguous rather than narrowed to a guess.
+  const stored = pnpmStoreVersions(projectDir, packageName);
+  return stored.length === 0 ? null : stored.join(", ");
 }
 
 function captureEnvironment(
