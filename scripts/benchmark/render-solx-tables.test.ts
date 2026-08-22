@@ -234,6 +234,14 @@ describe("renderSolxTables", () => {
     );
   });
 
+  it("gives every footnote a distinct marker", () => {
+    // A static footnote once collided with the conditional parity one, so the
+    // report showed two different notes under the same superscript.
+    const markers = [...md.matchAll(/^([¹²³⁴⁵])\s/gmu)].map((m) => m[1]);
+
+    assert.deepEqual(markers, [...new Set(markers)]);
+  });
+
   it("renders RSS, replay and leftovers", () => {
     assert.match(md, /solx-0\.1\.8 via-ir \| 812 \|/);
     assert.match(md, /raw replay/i);
@@ -272,9 +280,9 @@ describe("renderSolxTables", () => {
     // The version-pinned cell fills the solx column (shipped cells retired).
     assert.match(
       md,
-      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5³ \| 12\.9 \/ 36\.8³ \| 10\.4 \/ 30\.2 \|/,
+      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5⁴ \| 12\.9 \/ 36\.8⁴ \| 10\.4 \/ 30\.2 \|/,
     );
-    assert.match(md, /³ same-scope matrix cell/);
+    assert.match(md, /⁴ same-scope matrix cell/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*forge/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*parity/);
   });
@@ -301,7 +309,7 @@ describe("renderSolxTables", () => {
     assert.match(old, /hardhat \+ solx \(shipped\)/);
     assert.match(
       old,
-      /\| legacy-scenario \| via-IR \| — \| 20\.0 \/ 50\.0³ \|/,
+      /\| legacy-scenario \| via-IR \| — \| 20\.0 \/ 50\.0⁴ \|/,
     );
   });
 
@@ -338,7 +346,7 @@ describe("renderSolxTables", () => {
     assert.match(vaults, /\| via-IR \| 16\.5 \/ — \| 4\.7 \/ — \|/);
     assert.match(
       vaults,
-      /\| lidofinance-vaults-solx \| via-IR \| 16\.5 \/ —³ \| 4\.7 \/ —³ \| 14\.0 \/ — \|/,
+      /\| lidofinance-vaults-solx \| via-IR \| 16\.5 \/ —⁴ \| 4\.7 \/ —⁴ \| 14\.0 \/ — \|/,
     );
   });
 
