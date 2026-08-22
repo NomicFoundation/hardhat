@@ -221,7 +221,7 @@ export function renderSolxTables(
   }
 
   const scenarioIds = [...scenarios.keys()].sort();
-  const compilers = (scenario: Scenario) => {
+  const compilers = (scenario: Scenario, id: string) => {
     const found = new Set<string>();
     for (const key of scenario.cold.keys()) {
       const c = parseCell(key)!;
@@ -230,6 +230,15 @@ export function renderSolxTables(
         continue;
       }
       found.add(c.compiler);
+    }
+    // A compiler that produced no entry at all still needs its column when a
+    // note explains the absence — otherwise the column disappears and the
+    // reader sees no sign the compiler was tried.
+    for (const noteKey of Object.keys(CELL_NOTES)) {
+      const [noteId, cell] = noteKey.split("|");
+      if (noteId === id && cell !== undefined) {
+        found.add(cell.replace(/ (no-opt|via-ir|upgrade)$/, ""));
+      }
     }
     // solc first, shipped solx second, pinned versions ascending
     return [
@@ -285,7 +294,7 @@ export function renderSolxTables(
     },
     {
       title: "via-IR",
-      noteSuffix: "",
+      noteSuffix: " via-ir",
       match: (c) => !c.noOpt && c.viaIR && !c.upgrade,
     },
     {
@@ -297,7 +306,7 @@ export function renderSolxTables(
 
   for (const id of scenarioIds) {
     const scenario = scenarios.get(id)!;
-    const cols = compilers(scenario);
+    const cols = compilers(scenario, id);
     const runs = [...scenario.cold.values()]
       .map((d) => d.runs)
       .find((r) => r !== undefined);
