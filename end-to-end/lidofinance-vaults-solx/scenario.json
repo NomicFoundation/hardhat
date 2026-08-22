@@ -33,7 +33,7 @@
         }
       },
       "cold compile solx-0.1.8 via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
@@ -42,7 +42,7 @@
         "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
       },
       "cold compile solx-0.1.8 via-ir upgrade": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
@@ -51,7 +51,7 @@
         "command": "LIDO_BENCH_SOURCES=upgrade npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
       },
       "cold compile solc via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "assert fresh hardhat-slang-solx",
           "download solc + solx and warm caches"
@@ -60,7 +60,7 @@
         "command": "npx hardhat compile --build-profile solc-via-ir --no-tests"
       },
       "cold compile forge-1.7.1 via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": ["warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
         "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_SRC=contracts/0.8.25 ./.foundry/forge build --skip 'test/**' --offline"

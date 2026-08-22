@@ -39,7 +39,7 @@
         }
       },
       "cold compile solx-0.1.8": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "build workspace deps",
           "assert fresh hardhat-slang-solx",
@@ -49,7 +49,7 @@
         "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8"
       },
       "cold compile solx-0.1.8 via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "build workspace deps",
           "assert fresh hardhat-slang-solx",
@@ -59,7 +59,7 @@
         "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8-via-ir"
       },
       "cold compile solc": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "build workspace deps",
           "assert fresh hardhat-slang-solx",
@@ -69,7 +69,7 @@
         "command": "cd packages/horizon && npx hardhat compile"
       },
       "cold compile solc no-opt": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "build workspace deps",
           "assert fresh hardhat-slang-solx",
@@ -79,7 +79,7 @@
         "command": "cd packages/horizon && npx hardhat compile --build-profile solc-no-opt"
       },
       "cold compile solc via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": [
           "build workspace deps",
           "assert fresh hardhat-slang-solx",
@@ -89,13 +89,13 @@
         "command": "cd packages/horizon && npx hardhat compile --build-profile solc-via-ir"
       },
       "cold compile forge-1.7.1": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": ["build workspace deps", "warm forge solc cache"],
         "prepare": "cd packages/horizon && ./.foundry/forge clean",
         "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline"
       },
       "cold compile forge-1.7.1 via-ir": {
-        "runs": 2,
+        "runs": 5,
         "dependsOn": ["build workspace deps", "warm forge solc cache"],
         "prepare": "cd packages/horizon && ./.foundry/forge clean",
         "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_PROFILE=prod ./.foundry/forge build --offline"
