@@ -382,7 +382,7 @@ export function renderSolxTables(
         }
         record(fallback);
         parityUsedFallback = true;
-        return `${wallCpu(scenario.cold.get(fallback))}³`;
+        return `${wallCpu(scenario.cold.get(fallback))}⁴`;
       };
       // The solx column matches any solx cell: the version-pinned cells are
       // the shipped measurement since the plugin's map reached 0.1.7 (the
@@ -471,7 +471,7 @@ export function renderSolxTables(
   lines.push("</details>", "", ...FOOTNOTES);
   if (parityUsedFallback) {
     lines.push(
-      "³ same-scope matrix cell: this scenario's hardhat cells already " +
+      "⁴ same-scope matrix cell: this scenario's hardhat cells already " +
         "compile the parity source set, so no separate parity cell exists.",
     );
   }
