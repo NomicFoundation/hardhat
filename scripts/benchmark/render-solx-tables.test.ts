@@ -234,6 +234,28 @@ describe("renderSolxTables", () => {
     );
   });
 
+  it("keeps a column for a compiler that produced nothing at all", () => {
+    // 1inch-swap-vm has no solx cell: solx cannot compile the sources and the
+    // repo is via-IR only. The column must still appear, carrying the note.
+    const swapVm = renderSolxTables([
+      entry("1inch-swap-vm-solx / cold compile solc via-ir", 267.9, {
+        times: [267.5, 268.3],
+      }),
+      entry("1inch-swap-vm-solx / cold compile solc via-ir (cpu)", 269.4, {
+        user: 269,
+        system: 0.4,
+      }),
+    ]);
+
+    assert.match(swapVm, /\| cold compile \| solc 0\.8\.34 \| solx 0\.1\.8 \|/);
+    assert.match(
+      swapVm,
+      /\| via-IR \| 267\.9 \/ 269\.4 \| ✗ does not compile³ \|/,
+    );
+    // The legacy row stays out: neither compiler has a cell or a note there.
+    assert.doesNotMatch(swapVm, /\| legacy \|/);
+  });
+
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
