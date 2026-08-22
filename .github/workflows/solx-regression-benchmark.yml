@@ -53,10 +53,12 @@ jobs:
     # the modern vaults tree (via-IR only — the tree can't compile legacy) and
     # reinstates the pre-migration foundry.toml for its forge cell;
     # graph-horizon-solx is a pnpm monorepo whose prime phase also builds
-    # workspace deps (unmeasured). OZ (~43-150 s per cell x 3 hyperfine runs)
-    # dominates, the other scenarios are smaller; plus the post-bench
-    # size/gas/dump passes — ~3h worst case in total.
-    timeout-minutes: 210
+    # workspace deps (unmeasured). Every cell runs 5 hyperfine times, for
+    # numbers tight enough to compare across tools. The last job, at 2-3
+    # runs, spent 74 min in cells plus 27 min of clone/install overhead; at
+    # 5 runs the cells alone are ~170 min, so ~3.5h in total, and the
+    # timeout below carries headroom above that.
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
