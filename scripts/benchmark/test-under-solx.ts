@@ -1399,6 +1399,33 @@ export function bytecodeScope(inventory: InventorySummary): {
       };
 }
 
+/**
+ * Why this control cannot serve as a baseline, or null when it ran the suite.
+ *
+ * The single notion of "the control actually ran" the verdicts share: it
+ * decides both the pass-uncontrolled label and whether a control's test count
+ * is low enough to mean anything.
+ */
+function controlNotWorking(
+  control: RunRecord,
+  controlTotal: number,
+): string | null {
+  const controlProblem = summaryProblems(control);
+  const controlScope = bytecodeScope(control.inventory);
+  return !control.provenance.ok
+    ? `control provenance failed: ${control.provenance.problems.join("; ")}`
+    : controlProblem !== null
+      ? `control-side issue: ${controlProblem}`
+      : controlTotal === 0
+        ? "the control executed no tests"
+        : // Scoped like every other artifact claim here: on a repo that also
+          // compiles solc ballast, the project-wide count stays non-zero even
+          // when the control's own subject compile produced nothing.
+          controlScope.scope.artifactCount === 0
+          ? `the control produced no artifacts ${controlScope.label}`
+          : null;
+}
+
 export function classify(
   solx: RunRecord,
   control: RunRecord,
@@ -1533,6 +1560,26 @@ export function classify(
     };
   }
 
+  // The same shortfall the other way round. Only a control that actually ran
+  // the suite has a test universe to be short of: the shapes that produce a
+  // pass-uncontrolled verdict below never ran it, and their low counts are
+  // already reported as what they are.
+  if (
+    controlNotWorking(control, controlTotal) === null &&
+    controlTotal < solxTotal * UNIVERSE_SHORTFALL_FLOOR
+  ) {
+    const share = ((controlTotal / solxTotal) * 100).toFixed(1);
+    return {
+      verdict: "harness-failures",
+      detail:
+        `test universe mismatch: the control executed ${controlTotal} tests ` +
+        `against solx's ${solxTotal} (${share}%, below the ` +
+        `${(UNIVERSE_SHORTFALL_FLOOR * 100).toFixed(0)}% floor) — the two sides ` +
+        `did not run the same suite, so the set-difference is not a solx result ` +
+        `(check the control build log)`,
+    };
+  }
+
   // Per-contract bytecode presence, against the control. A contract the
   // control compiled to code and solx compiled to nothing is the defect class
   // this whole comparison exists to catch, and it is invisible in test counts
@@ -1563,20 +1610,7 @@ export function classify(
   // it is not a controlled pass either: without a control there is nothing to
   // set-difference against, so it gets its own verdict.
   if (solx.failures.length === 0 && solx.exitCode === 0) {
-    const controlProblem = summaryProblems(control);
-    const controlScope = bytecodeScope(control.inventory);
-    const controlIssue = !control.provenance.ok
-      ? `control provenance failed: ${control.provenance.problems.join("; ")}`
-      : controlProblem !== null
-        ? `control-side issue: ${controlProblem}`
-        : controlTotal === 0
-          ? "the control executed no tests"
-          : // Scoped like every other artifact claim here: on a repo that also
-            // compiles solc ballast, the project-wide count stays non-zero even
-            // when the control's own subject compile produced nothing.
-            controlScope.scope.artifactCount === 0
-            ? `the control produced no artifacts ${controlScope.label}`
-            : null;
+    const controlIssue = controlNotWorking(control, controlTotal);
     if (controlIssue !== null) {
       return {
         verdict: "pass-uncontrolled",

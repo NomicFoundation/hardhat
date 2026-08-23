@@ -772,6 +772,53 @@ describe("classify", () => {
     );
   });
 
+  it("calls a control-side test-universe shortfall harness-failures", () => {
+    // The mirror of the shortfall above: whichever side lost the suites, the
+    // two sides did not run the same one, so the set-difference is not a
+    // solx result.
+    const result = classify(
+      run({ passing: 706 }),
+      run({ side: "control", passing: 100 }),
+      COMPARABLE,
+    );
+    assert.equal(result.verdict, "harness-failures");
+    assert.match(result.detail, /the control executed 100 tests/);
+    assert.match(result.detail, /below the 90% floor/);
+  });
+
+  it("accepts a control count just inside the floor", () => {
+    assert.equal(
+      classify(
+        run({ passing: 100 }),
+        run({ side: "control", passing: 90 }),
+        COMPARABLE,
+      ).verdict,
+      "pass",
+    );
+  });
+
+  it("does not read a control that never ran the suite as a shortfall", () => {
+    // The pass-uncontrolled shapes: a control whose own run is untrustworthy
+    // has no test universe to be short of, so its low count is not evidence
+    // about solx.
+    const result = classify(
+      run({ passing: 100 }),
+      run({ side: "control", passing: 5, exitCode: 1, failing: 0 }),
+      COMPARABLE,
+    );
+    assert.equal(result.verdict, "pass-uncontrolled");
+  });
+
+  it("does not read a control that produced no artifacts as a shortfall", () => {
+    const result = classify(
+      run({ passing: 100 }),
+      withInventory([], { side: "control", passing: 5 }),
+      COMPARABLE,
+    );
+    assert.equal(result.verdict, "pass-uncontrolled");
+    assert.match(result.detail, /produced no artifacts/);
+  });
+
   it("flags contracts empty under solx and non-empty on the control", () => {
     const result = classify(run(), run({ side: "control" }), {
       ...COMPARABLE,
