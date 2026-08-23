@@ -19,6 +19,16 @@ Read the Limitations section before quoting any number here. Two limitations are
 almost every figure: the harness changed between the two evaluations, and solx's embedded solc
 front end changed within version 0.8.34.
 
+## Method, in brief
+
+Both compilers get the same inputs: the same source files at the same pinned commits, with the
+same pragma relaxation applied once to the checkout both sides compile. The subject version is
+Solidity 0.8.34 on both sides, targeting EVM `osaka`; where a repository pins older compilers,
+those trees stay on upstream's own solc on both sides. Fuzz seeds are pinned, so both sides see
+identical fuzz inputs. Every comparison ran on one machine, specified under Environment.
+Optimizer settings differ by design: solx always optimizes (its default is -O1, and it has no
+optimizer-off mode), while the solc control runs each repository's own optimizer settings.
+
 ## The headline number, and how it was counted
 
 14,111 distinct tests executed under solx. All 14,111 had a same-pipeline solc control.
@@ -79,7 +89,7 @@ via-IR = `solx-0.1.8-via-ir` vs `solc-via-ir`.
 
 † Control-only failure under solc-via-ir; not a solx problem (see below).
 ‡ One test fails under BOTH compilers. Excluded from the verdict, so "pass" here does not mean the
-suite was green. The two sides' failure text differs, and that difference is Finding 3 — not
+suite was green. The two sides' failure text differs, and that difference is Finding 2 — not
 evidence of divergent behaviour.
 § Uncontrolled. The same-pipeline control produced nothing, so this row has no differential
 comparison behind it. The 0.1.7 evaluation reported this same shape as "pass" with a footnote; the
@@ -98,7 +108,9 @@ The other 0.1.7 compile failure is gone. solx 0.1.8 compiles aave-v4's legacy tr
 15.6 GiB host that OOM-killed 0.1.7, and a controlled replay attributes that to the compiler.
 
 The EIP-170 finding from the 0.1.7 evaluation does not survive being measured properly. It is real
-on two repositories, not nine, and on two others the solc control overshoots and solx does not.
+on four repositories, not nine — graph-horizon, aave-v4, openzeppelin and lidofinance-core — and
+on uniswap the solc control overshoots where solx does not. On 1inch-swap-vm only the control
+built, with five contracts over.
 
 What this is not: a correctness result. The 0.1.7 evaluation's positive control showed the setup can
 report a solx-side-only failure; that control was not repeated here. Nothing here shows these suites
@@ -220,7 +232,7 @@ Both were attributed to solc in the 0.1.7 document without an established mechan
 Read together, that is what one would expect if the first is deterministic and the second
 intermittent. Neither is a solx observation. Neither has an established mechanism.
 
-## Finding 1: EIP-170 overshoot is real on two repositories, not nine
+## Finding 1: EIP-170 overshoot is real on four repositories, not nine
 
 The 24,576 B EIP-170 limit was NOT enforced in any run here, so these are compile-time
 observations. The `solidity` runner exposes no deployed-code-size setting, and both Mocha
@@ -276,22 +288,7 @@ The 0.1.7 table counted compiler warnings, and its control column was almost ent
 empty warning column is an absence of warning text, not a measurement of compliant output. The
 0.1.7 document says so in a caveat; its table reads the other way.
 
-## Finding 2: the memory-unsafe-assembly probes still produce no signal
-
-Two repositories run with `EVM_DISABLE_MEMORY_SAFE_ASM_CHECK=1`, where solx spilling past
-unannotated assembly could in principle corrupt memory.
-
-- graph-horizon: the flagged `RecurringCollector` spill is still present, 26 occurrences in the
-  solx legacy log — the same count the 0.1.7 evaluation reports — alongside 58
-  memory-safe-assembly warnings. All 574 tests pass on both pipelines. So: no signal.
-- aave-v4: the flagged region is a legacy-pipeline spill in `SpokeInstance`. Unlike 0.1.7, the
-  legacy build now completes and all 1,559 tests pass. So: still no signal, but for the first time
-  the code was actually built and run rather than never compiled.
-
-No coverage was measured. "No signal" cannot be distinguished from "the flagged code was never
-reached".
-
-## Finding 3: stack-trace quality under solx is still degraded
+## Finding 2: stack-trace quality under solx is still degraded
 
 Compared on solady's shared `BlockHashLib` failure, which fails under both compilers, so the
 compiler is the only variable.
@@ -312,26 +309,7 @@ difference is this finding, not evidence that the two compilers behaved differen
 The pinned seed is more deterministic than the 0.1.7 document claimed: that counterexample's
 calldata is byte-identical, all 266 characters, across 0.1.7 via-IR, 0.1.7 legacy and 0.1.8 legacy.
 
-## Finding 4: gas divergence, measured for the first time
-
-The 0.1.7 evaluation noted that a differential gas assertion was available and unused, so its
-expected-divergence category stayed empty. It was executed here on uniswap-v4-core, and it fails.
-
-| pair | outcome | reason | baseline | function gas | snapshot cheatcodes | total |
-|---|---|---|---|---|---|--:|
-| legacy | diverged | gas-differences | 598 entries + 20 files | 597 changed, 0 added, 0 removed | 89 changed | 686 |
-| via-IR | diverged | gas-differences | 598 entries + 20 files | 597 changed, 0 added, 0 removed | 92 changed | 689 |
-
-`added` and `removed` are zero on every section, so both runs of each pair measured the same set of
-functions. That is what makes this a gas result rather than a suite mismatch. Two independent
-compilers, an identical measured population, and 597 of 598 function measurements differ.
-
-The same probe on solady returned **inconclusive, reason `control-tests-failed`**, on both pairs,
-and that is the correct answer: solady's one shared failing test means the control's `--snapshot`
-run did not pass, so the plugin wrote no baseline and there was nothing to compare against.
-Reporting that as a divergence would have been a claim about a comparison that never ran.
-
-## Finding 5: build determinism
+## Finding 3: build determinism
 
 uniswap-v4-core, both pairs: the same profile compiled twice from clean produced identical artifact
 sizes. All four child exit codes 0, 139 artifacts each compile, hashes equal, zero differing
@@ -339,6 +317,24 @@ contracts.
 
 This is a property of one compiler, not a repeated measurement of a pair. The test suites still ran
 once each. It is not the repetition analysis that was considered and dropped.
+
+## Expected divergence and non-findings
+
+**Gas divergence is expected, and was observed.** The differential gas assertion the 0.1.7
+evaluation left unused ran here on uniswap-v4-core: on both pairs the measured population is
+identical (598 function entries, none added or removed) and 597 of the 598 function measurements
+differ. Two different code generators are expected to produce different gas, and gas equivalence
+is a stated solx non-goal, so this is recorded as expected divergence rather than as a finding. It
+also doubles as evidence that the solx side genuinely executed solx-compiled bytecode. The same
+probe on solady returned inconclusive (`control-tests-failed`), correctly: the control's snapshot
+run did not pass, so there was no baseline to compare against.
+
+**The memory-unsafe-assembly probes still produce no signal.** graph-horizon and aave-v4 run with
+`EVM_DISABLE_MEMORY_SAFE_ASM_CHECK=1`, and each carries a flagged region where solx spilling past
+unannotated assembly could in principle corrupt memory. The graph-horizon spill is still present
+(26 occurrences in the solx legacy log, the 0.1.7 count) and all 574 tests pass on both pipelines;
+aave-v4's flagged legacy build now completes — unlike 0.1.7 — and all 1,559 tests pass. No coverage
+was measured, so "no signal" cannot be distinguished from "the flagged code was never reached".
 
 ## Control-only failures
 
@@ -454,7 +450,7 @@ each.
 
 We build Hardhat, EDR and the Solidity stack-trace decoder. solx is a third party's compiler. The
 harness, test runner, EVM and trace decoder used throughout this evaluation are our own software.
-Findings 2 and 3 in particular run through components we control.
+Finding 2 and the expected-divergence notes in particular run through components we control.
 
 ## How this was produced
 
