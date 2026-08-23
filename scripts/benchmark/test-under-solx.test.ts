@@ -52,6 +52,7 @@ import {
   parseCounts,
   parseGasSectionCounts,
   parseMochaFailures,
+  parsePair,
   parseSolidityFailures,
   renderMarkdown,
   type RunRecord,
@@ -224,6 +225,59 @@ describe("leafName", () => {
   });
 });
 
+describe("parsePair", () => {
+  it("splits an evaluation pair", () => {
+    assert.deepEqual(parsePair("solx-via-ir:solc-via-ir"), {
+      name: "solx-via-ir-vs-solc-via-ir",
+      solxProfile: "solx-via-ir",
+      controlProfile: "solc-via-ir",
+      subjectKind: "solx",
+    });
+  });
+
+  it("splits a calibration pair", () => {
+    assert.deepEqual(parsePair("default:solc-no-opt", "solc"), {
+      name: "default-vs-solc-no-opt",
+      solxProfile: "default",
+      controlProfile: "solc-no-opt",
+      subjectKind: "solc",
+    });
+  });
+
+  it("rejects a malformed pair, naming the flag that carried it", () => {
+    assert.throws(() => parsePair("default"), /--pair must be/);
+    assert.throws(() => parsePair(":default"), /--pair must be/);
+    assert.throws(
+      () => parsePair("a:b:c", "solc"),
+      /--calibration-pair must be/,
+    );
+  });
+
+  it("rejects a --pair whose subject is not a solx profile", () => {
+    // A mistyped subject profile otherwise surfaces only after a full build,
+    // as an invalid-provenance row hours into a sweep.
+    assert.throws(
+      () => parsePair("slox-via-ir:default"),
+      /--pair expects a solx subject profile/,
+    );
+    assert.throws(
+      () => parsePair("default:solc-no-opt"),
+      /--pair expects a solx subject profile/,
+    );
+  });
+
+  it("rejects a solx profile on either side of a calibration pair", () => {
+    assert.throws(
+      () => parsePair("solx:solc-no-opt", "solc"),
+      /--calibration-pair is solc-vs-solc/,
+    );
+    assert.throws(
+      () => parsePair("default:solx-via-ir", "solc"),
+      /--calibration-pair is solc-vs-solc/,
+    );
+  });
+});
+
 describe("evaluateProvenance", () => {
   it("accepts a solx run whose subject build-info is solx at the pin", () => {
     const result = evaluateProvenance([buildInfo()], "solx", PIN);
@@ -304,6 +358,41 @@ describe("evaluateProvenance", () => {
     );
     assert.equal(result.ok, true);
     assert.equal(result.buildInfoCount, 2);
+    assert.equal(result.subjectCount, 1);
+  });
+
+  it("rejects a calibration side carrying solx build-info", () => {
+    // Both sides of a calibration pair are solc, so a solx build-info anywhere
+    // on either of them means the row is not the comparison it claims to be.
+    const result = evaluateProvenance([buildInfo()], "solc", PIN);
+    assert.equal(result.ok, false);
+    assert.match(
+      result.problems.join(" "),
+      /compilerType "slangSolx" on a solc calibration run/,
+    );
+  });
+
+  it("rejects a calibration subject with no build-info at the subject version", () => {
+    const result = evaluateProvenance(
+      [buildInfo({ solcVersion: "0.8.25", compilerType: "solc" })],
+      "solc",
+      PIN,
+    );
+    assert.equal(result.ok, false);
+    assert.equal(result.subjectCount, 0);
+    assert.match(
+      result.problems.join(" "),
+      /nothing proves the subject profile compiled/,
+    );
+  });
+
+  it("accepts a calibration side that is plain solc at the subject version", () => {
+    const result = evaluateProvenance(
+      [buildInfo({ compilerType: "solc", solcLongVersion: "0.8.34+commit" })],
+      "solc",
+      PIN,
+    );
+    assert.equal(result.ok, true);
     assert.equal(result.subjectCount, 1);
   });
 
@@ -1050,6 +1139,19 @@ describe("classify", () => {
     const result = classify(solx, control, COMPARABLE);
     assert.equal(result.verdict, "harness-failures");
     assert.match(result.detail, /set-difference not computable/);
+  });
+
+  it("names the subject profile rather than solx on a calibration row", () => {
+    // Both sides of a calibration pair are solc, so a detail that says "solx"
+    // would attribute a solc result to a compiler that never ran.
+    const result = classify(
+      run({ passing: 0, failing: 0 }),
+      run({ side: "control", passing: 500 }),
+      COMPARABLE,
+      { subjectLabel: "default" },
+    );
+    assert.match(result.detail, /default executed no tests/);
+    assert.equal(result.detail.includes("solx"), false);
   });
 
   it("surfaces a compile-error pattern found in a passing run's log", () => {
@@ -2264,6 +2366,65 @@ describe("renderMarkdown", () => {
       "0.1.8",
     );
     assert.match(markdown, /pre-scoping record/);
+  });
+
+  it("keeps a calibration record out of the matrix and the headline", () => {
+    const markdown = renderMarkdown(
+      [
+        pairRecord({
+          scenarioId: "calibration-only",
+          subjectCompiler: "solc",
+          solxProfile: "default",
+          controlProfile: "solc-no-opt",
+          pair: "default-vs-solc-no-opt",
+        }),
+      ],
+      "0.1.8",
+    );
+    const [before, section] = markdown.split(
+      "## solc optimizer-off calibration",
+    );
+    assert.ok(section !== undefined, "expected a calibration section");
+    // Nothing above the section — neither the headline nor the matrix.
+    assert.equal(before.includes("calibration-only"), false);
+    assert.match(
+      section,
+      /\| calibration-only \| solidity \| default vs solc-no-opt \| yes \|/,
+    );
+  });
+
+  it("says why the optimizer-off side did not build, in its own words", () => {
+    const markdown = renderMarkdown(
+      [
+        pairRecord({
+          subjectCompiler: "solc",
+          solxProfile: "default",
+          controlProfile: "solc-no-opt",
+          verdict: "control-cannot-compile",
+          control: run({
+            side: "control",
+            exitCode: 1,
+            passing: null,
+            failing: null,
+            skipped: null,
+            compileErrorMarker: true,
+            compileErrorExcerpt: ["CompilerError: Stack too deep"],
+          }),
+        }),
+      ],
+      "0.1.8",
+    );
+    assert.match(markdown, /NO — exit 1: CompilerError: Stack too deep/);
+  });
+
+  it("leaves a record with no subjectCompiler in the evaluation matrix", () => {
+    const record = pairRecord();
+    const markdown = renderMarkdown([record], "0.1.8");
+    assert.equal(markdown.includes("## solc optimizer-off calibration"), false);
+    const matrix = markdown.split("## Matrix")[1].split("\n## ")[0];
+    assert.ok(
+      matrix.includes(`${record.solxProfile} vs ${record.controlProfile}`),
+    );
   });
 
   it("says a shared failure was not compared when a side is missing it", () => {

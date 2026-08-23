@@ -76,6 +76,14 @@ OPTIONS
                        (solx-<pin>:default) and the pinned via-IR pair
                        (solx-<pin>-via-ir:solc-via-ir). <pin> is read from
                        scripts/benchmark/pinned-tool-versions.sh.
+  --calibration-pair <a:b>
+                       subjectSolcProfile:controlSolcProfile. Repeatable, no
+                       default. BOTH sides are solc, so the row says nothing
+                       about solx: it measures how much solc's own optimizer
+                       toggle perturbs test outcomes, which is the scale a
+                       solx-vs-solc differential has to be read against. Rendered
+                       in its own report section and never counted in the
+                       headline. A solx profile on either side is rejected.
   --tests <paths>      Space-separated test files forwarded to the runner
                        (default: the full suite)
   --out <dir>          Evidence dir (default: solx-test-evaluation-evidence)
@@ -167,13 +175,26 @@ function readSolxPin(): string {
   return match[1];
 }
 
-interface Pair {
+export interface Pair {
   name: string;
   solxProfile: string;
   controlProfile: string;
+  /** Which compiler the subject side runs: "solc" on a calibration pair. */
+  subjectKind: "solx" | "solc";
 }
 
-function parsePair(raw: string): Pair {
+/**
+ * One `--pair` / `--calibration-pair` argument.
+ *
+ * The profile-name tripwires are the point: a mistyped or misplaced profile
+ * name is otherwise only discovered after a full build of the scenario, as an
+ * invalid-provenance row hours into a sweep.
+ */
+export function parsePair(
+  raw: string,
+  subjectKind: "solx" | "solc" = "solx",
+): Pair {
+  const flag = subjectKind === "solx" ? "--pair" : "--calibration-pair";
   const [solxProfile, controlProfile, ...rest] = raw.split(":");
   if (
     solxProfile === undefined ||
@@ -183,13 +204,33 @@ function parsePair(raw: string): Pair {
     rest.length > 0
   ) {
     throw new Error(
-      `--pair must be <solxProfile>:<controlProfile>, got: ${raw}`,
+      `${flag} must be <${subjectKind === "solx" ? "solxProfile" : "subjectProfile"}>:<controlProfile>, got: ${raw}`,
     );
+  }
+  if (subjectKind === "solx" && !solxProfile.startsWith("solx")) {
+    throw new Error(
+      `${flag} expects a solx subject profile, got "${solxProfile}" in ${raw} ` +
+        `— use --calibration-pair for a solc-vs-solc row`,
+    );
+  }
+  if (subjectKind === "solc") {
+    for (const [role, profile] of [
+      ["subject", solxProfile],
+      ["control", controlProfile],
+    ] as const) {
+      if (profile.startsWith("solx")) {
+        throw new Error(
+          `${flag} is solc-vs-solc, but its ${role} profile "${profile}" is a ` +
+            `solx profile — use --pair for a solx subject`,
+        );
+      }
+    }
   }
   return {
     name: `${solxProfile}-vs-${controlProfile}`,
     solxProfile,
     controlProfile,
+    subjectKind,
   };
 }
 
@@ -446,6 +487,13 @@ function runChild(
 // Provenance
 // ---------------------------------------------------------------------------
 
+/**
+ * Which role a run plays in its pair. "solc" is a calibration pair's subject:
+ * a solc profile under test, so it owes the subject-existence proof a solx
+ * subject owes while carrying the no-solx-build-info expectation of a control.
+ */
+export type RunSide = "solx" | "solc" | "control";
+
 export interface ProvenanceResult {
   ok: boolean;
   buildInfoCount: number;
@@ -612,9 +660,11 @@ function scanProject(projectDir: string, sinceMs: number): ProjectScan {
  *
  * Every build-info entry at the benchmark solc version (0.8.34) must be
  * compilerType "slangSolx" (SOLX_COMPILER_TYPE — the type the plugin
- * registers) with the pin in solcLongVersion on solx runs; control runs must
- * contain no solx build-info at all. Scoped to the subject version because
- * lido-core legitimately carries solc ballast build-infos.
+ * registers) with the pin in solcLongVersion on solx runs; every non-solx side
+ * must contain no solx build-info at all. Scoped to the subject version because
+ * lido-core legitimately carries solc ballast build-infos. A calibration
+ * subject ("solc") owes both: no solx build-info anywhere, and at least one
+ * build-info at the subject version to prove its own profile compiled.
  *
  * Note what this does NOT establish: which compiler produced the bytecode
  * that actually executed, or that any bytecode was produced at all. The
@@ -623,7 +673,7 @@ function scanProject(projectDir: string, sinceMs: number): ProjectScan {
  */
 export function evaluateProvenance(
   infos: BuildInfoSummary[],
-  side: "solx" | "control",
+  side: RunSide,
   pin: string,
 ): ProvenanceResult {
   const problems: string[] = [];
@@ -649,9 +699,10 @@ export function evaluateProvenance(
       );
       continue;
     }
-    if (side === "control" && compilerType === SOLX_COMPILER_TYPE) {
+    if (side !== "solx" && compilerType === SOLX_COMPILER_TYPE) {
       problems.push(
-        `${name}: compilerType "${SOLX_COMPILER_TYPE}" on a control run`,
+        `${name}: compilerType "${SOLX_COMPILER_TYPE}" on a ` +
+          `${side === "control" ? "control" : "solc calibration"} run`,
       );
     }
     if (solcVersion !== BENCHMARK_SOLC_VERSION) {
@@ -675,9 +726,10 @@ export function evaluateProvenance(
     }
   }
 
-  if (side === "solx" && subjectCount === 0) {
+  if (side !== "control" && subjectCount === 0) {
     problems.push(
-      `no build-info at solcVersion ${BENCHMARK_SOLC_VERSION} — nothing proves solx compiled the subject`,
+      `no build-info at solcVersion ${BENCHMARK_SOLC_VERSION} — nothing proves ` +
+        `${side === "solx" ? "solx" : "the subject profile"} compiled the subject`,
     );
   }
   return {
@@ -692,7 +744,7 @@ export function evaluateProvenance(
 function checkProvenance(
   scan: ProjectScan,
   projectDir: string,
-  side: "solx" | "control",
+  side: RunSide,
   pin: string,
 ): ProvenanceResult {
   const result = evaluateProvenance(scan.summaries, side, pin);
@@ -1051,7 +1103,7 @@ export type InventorySummary = Omit<InventoryResult, "entries">;
 
 export interface RunRecord {
   profile: string;
-  side: "solx" | "control";
+  side: RunSide;
   command: string;
   exitCode: number | null;
   signal: string | null;
@@ -1083,7 +1135,7 @@ export function isResourceLimited(run: ExecResult): boolean {
 }
 
 function runSide(
-  side: "solx" | "control",
+  side: RunSide,
   profile: string,
   runner: string,
   testFiles: string[],
@@ -1385,7 +1437,10 @@ export interface PairRecord {
   pair: string;
   solxProfile: string;
   controlProfile: string;
-  /** The compiler under test; absent on every record written so far, all solx. */
+  /**
+   * The compiler under test: "solc" on a calibration pair, whose two sides are
+   * both solc. Absent on records written before the field existed, all solx.
+   */
   subjectCompiler?: "solx" | "solc";
   /** 1-based repetition index; >1 rows ran with a different fuzz seed. */
   repetition: number;
@@ -1535,6 +1590,13 @@ function controlNotWorking(
 export interface ClassifyOptions {
   /** The control's profile name, for the human-readable details. */
   controlProfile?: string;
+  /**
+   * What to call the subject side in the details. Defaults to "solx"; a
+   * calibration pair passes its subject profile name, because both of its
+   * sides are solc and a detail saying "solx" would name a compiler that
+   * never ran.
+   */
+  subjectLabel?: string;
 }
 
 export function classify(
@@ -1544,6 +1606,7 @@ export function classify(
   options: ClassifyOptions = {},
 ): { verdict: Verdict; detail: string } {
   const controlProfile = options.controlProfile ?? "solc";
+  const subject = options.subjectLabel ?? "solx";
   // A process that never started is a statement about this host, not about
   // the compiler. It leaves a null exit code and no output, which every
   // cannot-compile guard below would read as a build that was rejected.
@@ -1551,8 +1614,9 @@ export function classify(
     return {
       verdict: "harness-failures",
       detail:
-        `the solx run could not be spawned on this host: ${solx.spawnError} ` +
-        `— no compiler ran, so this row says nothing about solx`,
+        `the ${subject} run could not be spawned on this host: ` +
+        `${solx.spawnError} — no compiler ran, so this row says nothing ` +
+        `about ${subject}`,
     };
   }
 
@@ -1574,7 +1638,7 @@ export function classify(
     return {
       verdict: "cannot-compile",
       detail:
-        `the solx build wrote ${solxScope.artifactCount} artifacts ` +
+        `the ${subject} build wrote ${solxScope.artifactCount} artifacts ` +
         `${scopeLabel} and NONE carries bytecode — the compiler produced no ` +
         `executable code while reporting success (exit ${solx.exitCode}); ` +
         `check the run log for a fatal error on stderr`,
@@ -1601,7 +1665,8 @@ export function classify(
     return {
       verdict: "invalid-provenance",
       detail:
-        "provenance check failed — the run is INVALID, not a solx result: " +
+        `provenance check failed — the run is INVALID, not a ${subject} ` +
+        `result: ` +
         solx.provenance.problems.join("; "),
     };
   }
@@ -1610,7 +1675,7 @@ export function classify(
   // compared against, so it can only ever weaken the asserts below.
   const unparseable = [
     ...(solx.inventory.unparseableCount > 0
-      ? [`${solx.inventory.unparseableCount} on the solx side`]
+      ? [`${solx.inventory.unparseableCount} on the ${subject} side`]
       : []),
     ...(control.inventory.unparseableCount > 0
       ? [`${control.inventory.unparseableCount} on the control side`]
@@ -1644,7 +1709,8 @@ export function classify(
     return {
       verdict: "harness-failures",
       detail:
-        `test universe mismatch: solx executed no tests (the control executed ` +
+        `test universe mismatch: ${subject} executed no tests (the control ` +
+        `executed ` +
         `${controlTotal}) — a green exit that ran nothing is not a pass (check ` +
         `the build log for swallowed compiler errors)`,
     };
@@ -1677,11 +1743,11 @@ export function classify(
     return {
       verdict: "harness-failures",
       detail:
-        `test universe mismatch: solx executed ${solxTotal} tests against the ` +
-        `control's ${controlTotal} (${share}%, below the ` +
+        `test universe mismatch: ${subject} executed ${solxTotal} tests ` +
+        `against the control's ${controlTotal} (${share}%, below the ` +
         `${(UNIVERSE_SHORTFALL_FLOOR * 100).toFixed(0)}% floor) — the two sides ` +
-        `did not run the same suite, so the set-difference is not a solx result ` +
-        `(check the build log for swallowed compiler errors)`,
+        `did not run the same suite, so the set-difference is not a ${subject} ` +
+        `result (check the build log for swallowed compiler errors)`,
     };
   }
 
@@ -1698,10 +1764,10 @@ export function classify(
       verdict: "harness-failures",
       detail:
         `test universe mismatch: the control executed ${controlTotal} tests ` +
-        `against solx's ${solxTotal} (${share}%, below the ` +
+        `against ${subject}'s ${solxTotal} (${share}%, below the ` +
         `${(UNIVERSE_SHORTFALL_FLOOR * 100).toFixed(0)}% floor) — the two sides ` +
-        `did not run the same suite, so the set-difference is not a solx result ` +
-        `(check the control build log)`,
+        `did not run the same suite, so the set-difference is not a ${subject} ` +
+        `result (check the control build log)`,
     };
   }
 
@@ -1714,9 +1780,10 @@ export function classify(
       verdict: "harness-failures",
       detail:
         `bytecode inventory mismatch: ${inventory.emptyUnderSolx.length} ` +
-        `contract(s) carry bytecode under the control and NONE under solx ` +
-        `(${nameSome(inventory.emptyUnderSolx)}) — the two sides did not ` +
-        `execute the same code, so the set-difference is not a solx result`,
+        `contract(s) carry bytecode under the control and NONE under ` +
+        `${subject} (${nameSome(inventory.emptyUnderSolx)}) — the two sides ` +
+        `did not execute the same code, so the set-difference is not a ` +
+        `${subject} result`,
     };
   }
   if (inventory.comparable && inventory.missingUnderSolx.length > 0) {
@@ -1724,8 +1791,8 @@ export function classify(
       verdict: "harness-failures",
       detail:
         `artifact inventory mismatch: the control produced ` +
-        `${inventory.missingUnderSolx.length} artifact(s) that the solx build ` +
-        `did not (${nameSome(inventory.missingUnderSolx)}) — the two sides ` +
+        `${inventory.missingUnderSolx.length} artifact(s) that the ${subject} ` +
+        `build did not (${nameSome(inventory.missingUnderSolx)}) — the two sides ` +
         `did not compile the same contract set`,
     };
   }
@@ -1740,9 +1807,10 @@ export function classify(
       return {
         verdict: "pass-uncontrolled",
         detail:
-          `solx ran ${solxTotal} test(s) clean, but this row has NO working ` +
-          `control (${controlIssue}), so nothing here is a differential ` +
-          `result — it establishes the test universe under solx only` +
+          `${subject} ran ${solxTotal} test(s) clean, but this row has NO ` +
+          `working control (${controlIssue}), so nothing here is a ` +
+          `differential result — it establishes the test universe under ` +
+          `${subject} only` +
           markerNote(solx) +
           markerNote(control),
       };
@@ -1759,8 +1827,8 @@ export function classify(
     return {
       verdict: "harness-failures",
       detail:
-        "control executed no tests — set-difference not computable for the " +
-        "solx failures (check the control build log)",
+        `control executed no tests — set-difference not computable for the ` +
+        `${subject} failures (check the control build log)`,
     };
   }
 
@@ -1901,7 +1969,16 @@ function fmtCounts(run: RunRecord | null): string {
   return `${run.passing ?? 0}P/${run.failing ?? 0}F/${run.skipped ?? 0}S`;
 }
 
+/** Records whose subject side is solc: the calibration pairs. See --calibration-pair. */
+function isCalibration(record: PairRecord): boolean {
+  return (record.subjectCompiler ?? "solx") === "solc";
+}
+
 export function renderMarkdown(records: PairRecord[], pin: string): string {
+  // Every solx-worded table below reads the evaluation partition only: a
+  // calibration row's two sides are both solc, so it belongs in none of them.
+  const evaluation = records.filter((r) => !isCalibration(r));
+  const calibration = records.filter(isCalibration);
   const headline = computeHeadline(records);
   const lines = [
     `# solx test-execution evaluation — running matrix`,
@@ -1933,7 +2010,7 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
     "| scenario | runner | pair | verdict | solx | control | solx-only | both | EIP-170 | flaky |",
     "|---|---|---|---|---|---|--:|--:|--:|--:|",
   ];
-  for (const r of records) {
+  for (const r of evaluation) {
     const flaky = r.determinism.filter(
       (d) => d.outcome === "flaky-under-evaluation",
     ).length;
@@ -1988,7 +2065,7 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
     const value = read(inv.subjectDeployable);
     return value === null ? "—" : String(value);
   };
-  for (const r of records) {
+  for (const r of evaluation) {
     const si = r.solx.inventory;
     const ci = r.control?.inventory;
     const harness =
@@ -2013,7 +2090,7 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
   // Nullish, not !== null: a record written before the probes existed has no
   // such key at all, and undefined would pass a !== null filter and then be
   // dereferenced.
-  const withGas = records.filter((r) => r.gasSnapshot != null);
+  const withGas = evaluation.filter((r) => r.gasSnapshot != null);
   if (withGas.length > 0) {
     lines.push(
       "",
@@ -2046,7 +2123,7 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
     }
   }
 
-  const withRepro = records.filter((r) => r.buildRepro != null);
+  const withRepro = evaluation.filter((r) => r.buildRepro != null);
   if (withRepro.length > 0) {
     lines.push(
       "",
@@ -2071,6 +2148,54 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
     }
   }
 
+  if (calibration.length > 0) {
+    /** Whether the optimizer-off side built, and what it said when it did not. */
+    const noOptState = (r: PairRecord): string => {
+      if (r.verdict === "control-cannot-compile") {
+        const first = (r.control?.compileErrorExcerpt ?? [])[0];
+        return (
+          `NO — exit ${r.control?.exitCode ?? "?"}` +
+          (first === undefined ? "" : `: ${first}`)
+        );
+      }
+      if (
+        r.control != null &&
+        (r.control.passing !== null || r.control.failing !== null)
+      ) {
+        return "yes";
+      }
+      return r.verdictDetail === "" ? r.verdict : r.verdictDetail;
+    };
+    // A compiler error carrying a pipe would otherwise split the row.
+    const noOptCompiles = (r: PairRecord): string =>
+      noOptState(r).replaceAll("|", "\\|");
+    lines.push(
+      "",
+      "## solc optimizer-off calibration",
+      "",
+      "Both sides are solc: the subject profile against the same compiler " +
+        "with its optimizer turned off. Nothing here is a statement about " +
+        "solx — it measures how much solc's own optimizer toggle perturbs " +
+        "test outcomes, which is the scale a solx-vs-solc differential has to " +
+        "be read against. These rows never enter the headline. `fail only " +
+        "with opt` are tests that fail under the subject profile and not " +
+        "without the optimizer; `fail only without opt` is the reverse. A " +
+        "`no-opt compiles` of NO is a result in its own right: the control " +
+        "could not be built, and the column carries the compiler's own words.",
+      "",
+      "| scenario | runner | pair | no-opt compiles | subject P/F/S | no-opt P/F/S | fail only with opt | fail only without opt | verdict |",
+      "|---|---|---|---|---|---|--:|--:|---|",
+    );
+    for (const r of calibration) {
+      lines.push(
+        `| ${r.scenarioId} | ${r.runner} | ${r.solxProfile} vs ${r.controlProfile} | ` +
+          `${noOptCompiles(r)} | ${fmtCounts(r.solx)} | ${fmtCounts(r.control)} | ` +
+          `${r.solxOnlyFailures.length} | ${r.controlOnlyFailures.length} | ` +
+          `**${r.verdict}** |`,
+      );
+    }
+  }
+
   // A pass computed over a set the walk could not fully read is exactly the
   // shape this harness refuses elsewhere, so a row with walk caveats gets a
   // detail block even when its verdict is a clean pass.
@@ -2082,7 +2207,7 @@ export function renderMarkdown(records: PairRecord[], pin: string): string {
           (inv.truncatedAt ?? []).length > 0 ||
           (inv.unreadable ?? []).length > 0),
     );
-  const withDetail = records.filter(
+  const withDetail = evaluation.filter(
     (r) =>
       r.verdict !== "pass" ||
       r.solxOnlyFailures.length > 0 ||
@@ -2265,6 +2390,8 @@ function regenerateReports(outDir: string, pin: string): string {
           runner: r.runner,
           solxProfile: r.solxProfile,
           controlProfile: r.controlProfile,
+          // Absent on the 0.1.7/0.1.8 records, which were all solx subjects.
+          subjectCompiler: r.subjectCompiler ?? "solx",
           repetition: r.repetition ?? 1,
           repetitions: r.repetitions ?? 1,
           fuzzSeed: r.fuzzSeed ?? null,
@@ -3284,11 +3411,13 @@ async function main(): Promise<void> {
       : discoverScenarioPathsByTag(tagArg!);
 
   const pairArgs = getArgAll("--pair");
-  const pairs = (
-    pairArgs.length > 0
+  const pairs = [
+    ...(pairArgs.length > 0
       ? pairArgs
       : [`solx-${pin}:default`, `solx-${pin}-via-ir:solc-via-ir`]
-  ).map(parsePair);
+    ).map((raw) => parsePair(raw)),
+    ...getArgAll("--calibration-pair").map((raw) => parsePair(raw, "solc")),
+  ];
 
   const testFiles = (getArg("--tests") ?? "").split(/\s+/).filter(Boolean);
   const outDir = path.resolve(
@@ -3379,6 +3508,7 @@ async function main(): Promise<void> {
           for (const pair of pairs) {
             console.log(
               `[dry-run] ${scenario.id} / ${runner} / ${pair.solxProfile} vs ${pair.controlProfile} ` +
+                `[${pair.subjectKind === "solx" ? "evaluation" : "calibration"}] ` +
                 `(rep ${repetition}/${repetitions}, seed ${seedFor(repetition)}, cwd ${projectDir})`,
             );
           }
@@ -3438,16 +3568,19 @@ async function main(): Promise<void> {
             (repetitions > 1 ? `--rep${repetition}` : "");
           const logPrefix = path.join(outDir, "logs", slug);
 
+          // A calibration pair's subject is solc, so nothing it names — the
+          // provenance side, the log file, the console label — says "solx".
+          const subjectSide = pair.subjectKind;
           const { run: solx, inventory: solxInventory } = runSide(
-            "solx",
+            subjectSide,
             pair.solxProfile,
             runner,
             testFiles,
             projectDir,
             runEnv,
             pin,
-            `${logPrefix}.solx.log`,
-            `${slug} [solx]`,
+            `${logPrefix}.${subjectSide}.log`,
+            `${slug} [${subjectSide}]`,
           );
 
           // Control-run discipline: the control always runs, even when the
@@ -3482,13 +3615,13 @@ async function main(): Promise<void> {
             both.map((f) => f.id),
           );
 
+          const subjectLabel =
+            pair.subjectKind === "solx" ? "solx" : pair.solxProfile;
           let { verdict, detail } = classify(
             solx,
             control,
             inventoryComparison,
-            {
-              controlProfile: pair.controlProfile,
-            },
+            { controlProfile: pair.controlProfile, subjectLabel },
           );
           // Only the two pass verdicts are upgraded: a control-cannot-compile
           // row has no control to set-difference against, so its solx failures
@@ -3498,7 +3631,7 @@ async function main(): Promise<void> {
             solxOnly.length > 0
           ) {
             verdict = "test-failures";
-            detail = `${solxOnly.length} test(s) fail under solx but pass under the solc control`;
+            detail = `${solxOnly.length} test(s) fail under ${subjectLabel} but pass under the solc control`;
           }
           // A pass row that contains a failure is a pass by definition (the
           // failure is not solx-specific) and reads as spotless in the matrix.
@@ -3574,6 +3707,7 @@ async function main(): Promise<void> {
             pair: pair.name,
             solxProfile: pair.solxProfile,
             controlProfile: pair.controlProfile,
+            subjectCompiler: pair.subjectKind,
             repetition,
             repetitions,
             fuzzSeed: seed,
