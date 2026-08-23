@@ -19,9 +19,11 @@ DESCRIPTION
   end-to-end/1inch-swap-vm-solx/relax-dep-pragmas.cjs) — and .git must never
   be rewritten. Fails loudly when nothing was patched: that means the pinned
   commit changed, and an unexpected source tree should not be benchmarked.
-  Fails just as loudly when a --skip-dir or --skip-path never matched
-  anything: a typo'd or upstream-renamed skip stops protecting the tree it
-  was added for, silently.
+  Fails just as loudly when a --skip-path never matched anything: a typo'd
+  or upstream-renamed skip stops protecting the tree it was added for,
+  silently. --skip-dir is exempt: it names submodule checkouts that do not
+  exist yet on a fresh clone (they appear at later re-inits), so an
+  unmatched name there is the normal first-run shape, not a defect.
 
 OPTIONS
   --scenario <name>   Required. Scenario name, so logs and failures stay
@@ -30,8 +32,8 @@ OPTIONS
   --skip-dir <name>   Directory NAME to skip wherever it appears; repeatable.
                       E.g. lib, for submodule checkouts whose pragmas are
                       already ranges and whose edits would break the
-                      harness's re-init submodule update. Must match at
-                      least one directory
+                      harness's re-init submodule update. May match nothing
+                      on a fresh clone
   --skip-path <path>  Path relative to the working directory to skip;
                       repeatable. E.g. contracts/upgrade, for a tree that
                       must keep its exact pragmas. Must match at least one
@@ -54,8 +56,9 @@ const ALWAYS_SKIPPED_DIRS = new Set(["node_modules", ".git"]);
 
 /**
  * Rewrites the exact pragmas under `root` in place, returning the number of
- * patched files. Throws when nothing was patched, and when a skip value
- * matched no directory during the walk.
+ * patched files. Throws when nothing was patched, and when a --skip-path
+ * matched no directory during the walk (a --skip-dir may match nothing: the
+ * submodule tree it protects does not exist yet on a fresh clone).
  */
 export function relaxPragmas(root: string, options: RelaxOptions): number {
   const FROM = `pragma solidity ${options.from};`;
@@ -71,7 +74,6 @@ export function relaxPragmas(root: string, options: RelaxOptions): number {
     }),
   );
 
-  const unmatchedSkipDirs = new Set(skipDirs);
   const unmatchedSkipPaths = new Set(skipPaths);
   let patched = 0;
 
@@ -85,7 +87,6 @@ export function relaxPragmas(root: string, options: RelaxOptions): number {
         if (ALWAYS_SKIPPED_DIRS.has(entry.name)) {
           continue;
         }
-        unmatchedSkipDirs.delete(entry.name);
         unmatchedSkipPaths.delete(entryPath);
         if (!skipDirs.has(entry.name) && !skipPaths.has(entryPath)) {
           walk(entryPath);
@@ -110,11 +111,8 @@ export function relaxPragmas(root: string, options: RelaxOptions): number {
     );
   }
 
-  const unmatched = [
-    ...[...unmatchedSkipDirs].map((dir) => `--skip-dir ${dir}`),
-    ...[...unmatchedSkipPaths].map((p) => `--skip-path ${p}`),
-  ];
-  if (unmatched.length > 0) {
+  if (unmatchedSkipPaths.size > 0) {
+    const unmatched = [...unmatchedSkipPaths].map((p) => `--skip-path ${p}`);
     throw new Error(
       `${options.scenario} preinstall: ${unmatched.join(", ")} matched no ` +
         `directory — the pinned commit may have renamed it. Refusing to ` +
