@@ -581,6 +581,7 @@ function run(overrides: Partial<RunRecord> = {}): RunRecord {
     inventory,
     compileErrorMarker: false,
     resourceLimited: false,
+    spawnError: null,
     logFile: "logs/x.log",
     ...overrides,
   };
@@ -608,6 +609,41 @@ describe("classify", () => {
   it("passes a clean solx run against a clean control", () => {
     const result = classify(run(), run({ side: "control" }), COMPARABLE);
     assert.equal(result.verdict, "pass");
+  });
+
+  /** The record runSide produces when the process never started at all. */
+  function spawnFailed(overrides: Partial<RunRecord> = {}): RunRecord {
+    return withInventory([], {
+      exitCode: null,
+      signal: null,
+      passing: null,
+      failing: null,
+      skipped: null,
+      spawnError: "Error: spawnSync npx ENOENT",
+      ...overrides,
+    });
+  }
+
+  it("calls a run that could not be spawned harness-failures", () => {
+    const result = classify(
+      spawnFailed(),
+      run({ side: "control" }),
+      COMPARABLE,
+    );
+    assert.equal(result.verdict, "harness-failures");
+    assert.match(result.detail, /ENOENT/);
+  });
+
+  it("never reads a failed spawn as a compiler verdict", () => {
+    // A spawn error leaves exactly what a rejected build leaves — exit null,
+    // no compile-error marker, no artifacts — so the cannot-compile guards
+    // below would publish a host failure as a solx limitation.
+    const result = classify(
+      spawnFailed({ compileErrorMarker: false }),
+      run({ side: "control" }),
+      COMPARABLE,
+    );
+    assert.notEqual(result.verdict, "cannot-compile");
   });
 
   it("calls a subject build with no bytecode cannot-compile", () => {
@@ -940,7 +976,7 @@ describe("bytecodeScope", () => {
 
 describe("isResourceLimited", () => {
   it("recognizes the two shapes an OOM kill arrives in", () => {
-    const base = { output: "", durationMs: 1 };
+    const base = { output: "", durationMs: 1, spawnError: null };
     assert.equal(
       isResourceLimited({ ...base, exitCode: null, signal: "SIGKILL" }),
       true,
@@ -952,7 +988,7 @@ describe("isResourceLimited", () => {
   });
 
   it("does not treat an ordinary failure as a resource limit", () => {
-    const base = { output: "", durationMs: 1 };
+    const base = { output: "", durationMs: 1, spawnError: null };
     assert.equal(
       isResourceLimited({ ...base, exitCode: 1, signal: null }),
       false,

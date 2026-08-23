@@ -352,6 +352,13 @@ export interface ExecResult {
   signal: string | null;
   output: string;
   durationMs: number;
+  /**
+   * Why the child never ran, when spawnSync itself failed (ENOENT, EAGAIN, a
+   * maxBuffer overrun). It leaves the same traces a rejected build does — a
+   * null exit code and no output — so the reason has to be carried explicitly
+   * or a host failure is read as a compiler result.
+   */
+  spawnError: string | null;
 }
 
 function runChild(
@@ -370,19 +377,24 @@ function runChild(
     maxBuffer: MAX_BUFFER,
   });
   const durationMs = Date.now() - started;
+  const spawnError =
+    result.error === undefined ? null : String(result.error.message);
   const output = `${result.stdout ?? ""}\n--- stderr ---\n${result.stderr ?? ""}`;
   writeFileSync(
     logFile,
-    `$ ${argv.join(" ")}\ncwd: ${cwd}\nexit: ${result.status} signal: ${result.signal}\nduration_ms: ${durationMs}\n\n${output}`,
+    `$ ${argv.join(" ")}\ncwd: ${cwd}\nexit: ${result.status} signal: ${result.signal}\n` +
+      `spawn error: ${spawnError ?? "none"}\nduration_ms: ${durationMs}\n\n${output}`,
   );
   console.error(
-    `[test-under-solx] ${label}: exit ${result.status} in ${(durationMs / 1000).toFixed(0)}s (log: ${logFile})`,
+    `[test-under-solx] ${label}: exit ${result.status} in ${(durationMs / 1000).toFixed(0)}s (log: ${logFile})` +
+      (spawnError === null ? "" : ` — SPAWN FAILED: ${spawnError}`),
   );
   return {
     exitCode: result.status,
     signal: result.signal === null ? null : String(result.signal),
     output,
     durationMs,
+    spawnError,
   };
 }
 
@@ -1009,6 +1021,8 @@ export interface RunRecord {
   compileErrorMarker: boolean;
   /** True when the run died on a signal or the shell's OOM exit code. */
   resourceLimited: boolean;
+  /** Set when the process never started; see ExecResult.spawnError. */
+  spawnError: string | null;
   logFile: string;
 }
 
@@ -1095,6 +1109,7 @@ function runSide(
       inventory: inventorySummary,
       compileErrorMarker: COMPILE_ERROR_RE.test(cleanOutput),
       resourceLimited: isResourceLimited(run),
+      spawnError: run.spawnError,
       logFile: path.relative(process.cwd(), logFile),
     },
     inventory,
@@ -1412,18 +1427,20 @@ function controlNotWorking(
 ): string | null {
   const controlProblem = summaryProblems(control);
   const controlScope = bytecodeScope(control.inventory);
-  return !control.provenance.ok
-    ? `control provenance failed: ${control.provenance.problems.join("; ")}`
-    : controlProblem !== null
-      ? `control-side issue: ${controlProblem}`
-      : controlTotal === 0
-        ? "the control executed no tests"
-        : // Scoped like every other artifact claim here: on a repo that also
-          // compiles solc ballast, the project-wide count stays non-zero even
-          // when the control's own subject compile produced nothing.
-          controlScope.scope.artifactCount === 0
-          ? `the control produced no artifacts ${controlScope.label}`
-          : null;
+  return control.spawnError != null
+    ? `the control run could not be spawned on this host: ${control.spawnError}`
+    : !control.provenance.ok
+      ? `control provenance failed: ${control.provenance.problems.join("; ")}`
+      : controlProblem !== null
+        ? `control-side issue: ${controlProblem}`
+        : controlTotal === 0
+          ? "the control executed no tests"
+          : // Scoped like every other artifact claim here: on a repo that also
+            // compiles solc ballast, the project-wide count stays non-zero even
+            // when the control's own subject compile produced nothing.
+            controlScope.scope.artifactCount === 0
+            ? `the control produced no artifacts ${controlScope.label}`
+            : null;
 }
 
 export function classify(
@@ -1431,6 +1448,18 @@ export function classify(
   control: RunRecord,
   inventory: InventoryComparison,
 ): { verdict: Verdict; detail: string } {
+  // A process that never started is a statement about this host, not about
+  // the compiler. It leaves a null exit code and no output, which every
+  // cannot-compile guard below would read as a build that was rejected.
+  if (solx.spawnError != null) {
+    return {
+      verdict: "harness-failures",
+      detail:
+        `the solx run could not be spawned on this host: ${solx.spawnError} ` +
+        `— no compiler ran, so this row says nothing about solx`,
+    };
+  }
+
   // A solx compile failure first: build-info is only written when the whole
   // build succeeds, so the provenance gate would otherwise mask a
   // cannot-compile verdict as invalid-provenance.
@@ -2057,6 +2086,7 @@ function regenerateReports(outDir: string, pin: string): string {
             durationMs: r.solx.durationMs,
             inventory: r.solx.inventory ?? null,
             resourceLimited: r.solx.resourceLimited ?? false,
+            spawnError: r.solx.spawnError ?? null,
           },
           control:
             r.control === null
@@ -2069,6 +2099,7 @@ function regenerateReports(outDir: string, pin: string): string {
                   durationMs: r.control.durationMs,
                   inventory: r.control.inventory ?? null,
                   resourceLimited: r.control.resourceLimited ?? false,
+                  spawnError: r.control.spawnError ?? null,
                 },
           solxOnlyFailures: r.solxOnlyFailures,
           bothFailures: r.bothFailures,
