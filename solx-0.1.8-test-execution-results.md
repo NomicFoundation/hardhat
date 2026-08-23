@@ -27,7 +27,9 @@ Solidity 0.8.34 on both sides, targeting EVM `osaka`; where a repository pins ol
 those trees stay on upstream's own solc on both sides. Fuzz seeds are pinned, so both sides see
 identical fuzz inputs. Every comparison ran on one machine, specified under Environment.
 Optimizer settings differ by design: solx always optimizes (its default is -O1, and it has no
-optimizer-off mode), while the solc control runs each repository's own optimizer settings.
+optimizer-off mode), while the solc control runs each repository's own optimizer settings. What
+happens with solc's optimizer disabled is measured separately — see the optimizer-off baseline
+section.
 
 ## The headline number, and how it was counted
 
@@ -336,10 +338,79 @@ unannotated assembly could in principle corrupt memory. The graph-horizon spill 
 aave-v4's flagged legacy build now completes — unlike 0.1.7 — and all 1,559 tests pass. No coverage
 was measured, so "no signal" cannot be distinguished from "the flagged code was never reached".
 
+## The optimizer-off baseline
+
+Measured after the evaluation above, on 2026-08-23, on a DIFFERENT host: 16-thread i9-11900F,
+31 GiB RAM, WSL2, Node v24.19.0. Same pinned repository commits, same pins, same fuzz seed. Do
+not compare timings or memory across the two hosts; compile outcomes and set-differences carry
+over.
+
+Why this was measured: solx always optimizes — its lowest level is -O1, there is no off — while
+the solc control above runs each repository's own optimizer settings, and optimizer-off is what a
+plain Foundry test run defaults to. So the fairness question has two halves: does the
+optimizer-off baseline even build these repositories, and how much does solc's OWN optimizer
+toggle perturb test outcomes — the scale any solx-vs-solc difference has to be read against.
+
+The runs are calibration pairs: solc against solc with the optimizer off, both sides the same
+front end, so nothing in them is a solx measurement. Fifteen repository-pipelines were attempted
+(the solidity runner's seven legacy-capable and eight via-IR-capable repositories).
+
+| repository | legacy, optimizer off | via-IR, optimizer off |
+|---|---|---|
+| 1inch-aqua | compiles; 49P, no flips | compiles; 49P, no flips |
+| 1inch-swap-vm | no legacy pipeline | does NOT compile — the optimized via-IR control does |
+| aave-v4 | compiles; 1,559P, no flips | neither solc via-IR variant compiles |
+| ens-verifiable-factory | compiles; 23P, no flips | compiles; 23P, no flips |
+| graph-horizon | compiles; 574P, no flips | compiles; 574P, no flips |
+| openzeppelin | does NOT compile — P256.sol stack too deep | compiles; ONE flip |
+| solady | does NOT compile — inline-assembly stack too deep | compiles; TWO flips |
+| uniswap-v4-core | compiles; 598P, no flips | compiles; 598P, no flips |
+
+Three findings:
+
+- **The optimizer-off baseline does not build everything.** Three of the fifteen pipelines fail
+  to compile with the optimizer off where the optimized build succeeds: openzeppelin legacy
+  (`P256.sol:241`, stack too deep), solady legacy (inline assembly, `key_` two slots too deep)
+  and 1inch-swap-vm via-IR. Failing to compile is recorded as a result
+  (`control-cannot-compile`), with the compiler's own words in the record. aave-v4 via-IR fails
+  under both solc variants, so nothing there is attributable to the toggle.
+- **solc's own optimizer toggle flips three test outcomes in two repositories.** openzeppelin
+  via-IR: `BlockhashTest#testFuzzHistoryBlocks` fails with the optimizer ON and passes with it
+  off — the same deterministic failure this document's control-only section attributes to solc,
+  now narrowed to solc's via-IR optimizer. solady via-IR: the two
+  `testLambertW0WadMonotonicallyIncreasing` variants (FixedPointMathLib, plain and CLZ) fail
+  only with the optimizer OFF. Neither is root-caused. Every other pipeline that built shows
+  zero flips.
+- **The scale statement.** Across the ten pipelines where both solc variants ran the suite,
+  flipping solc's own optimizer flag changes three test outcomes. The solx-vs-solc differential
+  above changes zero, everywhere it measured. On these suites, switching compilers to solx
+  perturbs test outcomes less than flipping solc's own optimizer switch. That is a statement
+  about these suites' sensitivity, not a correctness proof — limitation 1 stands.
+
+The same runs replicated the standard solx-vs-solc pairs on this second host as a side effect:
+5,119 tests under solx across the six solidity-runner repositories that build, zero solx-only
+failures, every passing/failing count identical to the tables above, solady's shared failure
+reproducing with the same counterexample, and aave-v4 via-IR's dead control now reported as
+`control-cannot-compile` — the verdict added for exactly that shape — instead of a footnote.
+
+Not measured here: the two mocha repositories (openzeppelin's mocha suite shares the solidity
+rows' compile, so its optimizer-off compile outcome is the same failure; lidofinance-core's
+mixed-compiler scoping was not repeated), and solx-vs-optimizer-off-solc differentials beyond a
+demonstration on ens-verifiable-factory and 1inch-aqua (both pass; derivable anyway from the
+calibration rows plus the matrix above). Single run, one seed, like everything else here.
+
+Evidence: `solx-0.1.8-optimizer-off-evidence.tar.gz` next to this file — per-pair JSON records,
+full suite logs, per-scenario environment captures, and the regenerated report;
+`solx-0.1.8-optimizer-off-summary.json` is the machine-readable summary. Produced by the same
+`test-under-solx.ts`, via `--pair solx-<pin>:solc-no-opt` and the `--calibration-pair` flag it
+grew for this measurement.
+
 ## Control-only failures
 
 - `BlockhashTest#testFuzzHistoryBlocks`, openzeppelin solidity via-IR. Reproduced from 0.1.7 byte
-  for byte. Attributed to solc because that is the side that fails; no mechanism established.
+  for byte. Attributed to solc because that is the side that fails; no mechanism established. The
+  optimizer-off baseline section narrows it one level: it passes under solc-via-ir with the
+  optimizer off, so it is a property of solc's via-IR optimizer pipeline specifically.
 
 ## Shared failures excluded from verdicts
 
