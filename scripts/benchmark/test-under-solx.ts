@@ -39,8 +39,9 @@ DESCRIPTION
   Runs a scenario's test suite twice per pair — once with a solx build profile
   and once with a solc control profile — and diffs the failing-test sets.
   Verdict per (scenario x runner x pair): pass / pass-uncontrolled /
-  test-failures / harness-failures / cannot-compile / invalid-provenance,
-  with EIP-170 deploy reverts tagged as their own sub-category.
+  test-failures / harness-failures / cannot-compile / control-cannot-compile /
+  invalid-provenance, with EIP-170 deploy reverts tagged as their own
+  sub-category.
 
   Mechanics per run: env-merge (scenario.definition.env into the child env —
   the gap gas-compare has) -> hardhat clean -> one command that builds AND
@@ -335,6 +336,49 @@ const EIP170_RE =
 // next line; a bare match would also catch JavaScript runtime TypeErrors.
 const COMPILE_ERROR_RE =
   /compilation failed|failed to compile|CompilationJobCreationError|Error HHE\d+|HardhatError: HHE\d+|ParserError|DeclarationError|CompilerError|Stack too deep|Subprocess exited with code|TypeError:[^\n]*\n\s*-->/i;
+
+/** Context lines kept after each compile-error line, and the two caps. */
+const COMPILE_EXCERPT_CONTEXT_LINES = 2;
+const MAX_COMPILE_EXCERPT_LINES = 30;
+const MAX_COMPILE_EXCERPT_LINE_CHARS = 300;
+
+/**
+ * The compile-error lines of a run's log, with their following context.
+ *
+ * Matched over the whole log rather than line by line, because
+ * COMPILE_ERROR_RE's solc "TypeError:" alternative only holds with the
+ * source-location arrow on the NEXT line: a line-at-a-time scan would drop the
+ * single most common shape a solc build failure arrives in.
+ */
+export function extractCompileErrorExcerpt(clean: string): string[] {
+  const lines = clean.split("\n");
+  const re = new RegExp(COMPILE_ERROR_RE.source, `${COMPILE_ERROR_RE.flags}g`);
+  const keep = new Set<number>();
+  let line = 0;
+  let lineStart = 0;
+  for (let match = re.exec(clean); match !== null; match = re.exec(clean)) {
+    // Matches arrive in increasing order, so the line cursor only walks forward.
+    while (
+      line + 1 < lines.length &&
+      lineStart + lines[line].length < match.index
+    ) {
+      lineStart += lines[line].length + 1;
+      line++;
+    }
+    const last = Math.min(
+      line + COMPILE_EXCERPT_CONTEXT_LINES,
+      lines.length - 1,
+    );
+    for (let i = line; i <= last; i++) {
+      keep.add(i);
+    }
+  }
+  return [...keep]
+    .sort((a, b) => a - b)
+    .map((i) => lines[i].trim().slice(0, MAX_COMPILE_EXCERPT_LINE_CHARS))
+    .filter((text) => text !== "")
+    .slice(0, MAX_COMPILE_EXCERPT_LINES);
+}
 
 // Below this share of the control's test count, the two sides did not run the
 // same suite, so a set-difference over their failures is not a solx result.
@@ -1019,6 +1063,8 @@ export interface RunRecord {
   provenance: ProvenanceResult;
   inventory: InventorySummary;
   compileErrorMarker: boolean;
+  /** The compile-error lines of the run's log; see extractCompileErrorExcerpt. */
+  compileErrorExcerpt: string[];
   /** True when the run died on a signal or the shell's OOM exit code. */
   resourceLimited: boolean;
   /** Set when the process never started; see ExecResult.spawnError. */
@@ -1108,6 +1154,9 @@ function runSide(
       provenance,
       inventory: inventorySummary,
       compileErrorMarker: COMPILE_ERROR_RE.test(cleanOutput),
+      // Neither build-info nor the standard-JSON errors array is written when
+      // the build fails, so the log is the only diagnostics carrier there is.
+      compileErrorExcerpt: extractCompileErrorExcerpt(cleanOutput),
       resourceLimited: isResourceLimited(run),
       spawnError: run.spawnError,
       logFile: path.relative(process.cwd(), logFile),
@@ -1220,6 +1269,12 @@ export type Verdict =
   | "test-failures"
   | "harness-failures"
   | "cannot-compile"
+  /**
+   * The control side demonstrably failed to compile. The subject's own counts
+   * stand, but nothing in the row is differential — and failing to compile is
+   * a result, not a footnote on a row labelled by what the subject did.
+   */
+  | "control-cannot-compile"
   | "invalid-provenance";
 
 /** A failure present under both compilers, with its two raw texts compared. */
@@ -1417,6 +1472,38 @@ export function bytecodeScope(inventory: InventorySummary): {
 }
 
 /**
+ * Why this run's build was demonstrably rejected, or null when it was not.
+ *
+ * The two shapes a rejected build arrives in, shared by both sides: a run that
+ * printed no test summary and exited non-zero, carrying either a compile-error
+ * pattern in its log or no artifacts at all. A run that never started is
+ * neither — a failed spawn leaves exactly the same traces, and reading it as a
+ * rejection publishes a host failure as a compiler limitation.
+ */
+export function detectCompileFailure(run: RunRecord): string | null {
+  const ranNoTests =
+    run.passing === null && run.failing === null && run.skipped === null;
+  if (run.spawnError != null || !ranNoTests || run.exitCode === 0) {
+    return null;
+  }
+  const resourceNote = run.resourceLimited
+    ? ` — HOST RESOURCE LIMIT, not a compiler rejection: the run died on ` +
+      `signal ${run.signal ?? "?"} (exit ${run.exitCode}) on a host with ` +
+      `${(totalmem() / 1024 ** 3).toFixed(1)} GiB of RAM`
+    : "";
+  if (run.compileErrorMarker) {
+    return `test-source build fails before any test runs${resourceNote}`;
+  }
+  if (run.inventory.empty) {
+    return (
+      `no artifacts were produced and no tests ran (exit ${run.exitCode})` +
+      resourceNote
+    );
+  }
+  return null;
+}
+
+/**
  * Why this control cannot serve as a baseline, or null when it ran the suite.
  *
  * The single notion of "the control actually ran" the verdicts share: it
@@ -1445,11 +1532,18 @@ function controlNotWorking(
             : null;
 }
 
+export interface ClassifyOptions {
+  /** The control's profile name, for the human-readable details. */
+  controlProfile?: string;
+}
+
 export function classify(
   solx: RunRecord,
   control: RunRecord,
   inventory: InventoryComparison,
+  options: ClassifyOptions = {},
 ): { verdict: Verdict; detail: string } {
+  const controlProfile = options.controlProfile ?? "solc";
   // A process that never started is a statement about this host, not about
   // the compiler. It leaves a null exit code and no output, which every
   // cannot-compile guard below would read as a build that was rejected.
@@ -1465,28 +1559,9 @@ export function classify(
   // A solx compile failure first: build-info is only written when the whole
   // build succeeds, so the provenance gate would otherwise mask a
   // cannot-compile verdict as invalid-provenance.
-  const solxRanNoTests =
-    solx.passing === null && solx.failing === null && solx.skipped === null;
-  const resourceNote = solx.resourceLimited
-    ? ` — HOST RESOURCE LIMIT, not a compiler rejection: the run died on ` +
-      `signal ${solx.signal ?? "?"} (exit ${solx.exitCode}) on a host with ` +
-      `${(totalmem() / 1024 ** 3).toFixed(1)} GiB of RAM`
-    : "";
-  if (solxRanNoTests && solx.exitCode !== 0 && solx.compileErrorMarker) {
-    return {
-      verdict: "cannot-compile",
-      detail: `test-source build fails before any test runs${resourceNote}`,
-    };
-  }
-  // The same conclusion without needing the log regex: no artifacts at all
-  // plus a non-zero exit is a build that did not happen.
-  if (solxRanNoTests && solx.exitCode !== 0 && solx.inventory.empty) {
-    return {
-      verdict: "cannot-compile",
-      detail:
-        `no artifacts were produced and no tests ran (exit ${solx.exitCode})` +
-        resourceNote,
-    };
+  const solxFailedToCompile = detectCompileFailure(solx);
+  if (solxFailedToCompile !== null) {
+    return { verdict: "cannot-compile", detail: solxFailedToCompile };
   }
 
   // A build that "succeeded" and produced nothing executable. This is the
@@ -1572,6 +1647,25 @@ export function classify(
         `test universe mismatch: solx executed no tests (the control executed ` +
         `${controlTotal}) — a green exit that ran nothing is not a pass (check ` +
         `the build log for swallowed compiler errors)`,
+    };
+  }
+
+  // The control's own build was rejected. Its own verdict, carrying the
+  // compiler's words: it subsumes two downstream fates that would have
+  // reported the same control as an absence — the pass-uncontrolled path and
+  // the "control executed no tests" harness failure — and neither says which
+  // contract the control could not build.
+  const controlFailedToCompile = detectCompileFailure(control);
+  if (controlFailedToCompile !== null) {
+    const excerpt = control.compileErrorExcerpt ?? [];
+    return {
+      verdict: "control-cannot-compile",
+      detail:
+        `the ${controlProfile} control fails to compile ` +
+        `(exit ${control.exitCode}): ` +
+        (excerpt.length === 0
+          ? controlFailedToCompile
+          : excerpt.slice(0, 3).join(" / ")),
     };
   }
 
@@ -2185,6 +2279,7 @@ function regenerateReports(outDir: string, pin: string): string {
             inventory: r.solx.inventory ?? null,
             resourceLimited: r.solx.resourceLimited ?? false,
             spawnError: r.solx.spawnError ?? null,
+            compileErrorExcerpt: r.solx.compileErrorExcerpt ?? [],
           },
           control:
             r.control === null
@@ -2198,6 +2293,7 @@ function regenerateReports(outDir: string, pin: string): string {
                   inventory: r.control.inventory ?? null,
                   resourceLimited: r.control.resourceLimited ?? false,
                   spawnError: r.control.spawnError ?? null,
+                  compileErrorExcerpt: r.control.compileErrorExcerpt ?? [],
                 },
           solxOnlyFailures: r.solxOnlyFailures,
           bothFailures: r.bothFailures,
@@ -3390,7 +3486,13 @@ async function main(): Promise<void> {
             solx,
             control,
             inventoryComparison,
+            {
+              controlProfile: pair.controlProfile,
+            },
           );
+          // Only the two pass verdicts are upgraded: a control-cannot-compile
+          // row has no control to set-difference against, so its solx failures
+          // are not "failures the control passed".
           if (
             (verdict === "pass" || verdict === "pass-uncontrolled") &&
             solxOnly.length > 0

@@ -31,9 +31,11 @@ import {
   collectPrimeSteps,
   compareInventories,
   computeHeadline,
+  detectCompileFailure,
   diffSharedFailures,
   dropForgeSteps,
   evaluateProvenance,
+  extractCompileErrorExcerpt,
   type Failure,
   type GasProbeObservations,
   gasProbeVerdict,
@@ -582,6 +584,7 @@ function run(overrides: Partial<RunRecord> = {}): RunRecord {
     provenance: { ok: true, buildInfoCount: 1, subjectCount: 1, problems: [] },
     inventory,
     compileErrorMarker: false,
+    compileErrorExcerpt: [],
     resourceLimited: false,
     spawnError: null,
     logFile: "logs/x.log",
@@ -935,6 +938,108 @@ describe("classify", () => {
     });
   });
 
+  describe("control-cannot-compile", () => {
+    /** A control whose build was demonstrably rejected. */
+    function brokenControl(overrides: Partial<RunRecord> = {}): RunRecord {
+      return withInventory([], {
+        side: "control",
+        profile: "solc-no-opt",
+        exitCode: 1,
+        passing: null,
+        failing: null,
+        skipped: null,
+        compileErrorMarker: true,
+        compileErrorExcerpt: [
+          "CompilerError: Stack too deep",
+          "--> src/A.sol:12:5:",
+        ],
+        ...overrides,
+      });
+    }
+
+    it("gives a control that failed to build its own verdict", () => {
+      const result = classify(run(), brokenControl(), COMPARABLE, {
+        controlProfile: "solc-no-opt",
+      });
+      assert.equal(result.verdict, "control-cannot-compile");
+      assert.match(
+        result.detail,
+        /the solc-no-opt control fails to compile \(exit 1\)/,
+      );
+      assert.match(result.detail, /Stack too deep/);
+    });
+
+    it("stays control-cannot-compile when the subject also has failures", () => {
+      // Not test-failures: with no control there is no set-difference behind
+      // the failures, and not harness-failures either — the control's build
+      // is the result.
+      const solx = run({
+        exitCode: 1,
+        failing: 1,
+        failures: [{ id: "T#a", raw: "boom", truncated: false }],
+      });
+      assert.equal(
+        classify(solx, brokenControl(), COMPARABLE).verdict,
+        "control-cannot-compile",
+      );
+    });
+
+    it("keeps the subject's own cannot-compile ahead of the control's", () => {
+      const solx = withInventory([], {
+        exitCode: 1,
+        passing: null,
+        failing: null,
+        skipped: null,
+      });
+      assert.equal(
+        classify(solx, brokenControl(), COMPARABLE).verdict,
+        "cannot-compile",
+      );
+    });
+
+    it("keeps an empty subject test universe ahead of the control's build", () => {
+      assert.equal(
+        classify(run({ passing: 0, failing: 0 }), brokenControl(), COMPARABLE)
+          .verdict,
+        "harness-failures",
+      );
+    });
+
+    it("names the reason when the log carried no excerpt", () => {
+      const result = classify(
+        run(),
+        brokenControl({ compileErrorExcerpt: [] }),
+        COMPARABLE,
+      );
+      assert.equal(result.verdict, "control-cannot-compile");
+      assert.match(
+        result.detail,
+        /test-source build fails before any test runs/,
+      );
+    });
+
+    it("does not read a control that never started as a build failure", () => {
+      // A failed spawn leaves exactly what a rejected build leaves.
+      const control = brokenControl({
+        exitCode: null,
+        compileErrorMarker: false,
+        compileErrorExcerpt: [],
+        spawnError: "Error: spawnSync npx ENOENT",
+      });
+      assert.equal(
+        classify(run(), control, COMPARABLE).verdict,
+        "pass-uncontrolled",
+      );
+    });
+
+    it("renders a legacy record that predates the excerpt field", () => {
+      const control = brokenControl();
+      delete (control as Partial<RunRecord>).compileErrorExcerpt;
+      const result = classify(run(), control, COMPARABLE);
+      assert.equal(result.verdict, "control-cannot-compile");
+    });
+  });
+
   it("cannot compute a set-difference for failures with no control", () => {
     const solx = run({
       failing: 1,
@@ -999,6 +1104,121 @@ describe("isResourceLimited", () => {
       isResourceLimited({ ...base, exitCode: null, signal: "SIGTERM" }),
       false,
     );
+  });
+});
+
+describe("detectCompileFailure", () => {
+  /** A run that ran no tests and exited non-zero, the shape both guards need. */
+  function failedBuild(overrides: Partial<RunRecord> = {}): RunRecord {
+    return withInventory([], {
+      exitCode: 1,
+      passing: null,
+      failing: null,
+      skipped: null,
+      ...overrides,
+    });
+  }
+
+  it("recognizes a build rejected with a compile-error marker", () => {
+    assert.equal(
+      detectCompileFailure(failedBuild({ compileErrorMarker: true })),
+      "test-source build fails before any test runs",
+    );
+  });
+
+  it("recognizes a build that produced nothing without the log regex", () => {
+    assert.equal(
+      detectCompileFailure(failedBuild()),
+      "no artifacts were produced and no tests ran (exit 1)",
+    );
+  });
+
+  it("names a host resource limit rather than a compiler rejection", () => {
+    const reason = detectCompileFailure(
+      failedBuild({
+        exitCode: null,
+        signal: "SIGKILL",
+        resourceLimited: true,
+        compileErrorMarker: true,
+      }),
+    );
+    assert.match(reason ?? "", /HOST RESOURCE LIMIT/);
+  });
+
+  it("says nothing about a run that executed tests", () => {
+    assert.equal(detectCompileFailure(run()), null);
+    assert.equal(detectCompileFailure(run({ exitCode: 1, failing: 1 })), null);
+  });
+
+  it("says nothing about a green run that wrote no artifacts", () => {
+    // Exit 0 is not a rejection, whatever the build left behind.
+    assert.equal(detectCompileFailure(withInventory([], { passing: 0 })), null);
+  });
+
+  it("never reads a failed spawn as a compiler rejection", () => {
+    assert.equal(
+      detectCompileFailure(
+        failedBuild({ exitCode: null, spawnError: "spawnSync npx ENOENT" }),
+      ),
+      null,
+    );
+  });
+});
+
+describe("extractCompileErrorExcerpt", () => {
+  it("returns nothing for a log with no compile error in it", () => {
+    assert.deepEqual(extractCompileErrorExcerpt("\n  12 passing (2s)\n"), []);
+  });
+
+  it("keeps each matching line with its following context", () => {
+    const log = [
+      "Compiling 42 files",
+      "Error HHE404: Something broke",
+      "  at src/A.sol:12",
+      "  hint: fix it",
+      "  beyond the context window",
+      "done",
+    ].join("\n");
+    assert.deepEqual(extractCompileErrorExcerpt(log), [
+      "Error HHE404: Something broke",
+      "at src/A.sol:12",
+      "hint: fix it",
+    ]);
+  });
+
+  it("recognizes the marker families the two compilers print", () => {
+    for (const line of [
+      "ParserError: Expected ';'",
+      "DeclarationError: Identifier not found",
+      "CompilerError: Stack too deep",
+      "Error: Compilation failed",
+      "Subprocess exited with code 101",
+    ]) {
+      assert.deepEqual(extractCompileErrorExcerpt(line), [line]);
+    }
+  });
+
+  it("reads solc's two-line TypeError shape", () => {
+    // COMPILE_ERROR_RE only trusts "TypeError:" with the source-location arrow
+    // on the next line, so a line-at-a-time scan would drop it entirely.
+    const log = [
+      "TypeError: Type uint256 is not implicitly convertible",
+      "  --> src/A.sol:9:5:",
+    ].join("\n");
+    assert.deepEqual(extractCompileErrorExcerpt(log), [
+      "TypeError: Type uint256 is not implicitly convertible",
+      "--> src/A.sol:9:5:",
+    ]);
+  });
+
+  it("caps the excerpt's length and each line's width", () => {
+    const log = Array.from(
+      { length: 40 },
+      () => `ParserError: ${"x".repeat(500)}`,
+    ).join("\n");
+    const excerpt = extractCompileErrorExcerpt(log);
+    assert.equal(excerpt.length, 30);
+    assert.equal(excerpt[0].length, 300);
   });
 });
 
@@ -2021,6 +2241,8 @@ describe("renderMarkdown", () => {
     delete (legacy as Partial<PairRecord>).gasSnapshot;
     delete (legacy as Partial<PairRecord>).buildRepro;
     delete (legacy as Partial<PairRecord>).sharedFailureDiffs;
+    delete (legacy.solx as Partial<RunRecord>).compileErrorExcerpt;
+    delete (legacy.control as Partial<RunRecord>).compileErrorExcerpt;
     const markdown = renderMarkdown([legacy], "0.1.8");
     assert.match(markdown, /ens-verifiable-factory-solx/);
     // No gas or determinism section, since neither probe ran.
