@@ -91,13 +91,13 @@ describe("relaxPragmas", () => {
     assert.equal(read(root, "contracts/upgrade/Vote.sol"), source("0.8.25"));
   });
 
-  it("throws when a --skip-dir matched nothing", () => {
+  it("tolerates a --skip-dir that matched nothing", () => {
+    // The submodule tree a --skip-dir protects does not exist yet on a fresh
+    // clone, so an unmatched name is the normal first-run shape.
     const root = makeTree({ "contracts/A.sol": source("0.8.25") });
 
-    assert.throws(
-      () => relaxPragmas(root, { ...OPTIONS, skipDirs: ["libs"] }),
-      /--skip-dir libs/,
-    );
+    assert.equal(relaxPragmas(root, { ...OPTIONS, skipDirs: ["lib"] }), 1);
+    assert.match(read(root, "contracts/A.sol"), /pragma solidity \^0\.8\.25;/);
   });
 
   it("throws when a --skip-path matched nothing", () => {
