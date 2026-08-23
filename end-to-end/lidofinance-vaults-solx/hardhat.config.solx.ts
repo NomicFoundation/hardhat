@@ -45,6 +45,7 @@ import baseConfig from "./hardhat.config.base.ts";
 import {
   buildSolxProfiles,
   overrideEntry,
+  withPinnedFuzzSeed,
   type SolxProfileCell,
 } from "./solx-profiles.ts";
 
@@ -107,6 +108,10 @@ export default {
   // compiler version they measure, so opt out of that guard. Throwaway
   // benchmark scenario, not production.
   slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
+  // The test-execution evaluation (test-under-solx.ts) pins the
+  // solidity-test fuzz seed. The solx and solc control runs then see
+  // identical fuzz inputs, and failures reproduce.
+  test: withPinnedFuzzSeed(base.test),
   // Scope to the modern tree, or to contracts/upgrade for the upgrade-tree
   // cells (see the header comment). test/ stays out via --no-tests on every
   // cell: paths.tests.solidity defaults to test/, whose fixtures span
