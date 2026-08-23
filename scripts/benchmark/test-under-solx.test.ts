@@ -30,6 +30,7 @@ import {
   collectInventory,
   collectPrimeSteps,
   compareInventories,
+  computeHeadline,
   diffSharedFailures,
   dropForgeSteps,
   evaluateProvenance,
@@ -40,6 +41,7 @@ import {
   type InventoryComparison,
   type InventoryResult,
   isForgeStep,
+  isNoOptProfile,
   isResourceLimited,
   installedVersion,
   isTestSource,
@@ -1764,7 +1766,143 @@ function pairRecord(overrides: Partial<PairRecord> = {}): PairRecord {
   };
 }
 
+describe("isNoOptProfile", () => {
+  it("recognizes the optimizer-off profiles", () => {
+    assert.equal(isNoOptProfile("solc-no-opt"), true);
+    assert.equal(isNoOptProfile("solx-0.1.8-no-opt"), true);
+    assert.equal(isNoOptProfile("no-opt"), true);
+  });
+
+  it("does not match a profile that merely contains the words", () => {
+    assert.equal(isNoOptProfile("default"), false);
+    assert.equal(isNoOptProfile("solc-via-ir"), false);
+    assert.equal(isNoOptProfile("solc-no-optimizer-parity"), false);
+  });
+});
+
+describe("computeHeadline", () => {
+  it("counts a repository-and-runner's suite once across its pairs", () => {
+    // Both pairs run the same suite, so the combination contributes the
+    // tests it has, not the sum of the times they were run.
+    const headline = computeHeadline([
+      pairRecord({ solx: run({ passing: 500, failing: 6 }) }),
+      pairRecord({
+        pair: "solx-0.1.8-via-ir-vs-solc-via-ir",
+        solxProfile: "solx-0.1.8-via-ir",
+        controlProfile: "solc-via-ir",
+        repetition: 2,
+        solx: run({ passing: 498, failing: 4 }),
+      }),
+    ]);
+    assert.deepEqual(headline.rows, [
+      {
+        scenarioId: "ens-verifiable-factory-solx",
+        runner: "solidity",
+        tests: 506,
+        controlled: true,
+      },
+    ]);
+    assert.equal(headline.totalTests, 506);
+    assert.equal(headline.controlledTests, 506);
+  });
+
+  it("excludes skipped tests from the count", () => {
+    const headline = computeHeadline([
+      pairRecord({ solx: run({ passing: 10, failing: 1, skipped: 7 }) }),
+    ]);
+    assert.equal(headline.totalTests, 11);
+  });
+
+  it("counts a combination as controlled when any of its pairs was", () => {
+    const headline = computeHeadline([
+      pairRecord({ control: null }),
+      pairRecord({
+        controlProfile: "solc-via-ir",
+        control: run({ side: "control", passing: 10 }),
+      }),
+    ]);
+    assert.equal(headline.rows.length, 1);
+    assert.equal(headline.rows[0].controlled, true);
+    assert.equal(headline.controlledTests, 10);
+  });
+
+  it("reports a combination whose control never ran as uncontrolled", () => {
+    // 1inch-swap-vm's shape, from the other side: a control that executed
+    // nothing leaves the row's tests uncontrolled rather than absent.
+    const headline = computeHeadline([
+      pairRecord({ control: run({ side: "control", passing: 0, failing: 0 }) }),
+    ]);
+    assert.equal(headline.rows[0].controlled, false);
+    assert.equal(headline.totalTests, 10);
+    assert.equal(headline.controlledTests, 0);
+  });
+
+  it("keeps each runner of a repository as its own row", () => {
+    const headline = computeHeadline([
+      pairRecord({ runner: "solidity", solx: run({ passing: 347 }) }),
+      pairRecord({ runner: "mocha", solx: run({ passing: 7654 }) }),
+    ]);
+    assert.deepEqual(
+      headline.rows.map((r) => [r.runner, r.tests]),
+      [
+        ["mocha", 7654],
+        ["solidity", 347],
+      ],
+    );
+    assert.equal(headline.totalTests, 8001);
+  });
+
+  it("excludes a pair whose control turns the optimizer off", () => {
+    // A no-opt control is a different pipeline, so its row would not be the
+    // same-pipeline number the headline claims.
+    const headline = computeHeadline([
+      pairRecord({ controlProfile: "solc-no-opt" }),
+    ]);
+    assert.deepEqual(headline.rows, []);
+    assert.equal(headline.totalTests, 0);
+  });
+
+  it("excludes a record whose subject compiler is not solx", () => {
+    const headline = computeHeadline([pairRecord({ subjectCompiler: "solc" })]);
+    assert.deepEqual(headline.rows, []);
+  });
+
+  it("totals zero for no records", () => {
+    assert.deepEqual(computeHeadline([]), {
+      rows: [],
+      totalTests: 0,
+      controlledTests: 0,
+    });
+  });
+});
+
 describe("renderMarkdown", () => {
+  it("renders the headline table and its total", () => {
+    const markdown = renderMarkdown(
+      [
+        pairRecord({ solx: run({ passing: 500, failing: 6 }) }),
+        pairRecord({
+          scenarioId: "1inch-swap-vm-solx",
+          solx: run({ passing: 0, failing: 0 }),
+          control: run({ side: "control", passing: 706 }),
+        }),
+        pairRecord({
+          scenarioId: "aave-v4-solx",
+          solx: run({ passing: 1559 }),
+          control: null,
+        }),
+      ],
+      "0.1.8",
+    );
+    // Ordered by size, and the uncontrolled row's tests are excluded from the
+    // controlled total rather than from the report.
+    assert.match(
+      markdown,
+      /\| aave-v4-solx \| solidity \| 1559 \| no \|\n\| ens-verifiable-factory-solx \| solidity \| 506 \| yes \|\n\| 1inch-swap-vm-solx \| solidity \| 0 \| yes \|/,
+    );
+    assert.match(markdown, /\*\*2065\*\* \| \*\*506 controlled\*\* \|/);
+  });
+
   it("scopes the EIP-170 table to non-test sources", () => {
     // The published number must not attribute a test-harness contract to
     // either compiler: the test runner deploys those with the limit lifted.

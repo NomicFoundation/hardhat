@@ -1330,6 +1330,8 @@ export interface PairRecord {
   pair: string;
   solxProfile: string;
   controlProfile: string;
+  /** The compiler under test; absent on every record written so far, all solx. */
+  subjectCompiler?: "solx" | "solc";
   /** 1-based repetition index; >1 rows ran with a different fuzz seed. */
   repetition: number;
   repetitions: number;
@@ -1723,6 +1725,78 @@ function loadAllResults(outDir: string): PairRecord[] {
   return records;
 }
 
+/** A control with the optimizer off is a different pipeline, not a control. */
+export function isNoOptProfile(profile: string): boolean {
+  return /(^|-)no-opt$/.test(profile);
+}
+
+export interface HeadlineRow {
+  scenarioId: string;
+  runner: string;
+  /** Tests the subject compiler executed, skipped ones excluded. */
+  tests: number;
+  /** True when at least one of the combination's pairs had a control that ran. */
+  controlled: boolean;
+}
+
+export interface Headline {
+  rows: HeadlineRow[];
+  totalTests: number;
+  controlledTests: number;
+}
+
+/**
+ * The published headline: how many distinct tests ran under the subject
+ * compiler, and how many of those had a same-pipeline control.
+ *
+ * A repository-and-runner combination is ONE suite however many pairs and
+ * repetitions ran it, so its cell is the largest count any of them executed
+ * rather than their sum — summing would publish the same tests several times
+ * over. Rows are ordered by size, which is how the number is read.
+ */
+export function computeHeadline(records: PairRecord[]): Headline {
+  const rows = new Map<string, HeadlineRow>();
+  for (const record of records) {
+    if (
+      (record.subjectCompiler ?? "solx") !== "solx" ||
+      isNoOptProfile(record.controlProfile)
+    ) {
+      continue;
+    }
+    const tests = (record.solx.passing ?? 0) + (record.solx.failing ?? 0);
+    const controlled =
+      record.control != null &&
+      (record.control.passing ?? 0) + (record.control.failing ?? 0) > 0;
+    const key = `${record.scenarioId} ${record.runner}`;
+    const row = rows.get(key);
+    if (row === undefined) {
+      rows.set(key, {
+        scenarioId: record.scenarioId,
+        runner: record.runner,
+        tests,
+        controlled,
+      });
+      continue;
+    }
+    row.tests = Math.max(row.tests, tests);
+    row.controlled ||= controlled;
+  }
+  const ordered = [...rows.values()].sort(
+    (a, b) =>
+      b.tests - a.tests ||
+      a.scenarioId.localeCompare(b.scenarioId) ||
+      a.runner.localeCompare(b.runner),
+  );
+  return {
+    rows: ordered,
+    totalTests: ordered.reduce((total, row) => total + row.tests, 0),
+    controlledTests: ordered.reduce(
+      (total, row) => (row.controlled ? total + row.tests : total),
+      0,
+    ),
+  };
+}
+
 function fmtCounts(run: RunRecord | null): string {
   if (run === null) {
     return "—";
@@ -1734,10 +1808,33 @@ function fmtCounts(run: RunRecord | null): string {
 }
 
 export function renderMarkdown(records: PairRecord[], pin: string): string {
+  const headline = computeHeadline(records);
   const lines = [
     `# solx test-execution evaluation — running matrix`,
     "",
     `solx pin: ${pin}. Legend: P/F/S = passing/failing/skipped.`,
+    "",
+    "## Tests executed under the subject compiler",
+    "",
+    "One row per repository-and-runner. Both compiler pairs run the same suite " +
+      "there, so it is counted once rather than once per pair; skipped tests are " +
+      "excluded. A row is controlled when at least one of its pairs had a " +
+      "same-pipeline control that actually ran the suite — a row that is not " +
+      "controlled establishes the test universe under the subject compiler only. " +
+      "Pairs whose control turns the optimizer off are a different pipeline and " +
+      "are not counted here.",
+    "",
+    "| repository | runner | tests under subject | controlled |",
+    "|---|---|--:|---|",
+    ...headline.rows.map(
+      (row) =>
+        `| ${row.scenarioId} | ${row.runner} | ${row.tests} | ` +
+        `${row.controlled ? "yes" : "no"} |`,
+    ),
+    `| **total** | | **${headline.totalTests}** | ` +
+      `**${headline.controlledTests} controlled** |`,
+    "",
+    "## Matrix",
     "",
     "| scenario | runner | pair | verdict | solx | control | solx-only | both | EIP-170 | flaky |",
     "|---|---|---|---|---|---|--:|--:|--:|--:|",
@@ -2068,6 +2165,7 @@ function regenerateReports(outDir: string, pin: string): string {
     JSON.stringify(
       {
         scenarioErrors: errors,
+        headline: computeHeadline(records),
         pairs: records.map((r) => ({
           scenarioId: r.scenarioId,
           runner: r.runner,
