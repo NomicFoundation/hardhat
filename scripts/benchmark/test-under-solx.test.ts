@@ -43,8 +43,12 @@ import {
   isResourceLimited,
   installedVersion,
   isTestSource,
+  leafName,
   type PairRecord,
+  parseCounts,
   parseGasSectionCounts,
+  parseMochaFailures,
+  parseSolidityFailures,
   renderMarkdown,
   type RunRecord,
   summarizeInventory,
@@ -67,6 +71,154 @@ function buildInfo(
     ...overrides,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Log parsing
+// ---------------------------------------------------------------------------
+
+const MOCHA_LOG = `
+  Token
+    ✔ transfers
+    - is pending
+
+  12 passing (2s)
+  1 pending
+  2 failing
+
+  1) Token
+       transfer
+         reverts on insufficient balance:
+     AssertionError: expected 0 to equal 1
+      at Context.<anonymous> (test/Token.ts:12:5)
+
+  2) Token
+       approve
+         reverts on the zero address:
+     Error: VM Exception while processing transaction: reverted
+      at Context.<anonymous> (test/Token.ts:30:5)
+`;
+
+const SOLIDITY_LOG = `
+  Counter
+    ✔ test_Increment
+    ✔ testFuzz_SetNumber (runs: 256)
+
+  5 passing (1.2s)
+  1 failing
+  2 skipped
+
+  1) Counter#test_Overflow
+     Error: revert: overflow
+      at Counter.t.sol:41
+`;
+
+describe("parseCounts", () => {
+  it("reads a mocha epilogue", () => {
+    assert.deepEqual(parseCounts(MOCHA_LOG), {
+      passing: 12,
+      failing: 2,
+      skipped: 1,
+    });
+  });
+
+  it("reads a solidity-runner summary", () => {
+    assert.deepEqual(parseCounts(SOLIDITY_LOG), {
+      passing: 5,
+      failing: 1,
+      skipped: 2,
+    });
+  });
+
+  it("takes the run's own summary, not one its tests printed", () => {
+    // openzeppelin's suite prints the upstream run's summary from a fixture,
+    // and a first-match parse published that as the run's test universe.
+    const log = `
+  Docs
+    ✔ quotes the published summary
+      7654 passing (13m)
+      4 pending
+
+  500 passing (2m)
+  3 failing
+  1 skipped
+`;
+    assert.deepEqual(parseCounts(log), {
+      passing: 500,
+      failing: 3,
+      skipped: 1,
+    });
+  });
+
+  it("reports an absent count as null rather than zero", () => {
+    // A green mocha run prints no failing line at all; zero failures and an
+    // unparsed summary are not the same claim.
+    assert.deepEqual(parseCounts("\n  12 passing (2s)\n"), {
+      passing: 12,
+      failing: null,
+      skipped: null,
+    });
+  });
+});
+
+describe("parseSolidityFailures", () => {
+  it("collects each numbered failure with its detail block", () => {
+    const failures = parseSolidityFailures(SOLIDITY_LOG);
+    assert.deepEqual(
+      failures.map((f) => f.id),
+      ["Counter#test_Overflow"],
+    );
+    assert.match(failures[0].raw, /revert: overflow/);
+    assert.equal(failures[0].truncated, false);
+  });
+
+  it("ignores a numbered line carrying no contract prefix", () => {
+    assert.deepEqual(parseSolidityFailures("\n  1) test_Overflow\n"), []);
+  });
+});
+
+describe("parseMochaFailures", () => {
+  it("joins each failure's title path", () => {
+    assert.deepEqual(
+      parseMochaFailures(MOCHA_LOG).map((f) => f.id),
+      [
+        "Token > transfer > reverts on insufficient balance",
+        "Token > approve > reverts on the zero address",
+      ],
+    );
+  });
+
+  it("reads the epilogue after the last summary a run printed", () => {
+    const log = `
+  Docs
+    ✔ quotes the published summary
+      7654 passing (13m)
+      1) Upstream
+           quoted failure:
+
+  500 passing (2m)
+  1 failing
+
+  1) Token
+       transfer
+         reverts:
+     AssertionError: nope
+`;
+    assert.deepEqual(
+      parseMochaFailures(log).map((f) => f.id),
+      ["Token > transfer > reverts"],
+    );
+  });
+});
+
+describe("leafName", () => {
+  it("takes the test name after the contract prefix", () => {
+    assert.equal(leafName("Counter#test_Overflow"), "test_Overflow");
+  });
+
+  it("takes the last segment of a mocha title path", () => {
+    assert.equal(leafName("Token > transfer > reverts"), "reverts");
+  });
+});
 
 describe("evaluateProvenance", () => {
   it("accepts a solx run whose subject build-info is solx at the pin", () => {
