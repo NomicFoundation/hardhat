@@ -223,15 +223,18 @@ interface ParsedCounts {
   skipped: number | null;
 }
 
-function parseCounts(clean: string): ParsedCounts {
-  const passing = /^\s*(\d+) passing/m.exec(clean);
-  const failing = /^\s*(\d+) failing/m.exec(clean);
-  // Solidity runner says "skipped"; mocha says "pending".
-  const skipped = /^\s*(\d+) (?:skipped|pending)/m.exec(clean);
+/** The LAST match's count: test console output may itself print a summary line. */
+function lastCount(re: RegExp, clean: string): number | null {
+  const matches = [...clean.matchAll(re)];
+  return matches.length === 0 ? null : Number(matches[matches.length - 1][1]);
+}
+
+export function parseCounts(clean: string): ParsedCounts {
   return {
-    passing: passing === null ? null : Number(passing[1]),
-    failing: failing === null ? null : Number(failing[1]),
-    skipped: skipped === null ? null : Number(skipped[1]),
+    passing: lastCount(/^\s*(\d+) passing/gm, clean),
+    failing: lastCount(/^\s*(\d+) failing/gm, clean),
+    // Solidity runner says "skipped"; mocha says "pending".
+    skipped: lastCount(/^\s*(\d+) (?:skipped|pending)/gm, clean),
   };
 }
 
@@ -240,7 +243,7 @@ function parseCounts(clean: string): ParsedCounts {
  * "N) Contract#test" followed by its reason/trace. The inline per-suite
  * lines lack the contract prefix, so only the '#' form is collected.
  */
-function parseSolidityFailures(clean: string): Failure[] {
+export function parseSolidityFailures(clean: string): Failure[] {
   const failures = new Map<string, Failure>();
   const headerRe = /^\s*\d+\) (\S+#[^\n]+)$/gm;
   let match: RegExpExecArray | null;
@@ -262,7 +265,7 @@ function parseSolidityFailures(clean: string): Failure[] {
  * failure as a numbered, indented title path whose last line ends with ':',
  * then the error. The title path becomes "A > B > title".
  */
-function parseMochaFailures(clean: string): Failure[] {
+export function parseMochaFailures(clean: string): Failure[] {
   // Anchor on the LAST summary match: test console output may itself print
   // "N passing" at a line start, and only the real epilogue lists failures.
   const summaryMatches = [...clean.matchAll(/^\s*\d+ passing/gm)];
@@ -1107,7 +1110,7 @@ function escapeRegExp(s: string): string {
 }
 
 /** Leaf test name for --grep: after '#' (solidity) or the last '>' segment (mocha). */
-function leafName(id: string): string {
+export function leafName(id: string): string {
   if (id.includes("#")) {
     return id.slice(id.indexOf("#") + 1);
   }
