@@ -14,9 +14,9 @@
 #     (its --solx-version flag). It replays the shipped map's version.
 #   - the "Currently supported" line in packages/hardhat-slang-solx/README.md.
 #     It documents the mapped version to users.
-#   - the "solx-0.1.7" profile names (solx-profiles.ts), the scenario.json
-#     cell names ("cold compile solx-0.1.7", "cold compile forge-1.7.1"),
-#     and render-solx-tables.ts's CELL_NOTES keys. They name the pinned
+#   - the profile names (solx-profiles.ts), the scenario.json cell names
+#     ("cold compile solx-<pin>", "cold compile forge-<pin>"), and
+#     render-solx-tables.ts's CELL_NOTES keys. They name the pinned
 #     versions, so a bump here means renaming them in lockstep. Renamed
 #     cells start NEW series in the benchmark-results history; the old
 #     series stop updating.
