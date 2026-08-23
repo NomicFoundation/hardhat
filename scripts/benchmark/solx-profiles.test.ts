@@ -18,6 +18,7 @@ import {
   SOLX_COMPILER_TYPE,
   withPinnedFuzzSeed,
 } from "./solx-profiles.ts";
+import { isNoOptProfile } from "./test-under-solx.ts";
 
 describe("resolveFuzzSeed", () => {
   it("returns the pinned seed when nothing overrides it", () => {
@@ -91,11 +92,45 @@ describe("withPinnedFuzzSeed", () => {
 describe("buildSolxProfiles", () => {
   it("emits the whole matrix at the benchmark solc version", () => {
     const profiles = buildSolxProfiles({ baseSettings: { optimizer: {} } });
-    assert.deepEqual(Object.keys(profiles).length, 8);
+    assert.deepEqual(Object.keys(profiles).length, 9);
+    assert.ok("solc-via-ir-no-opt" in profiles);
     for (const profile of Object.values(profiles)) {
       assert.equal(
         (profile as { version: string }).version,
         BENCHMARK_SOLC_VERSION,
+      );
+    }
+  });
+
+  it("emits a via-IR optimizer-off cell that is plain solc", () => {
+    const profiles = buildSolxProfiles({
+      baseSettings: { optimizer: { enabled: true, runs: 200 } },
+    }) as Record<string, Record<string, unknown>>;
+    const cell = profiles["solc-via-ir-no-opt"];
+    const settings = cell.settings as Record<string, unknown>;
+    assert.equal(settings.viaIR, true);
+    assert.deepEqual(settings.optimizer, { enabled: false });
+    // A solc cell: no plugin compiler type, no pinned solx binary.
+    assert.equal(cell.type, undefined);
+    assert.equal(cell.path, undefined);
+  });
+
+  it("names every optimizer-off cell so the harness recognizes it", () => {
+    // The evaluation harness keeps optimizer-off legs out of its headline by
+    // profile name, so a cell the two disagree on would silently enter it.
+    const profiles = buildSolxProfiles({
+      baseSettings: { optimizer: { enabled: true } },
+    }) as Record<string, { settings: Record<string, unknown> }>;
+    const off = Object.entries(profiles).filter(
+      ([, profile]) =>
+        (profile.settings.optimizer as { enabled?: boolean } | undefined)
+          ?.enabled === false,
+    );
+    assert.equal(off.length, 2);
+    for (const [name] of off) {
+      assert.ok(
+        isNoOptProfile(name),
+        `${name} turns the optimizer off but isNoOptProfile does not match it`,
       );
     }
   });

@@ -16,12 +16,18 @@
 //                      default and solc at its fastest, so it's the
 //                      real-world compile-time bar for a test-only compiler
 //   solc-via-ir        solc, via-IR
+//   solc-via-ir-no-opt solc, via-IR, optimizer off
 //   solx               solx, legacy
 //   solx-via-ir        solx, via-IR
 //   solx-0.1.8         pinned solx, legacy
 //   solx-0.1.8-via-ir  pinned solx, via-IR
 //   slangSolx          alias of "solx" — the plugin refuses to load without a
 //                      profile of exactly this name (see MANDATORY_PROFILE)
+//
+// The optimizer-off cells feed the test-execution evaluation's optimizer-off
+// legs (test-under-solx.ts's --pair and --calibration-pair). solc-no-opt is
+// additionally a timed benchmark cell that several scenario.json files name;
+// solc-via-ir-no-opt is not timed anywhere and exists for the evaluation only.
 //
 // The "solx" profiles always measure the version the plugin ships (its
 // Solidity→solx version map). The "solx-0.1.8" profiles pin a release under
@@ -219,7 +225,7 @@ export function withPinnedFuzzSeed(baseTest: unknown): Record<string, unknown> {
   return { ...test, solidity: pinProfile(solidity) };
 }
 
-/** Build the benchmark's 7-profile map. See the header for the matrix. */
+/** Build the benchmark's 8-profile map. See the header for the matrix. */
 export function buildSolxProfiles(
   options: SolxProfilesOptions,
 ): Record<string, unknown> {
@@ -242,6 +248,7 @@ export function buildSolxProfiles(
     { name: "default", version, viaIR: false },
     { name: "solc-no-opt", version, viaIR: false },
     { name: "solc-via-ir", version, viaIR: true },
+    { name: "solc-via-ir-no-opt", version, viaIR: true },
     { name: "solx", type: SOLX_COMPILER_TYPE, version, viaIR: false },
     { name: "solx-via-ir", type: SOLX_COMPILER_TYPE, version, viaIR: true },
     {
@@ -270,7 +277,7 @@ export function buildSolxProfiles(
   const profiles: Record<string, unknown> = {};
   for (const cell of cells) {
     const settings = seed(cell.viaIR);
-    if (cell.name === "solc-no-opt") {
+    if (cell.name.endsWith("no-opt")) {
       settings.optimizer = { enabled: false };
     }
 
