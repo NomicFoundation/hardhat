@@ -1,10 +1,10 @@
 // Guards the pin manifest (pinned-tool-versions.sh) against half-edits.
 // The pinned versions are also baked into names the manifest cannot feed:
-// the "solx-0.1.7" profile names and .solx/solx-v0.1.7 path in
-// solx-profiles.ts, the scenario.json benchmark cell names, and
-// render-solx-tables.ts's CELL_NOTES keys. Workflows and the report
-// renderer refer to those names, so a version bump must rename them in
-// lockstep. This test fails on any file left behind.
+// the profile names and the .solx binary path in solx-profiles.ts, the
+// scenario.json benchmark cell names, and render-solx-tables.ts's
+// CELL_NOTES keys. Workflows and the report renderer refer to those names,
+// so a version bump must rename them in lockstep. This test fails on any
+// file left behind.
 //
 // The test also asserts the solx pin agrees with three other channels that
 // name the same binary: the plugin's SOLIDITY_TO_SOLX_VERSION_MAP, the
@@ -14,8 +14,9 @@
 // real reports — must still read the map's value.
 //
 // The token scan flags every solx-vX.Y.Z / solx-X.Y.Z / forge-X.Y.Z it
-// sees. Prose mentioning a historical version must therefore write it bare
-// ("0.1.4"), never as a name ("solx-0.1.4").
+// sees, in the manifest and in this file too. Prose mentioning a historical
+// version must therefore write it bare ("0.1.4"), never with the tool name
+// prefixed.
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -54,13 +55,20 @@ function solxScenarioFiles(): string[] {
     if (!existsSync(path.join(scenarioDir, "hardhat.config.solx.ts"))) {
       continue;
     }
-    for (const entry of readdirSync(scenarioDir, { withFileTypes: true })) {
-      if (entry.isFile()) {
-        files.push(path.join(scenarioDir, entry.name));
-      }
-    }
+    walkFiles(scenarioDir, files);
   }
   return files;
+}
+
+function walkFiles(dir: string, files: string[]): void {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkFiles(entryPath, files);
+    } else {
+      files.push(entryPath);
+    }
+  }
 }
 
 describe("pinned-tool-versions", () => {
@@ -204,6 +212,10 @@ describe("pinned-tool-versions", () => {
       // replay step's "cold compile solx-<pin>" pairing). Its prose writes
       // historical versions bare, so the name tokens are scannable.
       path.join(repoRoot, ".github/workflows/solx-regression-benchmark.yml"),
+      // The manifest and this file describe the pinned names in prose, so
+      // they strand stale ones just as easily as the code does.
+      path.join(repoRoot, "scripts/benchmark/pinned-tool-versions.sh"),
+      import.meta.filename,
       ...solxScenarioFiles(),
     ];
     assert.ok(files.length > 2, "no solx scenario files found");
