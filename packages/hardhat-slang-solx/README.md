@@ -99,10 +99,10 @@ export default defineConfig({
 
 solx optimizes via LLVM; set the level per profile with `settings.optimizer.mode` — one of `"1"`, `"2"`, `"3"` (best performance), `"s"` (optimize for size), or `"z"` (aggressively minimize size). The plugin defaults to `"1"` (solx's own default if left unset is `"3"`).
 
-solx has two independent optimizer knobs, and both affect the output:
+solx has two independent optimizer knobs:
 
 - `optimizer.mode` (above) is the LLVM backend level. There is **no "off"** — the minimum is `"1"`, so LLVM always optimizes.
-- `optimizer.enabled` is the Yul optimizer (standard solc semantics), `false` by default. Enabling it optimizes _on top of_ LLVM; it does not turn LLVM off.
+- `optimizer.enabled` is the embedded solc front end's own optimizer, `false` by default. It only affects the legacy pipeline, where it optimizes the EVM assembly solx translates. Under `viaIR: true` it changes nothing but the metadata hash: solx bypasses the Yul optimizer entirely, so the IR handed to LLVM is always unoptimized.
 
 For example, optimizing for size instead of performance:
 
@@ -125,7 +125,7 @@ export default defineConfig({
 });
 ```
 
-Or run the Yul optimizer as well, on top of LLVM `-O3` (both knobs on) — just the `slangSolx` profile:
+Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `-O3` (both knobs on) — just the `slangSolx` profile:
 
 ```typescript
 slangSolx: {
