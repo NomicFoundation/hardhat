@@ -10,7 +10,7 @@ The `solx` compiler is currently experimental and is not ready for production us
 npm install --save-dev @nomicfoundation/hardhat-slang-solx
 ```
 
-Then add the plugin to your `hardhat.config.ts` and create a `slangSolx` build profile. You must use the build profiles config format, which requires both a `default` and a `slangSolx` profile:
+Then add the plugin to your `hardhat.config.ts` and create a `slang-solx` build profile. You must use the build profiles config format, which requires both a `default` and a `slang-solx` profile:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
@@ -23,7 +23,7 @@ export default defineConfig({
       default: {
         version: "0.8.29",
       },
-      slangSolx: {
+      "slang-solx": {
         type: "slangSolx",
         version: "0.8.34",
       },
@@ -32,15 +32,15 @@ export default defineConfig({
 });
 ```
 
-The `default` profile uses solc as usual. The `slangSolx` profile uses the solx compiler, identified by `type: "slangSolx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `slang-solx` profile uses the solx compiler, identified by `type: "slangSolx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
 
 ## Usage
 
 Run tests or compile using the solx-powered build profile:
 
 ```bash
-hardhat test --build-profile slangSolx
-hardhat build --build-profile slangSolx
+hardhat test --build-profile slang-solx
+hardhat build --build-profile slang-solx
 ```
 
 The default profile continues to use solc as usual:
@@ -53,7 +53,7 @@ hardhat build    # uses solc (default profile)
 
 ### Multi-version example
 
-You can configure the `slangSolx` profile with multiple compilers. Compilers without `type: "slangSolx"` will use solc:
+You can configure the `slang-solx` profile with multiple compilers. Compilers without `type: "slangSolx"` will use solc:
 
 ```typescript
 export default defineConfig({
@@ -63,7 +63,7 @@ export default defineConfig({
       default: {
         compilers: [{ version: "0.8.34" }, { version: "0.8.20" }],
       },
-      slangSolx: {
+      "slang-solx": {
         compilers: [
           { type: "slangSolx", version: "0.8.34" },
           { version: "0.8.20" }, // uses solc, solx doesn't support this version
@@ -76,7 +76,7 @@ export default defineConfig({
 
 ### Options
 
-- `dangerouslyAllowSlangSolxInProduction` (`boolean`, default: `false`), allows compiler type `"slangSolx"` in build profiles other than `slangSolx`. By default, using `type: "slangSolx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
+- `dangerouslyAllowSlangSolxInProduction` (`boolean`, default: `false`), allows compiler type `"slangSolx"` in build profiles other than `slang-solx`. By default, using `type: "slangSolx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
 export default defineConfig({
@@ -115,7 +115,7 @@ export default defineConfig({
   solidity: {
     profiles: {
       default: { version: "0.8.34" },
-      slangSolx: {
+      "slang-solx": {
         type: "slangSolx",
         version: "0.8.34",
         settings: { optimizer: { mode: "z" } }, // optimize for size
@@ -125,10 +125,10 @@ export default defineConfig({
 });
 ```
 
-Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `-O3` (both knobs on) — just the `slangSolx` profile:
+Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `-O3` (both knobs on) — just the `slang-solx` profile:
 
 ```typescript
-slangSolx: {
+"slang-solx": {
   type: "slangSolx",
   version: "0.8.34",
   settings: { optimizer: { enabled: true, mode: "3" } },
