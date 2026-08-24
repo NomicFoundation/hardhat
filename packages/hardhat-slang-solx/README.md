@@ -24,7 +24,7 @@ export default defineConfig({
         version: "0.8.29",
       },
       "slang-solx": {
-        type: "slangSolx",
+        type: "slang-solx",
         version: "0.8.34",
       },
     },
@@ -32,7 +32,7 @@ export default defineConfig({
 });
 ```
 
-The `default` profile uses solc as usual. The `slang-solx` profile uses the solx compiler, identified by `type: "slangSolx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `slang-solx` profile uses the solx compiler, identified by `type: "slang-solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
 
 ## Usage
 
@@ -53,7 +53,7 @@ hardhat build    # uses solc (default profile)
 
 ### Multi-version example
 
-You can configure the `slang-solx` profile with multiple compilers. Compilers without `type: "slangSolx"` will use solc:
+You can configure the `slang-solx` profile with multiple compilers. Compilers without `type: "slang-solx"` will use solc:
 
 ```typescript
 export default defineConfig({
@@ -65,7 +65,7 @@ export default defineConfig({
       },
       "slang-solx": {
         compilers: [
-          { type: "slangSolx", version: "0.8.34" },
+          { type: "slang-solx", version: "0.8.34" },
           { version: "0.8.20" }, // uses solc, solx doesn't support this version
         ],
       },
@@ -76,7 +76,7 @@ export default defineConfig({
 
 ### Options
 
-- `dangerouslyAllowSlangSolxInProduction` (`boolean`, default: `false`), allows compiler type `"slangSolx"` in build profiles other than `slang-solx`. By default, using `type: "slangSolx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
+- `dangerouslyAllowSlangSolxInProduction` (`boolean`, default: `false`), allows compiler type `"slang-solx"` in build profiles other than `slang-solx`. By default, using `type: "slang-solx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
 export default defineConfig({
@@ -84,13 +84,13 @@ export default defineConfig({
   solidity: {
     profiles: {
       default: {
-        type: "slangSolx", // returns a validation error.
+        type: "slang-solx", // returns a validation error.
         version: "0.8.34",
       },
     },
   },
   slangSolx: {
-    dangerouslyAllowSlangSolxInProduction: false, // default false, switching this to true will allow `type: "slangSolx"` on the default profile.
+    dangerouslyAllowSlangSolxInProduction: false, // default false, switching this to true will allow `type: "slang-solx"` on the default profile.
   },
 });
 ```
@@ -116,7 +116,7 @@ export default defineConfig({
     profiles: {
       default: { version: "0.8.34" },
       "slang-solx": {
-        type: "slangSolx",
+        type: "slang-solx",
         version: "0.8.34",
         settings: { optimizer: { mode: "z" } }, // optimize for size
       },
@@ -129,7 +129,7 @@ Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `
 
 ```typescript
 "slang-solx": {
-  type: "slangSolx",
+  type: "slang-solx",
   version: "0.8.34",
   settings: { optimizer: { enabled: true, mode: "3" } },
 },
@@ -141,4 +141,4 @@ solx maps each Solidity version to a specific solx binary version internally. Cu
 
 ### EVM version support
 
-solx supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slangSolx"` will result in a validation error.
+solx supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang-solx"` will result in a validation error.

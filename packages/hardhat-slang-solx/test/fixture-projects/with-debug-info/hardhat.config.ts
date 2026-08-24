@@ -9,7 +9,7 @@ const config: HardhatUserConfig = {
         version: "0.8.34",
       },
       "slang-solx": {
-        type: "slangSolx",
+        type: "slang-solx",
         version: "0.8.34",
       },
     },

@@ -100,7 +100,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     );
   });
 
-  it("registers 'slangSolx' as a compiler type", async () => {
+  it("registers 'slang-solx' as a compiler type", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -116,8 +116,8 @@ describe("hardhat-slang-solx plugin config resolution", () => {
 
     assert.deepEqual(
       resolvedConfig.solidity.registeredCompilerTypes,
-      ["solc", "slangSolx"],
-      "the plugin registers 'slangSolx' and leaves core's 'solc' in place, and registers nothing else",
+      ["solc", "slang-solx"],
+      "the plugin registers 'slang-solx' and leaves core's 'solc' in place, and registers nothing else",
     );
   });
 
@@ -139,7 +139,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     assert.deepEqual(profileNames, ["default"]);
   });
 
-  it("adds solx debugInfo selectors to slangSolx-typed compilers in resolved config", async () => {
+  it("adds solx debugInfo selectors to slang-solx-typed compilers in resolved config", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -150,7 +150,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
           compilers: [
             {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { outputSelection: { "*": { "*": ["abi"] } } },
             },
           ],
@@ -176,7 +176,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     );
   });
 
-  it("does NOT add solx selectors to non-slangSolx compilers", async () => {
+  it("does NOT add solx selectors to non-slang-solx compilers", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -207,7 +207,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     }
   });
 
-  it("augments slangSolx-typed override entries too", async () => {
+  it("augments slang-solx-typed override entries too", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -215,11 +215,11 @@ describe("hardhat-slang-solx plugin config resolution", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {
             "contracts/Special.sol": {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: {},
             },
           },
@@ -242,7 +242,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     }
   });
 
-  it("defaults the optimizer mode on slangSolx-typed compilers in resolved config", async () => {
+  it("defaults the optimizer mode on slang-solx-typed compilers in resolved config", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -250,7 +250,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -272,7 +272,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
           compilers: [
             {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { optimizer: { enabled: true, mode: "z" } },
             },
           ],
@@ -300,7 +300,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
           compilers: [
             {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { optimizer: { enabled: true } },
             },
           ],
@@ -328,7 +328,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
           compilers: [
             {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { optimizer: { enabled: true, mode: undefined } },
             },
           ],
@@ -342,7 +342,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     assert.equal(slangSolxCompiler.settings.optimizer.mode, "1");
   });
 
-  it("defaults viaIR to false on slangSolx-typed compilers, letting a user value win", async () => {
+  it("defaults viaIR to false on slang-solx-typed compilers, letting a user value win", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -350,11 +350,11 @@ describe("hardhat-slang-solx plugin config resolution", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {
             "contracts/ViaIR.sol": {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { viaIR: true },
             },
           },
@@ -384,7 +384,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
           compilers: [
             {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: { evmVersion: "prague" },
             },
           ],
@@ -403,7 +403,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
 });
 
 describe("hardhat-slang-solx EVM version validation", () => {
-  it("rejects type: 'slangSolx' with pre-cancun evmVersion", async () => {
+  it("rejects type: 'slang-solx' with pre-cancun evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -411,7 +411,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "paris" },
               },
             ],
@@ -426,7 +426,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
     );
   });
 
-  it("rejects type: 'slangSolx' with shanghai evmVersion", async () => {
+  it("rejects type: 'slang-solx' with shanghai evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -434,7 +434,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "shanghai" },
               },
             ],
@@ -445,7 +445,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
     assert.ok(errors.length > 0, "Should have validation errors");
   });
 
-  it("accepts type: 'slangSolx' with cancun evmVersion", async () => {
+  it("accepts type: 'slang-solx' with cancun evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -453,7 +453,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "cancun" },
               },
             ],
@@ -464,7 +464,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("accepts type: 'slangSolx' with prague evmVersion", async () => {
+  it("accepts type: 'slang-solx' with prague evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -472,7 +472,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "prague" },
               },
             ],
@@ -483,7 +483,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("accepts type: 'slangSolx' with osaka evmVersion", async () => {
+  it("accepts type: 'slang-solx' with osaka evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -491,7 +491,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "osaka" },
               },
             ],
@@ -502,12 +502,12 @@ describe("hardhat-slang-solx EVM version validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("accepts type: 'slangSolx' without evmVersion", async () => {
+  it("accepts type: 'slang-solx' without evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
           "slang-solx": {
-            compilers: [{ version: "0.8.34", type: "slangSolx" }],
+            compilers: [{ version: "0.8.34", type: "slang-solx" }],
           },
         },
       },
@@ -515,7 +515,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("ignores evmVersion on non-slangSolx compiler entries", async () => {
+  it("ignores evmVersion on non-slang-solx compiler entries", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -543,7 +543,7 @@ describe("hardhat-slang-solx EVM version validation", () => {
             overrides: {
               "contracts/Old.sol": {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { evmVersion: "london" },
               },
             },
@@ -560,12 +560,12 @@ describe("hardhat-slang-solx EVM version validation", () => {
 });
 
 describe("hardhat-slang-solx Solidity version validation", () => {
-  it("rejects type: 'slangSolx' with unsupported Solidity version", async () => {
+  it("rejects type: 'slang-solx' with unsupported Solidity version", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
           "slang-solx": {
-            compilers: [{ version: "0.8.28", type: "slangSolx" }],
+            compilers: [{ version: "0.8.28", type: "slang-solx" }],
           },
         },
       },
@@ -576,12 +576,12 @@ describe("hardhat-slang-solx Solidity version validation", () => {
     );
   });
 
-  it("accepts type: 'slangSolx' with supported Solidity version 0.8.34", async () => {
+  it("accepts type: 'slang-solx' with supported Solidity version 0.8.34", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
           "slang-solx": {
-            compilers: [{ version: "0.8.34", type: "slangSolx" }],
+            compilers: [{ version: "0.8.34", type: "slang-solx" }],
           },
         },
       },
@@ -592,7 +592,7 @@ describe("hardhat-slang-solx Solidity version validation", () => {
     assert.deepEqual(versionErrors, []);
   });
 
-  it("accepts type: 'slangSolx' with supported version and custom path", async () => {
+  it("accepts type: 'slang-solx' with supported version and custom path", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -600,7 +600,7 @@ describe("hardhat-slang-solx Solidity version validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 path: "/tmp/solx-custom",
               },
             ],
@@ -614,7 +614,7 @@ describe("hardhat-slang-solx Solidity version validation", () => {
     assert.deepEqual(versionErrors, []);
   });
 
-  it("accepts type: 'slangSolx' with unsupported version when path is set", async () => {
+  it("accepts type: 'slang-solx' with unsupported version when path is set", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
@@ -622,7 +622,7 @@ describe("hardhat-slang-solx Solidity version validation", () => {
             compilers: [
               {
                 version: "0.8.35",
-                type: "slangSolx",
+                type: "slang-solx",
                 path: "/tmp/solx-nightly",
               },
             ],
@@ -641,7 +641,7 @@ describe("hardhat-slang-solx Solidity version validation", () => {
       solidity: {
         profiles: {
           "slang-solx": {
-            compilers: [{ version: "0.8.35", type: "slangSolx", path: "" }],
+            compilers: [{ version: "0.8.35", type: "slang-solx", path: "" }],
           },
         },
       },
@@ -665,7 +665,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
       solidity: {
         profiles,
         npmFilesToBuild: [],
-        registeredCompilerTypes: ["solc", "slangSolx"],
+        registeredCompilerTypes: ["solc", "slang-solx"],
       },
       slangSolx: {
         dangerouslyAllowSlangSolxInProduction:
@@ -704,7 +704,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -712,19 +712,19 @@ describe("hardhat-slang-solx resolved config validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("errors when type: 'slangSolx' appears in a non-slang-solx profile", async () => {
+  it("errors when type: 'slang-solx' appears in a non-slang-solx profile", async () => {
     const errors = await validateResolvedConfig(
       makeResolvedConfig({
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -741,7 +741,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
     );
   });
 
-  it("errors when type: 'slangSolx' appears in non-slang-solx profile overrides", async () => {
+  it("errors when type: 'slang-solx' appears in non-slang-solx profile overrides", async () => {
     const errors = await validateResolvedConfig(
       makeResolvedConfig({
         default: {
@@ -751,7 +751,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
           overrides: {
             "MyContract.sol": {
               version: "0.8.34",
-              type: "slangSolx",
+              type: "slang-solx",
               settings: {},
             },
           },
@@ -759,7 +759,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -776,20 +776,24 @@ describe("hardhat-slang-solx resolved config validation", () => {
     );
   });
 
-  it("allows type: 'slangSolx' in non-slang-solx profiles with dangerouslyAllowSlangSolxInProduction", async () => {
+  it("allows type: 'slang-solx' in non-slang-solx profiles with dangerouslyAllowSlangSolxInProduction", async () => {
     const errors = await validateResolvedConfig(
       makeResolvedConfig(
         {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+            compilers: [
+              { version: "0.8.34", type: "slang-solx", settings: {} },
+            ],
             overrides: {},
           },
           "slang-solx": {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+            compilers: [
+              { version: "0.8.34", type: "slang-solx", settings: {} },
+            ],
             overrides: {},
           },
         },
@@ -799,7 +803,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("allows type: 'slangSolx' in the slang-solx profile", async () => {
+  it("allows type: 'slang-solx' in the slang-solx profile", async () => {
     const errors = await validateResolvedConfig(
       makeResolvedConfig({
         default: {
@@ -811,7 +815,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -826,7 +830,9 @@ describe("hardhat-slang-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.34", type: "slangSolx", settings: {} }],
+            compilers: [
+              { version: "0.8.34", type: "slang-solx", settings: {} },
+            ],
             overrides: {},
           },
         },
@@ -849,7 +855,7 @@ describe("hardhat-slang-solx optimizer mode validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { optimizer: { mode } },
               },
             ],
@@ -892,7 +898,7 @@ describe("hardhat-slang-solx optimizer mode validation", () => {
             compilers: [
               {
                 version: "0.8.34",
-                type: "slangSolx",
+                type: "slang-solx",
                 settings: { optimizer: { enabled: true, runs: 200 } },
               },
             ],

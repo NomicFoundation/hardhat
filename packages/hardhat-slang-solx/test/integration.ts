@@ -33,7 +33,7 @@ describe("hardhat-slang-solx integration", () => {
             version: "0.8.34",
           },
           "slang-solx": {
-            type: "slangSolx",
+            type: "slang-solx",
             version: "0.8.34",
           },
         },
@@ -75,18 +75,18 @@ describe("hardhat-slang-solx integration", () => {
     const slangSolxProfile = hre.config.solidity.profiles["slang-solx"];
     assert.equal(
       slangSolxProfile.compilers[0].type,
-      "slangSolx",
-      "slang-solx profile compiler should have type: 'slangSolx'",
+      "slang-solx",
+      "slang-solx profile compiler should have type: 'slang-solx'",
     );
   });
 
-  it("registers 'slangSolx' as a compiler type", async () => {
+  it("registers 'slang-solx' as a compiler type", async () => {
     const hre = await createHre();
 
     assert.deepEqual(
       hre.config.solidity.registeredCompilerTypes,
-      ["solc", "slangSolx"],
-      "the plugin registers 'slangSolx' and leaves core's 'solc' in place, and registers nothing else",
+      ["solc", "slang-solx"],
+      "the plugin registers 'slang-solx' and leaves core's 'solc' in place, and registers nothing else",
     );
   });
 });
