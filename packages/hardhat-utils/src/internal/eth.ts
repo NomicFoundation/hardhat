@@ -1,3 +1,5 @@
+import type { PrefixedHexString } from "../hex.js";
+
 import { utf8StringToBytes } from "../bytes.js";
 import { keccak256 } from "../crypto.js";
 import { bytesToHexString, getUnprefixedHexString } from "../hex.js";
@@ -42,16 +44,19 @@ export async function getAddressGenerator(): Promise<RandomBytesGenerator> {
 }
 
 /**
- * Checks if a value is an Ethereum address and if the checksum is valid.
- * This method is a a an adaptation of the ethereumjs methods at this link:
+ * Converts an Ethereum address to its EIP-55 checksummed representation.
+ * This method is an adaptation of the ethereumjs methods at this link:
  * https://github.com/ethereumjs/ethereumjs-monorepo/blob/47f388bfeec553519d11259fee7e7161a77b29b2/packages/util/src/account.ts#L440-L478
  * The main differences are:
- * - the two methods have been merged into one
- * - tha `eip1191ChainId` parameter has been removed.
+ * - the `eip1191ChainId` parameter has been removed.
  * - the code has been modified to use the `hardhat-utils` methods
  *
+ * It doesn't validate that the input is an Ethereum address; callers must
+ * check that first (see the public wrappers in `../eth.ts`).
  */
-export async function isValidChecksum(hexAddress: string): Promise<boolean> {
+export async function toChecksumAddress(
+  hexAddress: PrefixedHexString,
+): Promise<PrefixedHexString> {
   const address = getUnprefixedHexString(hexAddress).toLowerCase();
 
   const bytes = utf8StringToBytes(address);
@@ -67,5 +72,17 @@ export async function isValidChecksum(hexAddress: string): Promise<boolean> {
     }
   }
 
-  return `0x${ret}` === hexAddress;
+  return `0x${ret}`;
+}
+
+/**
+ * Checks if the checksum of an address is valid.
+ *
+ * It doesn't validate that the input is an Ethereum address; callers must
+ * check that first (see the public wrappers in `../eth.ts`).
+ */
+export async function isValidChecksum(
+  hexAddress: PrefixedHexString,
+): Promise<boolean> {
+  return (await toChecksumAddress(hexAddress)) === hexAddress;
 }
