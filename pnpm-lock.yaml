@@ -101,6 +101,9 @@ importers:
       '@nomicfoundation/hardhat-node-test-runner':
         specifier: workspace:^3.1.0
         version: link:../hardhat-node-test-runner
+      '@nomicfoundation/hardhat-slang-solx':
+        specifier: workspace:^
+        version: link:../hardhat-slang-solx
       '@nomicfoundation/hardhat-typechain':
         specifier: workspace:^3.1.1
         version: link:../hardhat-typechain
