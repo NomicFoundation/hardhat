@@ -6,5 +6,11 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-slang-solx",
+      "peer": "hardhat",
+      "reason": "The plugin requires the latest Hardhat for the additional support for build info file names with hyphens."
+    }
+  ]
 }
