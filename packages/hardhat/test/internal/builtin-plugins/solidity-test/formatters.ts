@@ -1,4 +1,5 @@
 import type {
+  InlineConfigDirectiveError,
   InlineConfigDirectiveProblem,
   InlineConfigError,
   InlineConfigSourceProblem,
@@ -13,9 +14,16 @@ const SOURCE_NAME = "project/test/Foo.t.sol";
 
 const sourceNameToUserSourceName = new Map([[SOURCE_NAME, "test/Foo.t.sol"]]);
 
+/* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+The current EDR API makes `function` optional on directive errors (absent for
+contract-level directives), but the pinned @nomicfoundation/edr types still
+require it. This cast keeps the file compiling against both; replace it with a
+plain `undefined` once the EDR pin is updated. */
+const NO_FUNCTION = undefined as unknown as string;
+
 function directiveError(
   problem: InlineConfigDirectiveProblem,
-): InlineConfigError {
+): InlineConfigDirectiveError {
   return {
     kind: "directive",
     sourceName: SOURCE_NAME,
@@ -24,6 +32,12 @@ function directiveError(
     line: 12,
     problem,
   };
+}
+
+function contractLevelDirectiveError(
+  problem: InlineConfigDirectiveProblem,
+): InlineConfigError {
+  return { ...directiveError(problem), function: NO_FUNCTION };
 }
 
 function sourceError(problem: InlineConfigSourceProblem): InlineConfigError {
@@ -53,6 +67,23 @@ describe("formatInlineConfigErrors", () => {
         `- test/Foo.t.sol:12: FooTest.testFuzz: duplicate key "default.fuzz.runs"`,
         "- test/Foo.t.sol: the Solidity version of this source is not supported by the inline configuration parser",
       ].join("\n"),
+    );
+  });
+
+  it("omits the function for contract-level directives", () => {
+    const formatted = formatInlineConfigErrors(
+      [
+        contractLevelDirectiveError({
+          kind: "InlineConfigDuplicateKey",
+          key: "default.fuzz.runs",
+        }),
+      ],
+      sourceNameToUserSourceName,
+    );
+
+    assert.equal(
+      formatted,
+      `- test/Foo.t.sol:12: FooTest: duplicate key "default.fuzz.runs"`,
     );
   });
 
@@ -139,6 +170,15 @@ describe("formatInlineConfigErrors", () => {
           reason: "offset out of bounds",
         },
         "a directive of FooTest.testFuzz could not be located: offset out of bounds",
+      ],
+      [
+        {
+          kind: "InlineConfigDirectiveLocation",
+          contract: "FooTest",
+          function: NO_FUNCTION,
+          reason: "offset out of bounds",
+        },
+        "a directive of FooTest could not be located: offset out of bounds",
       ],
     ];
 

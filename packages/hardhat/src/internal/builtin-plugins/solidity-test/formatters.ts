@@ -32,9 +32,20 @@ export function formatInlineConfigErrors(
         return `- ${sourceName}: ${formatInlineConfigSourceProblem(error.problem)}`;
       }
 
-      return `- ${sourceName}:${error.line}: ${error.contract}.${error.function}: ${formatInlineConfigDirectiveProblem(error.problem)}`;
+      return `- ${sourceName}:${error.line}: ${formatDirectiveOwner(error.contract, error.function)}: ${formatInlineConfigDirectiveProblem(error.problem)}`;
     })
     .join("\n");
+}
+
+/**
+ * A directive belongs to a test function (`Contract.function`) or, when the
+ * function is absent, to the contract itself (a contract-level directive).
+ */
+function formatDirectiveOwner(
+  contract: string,
+  fn: string | undefined,
+): string {
+  return fn === undefined ? contract : `${contract}.${fn}`;
 }
 
 function formatInlineConfigDirectiveProblem(
@@ -65,6 +76,6 @@ function formatInlineConfigSourceProblem(
     case "InlineConfigSourceFileNotFound":
       return `the source file could not be read at "${problem.path}": ${problem.reason}`;
     case "InlineConfigDirectiveLocation":
-      return `a directive of ${problem.contract}.${problem.function} could not be located: ${problem.reason}`;
+      return `a directive of ${formatDirectiveOwner(problem.contract, problem.function)} could not be located: ${problem.reason}`;
   }
 }
