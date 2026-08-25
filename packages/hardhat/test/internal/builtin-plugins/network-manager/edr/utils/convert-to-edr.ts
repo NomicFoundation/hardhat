@@ -1,7 +1,10 @@
+import type { ChainDescriptorsConfig } from "../../../../../../src/types/config.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { AMSTERDAM, GasEstimationMode, SpecId } from "@nomicfoundation/edr";
+import { GasEstimationMode, L1Hardfork } from "@nomicfoundation/edr";
+
 
 import {
   getCurrentHardfork,
@@ -10,11 +13,13 @@ import {
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   edrL1HardforkToHardhatL1HardforkName,
+  hardhatChainDescriptorsToEdrChainOverrides,
   hardhatGasEstimationModeToEdrGasEstimationMode,
-  hardhatHardforkToEdrSpecId,
   hardhatMiningIntervalToEdrMiningInterval,
+
   resolveDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
+import { getHardforkName } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/hardfork.js";
 import {
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
@@ -161,16 +166,16 @@ describe("hardhatGasEstimationModeToEdrGasEstimationMode", () => {
 });
 
 describe("Amsterdam L1 hardfork conversion round-trip", () => {
-  it("maps the AMSTERDAM name to EDR's Amsterdam spec id", () => {
+  it("passes the AMSTERDAM name through to EDR", () => {
     assert.equal(
-      hardhatHardforkToEdrSpecId(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE),
-      AMSTERDAM,
+      getHardforkName(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE),
+      L1HardforkName.AMSTERDAM,
     );
   });
 
-  it("maps EDR's Amsterdam spec id back to the AMSTERDAM name", () => {
+  it("maps EDR's Amsterdam hardfork back to the AMSTERDAM name", () => {
     assert.equal(
-      edrL1HardforkToHardhatL1HardforkName(SpecId.Amsterdam),
+      edrL1HardforkToHardhatL1HardforkName(L1Hardfork.Amsterdam),
       L1HardforkName.AMSTERDAM,
     );
   });
@@ -204,5 +209,65 @@ describe("hardhatMiningIntervalToEdrMiningInterval", () => {
       min: 1n,
       max: 1n,
     });
+  });
+});
+
+describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
+  it("omits pre-Byzantium L1 hardfork activations from the overrides", () => {
+    const chainDescriptors: ChainDescriptorsConfig = new Map([
+      [
+        1n,
+        {
+          name: "Mainnet",
+          chainType: L1_CHAIN_TYPE,
+          blockExplorers: {},
+          hardforkHistory: new Map([
+            [L1HardforkName.FRONTIER, { blockNumber: 0 }],
+            [L1HardforkName.DAO, { blockNumber: 1_920_000 }],
+            [L1HardforkName.BYZANTIUM, { blockNumber: 4_370_000 }],
+            [L1HardforkName.LONDON, { blockNumber: 12_965_000 }],
+          ]),
+        },
+      ],
+    ]);
+
+    const overrides = hardhatChainDescriptorsToEdrChainOverrides(
+      chainDescriptors,
+      L1_CHAIN_TYPE,
+    );
+
+    assert.equal(overrides.length, 1);
+    assert.deepEqual(
+      overrides[0].hardforkActivationOverrides?.map(({ hardfork }) => hardfork),
+      [L1HardforkName.BYZANTIUM, L1HardforkName.LONDON],
+    );
+  });
+
+  it("keeps every OP hardfork activation", () => {
+    const chainDescriptors: ChainDescriptorsConfig = new Map([
+      [
+        10n,
+        {
+          name: "OP Mainnet",
+          chainType: OPTIMISM_CHAIN_TYPE,
+          blockExplorers: {},
+          hardforkHistory: new Map([
+            [OpHardforkName.BEDROCK, { blockNumber: 0 }],
+            [OpHardforkName.CANYON, { timestamp: 1_704_992_401 }],
+          ]),
+        },
+      ],
+    ]);
+
+    const overrides = hardhatChainDescriptorsToEdrChainOverrides(
+      chainDescriptors,
+      OPTIMISM_CHAIN_TYPE,
+    );
+
+    assert.equal(overrides.length, 1);
+    assert.deepEqual(
+      overrides[0].hardforkActivationOverrides?.map(({ hardfork }) => hardfork),
+      [OpHardforkName.BEDROCK, OpHardforkName.CANYON],
+    );
   });
 });
