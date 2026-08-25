@@ -167,7 +167,7 @@ const solidityUserConfigType = conditionalUnionType(
 
 const solxUserConfigType = z.object({
   solidity: solidityUserConfigType.optional(),
-  slangSolx: z
+  "slang-solx": z
     .object({
       dangerouslyAllowSlangSolxInProduction: z.boolean().optional(),
     })
@@ -217,7 +217,7 @@ export async function resolveUserConfig(
               SLANG_SOLX_COMPILER_TYPE,
             ],
     },
-    slangSolx: resolveSolxConfig(userConfig.slangSolx),
+    "slang-solx": resolveSolxConfig(userConfig["slang-solx"]),
   };
 }
 
@@ -296,7 +296,7 @@ export async function validateResolvedConfig(
   }
 
   // Check that type: "slang-solx" is not used in non-slang-solx profiles
-  if (resolvedConfig.slangSolx.dangerouslyAllowSlangSolxInProduction) {
+  if (resolvedConfig["slang-solx"].dangerouslyAllowSlangSolxInProduction) {
     log(
       "Skipping non-slang-solx profile validation: dangerouslyAllowSlangSolxInProduction is true",
     );
@@ -310,7 +310,7 @@ export async function validateResolvedConfig(
       continue;
     }
 
-    const solxInOtherProfileMessage = `Compiler type "slang-solx" is only supported in the "slang-solx" build profile. Remove type: "slang-solx" from the "${profileName}" profile compilers, or set slangSolx.dangerouslyAllowSlangSolxInProduction in the plugin config.`;
+    const solxInOtherProfileMessage = `Compiler type "slang-solx" is only supported in the "slang-solx" build profile. Remove type: "slang-solx" from the "${profileName}" profile compilers, or set dangerouslyAllowSlangSolxInProduction in the "slang-solx" plugin config.`;
 
     for (const [i, compiler] of profile.compilers.entries()) {
       if (compiler.type === SLANG_SOLX_COMPILER_TYPE) {

@@ -20,7 +20,7 @@ describe("hardhat-slang-solx integration", () => {
   it("resolves plugin config through the HRE", async () => {
     const hre = await createHre();
     assert.equal(
-      hre.config.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,
     );
   });
@@ -42,7 +42,7 @@ describe("hardhat-slang-solx integration", () => {
     });
 
     assert.equal(
-      hre.config.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,
     );
   });

@@ -58,10 +58,12 @@ declare module "hardhat/types/config" {
   }
 
   export interface HardhatUserConfig {
-    slangSolx?: SlangSolxUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the plugin config namespace is kebab-case to match the plugin name
+    "slang-solx"?: SlangSolxUserConfig;
   }
 
   export interface HardhatConfig {
-    slangSolx: SlangSolxConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the plugin config namespace is kebab-case to match the plugin name
+    "slang-solx": SlangSolxConfig;
   }
 }

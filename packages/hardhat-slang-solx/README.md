@@ -89,7 +89,7 @@ export default defineConfig({
       },
     },
   },
-  slangSolx: {
+  "slang-solx": {
     dangerouslyAllowSlangSolxInProduction: false, // default false, switching this to true will allow `type: "slang-solx"` on the default profile.
   },
 });

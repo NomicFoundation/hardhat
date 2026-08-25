@@ -12,7 +12,7 @@ import { SOLX_DEBUG_INFO_SELECTORS } from "../src/internal/slang-solx-compiler.j
 describe("hardhat-slang-solx plugin config validation", () => {
   it("accepts valid config with dangerouslyAllowSlangSolxInProduction", async () => {
     const errors = await validateUserConfig({
-      slangSolx: {
+      "slang-solx": {
         dangerouslyAllowSlangSolxInProduction: true,
       },
     });
@@ -21,7 +21,7 @@ describe("hardhat-slang-solx plugin config validation", () => {
 
   it("accepts empty plugin config", async () => {
     const errors = await validateUserConfig({
-      slangSolx: {},
+      "slang-solx": {},
     });
     assert.deepEqual(errors, []);
   });
@@ -33,14 +33,14 @@ describe("hardhat-slang-solx plugin config validation", () => {
 
   it("rejects invalid dangerouslyAllowSlangSolxInProduction type", async () => {
     const errors = await validateUserConfig({
-      slangSolx: { dangerouslyAllowSlangSolxInProduction: "yes" as any },
+      "slang-solx": { dangerouslyAllowSlangSolxInProduction: "yes" as any },
     });
     assert.ok(errors.length > 0, "Should have validation errors");
   });
 
   it("rejects non-boolean dangerouslyAllowSlangSolxInProduction", async () => {
     const errors = await validateUserConfig({
-      slangSolx: {
+      "slang-solx": {
         dangerouslyAllowSlangSolxInProduction: 1 as any,
       },
     });
@@ -75,14 +75,14 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     );
 
     assert.equal(
-      resolvedConfig.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      resolvedConfig["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,
     );
   });
 
   it("resolves dangerouslyAllowSlangSolxInProduction from user config", async () => {
     const resolvedConfig = await resolveUserConfig(
-      { slangSolx: { dangerouslyAllowSlangSolxInProduction: true } },
+      { "slang-solx": { dangerouslyAllowSlangSolxInProduction: true } },
       undefined as any,
       makeNext({
         default: {
@@ -95,7 +95,7 @@ describe("hardhat-slang-solx plugin config resolution", () => {
     );
 
     assert.equal(
-      resolvedConfig.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      resolvedConfig["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       true,
     );
   });
@@ -667,7 +667,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         npmFilesToBuild: [],
         registeredCompilerTypes: ["solc", "slang-solx"],
       },
-      slangSolx: {
+      "slang-solx": {
         dangerouslyAllowSlangSolxInProduction:
           opts?.dangerouslyAllowSlangSolxInProduction ?? false,
       },
