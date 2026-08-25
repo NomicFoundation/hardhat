@@ -4,7 +4,6 @@ import type { AccountOverride } from "@nomicfoundation/edr";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { CANCUN, LONDON } from "@nomicfoundation/edr";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { hexToBytes } from "ethereum-cryptography/utils";
 
@@ -12,6 +11,7 @@ import {
   getGenesisStateAndOwnedAccounts,
   mergeGenesisState,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/genesis-state.js";
+import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import { L1_CHAIN_TYPE } from "../../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
@@ -32,14 +32,14 @@ describe("getGenesisStateAndOwnedAccounts", () => {
       accounts,
       undefined,
       L1_CHAIN_TYPE,
-      CANCUN,
+      L1HardforkName.CANCUN,
     );
 
     const result2 = await getGenesisStateAndOwnedAccounts(
       accounts,
       undefined,
       L1_CHAIN_TYPE,
-      CANCUN,
+      L1HardforkName.CANCUN,
     );
 
     assert.equal(result1, result2);
@@ -50,21 +50,21 @@ describe("getGenesisStateAndOwnedAccounts", () => {
       accounts,
       undefined,
       L1_CHAIN_TYPE,
-      CANCUN,
+      L1HardforkName.CANCUN,
     );
 
     const result2 = await getGenesisStateAndOwnedAccounts(
       accounts,
       undefined,
       L1_CHAIN_TYPE,
-      LONDON,
+      L1HardforkName.LONDON,
     );
 
     const result3 = await getGenesisStateAndOwnedAccounts(
       { ...accounts },
       undefined,
       L1_CHAIN_TYPE,
-      LONDON,
+      L1HardforkName.LONDON,
     );
 
     assert.notEqual(result1, result2);
