@@ -1,8 +1,12 @@
 # Hardhat Slang Solx plugin
 
-This plugin enables the [solx](https://github.com/NomicFoundation/solx) Solidity compiler in Hardhat 3.
+This plugin enables the [slang-solx](https://github.com/NomicFoundation/solx) Solidity compiler in Hardhat. `slang-solx` is a Solidity compiler based on solc and LLVM. It compiles faster, produces better optimized bytecode, and gets rid of “stack too deep” errors.
 
-The `solx` compiler is currently experimental and is not ready for production use-cases. We recommend using the compiler for test builds and test execution locally, and continuing to use `solc` for production use-cases (including during deployment for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `solx` in other build profiles, see configuration flags further below.
+The `slang-solx` compiler is currently experimental and is not ready for production use-cases. We recommend using the compiler for test builds and test execution locally, and continuing to use `solc` for production use-cases (including during deployment, for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `slang-solx` in other build profiles, see configuration flags below.
+
+The compiler was originally developed at Matter Labs under the name `solx`. It moved to the Nomic Foundation in 2025, where it was renamed `slang-solx`. Its repository and release assets still use the `solx` name.
+
+> 💡 **Tip:** Read the [Compiling with slang-solx](https://hardhat.org/docs/cookbook/compiling-with-slang-solx) guide for more details.
 
 ## Installation
 
@@ -32,11 +36,11 @@ export default defineConfig({
 });
 ```
 
-The `default` profile uses solc as usual. The `slang-solx` profile uses the solx compiler, identified by `type: "slang-solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `slang-solx` profile uses the slang-solx compiler, identified by `type: "slang-solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with the hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
 
 ## Usage
 
-Run tests or compile using the solx-powered build profile:
+Run tests or compile using the slang-solx build profile:
 
 ```bash
 hardhat test --build-profile slang-solx
@@ -66,7 +70,7 @@ export default defineConfig({
       "slang-solx": {
         compilers: [
           { type: "slang-solx", version: "0.8.34" },
-          { version: "0.8.20" }, // uses solc, solx doesn't support this version
+          { version: "0.8.20" }, // uses solc, slang-solx doesn't support this version
         ],
       },
     },
@@ -84,25 +88,37 @@ export default defineConfig({
   solidity: {
     profiles: {
       default: {
-        type: "slang-solx", // returns a validation error.
+        type: "slang-solx", // allowed only because of the option below
+        version: "0.8.34",
+      },
+      "slang-solx": {
+        type: "slang-solx",
         version: "0.8.34",
       },
     },
   },
   "slang-solx": {
-    dangerouslyAllowSlangSolxInProduction: false, // default false, switching this to true will allow `type: "slang-solx"` on the default profile.
+    dangerouslyAllowSlangSolxInProduction: true,
   },
 });
 ```
 
 ### Optimization level
 
-solx optimizes via LLVM; set the level per profile with `settings.optimizer.mode` — one of `"1"`, `"2"`, `"3"` (best performance), `"s"` (optimize for size), or `"z"` (aggressively minimize size). The plugin defaults to `"1"` (solx's own default if left unset is `"3"`).
+slang-solx optimizes via LLVM; set the level per profile with `settings.optimizer.mode`:
 
-solx has two independent optimizer knobs:
+| Mode  | What it does                                          |
+| ----- | ----------------------------------------------------- |
+| `"1"` | Least optimization, fastest to compile (the default). |
+| `"2"` | More runtime optimization.                            |
+| `"3"` | Best runtime performance.                             |
+| `"s"` | Smaller bytecode.                                     |
+| `"z"` | Smallest bytecode.                                    |
+
+slang-solx has two independent optimizer knobs:
 
 - `optimizer.mode` (above) is the LLVM backend level. There is **no "off"** — the minimum is `"1"`, so LLVM always optimizes.
-- `optimizer.enabled` is the embedded solc front end's own optimizer, `false` by default. It only affects the legacy pipeline, where it optimizes the EVM assembly solx translates. Under `viaIR: true` it changes nothing but the metadata hash: solx bypasses the Yul optimizer entirely, so the IR handed to LLVM is always unoptimized.
+- `optimizer.enabled` is the embedded solc front end's own optimizer, `false` by default. It only affects the legacy pipeline, where it optimizes the EVM assembly slang-solx translates. Under `viaIR: true` it changes nothing but the metadata hash: slang-solx bypasses the Yul optimizer entirely, so the IR handed to LLVM is always unoptimized.
 
 For example, optimizing for size instead of performance:
 
@@ -137,8 +153,8 @@ Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `
 
 ### Supported Solidity versions
 
-solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.34` (solx 0.1.8). Earlier solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.
+slang-solx maps each Solidity version to a specific slang-solx binary version internally. Currently supported: `0.8.34` (solx 0.1.8). Earlier slang-solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.
 
 ### EVM version support
 
-solx supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang-solx"` will result in a validation error.
+slang-solx supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang-solx"` will result in a validation error.
