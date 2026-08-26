@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax -- hack */
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
@@ -22,6 +21,7 @@ import {
   MineOrdering,
   OpHardfork,
 } from "@nomicfoundation/edr";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -80,7 +80,8 @@ export function edrL1HardforkToHardhatL1HardforkName(
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
-      throw new Error(
+      assertHardhatInvariant(
+        false,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown L1 hardfork '${hardfork as L1Hardfork}', this shouldn't happen`,
       );
@@ -110,7 +111,8 @@ export function edrOpHardforkToHardhatOpHardforkName(
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
-      throw new Error(
+      assertHardhatInvariant(
+        false,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown OP hardfork '${hardfork as OpHardfork}', this shouldn't happen`,
       );
