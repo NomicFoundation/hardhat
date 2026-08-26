@@ -3,7 +3,7 @@
   "description": "Aave v4 fork to Hardhat 3.",
   "tags": ["external-repo"],
   "repo": "anaPerezGhiglia/aave-v4",
-  "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
+  "commit": "27c95eae18c60547933b6486774f816175e124f0",
   "packageManager": "yarn",
   "submodules": true,
   "preinstall": "./preinstall.sh",
@@ -14,19 +14,19 @@
         "runs": 2,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- tests/unit/WadRayMath.t.sol tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol src/libraries/math/MathUtils.sol && npx hardhat clean",
+            "command": "git checkout -- tests/contracts/libraries/math/WadRayMath.t.sol tests/contracts/spoke/liquidation/Spoke.LiquidationCall.t.sol src/libraries/math/MathUtils.sol && npx hardhat clean",
             "measure": false
           },
           "cold compile": {
             "command": "npx hardhat compile",
             "dependsOn": ["reset files & cache"]
           },
-          "edit & compile Solidity test with min deps: tests/unit/WadRayMath.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && npx hardhat compile",
+          "edit & compile Solidity test with min deps: tests/contracts/libraries/math/WadRayMath.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/contracts/libraries/math/WadRayMath.t.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           },
-          "edit & compile Solidity test with max deps: tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile",
+          "edit & compile Solidity test with max deps: tests/contracts/spoke/liquidation/Spoke.LiquidationCall.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/contracts/spoke/liquidation/Spoke.LiquidationCall.t.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: src/libraries/math/MathUtils.sol": {
