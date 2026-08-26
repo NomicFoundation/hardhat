@@ -86,7 +86,8 @@ function runPackageManager(
       // stopped, so provide the fallback here. The registry these installs
       // actually use is unaffected: the Verdaccio config outranks any
       // ambient npmrc.
-      NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN ?? "",
+      NODE_AUTH_TOKEN:
+        env?.NODE_AUTH_TOKEN ?? process.env.NODE_AUTH_TOKEN ?? "",
       ...(packageManager === "pnpm"
         ? {
             // The local packages (hardhat, @nomicfoundation/*) are published to
