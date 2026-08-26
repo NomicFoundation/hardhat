@@ -76,6 +76,17 @@ function runPackageManager(
       ...process.env,
       ...env,
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      // actions/setup-node (with `registry-url`) writes $RUNNER_TEMP/.npmrc
+      // with an `_authToken` referencing ${NODE_AUTH_TOKEN}, and the CI clone
+      // dir ($RUNNER_TEMP/hardhat-e2e-clones) lives right under it. Yarn
+      // Classic registers every .npmrc in the cwd's ancestor directories and
+      // hard-fails on any unset variable in a config it reads (npm only
+      // warns). The variable is only set in publish jobs; setup-node ≤v6
+      // exported a placeholder that kept the substitution working, v7
+      // stopped, so provide the fallback here. The registry these installs
+      // actually use is unaffected: the Verdaccio config outranks any
+      // ambient npmrc.
+      NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN ?? "",
       ...(packageManager === "pnpm"
         ? {
             // The local packages (hardhat, @nomicfoundation/*) are published to
