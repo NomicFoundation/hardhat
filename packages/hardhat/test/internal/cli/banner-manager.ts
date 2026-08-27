@@ -86,7 +86,7 @@ describe("BannerManager", () => {
   describe("getInstance", () => {
     it("should return an instance when no cache file exists", async () => {
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -105,7 +105,7 @@ describe("BannerManager", () => {
       });
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -123,7 +123,7 @@ describe("BannerManager", () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, config);
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -138,7 +138,7 @@ describe("BannerManager", () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, config);
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -163,7 +163,7 @@ describe("BannerManager", () => {
         .reply(200, makeValidConfig({ minSecondsBetweenDisplays: 9999 }));
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -191,7 +191,7 @@ describe("BannerManager", () => {
       });
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -207,7 +207,7 @@ describe("BannerManager", () => {
         .reply(500, "Internal Server Error");
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -222,7 +222,7 @@ describe("BannerManager", () => {
         .reply(200, { invalid: "data" });
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -238,7 +238,7 @@ describe("BannerManager", () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, config);
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -278,7 +278,7 @@ describe("BannerManager", () => {
       });
 
       const instance = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -301,7 +301,7 @@ describe("BannerManager", () => {
       });
 
       const first = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 
@@ -321,7 +321,7 @@ describe("BannerManager", () => {
       });
 
       const second = await BannerManager.getInstance({
-        testDispatcher: interceptor,
+        testDispatcher: mockAgent,
         print,
       });
 

@@ -39,9 +39,11 @@ describe("sourcify", () => {
     };
     const compilerVersion = "0.8.24+commit.e11b9ed9";
     const verificationId = "6ab5e94b-2959-4945-bc92-c44a3fbcdb4a";
-    // Fix for undici MockAgent + throwOnError: Without explicitly setting headers
-    // in the reply options, error.body will be null even though the mock returns
-    // a body. Adding Content-Type header makes the body accessible in the error.
+    // Fix for undici MockAgent + the responseError interceptor: Without
+    // explicitly setting headers in the reply options, error.body will be null
+    // even though the mock returns a body. The interceptor only decodes bodies
+    // of application/json and text/plain responses, so adding the Content-Type
+    // header makes the body accessible in the error.
     // See: https://github.com/nodejs/undici/issues/4026#issuecomment-2612421029
     const responseOptions = { headers: { "Content-Type": "application/json" } };
 
@@ -149,7 +151,7 @@ describe("sourcify", () => {
       it("should return true if the contract is verified (exact match)", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -168,7 +170,7 @@ describe("sourcify", () => {
       it("should return true if the contract is verified (partial match)", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -187,7 +189,7 @@ describe("sourcify", () => {
       it("should return false if the contract is not verified", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(
@@ -210,7 +212,7 @@ describe("sourcify", () => {
       it("should throw an error if the request fails", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -266,7 +268,7 @@ describe("sourcify", () => {
       it("should throw an error if the response is malformed", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -307,7 +309,7 @@ describe("sourcify", () => {
       it("should return a verificationId if the verification request was submitted successfully", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(202, {
@@ -332,7 +334,7 @@ describe("sourcify", () => {
       it("should throw an error if the request fails", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -375,7 +377,7 @@ describe("sourcify", () => {
       it("should throw an error if the contract is already verified", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(
@@ -406,7 +408,7 @@ describe("sourcify", () => {
       it("should throw an error on submission failure", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(
@@ -437,7 +439,7 @@ describe("sourcify", () => {
       it("should throw an error if the response is malformed", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -479,7 +481,7 @@ describe("sourcify", () => {
       it("should return the verification status", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -544,7 +546,7 @@ describe("sourcify", () => {
       it("should poll the verification status until it is successful or fails", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         let callCount = 0;
@@ -596,7 +598,7 @@ describe("sourcify", () => {
       it("should throw an error if the request fails", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -651,7 +653,7 @@ describe("sourcify", () => {
       it("should throw an error if the contract is already verified", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -686,7 +688,7 @@ describe("sourcify", () => {
       it("should throw an error if bytecode is missing", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -722,7 +724,7 @@ describe("sourcify", () => {
       it("should throw an error if the response is malformed", async () => {
         const sourcify = new Sourcify({
           ...sourcifyConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Unexpected response shape

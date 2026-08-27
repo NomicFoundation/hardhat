@@ -1,4 +1,4 @@
-import type { Interceptable } from "../../src/request.js";
+import type { Interceptable, TestDispatcher } from "../../src/request.js";
 
 import { after, before } from "node:test";
 
@@ -9,9 +9,17 @@ interface InitializeOptions {
   timeout?: number;
 }
 
+/**
+ * Sets up a mock agent for tests.
+ *
+ * Use `interceptor` to declare the mocked responses, and `dispatcher` as the
+ * dispatcher passed to the request helpers. They must be kept apart: undici's
+ * interceptors only work when they are composed onto the mock agent, as the
+ * mock pool returned by `MockAgent#get` doesn't support them.
+ */
 export const initializeTestDispatcher = async (
   options: InitializeOptions = {},
-): Promise<Interceptable> => {
+): Promise<{ interceptor: Interceptable; dispatcher: TestDispatcher }> => {
   const { url = "http://localhost", timeout } = options;
 
   const mockAgent = await getTestDispatcher({ timeout });
@@ -25,5 +33,5 @@ export const initializeTestDispatcher = async (
     mockAgent.enableNetConnect();
   });
 
-  return interceptor;
+  return { interceptor, dispatcher: mockAgent };
 };
