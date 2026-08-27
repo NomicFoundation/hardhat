@@ -39,10 +39,16 @@ describe("getNativeKeccak256", () => {
   });
 
   it("should match the JS implementation", async () => {
-    for (const length of [0, 1, 31, 32, 135, 136, 137, 271, 272, 1_500_000]) {
+    const lengths = [...Array.from({ length: 4_097 }, (_, i) => i), 1_500_000];
+
+    for (const length of lengths) {
       const input = new Uint8Array(length);
+      // Deterministic LCG, seeded by the length, so that both the length and
+      // the content vary across iterations.
+      let state = length + 1;
       for (let i = 0; i < length; i++) {
-        input[i] = (i * 31 + length) % 256;
+        state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+        input[i] = state % 256;
       }
 
       assert.equal(
