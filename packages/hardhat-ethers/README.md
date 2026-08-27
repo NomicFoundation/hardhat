@@ -304,4 +304,4 @@ A few limitations are worth knowing about:
 
 - Registration reaches the ethers module instance that this plugin resolves: the ESM build of the copy it imports. Code that resolves a **separate** copy, or that `require`s ethers, which loads its distinct CommonJS build even from the same copy, keeps using the JavaScript implementation. Using `ethers` from the network connection avoids this. There's no supported way for a plugin to register into another instance.
 - Registration overwrites any implementation you registered into that instance yourself, since ethers provides no way to detect one. Register yours after connecting, or call `ethers.keccak256.lock()` before connecting; the plugin then leaves it untouched.
-- Only Keccak-256 is replaced. Signing still runs in JavaScript, since ethers exposes no equivalent hook for it.
+- Only Keccak-256 is replaced; signing still runs in JavaScript because this plugin doesn't register a native signing implementation.
