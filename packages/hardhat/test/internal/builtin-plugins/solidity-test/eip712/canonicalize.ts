@@ -549,11 +549,12 @@ describe("eip712 - canonicalize", () => {
       );
     });
 
-    it("throws when a selected struct depends on a name that a selected and a non-selected source define differently", () => {
+    it("lets the selected definition win a reachable name clash with a non-selected source", () => {
       // Selected `Mail` depends on `Person`, which has a selected definition
       // (test/Other.sol) AND a different non-selected one (lib/Imported.sol).
-      // Unlike the selected-root case above, the name is reachable, so it is
-      // ambiguous which `Person` definition `Mail.from` should inline: throw.
+      // Even though the name is reachable, there is no ambiguity: selected
+      // definitions deterministically win a clash, so `Mail.from` inlines the
+      // selected `Person` and the non-selected copy is ignored.
       const collected = [
         struct("Mail", [["Person", "from"]], "test/Mail.sol"),
         struct(
@@ -567,19 +568,64 @@ describe("eip712 - canonicalize", () => {
         struct("Person", [["uint256", "id"]], "lib/Imported.sol"),
       ];
 
-      assertThrowsHardhatError(
-        () =>
-          canonicalizeStructs(
-            collected,
-            new Set(["test/Mail.sol", "test/Other.sol"]),
-          ),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
-        {
-          name: "Person",
-          firstSource: "test/Other.sol",
-          secondSource: "lib/Imported.sol",
-          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
-        },
+      const expected = [
+        "Mail(Person from)Person(address wallet,string name)",
+        "Person(address wallet,string name)",
+      ];
+
+      const selected = new Set(["test/Mail.sol", "test/Other.sol"]);
+
+      assert.deepEqual(canonicalizeStructs(collected, selected).sort(), [
+        ...expected.sort(),
+      ]);
+
+      // Order-independent: the selected definition wins even when the
+      // non-selected copy comes first in `collected`.
+      assert.deepEqual(
+        canonicalizeStructs([...collected].reverse(), selected).sort(),
+        [...expected.sort()],
+      );
+    });
+
+    it("lets the selected definition win when the root and the clashed dependency live in the same selected source", () => {
+      // Real-world shape (aave-v4): one included file defines both the signed
+      // root and its dependency, while a non-selected production interface
+      // reuses the dependency's name for an unrelated struct. The included
+      // definitions are canonical; the clash must not abort the run.
+      const collected = [
+        struct(
+          "SetUserPositionManagers",
+          [
+            ["address", "onBehalfOf"],
+            ["PositionManagerUpdate[]", "updates"],
+          ],
+          "tests/EIP712Types.sol",
+        ),
+        struct(
+          "PositionManagerUpdate",
+          [
+            ["address", "positionManager"],
+            ["bool", "approve"],
+          ],
+          "tests/EIP712Types.sol",
+        ),
+        struct(
+          "PositionManagerUpdate",
+          [
+            ["address", "spoke"],
+            ["address", "positionManager"],
+            ["bool", "active"],
+          ],
+          "src/IConfigEngine.sol",
+        ),
+      ];
+
+      assert.deepEqual(
+        canonicalizeStructs(collected, new Set(["tests/EIP712Types.sol"])),
+        [
+          "SetUserPositionManagers(address onBehalfOf,PositionManagerUpdate[] updates)PositionManagerUpdate(address positionManager,bool approve)",
+          "PositionManagerUpdate(address positionManager,bool approve)",
+        ],
       );
     });
 
