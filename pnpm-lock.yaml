@@ -108,7 +108,7 @@ importers:
         specifier: workspace:^3.1.1
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.21
+        specifier: workspace:^3.1.0
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.9
@@ -144,7 +144,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.14.0
+        specifier: workspace:^3.15.0
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -1014,7 +1014,7 @@ importers:
         specifier: 9.39.5
         version: 9.39.5(supports-color@8.1.1)
       hardhat:
-        specifier: workspace:^3.14.0
+        specifier: workspace:^3.15.0
         version: link:../hardhat
       prettier:
         specifier: 3.9.6
@@ -1595,7 +1595,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.14.0
+        specifier: workspace:^3.15.0
         version: link:../..
       typescript:
         specifier: ~6.0.3
@@ -1662,7 +1662,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.14.0
+        specifier: workspace:^3.15.0
         version: link:../..
       mocha:
         specifier: ^11.0.0
@@ -1677,7 +1677,7 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
-        specifier: workspace:^3.14.0
+        specifier: workspace:^3.15.0
         version: link:../..
       typescript:
         specifier: ~6.0.3

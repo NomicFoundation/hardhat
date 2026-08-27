@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.9
+
+### Patch Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
 ## 4.1.8
 
 ### Patch Changes

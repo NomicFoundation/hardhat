@@ -1,5 +1,17 @@
 # hardhat
 
+## 3.15.0
+
+### Minor Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
+- [#8541](https://github.com/NomicFoundation/hardhat/pull/8541) [`ec737a2`](https://github.com/NomicFoundation/hardhat/commit/ec737a2894162b4e59aa22dc95518deba4027003) Thanks [@kanej](https://github.com/kanej)! - The project templates have been updated to Solidity 0.8.34 and forge-std v1.16.2.
+
+### Patch Changes
+
+- [#8578](https://github.com/NomicFoundation/hardhat/pull/8578) [`d88f769`](https://github.com/NomicFoundation/hardhat/commit/d88f76989e90987a5e454c23f0c5f3fa2e07af6d) Thanks [@kanej](https://github.com/kanej)! - Support hyphens in compiler type names.
+
 ## 3.14.0
 
 ### Minor Changes
