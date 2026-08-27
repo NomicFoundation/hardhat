@@ -293,3 +293,15 @@ function getContractAtFromArtifact(
   signer?: ethers.Signer,
 ): Promise<ethers.Contract>;
 ```
+
+## Native Keccak-256
+
+Every ethers operation hashes: address checksums, ABI selectors and topics, transaction serialization, and CREATE address derivation all go through Keccak-256, which ethers implements in pure JavaScript.
+
+When you connect to a network, this plugin replaces that implementation with EDR's native one through ethers' `keccak256.register` hook. The results are identical; only the speed differs. If the native implementation isn't available, an unsupported platform, or an EDR version that predates it, ethers keeps using its own, and nothing else changes.
+
+A few limitations are worth knowing about:
+
+- Registration reaches the ethers module instance that this plugin resolves: the ESM build of the copy it imports. Code that resolves a **separate** copy, or that `require`s ethers, which loads its distinct CommonJS build even from the same copy, keeps using the JavaScript implementation. Using `ethers` from the network connection avoids this. There's no supported way for a plugin to register into another instance.
+- Registration overwrites any implementation you registered into that instance yourself, since ethers provides no way to detect one. Register yours after connecting, or call `ethers.keccak256.lock()` before connecting, the plugin then leaves it untouched.
+- Only Keccak-256 is replaced. Signing still runs in JavaScript, since ethers exposes no equivalent hook for it.

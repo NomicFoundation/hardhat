@@ -11,6 +11,11 @@
       "package": "@nomicfoundation/hardhat-slang-solx",
       "peer": "hardhat",
       "reason": "The plugin requires the latest Hardhat for the additional support for build info file names with hyphens."
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ethers",
+      "peer": "hardhat",
+      "reason": "The plugin imports `hardhat/internal/edr` to register EDR's native Keccak-256 into ethers, and that export subpath is new in the next version of Hardhat."
     }
   ]
 }
