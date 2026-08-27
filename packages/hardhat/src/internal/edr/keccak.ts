@@ -31,7 +31,11 @@ async function loadNativeKeccak256(): Promise<Keccak256 | undefined> {
   try {
     const edr = await import("@nomicfoundation/edr");
 
-    const { keccak256 } = edr;
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    EDR versions older than the one that introduced the native keccak256 don't
+    declare it, so destructuring it directly wouldn't compile against them. The
+    check below validates the assertion at runtime. */
+    const { keccak256 } = edr as { keccak256?: Keccak256 };
 
     if (typeof keccak256 !== "function") {
       log("This version of EDR doesn't export a native keccak256");
