@@ -82,6 +82,9 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   afterEach(async () => {
+    mockAgent.enableNetConnect();
+    await mockAgent.close();
+
     resetMockCacheDir();
 
     await safeRemoveTmpDir(tmpDir);
