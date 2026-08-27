@@ -298,7 +298,7 @@ function getContractAtFromArtifact(
 
 Every ethers operation hashes: address checksums, ABI selectors and topics, transaction serialization, and CREATE address derivation all go through Keccak-256, which ethers implements in pure JavaScript.
 
-When you connect to a network, this plugin replaces that implementation with EDR's native one through ethers' `keccak256.register` hook. The results are identical; only the speed differs. If the native implementation isn't available, an unsupported platform, or an EDR version that predates it, ethers keeps using its own, and nothing else changes.
+When you connect to a network, this plugin replaces that implementation with EDR's native one through ethers' `keccak256.register` hook. The results are identical; only the speed differs. If the native implementation isn't available (e.g. due to an unsupported platform or an EDR version that predates it), ethers keeps using its own and nothing else changes.
 
 A few limitations are worth knowing about:
 
