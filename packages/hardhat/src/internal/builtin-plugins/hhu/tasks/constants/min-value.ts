@@ -1,6 +1,6 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { parseIntType } from "./int-type.js";
+import { parseIntType } from "../helpers/int-type.js";
 
 interface MinValueActionArguments {
   type: string;
