@@ -553,8 +553,8 @@ describe("eip712 - canonicalize", () => {
       // Selected `Mail` depends on `Person`, which has a selected definition
       // (test/Other.sol) AND a different non-selected one (lib/Imported.sol).
       // Even though the name is reachable, there is no ambiguity: selected
-      // definitions deterministically win a clash, so `Mail.from` inlines the
-      // selected `Person` and the non-selected copy is ignored.
+      // definitions deterministically win a clash, so `Mail.from` resolves to
+      // the selected `Person` and the non-selected copy is ignored.
       const collected = [
         struct("Mail", [["Person", "from"]], "test/Mail.sol"),
         struct(
