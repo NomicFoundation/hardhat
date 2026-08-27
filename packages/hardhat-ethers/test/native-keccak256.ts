@@ -59,13 +59,12 @@ describe("native keccak256 registration", () => {
   });
 
   it("should hash pooled-Buffer views correctly through ethers", () => {
-    Buffer.from("move the pool's offset");
-    const pooled = Buffer.from("hashed as a pooled Buffer");
-    assert.notEqual(
-      pooled.byteOffset,
-      0,
-      "expected Buffer.from to return a pooled view with a non-zero offset",
+    const pool = Buffer.alloc(64);
+    const pooled = pool.subarray(
+      8,
+      8 + pool.write("hashed as a pooled Buffer", 8),
     );
+    assert.notEqual(pooled.byteOffset, 0);
 
     assert.equal(
       ethers.keccak256(pooled),
