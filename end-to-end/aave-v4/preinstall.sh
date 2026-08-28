@@ -49,12 +49,14 @@ fs.writeFileSync(hhPath, hhConfig.replace(hhRe, \`\$1\${fuzzRuns}\`));
 
 // 2) foundry.toml — reduce [profile.default.fuzz] runs (the word boundary after
 //    1000 keeps this off 'runs = 10000'/'runs = 5000' and 'optimizer_runs'), and
-//    clamp any optimizer_runs above Foundry's u32 maximum. The aave-v4 fork sets
-//    optimizer_runs = 444444444444, which Solidity (and so Hardhat) accept but
-//    Foundry rejects ('optimizer_runs value 444444444444 exceeds maximum allowed
-//    value of 4294967295'), making every forge command — including the benchmark
-//    commands — fail until it is clamped. Clamping to the u32 max preserves the
-//    'optimize as hard as possible' intent while letting forge parse the config.
+//    clamp any optimizer_runs above Foundry's u32 maximum. Older aave-v4 pins
+//    set optimizer_runs = 444444444444, which Solidity (and so Hardhat) accept
+//    but Foundry rejects ('optimizer_runs value 444444444444 exceeds maximum
+//    allowed value of 4294967295'), making every forge command — including the
+//    benchmark commands — fail until it is clamped. The current pin stays under
+//    the limit (44444444), so this is a guard against the value growing again;
+//    clamping to the u32 max preserves the 'optimize as hard as possible'
+//    intent while letting forge parse the config.
 const fdPath = 'foundry.toml';
 let fdConfig = fs.readFileSync(fdPath, 'utf8');
 const fdRe = /\bruns = 1000\b/;
