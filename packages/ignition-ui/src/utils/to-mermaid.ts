@@ -21,7 +21,7 @@ export function toMermaid(
         m,
       ]),
     ).values(),
-  ];
+  ].sort((a, b) => a.id.localeCompare(b.id));
 
   const subgraphSections = modules
     .map((m) => prettyPrintModule(m, "  "))
