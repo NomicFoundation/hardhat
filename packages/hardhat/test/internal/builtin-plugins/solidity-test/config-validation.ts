@@ -84,8 +84,6 @@ describe("config validation", () => {
   });
 
   it("should accept the `profiles` wrapper with non-`default` profiles", async () => {
-    // Only validation is asserted here; that every declared profile is
-    // resolved is covered by the config resolution tests.
     const hre = await createHardhatRuntimeEnvironment({
       test: {
         solidity: {
@@ -98,6 +96,7 @@ describe("config validation", () => {
     });
 
     assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
+    assert.equal(hre.config.test.solidity.profiles.ci.isolate, false);
   });
 
   it("should throw when a profile name is an inline test configuration key", async () => {
