@@ -241,42 +241,33 @@ export async function resolveSolidityTestUserConfig(
   testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
   testsPath ??= "test";
 
-  const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
+  const rpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
 
   const solidityUserConfig = userConfig.test?.solidity;
-  let profileUserConfig: SolidityTestProfileUserConfig | undefined;
+
+  // The flat config shape is sugar for a single `default` profile.
+  let profilesUserConfig: Record<string, SolidityTestProfileUserConfig>;
   if (solidityUserConfig !== undefined && "profiles" in solidityUserConfig) {
-    profileUserConfig = solidityUserConfig.profiles[DEFAULT_TEST_PROFILE];
-    assertHardhatInvariant(
-      profileUserConfig !== undefined,
-      "default profile must be present when the profiles wrapper user config is supplied",
-    );
+    profilesUserConfig = solidityUserConfig.profiles;
   } else {
-    profileUserConfig = solidityUserConfig;
+    profilesUserConfig = { [DEFAULT_TEST_PROFILE]: solidityUserConfig ?? {} };
   }
 
-  const resolvedForking = resolveSolidityTestForkingConfig(
-    profileUserConfig?.forking,
-    resolveConfigurationVariable,
+  assertHardhatInvariant(
+    DEFAULT_TEST_PROFILE in profilesUserConfig,
+    "default profile must be present when the profiles wrapper user config is supplied",
   );
 
-  const {
-    memoryLimit,
-    fuzz,
-    invariant,
-    eip712Types,
-    ...otherProfileUserConfig
-  } = profileUserConfig ?? {};
-
-  const resolvedDefaultProfile = {
-    rpcCachePath: defaultRpcCachePath,
-    ...otherProfileUserConfig,
-    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
-    fuzz: resolveFuzzConfig(fuzz),
-    invariant: resolveInvariantConfig(invariant),
-    forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(eip712Types),
-  };
+  const profiles: Record<string, SolidityTestProfileConfig> = {};
+  for (const [profileName, profileUserConfig] of Object.entries(
+    profilesUserConfig,
+  )) {
+    profiles[profileName] = resolveSolidityTestProfileUserConfig(
+      profileUserConfig,
+      rpcCachePath,
+      resolveConfigurationVariable,
+    );
+  }
 
   return {
     ...resolvedConfig,
@@ -289,10 +280,36 @@ export async function resolveSolidityTestUserConfig(
     },
     test: {
       ...resolvedConfig.test,
-      solidity: {
-        profiles: { [DEFAULT_TEST_PROFILE]: resolvedDefaultProfile },
-      },
+      solidity: { profiles },
     },
+  };
+}
+
+function resolveSolidityTestProfileUserConfig(
+  profileUserConfig: SolidityTestProfileUserConfig,
+  rpcCachePath: string,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): SolidityTestProfileConfig {
+  const {
+    memoryLimit,
+    fuzz,
+    invariant,
+    forking,
+    eip712Types,
+    ...otherProfileUserConfig
+  } = profileUserConfig;
+
+  return {
+    rpcCachePath,
+    ...otherProfileUserConfig,
+    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
+    fuzz: resolveFuzzConfig(fuzz),
+    invariant: resolveInvariantConfig(invariant),
+    forking: resolveSolidityTestForkingConfig(
+      forking,
+      resolveConfigurationVariable,
+    ),
+    eip712Types: resolveEip712TypesConfig(eip712Types),
   };
 }
 
