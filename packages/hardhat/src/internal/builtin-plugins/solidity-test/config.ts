@@ -26,7 +26,11 @@ import {
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
-import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+import {
+  DEFAULT_TEST_PROFILE,
+  RESERVED_TEST_PROFILE_NAMES,
+  TEST_PROFILE_NAME_PATTERN,
+} from "./test-profiles.js";
 
 // the keccak256 of "built for ethereum"
 export const DEFAULT_FUZZ_SEED =
@@ -136,12 +140,27 @@ const solidityTestProfilesUserConfigType = z.object({
       (profiles) => DEFAULT_TEST_PROFILE in profiles,
       "A `default` profile is required when using `profiles`",
     )
-    .refine(
-      (profiles) =>
-        !(DEFAULT_TEST_PROFILE in profiles) ||
-        Object.keys(profiles).every((name) => name === DEFAULT_TEST_PROFILE),
-      "Only the `default` profile is supported. Other profile names will be supported in a future release.",
-    ),
+    .superRefine((profiles, ctx) => {
+      for (const profileName of Object.keys(profiles)) {
+        if (!TEST_PROFILE_NAME_PATTERN.test(profileName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [profileName],
+            message:
+              "Invalid profile name. Profile names can only contain letters, numbers, underscores and dashes",
+          });
+          continue;
+        }
+
+        if (RESERVED_TEST_PROFILE_NAMES.includes(profileName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [profileName],
+            message: `\`${profileName}\` can't be used as a profile name, as it's an inline test configuration key`,
+          });
+        }
+      }
+    }),
 });
 
 const solidityTestUserConfigType = conditionalUnionType(
