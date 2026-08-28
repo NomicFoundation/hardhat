@@ -5,6 +5,10 @@
   "schedule": ["before 9am on Monday"],
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
+  "constraints": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
+  "constraintsFiltering": "strict",
   "ignorePaths": ["**/fixture-projects/**", "packages/hardhat/templates/**"],
   "packageRules": [
     {
