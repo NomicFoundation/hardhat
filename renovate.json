@@ -5,10 +5,7 @@
   "schedule": ["before 9am on Monday"],
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
-  "ignorePaths": [
-    "**/fixture-projects/**",
-    "packages/hardhat/templates/**"
-  ],
+  "ignorePaths": ["**/fixture-projects/**", "packages/hardhat/templates/**"],
   "packageRules": [
     {
       "description": "Ignore pnpm workspace: protocol deps. Renovate skips them natively — rule kept for explicit intent.",
@@ -65,7 +62,16 @@
     },
     {
       "description": "Each of these is declared as a peerDependency in at least one workspace package, and also appears as a dep/devDep in others. Block majors so the internal dep/devDep entries can't drift past the peerDep contract — major bumps need to be coordinated across both surfaces.",
-      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised", "ethers", "viem", "eslint", "mocha", "zod"],
+      "matchPackageNames": [
+        "chai",
+        "@types/chai",
+        "@types/chai-as-promised",
+        "ethers",
+        "viem",
+        "eslint",
+        "mocha",
+        "zod"
+      ],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
@@ -86,7 +92,13 @@
     },
     {
       "description": "Group the eslint ecosystem so the plugins, resolvers, typescript-eslint, and globals land together rather than spread across the npm minor/patch group.",
-      "matchPackageNames": ["eslint", "typescript-eslint", "globals", "/^eslint-/", "/^@eslint-community\\//"],
+      "matchPackageNames": [
+        "eslint",
+        "typescript-eslint",
+        "globals",
+        "/^eslint-/",
+        "/^@eslint-community\\//"
+      ],
       "groupName": "eslint-stack"
     }
   ],
