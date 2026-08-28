@@ -17,6 +17,7 @@ import type {
 } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { getEnvVariableNameFromGlobalOption } from "@nomicfoundation/hardhat-utils/env";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
@@ -51,6 +52,7 @@ interface TestActionArguments {
   grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
+  testProfile?: string;
 }
 
 export interface SolidityTestRunResult extends TestRunResult {
@@ -58,11 +60,42 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, grepExclude, noCompile, testSummaryIndex },
+  {
+    testFiles,
+    chainType,
+    grep,
+    grepExclude,
+    noCompile,
+    testSummaryIndex,
+    testProfile,
+  },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
+
+  // Only global options get an environment variable fallback for free, so we
+  // apply the same naming convention by hand for this task option.
+  const testProfileName =
+    testProfile ??
+    process.env[getEnvVariableNameFromGlobalOption("testProfile")] ??
+    DEFAULT_TEST_PROFILE;
+
+  const testProfiles = hre.config.test.solidity.profiles;
+  const selectedTestProfile = testProfiles[testProfileName];
+
+  if (selectedTestProfile === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_PROFILE_NOT_FOUND,
+      {
+        testProfile: testProfileName,
+        declaredProfiles: Object.keys(testProfiles)
+          .sort() // to match EDR
+          .map((name) => `"${name}"`)
+          .join(", "),
+      },
+    );
+  }
 
   const verbosity = hre.globalOptions.verbosity;
 
@@ -215,8 +248,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const { eip712Types, ...solidityTestConfig } =
-    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+  const { eip712Types, ...solidityTestConfig } = selectedTestProfile;
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
