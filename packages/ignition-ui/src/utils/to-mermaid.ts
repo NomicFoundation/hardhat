@@ -14,7 +14,14 @@ import { toEscapedId } from "./to-escaped-id.js";
 export function toMermaid(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ) {
-  const modules = recursivelyListModulesAndSubmodulesFor(ignitionModule);
+  const modules = [
+    ...new Map(
+      recursivelyListModulesAndSubmodulesFor(ignitionModule).map((m) => [
+        m.id,
+        m,
+      ]),
+    ).values(),
+  ];
 
   const subgraphSections = modules
     .map((m) => prettyPrintModule(m, "  "))
