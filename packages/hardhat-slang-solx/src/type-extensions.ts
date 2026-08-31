@@ -13,23 +13,26 @@ declare module "hardhat/types/solidity" {
 
 declare module "hardhat/types/config" {
   export interface SolidityCompilerTypeDefinitions {
-    slangSolx: true;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": true;
   }
 
   export interface SlangSolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
-    type: "slangSolx";
+    type: "slang-solx";
   }
 
   export interface SolidityCompilerUserConfigPerType {
-    slangSolx: SlangSolxSolidityCompilerUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSolidityCompilerUserConfig;
   }
 
   export interface SlangSolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
-    type: "slangSolx";
+    type: "slang-solx";
   }
 
   export interface SolidityCompilerConfigPerType {
-    slangSolx: SlangSolxSolidityCompilerConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSolidityCompilerConfig;
   }
 
   export interface SlangSolxSingleVersionSolidityUserConfig
@@ -38,13 +41,14 @@ declare module "hardhat/types/config" {
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
-    slangSolx: SlangSolxSingleVersionSolidityUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSingleVersionSolidityUserConfig;
   }
 
   export interface SlangSolxUserConfig {
     /**
-     * Allow compiler type `"slangSolx"` in the production build profile.
-     * By default, `"slangSolx"` in production is rejected as a safeguard.
+     * Allow compiler type `"slang-solx"` in the production build profile.
+     * By default, `"slang-solx"` in production is rejected as a safeguard.
      */
     dangerouslyAllowSlangSolxInProduction?: boolean;
   }
@@ -54,10 +58,12 @@ declare module "hardhat/types/config" {
   }
 
   export interface HardhatUserConfig {
-    slangSolx?: SlangSolxUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the plugin config namespace is kebab-case to match the plugin name
+    "slang-solx"?: SlangSolxUserConfig;
   }
 
   export interface HardhatConfig {
-    slangSolx: SlangSolxConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the plugin config namespace is kebab-case to match the plugin name
+    "slang-solx": SlangSolxConfig;
   }
 }

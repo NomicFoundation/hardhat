@@ -16,6 +16,7 @@ import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import hardhatLedger from "@nomicfoundation/hardhat-ledger";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 import { ArgumentType } from "hardhat/types/arguments";
 
 util.inspect.defaultOptions.depth = null;
@@ -188,6 +189,7 @@ export default defineConfig({
     hardhatTypechain,
     hardhatIgnitionViem,
     hardhatLedger,
+    hardhatSlangSolx,
   ],
   paths: {
     tests: {
@@ -225,6 +227,15 @@ export default defineConfig({
       },
       coverage: {
         version: "0.8.2",
+      },
+      "slang-solx": {
+        compilers: [
+          { type: "slang-solx", version: "0.8.34" },
+          { version: "0.8.22" },
+          { version: "0.7.1" },
+          { version: "0.8.26" },
+          { version: "0.8.33" },
+        ],
       },
     },
     npmFilesToBuild: [

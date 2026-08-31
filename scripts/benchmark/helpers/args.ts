@@ -1,6 +1,9 @@
 import { log } from "node:console";
 import { normalizeScenarioPath } from "../../end-to-end/helpers/directory.ts";
-import { DEFAULT_CLONE_DIR } from "../../end-to-end/helpers/args.ts";
+import {
+  DEFAULT_CLONE_DIR,
+  getArgValue,
+} from "../../end-to-end/helpers/args.ts";
 import {
   ForceCheckout,
   ForcePublish,
@@ -99,10 +102,4 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     timeFile: undefined,
     e2eCloneDirectory,
   };
-}
-
-function getArgValue(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
 }
