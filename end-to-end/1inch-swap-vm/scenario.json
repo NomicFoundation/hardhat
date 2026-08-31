@@ -7,45 +7,47 @@
   "packageManager": "pnpm",
   "env": {
     "pnpm_config_block_exotic_subdeps": "false",
-    "pnpm_config_dangerously_allow_all_builds": "true"
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
   },
   "submodules": false,
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && npx hardhat clean",
+            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile",
+            "command": "forge build",
             "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: test/ProtocolFeeProviderMock.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/ProtocolFeeProviderMock.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/ProtocolFeeProviderMock.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: test/TransferModesCombinations.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/TransferModesCombinations.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/TransferModesCombinations.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: src/SwapVM.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/SwapVM.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/SwapVM.sol && forge build",
             "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile",
+        "runs": 135,
+        "command": "forge build",
         "dependsOn": ["cold compile"]
       },
       "test solidity": {
-        "runs": 4,
-        "command": "npx hardhat test solidity --no-compile",
+        "runs": 87,
+        "command": "forge test",
         "dependsOn": ["cold compile"]
       }
     }

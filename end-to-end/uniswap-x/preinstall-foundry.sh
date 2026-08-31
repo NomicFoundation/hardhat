@@ -1,3 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# E2E_TEST_DIR is set by scripts/end-to-end/subcommands/init.ts (see
+# runPreinstallScript) to this scenario's directory — the one holding
+# scenario.json — so we can reach the shared helper in end-to-end/_shared/.
+. "$E2E_TEST_DIR/../_shared/foundry-install.sh"
+install_foundry v1.4.4
+
 # CaliburEntry.sol has `pragma solidity 0.8.29;` (exact) and requires `via_ir`,
 # which conflicts with the main project's pinned 0.8.30 / no-via_ir settings.
 # Build calibur in isolation so CaliburEntry's artifact is produced on disk.

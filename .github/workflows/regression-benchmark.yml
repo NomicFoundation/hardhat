@@ -92,7 +92,7 @@ jobs:
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
     runs-on: hardhat-linux-amd64-self-hosted
-    timeout-minutes: 180
+    timeout-minutes: 900
     permissions:
       # Lets the short-lived GITHUB_TOKEN used on non-baseline runs read commit
       # metadata via the REST API (see "Store benchmark result").
@@ -212,6 +212,19 @@ jobs:
         # self-hosted runner or the public npm registry. Emits warnings instead
         # of errors so it can never regress the benchmark runner.
         run: node .github/scripts/validate-local-hardhat-install.ts
+
+      # The report is the source for the manual Foundry-baseline update
+      # (hardhat3/baselines.js in the results repo): its entries carry the
+      # exact {name, value, range, unit, extra} shape baselines.js embeds
+      # (see scripts/benchmark/generate-foundry-baselines.ts). Upload it even
+      # when a step fails, so a partial report is still retrievable.
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report
+          path: regression-report.json
+          if-no-files-found: ignore
 
       # Persist the (possibly partial) benchmark output in the job log so it
       # survives cleanup and is available for debugging.
