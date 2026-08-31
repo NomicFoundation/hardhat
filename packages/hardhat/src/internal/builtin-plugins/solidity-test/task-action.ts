@@ -297,6 +297,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         hre.globalOptions.gasStatsJson !== undefined,
       eip712CanonicalTypes,
       testSourcePaths,
+      testProfile: testProfileName,
+      declaredTestProfiles: Object.keys(testProfiles),
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({
