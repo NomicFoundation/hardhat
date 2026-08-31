@@ -213,6 +213,19 @@ jobs:
         # of errors so it can never regress the benchmark runner.
         run: node .github/scripts/validate-local-hardhat-install.ts
 
+      # The report is the source for the manual Foundry-baseline update
+      # (hardhat3/baselines.js in the results repo): its entries carry the
+      # exact {name, value, range, unit, extra} shape baselines.js embeds
+      # (see scripts/benchmark/generate-foundry-baselines.ts). Upload it even
+      # when a step fails, so a partial report is still retrievable.
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report
+          path: regression-report.json
+          if-no-files-found: ignore
+
       # Persist the (possibly partial) benchmark output in the job log so it
       # survives cleanup and is available for debugging.
       - name: Dump regression report on failure
