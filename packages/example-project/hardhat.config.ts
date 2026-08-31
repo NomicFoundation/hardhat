@@ -228,9 +228,9 @@ export default defineConfig({
       coverage: {
         version: "0.8.2",
       },
-      slangSolx: {
+      "slang-solx": {
         compilers: [
-          { type: "slangSolx", version: "0.8.34" },
+          { type: "slang-solx", version: "0.8.34" },
           { version: "0.8.22" },
           { version: "0.7.1" },
           { version: "0.8.26" },
