@@ -78,11 +78,19 @@ export async function createHandlersArray<
         ? provider.defaultTransactionGasLimit
         : undefined;
 
+    // The fallback only gets capped on networks that enforce a block gas
+    // limit. Read lazily, as enforcement can turn on at runtime; providers
+    // that don't report it are conservatively assumed to enforce one.
+    const isBlockGasLimitEnforced = () =>
+      !("isBlockGasLimitEnforced" in provider) ||
+      provider.isBlockGasLimitEnforced !== false;
+
     requestHandlers.push(
       new AutomaticGasHandler(
         networkConnection.provider,
         networkConfig.gasMultiplier,
         fallbackGas,
+        isBlockGasLimitEnforced,
       ),
     );
   } else {

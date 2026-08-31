@@ -92,9 +92,22 @@ export class EdrProvider extends BaseProvider {
 
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
+  #blockGasLimitEnforced: boolean;
+
   #provider: Provider | undefined;
   #nextRequestId = 1;
   readonly #traceOutput: TraceOutputManager | undefined;
+
+  /**
+   * Whether the network rejects transactions whose gas limit exceeds the block
+   * gas limit. It is false only for networks configured with
+   * `blockGasLimit: false`.
+   *
+   * `evm_setBlockGasLimit` turns this on permanently.
+   */
+  public get isBlockGasLimitEnforced(): boolean {
+    return this.#blockGasLimitEnforced;
+  }
 
   public static async createContractDecoder(
     tracingConfig: TracingConfigWithBuffers,
@@ -191,6 +204,9 @@ export class EdrProvider extends BaseProvider {
       edrProvider = new EdrProvider(
         provider,
         providerConfig.defaultTransactionGasLimit,
+        // EDR only enforces a block gas limit when it was given a mining one,
+        // which `blockGasLimit: false` omits
+        providerConfig.mining.blockGasLimit !== undefined,
         traceOutput,
         jsonRpcRequestWrapper,
       );
@@ -215,6 +231,7 @@ export class EdrProvider extends BaseProvider {
   private constructor(
     provider: Provider,
     defaultTransactionGasLimit: bigint,
+    blockGasLimitEnforced: boolean,
     traceOutput: TraceOutputManager | undefined,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
@@ -222,6 +239,7 @@ export class EdrProvider extends BaseProvider {
 
     this.#provider = provider;
     this.defaultTransactionGasLimit = defaultTransactionGasLimit;
+    this.#blockGasLimitEnforced = blockGasLimitEnforced;
     this.#traceOutput = traceOutput;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
 
@@ -275,6 +293,11 @@ export class EdrProvider extends BaseProvider {
 
     if (jsonRpcRequest.method === "evm_revert") {
       this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
+
+    // This makes even a `blockGasLimit: false` network enforce a limit.
+    if (jsonRpcRequest.method === "evm_setBlockGasLimit") {
+      this.#blockGasLimitEnforced = true;
     }
 
     // Override EDR version string with Hardhat version string with EDR backend,

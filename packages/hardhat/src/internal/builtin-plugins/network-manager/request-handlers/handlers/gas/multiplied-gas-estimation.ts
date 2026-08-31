@@ -21,7 +21,7 @@ export const BLOCK_GAS_LIMIT_SAFETY_FACTOR = 0.95;
 /**
  * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.
  * It requests a gas estimation from the provider and multiplies it by a predefined gas multiplier, ensuring the gas does not exceed the block's gas limit.
- * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, capped to the current block gas limit, or rethrows when no fallback gas limit is known.
+ * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, capped to the current block gas limit on networks that enforce one, or rethrows when no fallback gas limit is known.
  * If any other error whose message contains "execution error" occurs, the method returns the capped block gas limit instead. Every other error is rethrown.
  * The capped block gas limit is the latest block's gas limit scaled by `BLOCK_GAS_LIMIT_SAFETY_FACTOR`, cached after the first retrieval to optimize performance, except when capping the fallback gas limit, which reads the pending block's unscaled one.
  */
@@ -29,6 +29,7 @@ export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
   readonly #gasMultiplier: number;
   readonly #fallbackGas: bigint | undefined;
+  readonly #isBlockGasLimitEnforced: () => boolean;
 
   #blockGasLimit: number | undefined;
 
@@ -36,10 +37,12 @@ export abstract class MultipliedGasEstimation {
     provider: EthereumProvider,
     gasMultiplier: number,
     fallbackGas?: bigint,
+    isBlockGasLimitEnforced: () => boolean = () => true,
   ) {
     this.#provider = provider;
     this.#gasMultiplier = gasMultiplier;
     this.#fallbackGas = fallbackGas;
+    this.#isBlockGasLimitEnforced = isBlockGasLimitEnforced;
   }
 
   protected async getMultipliedGasEstimation(params: any[]): Promise<string> {
@@ -78,19 +81,21 @@ export abstract class MultipliedGasEstimation {
       // a guessed limit that may not suit the remote network: the error names
       // both remedies, an explicit gas limit or the topLevelSuccess mode.
       //
-      // The block gas limit caps the fallback, read from the pending block
-      // rather than from the cache, as evm_setBlockGasLimit may have lowered
-      // it since. The latest block's header only reflects such a change once a
-      // block has been mined under the new limit, whereas the pending block
-      // already does, so reading it is what keeps the fallback mineable. It
-      // caps even on networks that don't enforce a limit, since their headers
-      // still report a value: that only lowers a still-mineable fallback,
-      // whereas skipping the cap where a limit is enforced would get the
-      // transaction rejected.
+      // The cap reads the pending block's limit fresh rather than the cache:
+      // evm_setBlockGasLimit may have lowered it, and only the pending block
+      // reflects that before the next block is mined.
+      //
+      // Networks that don't enforce a block gas limit are exempt: their
+      // headers still report one, so capping would shrink the fallback to a
+      // limit nothing rejects it for.
       if (
         error instanceof InternalCallOutOfGasError &&
         this.#fallbackGas !== undefined
       ) {
+        if (!this.#isBlockGasLimitEnforced()) {
+          return numberToHexString(this.#fallbackGas);
+        }
+
         const blockGasLimit = BigInt(await this.#fetchBlockGasLimit("pending"));
 
         return numberToHexString(min(this.#fallbackGas, blockGasLimit));

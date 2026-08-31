@@ -31,8 +31,9 @@ export class AutomaticGasHandler
     provider: EthereumProvider,
     gasMultiplier: number = DEFAULT_GAS_MULTIPLIER,
     fallbackGas?: bigint,
+    isBlockGasLimitEnforced?: () => boolean,
   ) {
-    super(provider, gasMultiplier, fallbackGas);
+    super(provider, gasMultiplier, fallbackGas, isBlockGasLimitEnforced);
   }
 
   public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {

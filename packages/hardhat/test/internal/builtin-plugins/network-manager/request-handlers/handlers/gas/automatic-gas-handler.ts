@@ -234,6 +234,51 @@ describe("AutomaticGasHandler", () => {
       ]);
     });
 
+    it("shouldn't cap the fallback gas on networks that don't enforce a block gas limit", async () => {
+      // A `blockGasLimit: false` network doesn't enforce a limit even though
+      // its headers report one, so the fallback is used uncapped.
+      const HIGH_FALLBACK_GAS = BigInt(BLOCK_GAS_LIMIT) * 2n;
+
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        HIGH_FALLBACK_GAS,
+        () => false,
+      );
+
+      const jsonRpcRequest = txRequest();
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(HIGH_FALLBACK_GAS));
+    });
+
+    it("should cap the fallback gas once the network starts enforcing a block gas limit", async () => {
+      // evm_setBlockGasLimit makes a `blockGasLimit: false` network enforce
+      // the limit it sets, so the cap applies from then on
+      const HIGH_FALLBACK_GAS = BigInt(BLOCK_GAS_LIMIT) * 2n;
+
+      let enforced = false;
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        HIGH_FALLBACK_GAS,
+        () => enforced,
+      );
+
+      enforced = true;
+
+      const jsonRpcRequest = txRequest();
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(BLOCK_GAS_LIMIT));
+    });
+
     it("should rethrow if no fallback gas was provided", async () => {
       // e.g. an http connection, where the network's default transaction gas
       // limit is unknown (and serialization reduces the error to a plain
