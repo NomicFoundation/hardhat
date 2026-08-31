@@ -20,7 +20,6 @@ import { z } from "zod";
 
 import {
   DEFAULT_SOLX_OPTIMIZER_MODE,
-  RESOLVED_SOLX_COMPILER_TYPE,
   SOLIDITY_TO_SOLX_VERSION_MAP,
   SLANG_SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
@@ -79,7 +78,10 @@ const solxSolidityCompilerUserConfigType = z
 const solidityCompilerUserConfigType = conditionalUnionType(
   [
     [
-      (data) => isObject(data) && "type" in data && data.type === "slangSolx",
+      (data) =>
+        isObject(data) &&
+        "type" in data &&
+        data.type === SLANG_SOLX_COMPILER_TYPE,
       solxSolidityCompilerUserConfigType,
     ],
     [(_data) => true, z.any()],
@@ -90,7 +92,10 @@ const solidityCompilerUserConfigType = conditionalUnionType(
 const singleVersionSolidityUserConfigType = conditionalUnionType(
   [
     [
-      (data) => isObject(data) && "type" in data && data.type === "slangSolx",
+      (data) =>
+        isObject(data) &&
+        "type" in data &&
+        data.type === SLANG_SOLX_COMPILER_TYPE,
       solxSolidityCompilerUserConfigType,
     ],
     [(_data) => true, z.any()],
@@ -106,7 +111,10 @@ const multiVersionSolidityUserConfigType = z.object({
 const singleVersionBuildProfileUserConfigType = conditionalUnionType(
   [
     [
-      (data) => isObject(data) && "type" in data && data.type === "slangSolx",
+      (data) =>
+        isObject(data) &&
+        "type" in data &&
+        data.type === SLANG_SOLX_COMPILER_TYPE,
       solxSolidityCompilerUserConfigType,
     ],
     [(_data) => true, z.any()],
@@ -159,7 +167,7 @@ const solidityUserConfigType = conditionalUnionType(
 
 const solxUserConfigType = z.object({
   solidity: solidityUserConfigType.optional(),
-  slangSolx: z
+  "slang-solx": z
     .object({
       dangerouslyAllowSlangSolxInProduction: z.boolean().optional(),
     })
@@ -199,27 +207,24 @@ export async function resolveUserConfig(
     solidity: {
       ...resolvedConfig.solidity,
       profiles,
-      // Both names are registered: the one users write, and the one the
-      // resolved config carries for EDR's benefit. Hardhat validates the
-      // resolved config against this list, so the resolved name has to be in
-      // it; the user-facing one is kept so the error listing registered types
-      // still names what a user is meant to type.
-      registeredCompilerTypes: [
-        ...new Set([
-          ...resolvedConfig.solidity.registeredCompilerTypes,
+      registeredCompilerTypes:
+        resolvedConfig.solidity.registeredCompilerTypes.includes(
           SLANG_SOLX_COMPILER_TYPE,
-          RESOLVED_SOLX_COMPILER_TYPE,
-        ]),
-      ],
+        )
+          ? resolvedConfig.solidity.registeredCompilerTypes
+          : [
+              ...resolvedConfig.solidity.registeredCompilerTypes,
+              SLANG_SOLX_COMPILER_TYPE,
+            ],
     },
-    slangSolx: resolveSolxConfig(userConfig.slangSolx),
+    "slang-solx": resolveSolxConfig(userConfig["slang-solx"]),
   };
 }
 
 /**
- * For each compiler entry whose `type === "slangSolx"`, augments
+ * For each compiler entry whose `type === "slang-solx"`, augments
  * `settings.outputSelection` with the solx debugInfo selectors.
- * Non-slangSolx entries pass through unchanged.
+ * Non-slang-solx entries pass through unchanged.
  */
 async function augmentSolxOutputSelectionInProfiles(
   profiles: HardhatConfig["solidity"]["profiles"],
@@ -260,9 +265,6 @@ async function augmentIfSolx<
     : {};
   return {
     ...entry,
-    // Resolved to the compiler's own name, so that EDR can read the build
-    // info this ends up in. See RESOLVED_SOLX_COMPILER_TYPE.
-    type: RESOLVED_SOLX_COMPILER_TYPE,
     settings: {
       ...settings,
       // Defaults added here instead of in SlangSolxCompiler.compile so this reaches
@@ -284,19 +286,19 @@ export async function validateResolvedConfig(
 ): Promise<HardhatConfigValidationError[]> {
   const errors: HardhatConfigValidationError[] = [];
 
-  // Check that the user defined a "slangSolx" build profile
-  if (resolvedConfig.solidity.profiles.slangSolx === undefined) {
+  // Check that the user defined a "slang-solx" build profile
+  if (resolvedConfig.solidity.profiles["slang-solx"] === undefined) {
     errors.push({
       path: ["solidity"],
       message:
-        'The hardhat-slang-solx plugin has been installed, but no "slangSolx" build profile was found in the Solidity configuration. Please read the plugin documentation for information on how to create a "slangSolx" build profile.',
+        'The hardhat-slang-solx plugin has been installed, but no "slang-solx" build profile was found in the Solidity configuration. Please read the plugin documentation for information on how to create a "slang-solx" build profile.',
     });
   }
 
-  // Check that type: "slangSolx" is not used in non-slangSolx profiles
-  if (resolvedConfig.slangSolx.dangerouslyAllowSlangSolxInProduction) {
+  // Check that type: "slang-solx" is not used in non-slang-solx profiles
+  if (resolvedConfig["slang-solx"].dangerouslyAllowSlangSolxInProduction) {
     log(
-      "Skipping non-slangSolx profile validation: dangerouslyAllowSlangSolxInProduction is true",
+      "Skipping non-slang-solx profile validation: dangerouslyAllowSlangSolxInProduction is true",
     );
     return errors;
   }
@@ -304,14 +306,14 @@ export async function validateResolvedConfig(
   for (const [profileName, profile] of Object.entries(
     resolvedConfig.solidity.profiles,
   )) {
-    if (profileName === "slangSolx") {
+    if (profileName === "slang-solx") {
       continue;
     }
 
-    const solxInOtherProfileMessage = `Compiler type "slangSolx" is only supported in the "slangSolx" build profile. Remove type: "slangSolx" from the "${profileName}" profile compilers, or set slangSolx.dangerouslyAllowSlangSolxInProduction in the plugin config.`;
+    const solxInOtherProfileMessage = `Compiler type "slang-solx" is only supported in the "slang-solx" build profile. Remove type: "slang-solx" from the "${profileName}" profile compilers, or set dangerouslyAllowSlangSolxInProduction in the "slang-solx" plugin config.`;
 
     for (const [i, compiler] of profile.compilers.entries()) {
-      if (compiler.type === RESOLVED_SOLX_COMPILER_TYPE) {
+      if (compiler.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "compilers", i, "type"],
           message: solxInOtherProfileMessage,
@@ -320,7 +322,7 @@ export async function validateResolvedConfig(
     }
 
     for (const [key, override] of Object.entries(profile.overrides)) {
-      if (override.type === RESOLVED_SOLX_COMPILER_TYPE) {
+      if (override.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "overrides", key, "type"],
           message: solxInOtherProfileMessage,

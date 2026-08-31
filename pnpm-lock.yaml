@@ -101,11 +101,14 @@ importers:
       '@nomicfoundation/hardhat-node-test-runner':
         specifier: workspace:^3.1.0
         version: link:../hardhat-node-test-runner
+      '@nomicfoundation/hardhat-slang-solx':
+        specifier: workspace:^
+        version: link:../hardhat-slang-solx
       '@nomicfoundation/hardhat-typechain':
         specifier: workspace:^3.1.1
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.21
+        specifier: workspace:^3.1.0
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.9
@@ -138,10 +141,10 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       forge-std:
-        specifier: foundry-rs/forge-std#v1.9.4
-        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+        specifier: foundry-rs/forge-std#v1.16.2
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.13.0
+        specifier: workspace:^3.15.0
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -165,8 +168,8 @@ importers:
   packages/hardhat:
     dependencies:
       '@nomicfoundation/edr':
-        specifier: 0.15.0
-        version: 0.15.0
+        specifier: 0.19.0
+        version: 0.19.0
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.17
         version: link:../hardhat-errors
@@ -211,7 +214,7 @@ importers:
         version: 7.8.5
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       ws:
         specifier: ^8.21.1
         version: 8.21.1
@@ -285,7 +288,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -340,7 +343,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -413,7 +416,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -453,7 +456,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -541,7 +544,7 @@ importers:
         version: 22.1.0
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -605,7 +608,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -663,7 +666,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -721,7 +724,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -794,7 +797,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -812,7 +815,7 @@ importers:
         version: link:../hardhat-zod-utils
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -892,7 +895,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -926,7 +929,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -947,7 +950,7 @@ importers:
         version: link:../hardhat-zod-utils
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -1011,7 +1014,7 @@ importers:
         specifier: 9.39.5
         version: 9.39.5(supports-color@8.1.1)
       hardhat:
-        specifier: workspace:^3.13.0
+        specifier: workspace:^3.15.0
         version: link:../hardhat
       prettier:
         specifier: 3.9.6
@@ -1021,7 +1024,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1058,7 +1061,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1139,7 +1142,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1202,7 +1205,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1266,7 +1269,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1321,7 +1324,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1354,7 +1357,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1409,7 +1412,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1452,7 +1455,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1501,7 +1504,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1544,7 +1547,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1589,10 +1592,10 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       forge-std:
-        specifier: foundry-rs/forge-std#v1.9.4
-        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+        specifier: foundry-rs/forge-std#v1.16.2
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.13.0
+        specifier: workspace:^3.15.0
         version: link:../..
       typescript:
         specifier: ~6.0.3
@@ -1656,10 +1659,10 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       forge-std:
-        specifier: foundry-rs/forge-std#v1.9.4
-        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+        specifier: foundry-rs/forge-std#v1.16.2
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.13.0
+        specifier: workspace:^3.15.0
         version: link:../..
       mocha:
         specifier: ^11.0.0
@@ -1674,7 +1677,7 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
-        specifier: workspace:^3.13.0
+        specifier: workspace:^3.15.0
         version: link:../..
       typescript:
         specifier: ~6.0.3
@@ -1766,7 +1769,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1841,7 +1844,7 @@ importers:
         version: 3.6.2
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1880,7 +1883,7 @@ importers:
         version: 6.1.3
       tsx:
         specifier: ^4.23.1
-        version: 4.23.1
+        version: 4.23.12
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -3008,36 +3011,54 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.15.0':
-    resolution: {integrity: sha512-kFgoiou9yfzojAki3yOnOlFZfkC0oQeS8G3i/8lXaTnjEjQ2C1lLDgRQt8Q0kjSdVOs5daiC+eQx+8to4R5/ug==}
+  '@nomicfoundation/edr-darwin-arm64@0.19.0':
+    resolution: {integrity: sha512-Yo2MkZoM85zkasUPJDj8l8QezPdrMzqQUJhp78TUQDq8FQXhdJTZ39k3Jax5OQ3hqjMhMkrGbctn9w9h6mEusg==}
     engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [darwin]
 
-  '@nomicfoundation/edr-darwin-x64@0.15.0':
-    resolution: {integrity: sha512-vnFHCj2oxd7N8Eg760yY5gPAHz6tL7NB9Pt1nrP8/+XIutEdUJjpIDGadG0jsTHNmq303EvHh4nkpuO3zBCSZw==}
+  '@nomicfoundation/edr-darwin-x64@0.19.0':
+    resolution: {integrity: sha512-RC7RVX1iATg9SlJTnKD57A8jRBIBiUKmAdi8maBN4zhmK5Z7aAeiwdQX6VjPOum3c2Mdpp2Q7JfooJxxF6bCvw==}
     engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [darwin]
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.15.0':
-    resolution: {integrity: sha512-klBqsMWl19NVok/9BOcX/PeV7M7DrTM4C7eSOQyc6wglZZRwKSm8tDtwQVh/bJkOCqqgVMO6IOi+IQ4xQbsgog==}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.19.0':
+    resolution: {integrity: sha512-vhEKPUomGwM0Lsjpwd5q/Jc6yE2hpspJBCRYFkCghzCmwgZHtoYn/2nd1nOLsTt7jqMlvAKJSaLCrhz1HCTCTA==}
     engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.15.0':
-    resolution: {integrity: sha512-PQ6oqCCOjQaGCyDA1XFDWbpGrXGKZ8Fr3JQrd7cCCqVvIBshg68WrJ7gqlf4DdeidppIi3m9CNRsWsRfj9Y17w==}
+  '@nomicfoundation/edr-linux-arm64-musl@0.19.0':
+    resolution: {integrity: sha512-mlkpVUolkSpMIriZyiJeTbgx/m4Ngm9lQtah2BG92H+dgtwMIMze6Q6OQfZG6oi6wMrhDgu8WEyAy3XgIwlcRg==}
     engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.15.0':
-    resolution: {integrity: sha512-j89Ywivbs78xWjoSFcZLp+pUqe0p0p3vqiG1utGFj/fJ7zEgTQBcC+DUiyddFpYB3TE79TZMUoaAnEVdxTi4Xw==}
+  '@nomicfoundation/edr-linux-x64-gnu@0.19.0':
+    resolution: {integrity: sha512-d0Z+WVbX5mm6s9ozc5TXrCRjQykdN81tGI+eaM4hQcD/S5VSY9rwKuCXyLJ/GkgeI5S8HEHsyVdXEsDJznPyhA==}
     engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
 
-  '@nomicfoundation/edr-linux-x64-musl@0.15.0':
-    resolution: {integrity: sha512-bJuCPxihvSFyoGAxmYL5CyN9id5mqncyikywTa7+/+g7ge2Pnz+w7GHbim+tvHeMA9XQv1vSy4QgNkkZXGBzLg==}
+  '@nomicfoundation/edr-linux-x64-musl@0.19.0':
+    resolution: {integrity: sha512-UIrlNqYj9lbUXpBy++WwHeC0xZqyFw9TXy06/8+0PLffI7Si4kiTKfXqdITGQhP6Vf/JuJ8y+jos8oy6bL8jFQ==}
     engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.15.0':
-    resolution: {integrity: sha512-pnUdVgZ4VwqbZu9XTAxJeuGavAY1w3txd/HkpqiOuu43Yrt0nnsRO5gAdj4smXJmQ5Bzy2x2GJ0/68rP4T1Pgw==}
+  '@nomicfoundation/edr-win32-x64-msvc@0.19.0':
+    resolution: {integrity: sha512-pIyEJBiS8l09Yndz+aE/JmkD39FCqtyiRO+wlx6tX426o4290acRfJ0r7GwTBmqqZD5G4pLOOB0uLIMRyDrY+g==}
     engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [win32]
 
-  '@nomicfoundation/edr@0.15.0':
-    resolution: {integrity: sha512-RcBnQ0MYsrjhLsN+Kcu7q5mnRmBlxmv+Y0lxgrCsST6YTDH/l5RH3nG88J8sDEGmXyjVzX2HsXQBy9NxFJHFuw==}
+  '@nomicfoundation/edr@0.19.0':
+    resolution: {integrity: sha512-wzuyAylm4XWIahFjy1pFDQfHny4Xsx73T98d8KJAkGG/Rpgp0M36rqS4lzjbGQ1tXDrWEBG0WRr0v1jrQhQ0xg==}
     engines: {node: '>= 22'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
@@ -4859,6 +4880,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -5049,9 +5071,9 @@ packages:
   forever-agent@0.6.1:
     resolution: {integrity: sha512-j0KLYPhm6zeac4lz3oJ3o65qvgQCcPubiyotZrXqEaG4hNagNYO8qdlUrX5vwqv9ohqeT/Z3j6+yW067yWWdUw==}
 
-  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262:
-    resolution: {gitHosted: true, integrity: sha512-IVp2w0QgChqvkmynnc1d4Chu/7O2JDNSyz4isI1uaW8lbY35Z/nDNAv2lxZKCMwq4xrm2qKoBoQLdOoexUG7ww==, tarball: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262}
-    version: 1.9.4
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b:
+    resolution: {gitHosted: true, integrity: sha512-oHf+awjQrrLSzWgSdQv6exE1+0cmCHIxGGmzQJ9pX5F/pEQq1yHGwfkd++cC1lF7z9edarEX8GgHL5nq3MaF8A==, tarball: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b}
+    version: 1.16.2
 
   form-data-encoder@1.7.2:
     resolution: {integrity: sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==}
@@ -7032,8 +7054,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  tsx@4.23.1:
-    resolution: {integrity: sha512-GQHnkIfxyx1wYCOS/wonik5MVRZU9hi1TEZmzGZSCJB1y9YgoZ8H6itNE/u4suE+yLmOzuE4E5S4TZ/ZX2wcWQ==}
+  tsx@4.23.12:
+    resolution: {integrity: sha512-FDf4L4sYzKtzWYhU/Xm0AQFdTjdIxNo9ElTf2mxXM6k8YMHXzYUe4yODVaXP4V9uMFbVg8c0qyBccK2OOxb45Q==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -8849,29 +8871,36 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nomicfoundation/edr-darwin-arm64@0.15.0': {}
+  '@nomicfoundation/edr-darwin-arm64@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-darwin-x64@0.15.0': {}
+  '@nomicfoundation/edr-darwin-x64@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.15.0': {}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.15.0': {}
+  '@nomicfoundation/edr-linux-arm64-musl@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.15.0': {}
+  '@nomicfoundation/edr-linux-x64-gnu@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-linux-x64-musl@0.15.0': {}
+  '@nomicfoundation/edr-linux-x64-musl@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.15.0': {}
+  '@nomicfoundation/edr-win32-x64-msvc@0.19.0':
+    optional: true
 
-  '@nomicfoundation/edr@0.15.0':
-    dependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.15.0
-      '@nomicfoundation/edr-darwin-x64': 0.15.0
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.15.0
-      '@nomicfoundation/edr-linux-arm64-musl': 0.15.0
-      '@nomicfoundation/edr-linux-x64-gnu': 0.15.0
-      '@nomicfoundation/edr-linux-x64-musl': 0.15.0
-      '@nomicfoundation/edr-win32-x64-msvc': 0.15.0
+  '@nomicfoundation/edr@0.19.0':
+    optionalDependencies:
+      '@nomicfoundation/edr-darwin-arm64': 0.19.0
+      '@nomicfoundation/edr-darwin-x64': 0.19.0
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.19.0
+      '@nomicfoundation/edr-linux-arm64-musl': 0.19.0
+      '@nomicfoundation/edr-linux-x64-gnu': 0.19.0
+      '@nomicfoundation/edr-linux-x64-musl': 0.19.0
+      '@nomicfoundation/edr-win32-x64-msvc': 0.19.0
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
@@ -11229,7 +11258,7 @@ snapshots:
 
   forever-agent@0.6.1: {}
 
-  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262: {}
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b: {}
 
   form-data-encoder@1.7.2: {}
 
@@ -13472,7 +13501,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsx@4.23.1:
+  tsx@4.23.12:
     dependencies:
       esbuild: 0.28.1
     optionalDependencies:

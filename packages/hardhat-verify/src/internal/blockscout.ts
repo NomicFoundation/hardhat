@@ -50,6 +50,7 @@ export class Blockscout implements VerificationProvider {
   public readonly name: string;
   public readonly url: string;
   public readonly apiUrl: string;
+  public readonly apiKey?: string;
   public readonly dispatcherOrDispatcherOptions?:
     Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
@@ -58,6 +59,7 @@ export class Blockscout implements VerificationProvider {
     chainId,
     networkName,
     chainDescriptors,
+    verificationProvidersConfig,
     dispatcher,
     shouldUseCache = true,
   }: ResolveConfigOptions): Promise<CreateBlockscoutOptions> {
@@ -96,16 +98,19 @@ export class Blockscout implements VerificationProvider {
 
     return {
       blockExplorerConfig,
+      verificationProviderConfig: verificationProvidersConfig.blockscout,
       dispatcher,
     };
   }
 
   public static async create({
     blockExplorerConfig,
+    verificationProviderConfig,
     dispatcher,
   }: CreateBlockscoutOptions): Promise<Blockscout> {
     return new Blockscout({
       ...blockExplorerConfig,
+      apiKey: await verificationProviderConfig.apiKey?.get(),
       dispatcher,
     });
   }
@@ -167,6 +172,7 @@ export class Blockscout implements VerificationProvider {
     name?: string;
     url: string;
     apiUrl: string;
+    apiKey?: string;
     dispatcher?: Dispatcher;
   }) {
     this.name = blockscoutConfig.name ?? "Blockscout";
@@ -184,10 +190,37 @@ export class Blockscout implements VerificationProvider {
       blockscoutConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
+
+    // The API key is optional, as most Blockscout instances don't require one,
+    // but an explicitly configured empty key is always a misconfiguration.
+    if (blockscoutConfig.apiKey === "") {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_API_KEY_EMPTY,
+        {
+          verificationProvider: this.name,
+        },
+      );
+    }
+    this.apiKey = blockscoutConfig.apiKey;
   }
 
   public getContractUrl(address: string): string {
     return `${this.url}/address/${address}#code`;
+  }
+
+  /**
+   * Adds the API key to the given query params, if one is configured.
+   *
+   * Note that, unlike Etherscan, the chain id is never sent as a query param:
+   * Blockscout instances are addressed by their `apiUrl`, which already
+   * encodes the chain id when needed (e.g. `/{chainId}/api` in the Pro API).
+   */
+  #withApiKey(queryParams: Record<string, string>): Record<string, string> {
+    if (this.apiKey === undefined) {
+      return queryParams;
+    }
+
+    return { ...queryParams, apikey: this.apiKey };
   }
 
   public async isVerified(address: string): Promise<boolean> {
@@ -197,11 +230,11 @@ export class Blockscout implements VerificationProvider {
       response = await getRequest(
         this.apiUrl,
         {
-          queryParams: {
+          queryParams: this.#withApiKey({
             module: "contract",
             action: "getsourcecode",
             address,
-          },
+          }),
         },
         this.dispatcherOrDispatcherOptions,
       );
@@ -270,10 +303,10 @@ export class Blockscout implements VerificationProvider {
         this.apiUrl,
         body,
         {
-          queryParams: {
+          queryParams: this.#withApiKey({
             module: "contract",
             action: "verifysourcecode",
-          },
+          }),
         },
         this.dispatcherOrDispatcherOptions,
       );
@@ -371,11 +404,11 @@ export class Blockscout implements VerificationProvider {
       response = await getRequest(
         this.apiUrl,
         {
-          queryParams: {
+          queryParams: this.#withApiKey({
             module: "contract",
             action: "checkverifystatus",
             guid,
-          },
+          }),
         },
         this.dispatcherOrDispatcherOptions,
       );

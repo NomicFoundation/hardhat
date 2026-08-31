@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.9
+
+### Patch Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
+## 4.1.8
+
+### Patch Changes
+
+- [#8533](https://github.com/NomicFoundation/hardhat/pull/8533) [`cbe361a`](https://github.com/NomicFoundation/hardhat/commit/cbe361a667804f71fef69e608cf50030221380d2) Thanks [@kanej](https://github.com/kanej)! - Update the `fast-equals` runtime dependency to its latest major version.
+
 ## 4.1.7
 
 ### Patch Changes

@@ -2,6 +2,7 @@ import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 import type {
   BlockExplorerBlockscoutConfig,
   BlockExplorerEtherscanConfig,
+  BlockscoutConfig,
   ChainDescriptorsConfig,
   EtherscanConfig,
   SourcifyConfig,
@@ -48,6 +49,7 @@ export interface ResolveConfigOptions {
 
 export interface CreateBlockscoutOptions {
   blockExplorerConfig: BlockExplorerBlockscoutConfig;
+  verificationProviderConfig: BlockscoutConfig;
   dispatcher?: Dispatcher;
   shouldUseCache?: boolean;
 }

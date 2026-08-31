@@ -237,6 +237,20 @@ describe("hardhat-slang-solx downloader", () => {
     );
   });
 
+  it("leaves no temporary file behind after a successful download", async () => {
+    interceptChecksum(mockedDispatcher, expectedDigest);
+    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+
+    const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
+      dispatcher: mockedDispatcher,
+    });
+
+    assert.ok(
+      !(await exists(`${binaryPath}.tmp`)),
+      "the download path should have been renamed into place, not copied",
+    );
+  });
+
   it("returns a cached binary without making any request", async () => {
     // No interceptors at all: reaching the network would throw.
     const binaryPath = await getSolxBinaryPath(TEST_SOLX_VERSION);

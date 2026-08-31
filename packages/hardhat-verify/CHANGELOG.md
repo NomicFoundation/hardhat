@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8510](https://github.com/NomicFoundation/hardhat/pull/8510) [`7c85703`](https://github.com/NomicFoundation/hardhat/commit/7c85703e2ef088df2be6cc4ba378f5f368ea7200) Thanks [@nikitosing](https://github.com/nikitosing)! - Added support for an optional `apiKey` in the `verify.blockscout` config. This is required by Blockscout instances that don't expose a keyless API, like the Pro API.
+
+### Patch Changes
+
+- [#8577](https://github.com/NomicFoundation/hardhat/pull/8577) [`27a145d`](https://github.com/NomicFoundation/hardhat/commit/27a145d423e17082f78fa2bb8a0c003942bb642a) Thanks [@kanej](https://github.com/kanej)! - Report a directory with no importable entry point as a module-not-found error, instead of the generic "importing the module failed".
+
 ## 3.0.22
 
 ### Patch Changes

@@ -8,7 +8,6 @@ import { describe, it } from "node:test";
 
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { RESOLVED_SOLX_COMPILER_TYPE } from "../../src/internal/constants.js";
 import { parseSolxVersion } from "../../src/internal/hook-handlers/solidity.js";
 
 // Helper to create a compiler config
@@ -94,7 +93,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       );
     });
 
-    it("does nothing when no slangSolx-typed compilers present", async () => {
+    it("does nothing when no slang-solx-typed compilers present", async () => {
       const hookHandlerModule =
         await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
@@ -127,10 +126,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       const context = { config: {} } as any;
 
       const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig({
-          type: RESOLVED_SOLX_COMPILER_TYPE,
-          version: "0.8.34",
-        }),
+        createSolidityCompilerConfig({ type: "slang-solx", version: "0.8.34" }),
       ];
 
       // This will fail to download (no network in tests), but we can
@@ -165,7 +161,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       );
     });
 
-    it("passes through to next for non-slangSolx compiler configs", async () => {
+    it("passes through to next for non-slang-solx compiler configs", async () => {
       const hookHandlerModule =
         await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
@@ -211,7 +207,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slang-solx",
         version: "0.8.99",
       });
       const mockNext = createGetCompilerMockNext();
@@ -234,7 +230,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slang-solx",
         version: "0.8.34",
         path: "/nonexistent/path/to/solx",
       });
@@ -266,7 +262,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
-        type: RESOLVED_SOLX_COMPILER_TYPE,
+        type: "slang-solx",
         version: "0.8.34",
         path: cachedPath,
       });
@@ -280,7 +276,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       assert.ok(
         !mockNext.wasCalled(),
-        "next should NOT have been called for slangSolx type",
+        "next should NOT have been called for slang-solx type",
       );
       assert.equal(compiler.compilerPath, cachedPath);
       // Version should be parsed from the binary, not from config
@@ -299,7 +295,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       const configs: SolidityCompilerConfig[] = [
         createSolidityCompilerConfig({
-          type: RESOLVED_SOLX_COMPILER_TYPE,
+          type: "slang-solx",
           version: "0.8.34",
           path: "/custom/path/to/solx",
         }),
