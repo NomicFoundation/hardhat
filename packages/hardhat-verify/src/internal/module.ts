@@ -32,7 +32,13 @@ export async function loadModule(
   } catch (error) {
     ensureError(error);
 
-    if ("code" in error && error.code === "ERR_MODULE_NOT_FOUND") {
+    if (
+      "code" in error &&
+      (error.code === "ERR_MODULE_NOT_FOUND" ||
+        // Loading a directory is valid, but if it doesn't have an index file,
+        // you get this error
+        error.code === "ERR_UNSUPPORTED_DIR_IMPORT")
+    ) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.MODULE_NOT_FOUND,
         { modulePath },

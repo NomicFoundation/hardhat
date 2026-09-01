@@ -20,7 +20,7 @@ describe("hardhat-slang-solx integration", () => {
   it("resolves plugin config through the HRE", async () => {
     const hre = await createHre();
     assert.equal(
-      hre.config.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,
     );
   });
@@ -32,8 +32,8 @@ describe("hardhat-slang-solx integration", () => {
           default: {
             version: "0.8.34",
           },
-          slangSolx: {
-            type: "slangSolx",
+          "slang-solx": {
+            type: "slang-solx",
             version: "0.8.34",
           },
         },
@@ -42,7 +42,7 @@ describe("hardhat-slang-solx integration", () => {
     });
 
     assert.equal(
-      hre.config.slangSolx.dangerouslyAllowSlangSolxInProduction,
+      hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,
     );
   });
@@ -63,30 +63,30 @@ describe("hardhat-slang-solx integration", () => {
     );
   });
 
-  it("includes 'slangSolx' build profile in resolved config", async () => {
+  it("includes 'slang-solx' build profile in resolved config", async () => {
     const hre = await createHre();
 
     const profileNames = Object.keys(hre.config.solidity.profiles);
     assert.ok(
-      profileNames.includes("slangSolx"),
-      `Expected "slangSolx" profile in: ${profileNames.join(", ")}`,
+      profileNames.includes("slang-solx"),
+      `Expected "slang-solx" profile in: ${profileNames.join(", ")}`,
     );
 
-    const slangSolxProfile = hre.config.solidity.profiles.slangSolx;
+    const slangSolxProfile = hre.config.solidity.profiles["slang-solx"];
     assert.equal(
       slangSolxProfile.compilers[0].type,
-      "slangSolx",
-      "slangSolx profile compiler should have type: 'slangSolx'",
+      "slang-solx",
+      "slang-solx profile compiler should have type: 'slang-solx'",
     );
   });
 
-  it("registers 'slangSolx' as a compiler type", async () => {
+  it("registers 'slang-solx' as a compiler type", async () => {
     const hre = await createHre();
 
     assert.deepEqual(
       hre.config.solidity.registeredCompilerTypes,
-      ["solc", "slangSolx"],
-      "the plugin registers 'slangSolx' and leaves core's 'solc' in place, and registers nothing else",
+      ["solc", "slang-solx"],
+      "the plugin registers 'slang-solx' and leaves core's 'solc' in place, and registers nothing else",
     );
   });
 });

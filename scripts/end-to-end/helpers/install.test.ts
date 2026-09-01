@@ -101,6 +101,16 @@ describe("buildPackageManagerEnv", () => {
     assert.equal(env.NODE_AUTH_TOKEN, "real");
   });
 
+  it("lets the scenario env override the NODE_AUTH_TOKEN default", () => {
+    const env = buildPackageManagerEnv(
+      "yarn",
+      { NODE_AUTH_TOKEN: "scenario" },
+      { ...ciEnv, NODE_AUTH_TOKEN: "ambient" },
+    );
+
+    assert.equal(env.NODE_AUTH_TOKEN, "scenario");
+  });
+
   it("points yarn and npm at Verdaccio, pnpm at its own settings", () => {
     const yarnEnv = buildPackageManagerEnv("yarn", undefined, ciEnv);
     const pnpmEnv = buildPackageManagerEnv("pnpm", undefined, ciEnv);
