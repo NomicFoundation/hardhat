@@ -178,6 +178,10 @@ const WARM_TEST_NOTES: Record<string, string> = {
 // Warm-test cells whose number needs a caveat mark appended.
 const WARM_TEST_MARKS: Record<string, string> = {
   "openzeppelin-contracts-0.34|solc via-ir": "⁶",
+  "solady-solx|solc": "⁷",
+  "solady-solx|solc via-ir": "⁷",
+  "solady-solx|solx-0.1.8": "⁷",
+  "solady-solx|solx-0.1.8 via-ir": "⁷",
 };
 
 const WARM_TEST_FOOTNOTES: Record<string, string> = {
@@ -191,6 +195,12 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
     "failures in solc's via-IR optimizer (BlockhashTest family). The full " +
     "suite still runs — the time is comparable; the cell sets ignoreFailure " +
     "in scenario.json.",
+  "⁷":
+    "⁷ solady's suite exits non-zero on both compilers: one upstream fuzz " +
+    "test (BlockHashLibTest#testBlockHash) reverts on an EDR-generated " +
+    "input with an identical counterexample under solc and solx — an " +
+    "EDR/test interaction, not a compiler divergence (2040 of 2041 pass). " +
+    "The full suite runs; the cells set ignoreFailure in scenario.json.",
 };
 
 export function renderSolxTables(
