@@ -185,7 +185,7 @@ describe("overrideEntry", () => {
       overrideEntry(
         {
           name: "solx-pinned",
-          type: "solx",
+          type: "slang-solx",
           path: "/tmp/solx",
           version: "0.8.34",
           viaIR: true,
@@ -193,7 +193,7 @@ describe("overrideEntry", () => {
         { viaIR: true },
       ),
       {
-        type: "solx",
+        type: "slang-solx",
         path: "/tmp/solx",
         version: "0.8.34",
         settings: { viaIR: true },

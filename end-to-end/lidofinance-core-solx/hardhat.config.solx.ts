@@ -149,11 +149,12 @@ function vaultHubOverride(cell: SolxProfileCell) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSolx],
-  // The plugin only allows type: "solx" in the profile named "solx"; this
-  // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
-  // so opt out of that guard. Throwaway benchmark scenario, not production.
-  solx: { dangerouslyAllowSolxInProduction: true },
+  plugins: [...base.plugins, hardhatSlangSolx],
+  // The plugin only allows type: "slang-solx" in the profile named
+  // "slang-solx"; this benchmark's solx cells live in profiles named after the
+  // compiler version they measure, so opt out of that guard. Throwaway
+  // benchmark scenario, not production.
+  "slang-solx": { dangerouslyAllowSlangSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.
