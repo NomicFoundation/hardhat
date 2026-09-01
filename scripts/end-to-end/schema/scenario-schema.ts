@@ -167,6 +167,7 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     "prepare",
     "command",
     "dependsOn",
+    "ignoreFailure",
   ]);
 
   for (const key of Object.keys(obj)) {
@@ -183,6 +184,8 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
+    (obj.ignoreFailure === undefined ||
+      typeof obj.ignoreFailure === "boolean") &&
     isDependsOn(obj.dependsOn)
   );
 }
