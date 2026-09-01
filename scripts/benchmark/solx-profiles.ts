@@ -21,6 +21,8 @@
 //   solx-via-ir        solx, via-IR
 //   solx-0.1.8         pinned solx, legacy
 //   solx-0.1.8-via-ir  pinned solx, via-IR
+//   slang-solx         alias of "solx" — the plugin refuses to load without a
+//                      profile of exactly this name (see MANDATORY_PROFILE)
 //
 // The optimizer-off cells feed the test-execution evaluation's optimizer-off
 // legs (test-under-solx.ts's --pair and --calibration-pair). solc-no-opt is
@@ -68,8 +70,8 @@ export type CompilerSettings = Record<string, unknown>;
 export interface SolxProfileCell {
   /** Profile name, e.g. "solc-no-opt" or "solx-0.1.8-via-ir". */
   name: string;
-  /** "solx" on the solx cells; undefined on the solc cells. */
-  type?: "solx";
+  /** "slang-solx" on the solx cells; undefined on the solc cells. */
+  type?: "slang-solx";
   /** Pinned solx binary path — only set on the "solx-0.1.8*" cells. */
   path?: string;
   /** The solc version every cell compiles at (0.8.34). */
@@ -108,6 +110,23 @@ export interface SolxProfilesOptions {
 // provenance assert to this version.
 export const BENCHMARK_SOLC_VERSION = "0.8.34";
 
+/**
+ * The compiler type the hardhat-slang-solx plugin registers. Also the value
+ * the build system writes to build-info's `compilerType` and into the
+ * buildInfoId's type segment, which test-under-solx.ts asserts on.
+ */
+export const SOLX_COMPILER_TYPE = "slang-solx";
+
+/**
+ * The plugin refuses to load unless a build profile of exactly this name
+ * exists, and it is also the one profile allowed to use the solx compiler
+ * type without `dangerouslyAllowSlangSolxInProduction`. The benchmark's own
+ * profile and cell names predate the plugin's rename and stay as they are, so
+ * the factory emits this profile as an alias of "solx" purely to satisfy the
+ * check. Nothing runs it: every scenario command names a profile explicitly.
+ */
+export const MANDATORY_PROFILE = "slang-solx";
+
 // This file sits next to the wrapper config in the checkout (or in the
 // workspace package for monorepo scenarios), so the pinned binary preinstall
 // downloaded is a sibling .solx directory away.
@@ -115,7 +134,7 @@ const PINNED_SOLX_PATH = path.join(import.meta.dirname, ".solx", "solx-v0.1.8");
 
 /**
  * A compiler entry (for `overrides` maps) that follows the cell's compiler:
- * solc for the solc cells, `type: "solx"` for the solx cells, plus the
+ * solc for the solc cells, `type: "slang-solx"` for the solx cells, plus the
  * pinned binary `path` on the pinned cells.
  */
 export function overrideEntry(
