@@ -81,8 +81,9 @@ DESCRIPTION
                  | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
-      "command": "<shell command>"      // command to benchmark (required)
-    }
+      "command": "<shell command>",     // command to benchmark (required)
+      "ignoreFailure": <boolean>        // optional: tolerate a non-zero exit
+    }                                   //   (known-failing suites)
 
     // step sequence (no per-run prepare)
     {
@@ -290,8 +291,9 @@ async function main(): Promise<void> {
       logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
 
       try {
-        const entries = await runScenario(scenario, args, peakRssMethod);
-        results.push(...entries);
+        // Entries land in `results` as each phase completes, so a scenario
+        // that fails halfway keeps the numbers it already produced.
+        await runScenario(scenario, args, peakRssMethod, results);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         logError(`Scenario "${scenario.id}" failed: ${message}`);
@@ -500,7 +502,8 @@ async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
   peakRssMethod: PeakRssMethod,
-): Promise<BenchmarkEntry[]> {
+  results: BenchmarkEntry[],
+): Promise<void> {
   const commands = scenario.definition.benchmark?.commands;
 
   if (commands === undefined || Object.keys(commands).length === 0) {
@@ -516,7 +519,7 @@ async function runScenario(
       `Skipping "${scenario.id}" (no commands or steps matched the filters)`,
     );
 
-    return [];
+    return;
   }
 
   const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
@@ -540,11 +543,9 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  const entries: BenchmarkEntry[] = [];
-
   for (const planned of plan) {
     if ("run" in planned) {
-      entries.push(
+      results.push(
         ...(await runStepsPhase(
           scenario.id,
           scenarioTmpDir,
@@ -559,7 +560,7 @@ async function runScenario(
         )),
       );
     } else {
-      entries.push(
+      results.push(
         ...(await runCommandPhase(
           scenario.id,
           scenarioTmpDir,
@@ -573,8 +574,6 @@ async function runScenario(
       );
     }
   }
-
-  return entries;
 }
 
 /**
@@ -606,7 +605,11 @@ async function runCommandPhase(
         await runPrepare(cfg.prepare, { cwd: workingDir, env });
       }
 
-      await runPlain(cfg.command, { cwd: workingDir, env });
+      await runPlain(cfg.command, {
+        cwd: workingDir,
+        env,
+        ignoreFailure: cfg.ignoreFailure === true,
+      });
 
       return [];
     }
@@ -620,6 +623,7 @@ async function runCommandPhase(
         runs,
         warmup: cfg.warmup,
         prepare: cfg.prepare,
+        ignoreFailure: cfg.ignoreFailure === true,
         peakRssMethod,
         onWarmupCompleted: (i, total) =>
           log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
