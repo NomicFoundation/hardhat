@@ -1,8 +1,20 @@
 name: Solx Regression Benchmark
 
 on:
-  # Manual trigger for ad-hoc perf runs.
+  # Manual trigger for ad-hoc perf runs. The filters allow re-running a
+  # subset (e.g. one scenario's "warm test*" cells) without paying for the
+  # full matrix; filtered runs never publish baselines or the corpus (both
+  # are gated on push events below).
   workflow_dispatch:
+    inputs:
+      scenario-filter:
+        description: "Glob(s) selecting scenarios by directory name (comma-separated). Forwarded to bench:regression --scenarios."
+        required: false
+        default: "*"
+      benchmark-filter:
+        description: "Glob(s) selecting cells by name (comma-separated, e.g. `warm test*`). Forwarded to bench:regression --benchmarks."
+        required: false
+        default: "*"
   # Deliberately do not run on merge_group
   push:
     branches:
@@ -56,9 +68,14 @@ jobs:
     # workspace deps (unmeasured). Every cell runs 5 hyperfine times, for
     # numbers tight enough to compare across tools. The last job, at 2-3
     # runs, spent 74 min in cells plus 27 min of clone/install overhead; at
-    # 5 runs the cells alone are ~170 min, so ~3.5h in total, and the
-    # timeout below carries headroom above that.
-    timeout-minutes: 300
+    # 5 runs the cells alone are ~170 min, so ~3.5h in total.
+    #
+    # The blog-launch target scenarios also carry "warm test" cells: the
+    # whole test command (`hardhat test solidity` / `forge test`) over a
+    # build cached by the cell's prepare, at 3 hyperfine runs (1 on aave —
+    # its suite legs take minutes each). Budgeted at ~1-1.5h on top of the
+    # compile matrix; the timeout carries headroom above the sum.
+    timeout-minutes: 420
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -118,7 +135,16 @@ jobs:
       # the scenario's first compile (the "prime solx" step). This runs inside
       # bench:regression, not under `sfw`, so no firewall allowlist is needed.
       - name: Run solx regression benchmark
-        run: pnpm bench:regression --use-local --force-checkout --tag solx --output solx-regression-report.json
+        env:
+          # Empty on push/PR events; the fallbacks keep those runs on the
+          # full matrix.
+          SCENARIO_FILTER: ${{ inputs.scenario-filter || '*' }}
+          BENCHMARK_FILTER: ${{ inputs.benchmark-filter || '*' }}
+        run: |
+          pnpm bench:regression --use-local --force-checkout --tag solx \
+            --scenarios "$SCENARIO_FILTER" \
+            --benchmarks "$BENCHMARK_FILTER" \
+            --output solx-regression-report.json
 
       - name: Validate scenarios used the local Hardhat build
         # Diagnostic only: verifies each E2E scenario resolved the hardhat
@@ -203,8 +229,10 @@ jobs:
           # dataset in this repo. (BENCHMARK_GITHUB_TOKEN already writes here.)
           benchmark-data-dir-path: solx
           github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
-          # Only push baseline on main-branch pushes; PRs only compare
-          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          # Only push baseline on main-branch pushes; PRs only compare, and
+          # workflow_dispatch runs may be filtered to a cell subset — a
+          # partial report must never become the baseline.
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
           alert-threshold: "110%"
           # solx is experimental — surface regressions in the summary but never
           # fail the build on them.
@@ -279,8 +307,10 @@ jobs:
       # than publish (or wipe the corpus with) an incomplete one. Skip no-op
       # versions: only the manifest's runUrl changes when the dumps are
       # byte-identical, and that alone isn't a new corpus.
+      # Push events only, like the baseline auto-push: a filtered
+      # workflow_dispatch run may not have (re-)initialized every scenario.
       - name: Publish standard-JSON corpus
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         env:
           BENCHMARK_TOKEN: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
         run: |
