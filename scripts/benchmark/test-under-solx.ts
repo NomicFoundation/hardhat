@@ -659,7 +659,7 @@ function scanProject(projectDir: string, sinceMs: number): ProjectScan {
  * build-info, and a solx run with no subject build-info at all.
  *
  * Every build-info entry at the benchmark solc version (0.8.34) must be
- * compilerType "slangSolx" (SOLX_COMPILER_TYPE — the type the plugin
+ * compilerType "slang-solx" (SOLX_COMPILER_TYPE — the type the plugin
  * registers) with the pin in solcLongVersion on solx runs; every non-solx side
  * must contain no solx build-info at all. Scoped to the subject version because
  * lido-core legitimately carries solc ballast build-infos. A calibration

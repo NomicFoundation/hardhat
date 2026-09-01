@@ -68,11 +68,11 @@ function buildInfo(
   overrides: Partial<BuildInfoSummary> = {},
 ): BuildInfoSummary {
   return {
-    name: "artifacts/build-info/solc-0_8_34-slangSolx-abc.json",
+    name: "artifacts/build-info/solc-0_8_34-slang-solx-abc.json",
     id: SUBJECT_BUILD_INFO,
     solcVersion: "0.8.34",
     solcLongVersion: `0.8.34+commit.ebeac7c2+solx-${PIN}`,
-    compilerType: "slangSolx",
+    compilerType: "slang-solx",
     ...overrides,
   };
 }
@@ -328,7 +328,7 @@ describe("evaluateProvenance", () => {
     assert.equal(result.ok, false);
     assert.match(
       result.problems.join(" "),
-      /compilerType "slangSolx" on a control/,
+      /compilerType "slang-solx" on a control/,
     );
   });
 
@@ -368,7 +368,7 @@ describe("evaluateProvenance", () => {
     assert.equal(result.ok, false);
     assert.match(
       result.problems.join(" "),
-      /compilerType "slangSolx" on a solc calibration run/,
+      /compilerType "slang-solx" on a solc calibration run/,
     );
   });
 
@@ -1409,7 +1409,7 @@ const SUBJECT_BUILD_INFO_FILE = {
   id: SUBJECT_BUILD_INFO,
   solcVersion: "0.8.34",
   solcLongVersion: "0.8.34+commit.ebeac7c2+solx-0.1.8",
-  compilerType: "slangSolx",
+  compilerType: "slang-solx",
 };
 
 describe("collectInventory", () => {

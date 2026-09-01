@@ -4,7 +4,7 @@
 // ./solx-profiles.ts).
 //
 // The fork's config uses the multi-compiler `solidity: { compilers: [...] }`
-// shape with a single entry, but hardhat-slang-solx requires a `slangSolx`
+// shape with a single entry, but hardhat-slang-solx requires a `slang-solx`
 // build profile and Hardhat won't mix that shape with a profiles map. So we
 // re-express `solidity` as the benchmark's matrix of profiles — {solc, solx} x
 // {legacy, via-IR} — all seeded from the base compiler's settings so the only
@@ -25,11 +25,11 @@ const base = baseConfig as unknown as {
 export default {
   ...base,
   plugins: [...(base.plugins ?? []), hardhatSlangSolx],
-  // The plugin only allows type: "slangSolx" in the profile named
-  // "slangSolx"; this benchmark's solx cells live in profiles named after the
+  // The plugin only allows type: "slang-solx" in the profile named
+  // "slang-solx"; this benchmark's solx cells live in profiles named after the
   // compiler version they measure, so opt out of that guard. Throwaway
   // benchmark scenario, not production.
-  slangSolx: { dangerouslyAllowSlangSolxInProduction: true },
+  "slang-solx": { dangerouslyAllowSlangSolxInProduction: true },
   // The test-execution evaluation (test-under-solx.ts) pins the
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.
