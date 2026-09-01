@@ -10,10 +10,12 @@ DESCRIPTION
   Reads a bench:regression report (customSmallerIsBetter JSON array, the file
   solx-regression-benchmark.yml produces) and prints markdown tables to
   stdout: one cold-compile pivot per scenario ({solc, shipped solx, pinned
-  solx} x {no-opt, legacy, via-IR}, wall / total CPU), plus a details section
-  with the DWARF cost, peak RSS and raw-replay numbers. Every entry in the
-  report is rendered — anything the pivot doesn't recognize lands in an
-  "other entries" table rather than being dropped.
+  solx} x {no-opt, legacy, via-IR}, wall / total CPU), a cross-tool parity
+  table, a warm-test table (the "warm test" cells: the whole test command
+  over a cached build), plus a details section with the DWARF cost, peak RSS
+  and raw-replay numbers. Every entry in the report is rendered — anything
+  the pivot doesn't recognize lands in an "other entries" table rather than
+  being dropped.
 
   The output embeds the ${"<!-- solx-bench-tables -->"} marker so CI can
   upsert it as a single sticky PR comment.
@@ -70,6 +72,7 @@ interface CellData {
 
 interface Scenario {
   cold: Map<string, CellData>; // key: canonical cell key
+  warm: Map<string, CellData>; // "warm test" cells: test command over a cached build
   replay: Map<string, CellData>;
 }
 
@@ -165,6 +168,30 @@ const FOOTNOTES = [
     "build that produced nothing and are not comparable.",
 ];
 
+// Warm-test cells that legitimately have no number (the FAIL is the datum),
+// keyed "<scenario>|<compiler>[ via-ir]" like CELL_NOTES.
+const WARM_TEST_NOTES: Record<string, string> = {
+  "aave-v4-solx|solc via-ir": "✗ does not compile⁵",
+};
+
+// Warm-test cells whose number needs a caveat mark appended.
+const WARM_TEST_MARKS: Record<string, string> = {
+  "openzeppelin-contracts-0.34|solc via-ir": "⁶",
+};
+
+const WARM_TEST_FOOTNOTES: Record<string, string> = {
+  "⁵":
+    "⁵ solc via-IR cannot compile aave's Foundry test sources (its cold " +
+    "via-IR cells compile src only, mirroring upstream's per-file via-IR " +
+    "overrides), so the suite cannot run at all. The failure, not a time, " +
+    "is the datum.",
+  "⁶":
+    "⁶ the suite exits non-zero under solc via-IR: upstream-known test " +
+    "failures in solc's via-IR optimizer (BlockhashTest family). The full " +
+    "suite still runs — the time is comparable; the cell sets ignoreFailure " +
+    "in scenario.json.",
+};
+
 export function renderSolxTables(
   entries: BenchmarkEntry[],
   opts: {
@@ -185,11 +212,9 @@ export function renderSolxTables(
     const [, prefix, cellRaw] =
       m === null
         ? [undefined, undefined, undefined]
-        : (/^(cold compile|raw replay) (.*)$/.exec(m.groups!.label) ?? [
-            undefined,
-            undefined,
-            undefined,
-          ]);
+        : (/^(cold compile|warm test|raw replay) (.*)$/.exec(
+            m.groups!.label,
+          ) ?? [undefined, undefined, undefined]);
     const cell = cellRaw === undefined ? undefined : parseCell(cellRaw);
     if (m === null || cell === undefined) {
       other.push(entry);
@@ -199,10 +224,16 @@ export function renderSolxTables(
     const { scenario: scenarioId } = m.groups!;
     const scenario = scenarios.get(scenarioId) ?? {
       cold: new Map(),
+      warm: new Map(),
       replay: new Map(),
     };
     scenarios.set(scenarioId, scenario);
-    const bucket = prefix === "cold compile" ? scenario.cold : scenario.replay;
+    const bucket =
+      prefix === "cold compile"
+        ? scenario.cold
+        : prefix === "warm test"
+          ? scenario.warm
+          : scenario.replay;
     const key = cellKey(cell);
     const data = bucket.get(key) ?? {};
     bucket.set(key, data);
@@ -425,6 +456,95 @@ export function renderSolxTables(
     );
   }
 
+  // Warm test suite: the "warm test" cells time the whole test command
+  // (`hardhat test solidity` / `forge test`) over a build already cached by
+  // the cell's prepare — a warm compile check plus the full suite. One row
+  // per scenario x pipeline; the one-time compile cost is the cold-compile
+  // table above.
+  const warmRows: string[] = [];
+  const warmFootnotesUsed = new Set<string>();
+  const warmSolxVersions = new Set<string>();
+  const warmForgeVersions = new Set<string>();
+  for (const id of scenarioIds) {
+    const scenario = scenarios.get(id)!;
+    // Notes only annotate scenarios that measured warm cells at all, so old
+    // reports without warm-test cells don't grow a note-only table.
+    if (scenario.warm.size === 0) {
+      continue;
+    }
+    for (const viaIR of [false, true]) {
+      const cellValue = (matchCompiler: (compiler: string) => boolean) => {
+        const key = [...scenario.warm.keys()].find((k) => {
+          const c = parseCell(k)!;
+          return (
+            matchCompiler(c.compiler) &&
+            c.viaIR === viaIR &&
+            c.dwarf &&
+            !c.noOpt &&
+            !c.parity &&
+            !c.upgrade
+          );
+        });
+        if (key === undefined) {
+          return undefined;
+        }
+        const compiler = parseCell(key)!.compiler;
+        if (compiler.startsWith("solx-")) {
+          warmSolxVersions.add(compiler.replace("solx-", ""));
+        } else if (compiler.startsWith("forge-")) {
+          warmForgeVersions.add(compiler.replace("forge-", ""));
+        }
+        const mark =
+          WARM_TEST_MARKS[`${id}|${compiler}${viaIR ? " via-ir" : ""}`] ?? "";
+        if (mark !== "") {
+          warmFootnotesUsed.add(mark);
+        }
+        return `${wallCpu(scenario.warm.get(key))}${mark}`;
+      };
+      const noteValue = (compiler: string) => {
+        const note =
+          WARM_TEST_NOTES[`${id}|${compiler}${viaIR ? " via-ir" : ""}`];
+        const mark = /[⁰¹²³⁴⁵⁶⁷⁸⁹]+$/.exec(note ?? "")?.[0];
+        if (note !== undefined && mark !== undefined) {
+          warmFootnotesUsed.add(mark);
+        }
+        return note;
+      };
+      const solc = cellValue((c) => c === "solc") ?? noteValue("solc") ?? "—";
+      const solx =
+        cellValue((c) => c === "solx" || c.startsWith("solx-")) ??
+        noteValue("solx") ??
+        "—";
+      const forge =
+        cellValue((c) => c.startsWith("forge-")) ?? noteValue("forge") ?? "—";
+      if (solc !== "—" || solx !== "—" || forge !== "—") {
+        warmRows.push(
+          `| ${id} | ${viaIR ? "via-IR" : "legacy"} | ${solc} | ${solx} | ${forge} |`,
+        );
+      }
+    }
+  }
+  if (warmRows.length > 0) {
+    const solxLabel =
+      warmSolxVersions.size > 0
+        ? ` ${[...warmSolxVersions].sort().join("/")}`
+        : "";
+    const forgeLabel =
+      warmForgeVersions.size > 0
+        ? ` ${[...warmForgeVersions].sort().join("/")}`
+        : "";
+    lines.push(
+      "### Warm test suite <sub>(full test command over a cached build: warm compile check + suite, wall / CPU s)</sub>",
+      "",
+      "Fuzz seeds are pinned on both tools; each tool runs its own upstream-configured suite — compare the pass/fail counts in the run log before comparing times across tools.",
+      "",
+      `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx${solxLabel} | forge${forgeLabel} + solc 0.8.34 |`,
+      "|---|---|---|---|---|",
+      ...warmRows,
+      "",
+    );
+  }
+
   // Secondary numbers: everything is still generated, just folded away.
   // (The DWARF-cost table retired with the no-dwarf cells — final numbers
   // are recorded in PR #8415's description.)
@@ -435,6 +555,13 @@ export function renderSolxTables(
     for (const [key, data] of scenarios.get(id)!.cold) {
       if (data.peakRssMb !== undefined) {
         rssRows.push(`| ${id} | ${key} | ${fmt(data.peakRssMb, 0)} |`);
+      }
+    }
+    for (const [key, data] of scenarios.get(id)!.warm) {
+      if (data.peakRssMb !== undefined) {
+        rssRows.push(
+          `| ${id} | warm test ${key} | ${fmt(data.peakRssMb, 0)} |`,
+        );
       }
     }
   }
@@ -483,6 +610,11 @@ export function renderSolxTables(
       "⁴ same-scope matrix cell: this scenario's hardhat cells already " +
         "compile the parity source set, so no separate parity cell exists.",
     );
+  }
+  for (const mark of Object.keys(WARM_TEST_FOOTNOTES)) {
+    if (warmFootnotesUsed.has(mark)) {
+      lines.push(WARM_TEST_FOOTNOTES[mark]);
+    }
   }
   return `${lines.join("\n")}\n`;
 }

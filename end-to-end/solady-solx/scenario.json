@@ -67,6 +67,48 @@
         "dependsOn": ["warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
         "command": "FOUNDRY_PROFILE=post_osaka FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+      },
+      "warm test solx-0.1.8": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8",
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8"
+      },
+      "warm test solx-0.1.8 via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8-via-ir",
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
+      },
+      "warm test solc": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile",
+        "command": "npx hardhat test solidity"
+      },
+      "warm test solc via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solc-via-ir",
+        "command": "npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "warm test forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_PROFILE=post_osaka FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline",
+        "command": "FOUNDRY_PROFILE=post_osaka FOUNDRY_SOLC=0.8.34 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
       }
     }
   }
