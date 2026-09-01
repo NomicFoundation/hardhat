@@ -209,6 +209,19 @@ describe("renderSolxTables", () => {
     entry("openzeppelin-contracts-0.34 / warm test solc via-ir", 80.0, {
       times: [79.9, 80.1],
     }),
+    entry("uniswap-v4-core-solx / warm compile solc", 2.1, {
+      times: [2.0, 2.2],
+    }),
+    entry("uniswap-v4-core-solx / warm compile solc (cpu)", 2.5, {
+      user: 2.3,
+      system: 0.2,
+    }),
+    entry("uniswap-v4-core-solx / warm compile solx-0.1.8", 2.2, {
+      times: [2.1, 2.3],
+    }),
+    entry("uniswap-v4-core-solx / warm compile forge-1.7.1 via-ir", 0.1, {
+      times: [0.1, 0.1],
+    }),
     entry("something / unrecognized entry", 1.23),
   ];
   const md = renderSolxTables(report, {
@@ -308,6 +321,18 @@ describe("renderSolxTables", () => {
     );
     // The warm cells' peak RSS lands in the RSS table, prefixed.
     assert.match(md, /warm test solx-0\.1\.8 via-ir \| 1234 \|/);
+  });
+
+  it("renders the warm-compile table, one pipeline-independent row per scenario", () => {
+    assert.match(
+      md,
+      /### Warm compile[\s\S]*?\| uniswap-v4-core-solx \| 2\.1 \/ 2\.5 \| 2\.2 \/ — \| 0\.1 \/ — \|/,
+    );
+    // OZ measured no warm-compile cells in this fixture: no row.
+    assert.doesNotMatch(
+      md,
+      /### Warm compile[\s\S]{0,600}openzeppelin-contracts-0\.34/,
+    );
   });
 
   it("annotates aave's via-IR solc test FAIL and only when warm cells exist", () => {
