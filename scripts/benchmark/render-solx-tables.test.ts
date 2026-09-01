@@ -187,6 +187,28 @@ describe("renderSolxTables", () => {
       user: 39,
       system: 3.4,
     }),
+    entry("uniswap-v4-core-solx / warm test solc via-ir", 30.0, {
+      times: [29.9, 30.1],
+    }),
+    entry("uniswap-v4-core-solx / warm test solc via-ir (cpu)", 31.0, {
+      user: 30.5,
+      system: 0.5,
+    }),
+    entry("uniswap-v4-core-solx / warm test solx-0.1.8 via-ir", 25.0, {
+      times: [24.9, 25.1],
+    }),
+    entry("uniswap-v4-core-solx / warm test forge-1.7.1 via-ir", 22.0, {
+      times: [21.9, 22.1],
+    }),
+    entry(
+      "uniswap-v4-core-solx / warm test solx-0.1.8 via-ir (peak RSS)",
+      1234,
+      {},
+      "MB",
+    ),
+    entry("openzeppelin-contracts-0.34 / warm test solc via-ir", 80.0, {
+      times: [79.9, 80.1],
+    }),
     entry("something / unrecognized entry", 1.23),
   ];
   const md = renderSolxTables(report, {
@@ -259,9 +281,55 @@ describe("renderSolxTables", () => {
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
-    const markers = [...md.matchAll(/^([¹²³⁴⁵])\s/gmu)].map((m) => m[1]);
+    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶])\s/gmu)].map((m) => m[1]);
 
     assert.deepEqual(markers, [...new Set(markers)]);
+  });
+
+  it("renders the warm-test table with marks and skips empty pipelines", () => {
+    assert.match(
+      md,
+      /### Warm test suite[\s\S]*?\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx 0\.1\.8 \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
+    );
+    assert.match(
+      md,
+      /\| uniswap-v4-core-solx \| via-IR \| 30\.0 \/ 31\.0 \| 25\.0 \/ — \| 22\.0 \/ — \|/,
+    );
+    // OZ's solc via-IR suite has upstream-known failures: number + caveat mark.
+    assert.match(
+      md,
+      /\| openzeppelin-contracts-0\.34 \| via-IR \| 80\.0 \/ —⁶ \| — \| — \|/,
+    );
+    assert.match(md, /⁶ the suite exits non-zero under solc via-IR/);
+    // No legacy warm cells in the fixture: no legacy row in the warm table.
+    assert.doesNotMatch(
+      md,
+      /### Warm test suite[\s\S]*?\| [^\n|]+ \| legacy \|/,
+    );
+    // The warm cells' peak RSS lands in the RSS table, prefixed.
+    assert.match(md, /warm test solx-0\.1\.8 via-ir \| 1234 \|/);
+  });
+
+  it("annotates aave's via-IR solc test FAIL and only when warm cells exist", () => {
+    const aave = renderSolxTables([
+      entry("aave-v4-solx / warm test solx-0.1.8 via-ir", 200.0, {
+        times: [200.0],
+      }),
+    ]);
+    assert.match(
+      aave,
+      /\| aave-v4-solx \| via-IR \| ✗ does not compile⁵ \| 200\.0 \/ — \| — \|/,
+    );
+    assert.match(aave, /⁵ solc via-IR cannot compile aave's Foundry test/);
+
+    // An old report without warm cells must not grow a note-only warm table.
+    const old = renderSolxTables([
+      entry("aave-v4-solx / cold compile solc via-ir", 14.0, {
+        times: [13.9, 14.1],
+      }),
+    ]);
+    assert.doesNotMatch(old, /Warm test suite/);
+    assert.doesNotMatch(old, /does not compile⁵/);
   });
 
   it("renders RSS, replay and leftovers", () => {
