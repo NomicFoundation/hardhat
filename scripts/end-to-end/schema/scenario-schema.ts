@@ -156,7 +156,13 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
 }
 
 function isCommandVariant(obj: Record<string, unknown>): boolean {
-  const allowedKeys = new Set(["runs", "prepare", "command", "dependsOn"]);
+  const allowedKeys = new Set([
+    "runs",
+    "prepare",
+    "command",
+    "dependsOn",
+    "ignoreFailure",
+  ]);
 
   for (const key of Object.keys(obj)) {
     if (!allowedKeys.has(key)) {
@@ -170,6 +176,8 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
+    (obj.ignoreFailure === undefined ||
+      typeof obj.ignoreFailure === "boolean") &&
     isDependsOn(obj.dependsOn)
   );
 }

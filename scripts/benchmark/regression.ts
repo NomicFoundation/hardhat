@@ -60,8 +60,9 @@ DESCRIPTION
     {
       "runs":    <positive integer>,    // hyperfine runs (required)
       "prepare": "<shell snippet>",     // optional --prepare hook
-      "command": "<shell command>"      // command to benchmark (required)
-    }
+      "command": "<shell command>",     // command to benchmark (required)
+      "ignoreFailure": <boolean>        // optional --ignore-failure: tolerate a
+    }                                   //   non-zero exit (known-failing suites)
 
     // step sequence, timed in-process (no hyperfine, no per-run prepare)
     {
@@ -244,8 +245,9 @@ async function main(): Promise<void> {
       logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
 
       try {
-        const entries = await runScenario(scenario, args);
-        results.push(...entries);
+        // Entries land in `results` as each phase completes, so a scenario
+        // that fails halfway keeps the numbers it already produced.
+        await runScenario(scenario, args, results);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         logError(`Scenario "${scenario.id}" failed: ${message}`);
@@ -447,7 +449,8 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
 async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
-): Promise<BenchmarkEntry[]> {
+  results: BenchmarkEntry[],
+): Promise<void> {
   const commands = scenario.definition.benchmark?.commands;
 
   if (commands === undefined || Object.keys(commands).length === 0) {
@@ -463,7 +466,7 @@ async function runScenario(
       `Skipping "${scenario.id}" (no commands or steps matched the filters)`,
     );
 
-    return [];
+    return;
   }
 
   const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
@@ -487,11 +490,9 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  const entries: BenchmarkEntry[] = [];
-
   for (const planned of plan) {
     if ("run" in planned) {
-      entries.push(
+      results.push(
         ...runStepsPhase(
           scenario.id,
           scenarioTmpDir,
@@ -522,6 +523,7 @@ async function runScenario(
       buildBenchArgs(scenario.scenarioJsonPath, args, {
         command: planned.cfg.command,
         prepare: planned.cfg.prepare,
+        ignoreFailure: planned.cfg.ignoreFailure === true,
         // A single run suffices when the command runs purely as a
         // prerequisite of a later entry.
         runs: planned.emit ? planned.cfg.runs : 1,
@@ -534,7 +536,7 @@ async function runScenario(
     // later selected command) but are not reported.
     if (planned.emit) {
       const result = readHyperfineResult(exportPath);
-      entries.push(
+      results.push(
         ...toEntries(
           scenario.id,
           planned.name,
@@ -547,8 +549,6 @@ async function runScenario(
       );
     }
   }
-
-  return entries;
 }
 
 /**
@@ -748,6 +748,7 @@ function buildBenchArgs(
   phase: {
     command: string | undefined;
     prepare: string | undefined;
+    ignoreFailure: boolean;
     runs: number;
     exportJson: string;
     timeFile: string | undefined;
@@ -762,7 +763,7 @@ function buildBenchArgs(
     forceCheckout: ForceCheckout.No,
     precompile: false,
     prepare: phase.prepare,
-    ignoreFailure: false,
+    ignoreFailure: phase.ignoreFailure,
     showOutput: true,
     warmup: 0,
     runs: phase.runs,

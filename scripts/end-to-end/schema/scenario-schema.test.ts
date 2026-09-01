@@ -473,6 +473,28 @@ describe("isCommandConfig", () => {
     );
   });
 
+  it("accepts an optional ignoreFailure boolean", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        command: "npx hardhat test solidity",
+        ignoreFailure: true,
+      }),
+      true,
+    );
+  });
+
+  it("rejects ignoreFailure that is not a boolean", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        command: "npx hardhat test solidity",
+        ignoreFailure: "true",
+      }),
+      false,
+    );
+  });
+
   it("rejects extra unknown properties", () => {
     assert.equal(
       isCommandConfig({

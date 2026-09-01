@@ -72,6 +72,14 @@ export interface CommandVariant {
    */
   command: string;
   /**
+   * Tolerate a non-zero exit from the benchmarked command (hyperfine's
+   * `--ignore-failure`). Only for commands whose failure is a known,
+   * documented property of the sources being measured — e.g. a test suite
+   * with upstream-known failing tests, where the wall-clock time is still
+   * the datum. A failing `prepare` still aborts the run.
+   */
+  ignoreFailure?: boolean;
+  /**
    * Names of other entries (command names or step names within this scenario)
    * that must run before this one to make its measurement valid — e.g. a
    * `--no-compile` command depends on a prior compile. Used by the regression

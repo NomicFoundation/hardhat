@@ -111,6 +111,10 @@
                     "minLength": 1,
                     "description": "Shell command to benchmark"
                   },
+                  "ignoreFailure": {
+                    "type": "boolean",
+                    "description": "Tolerate a non-zero exit from the benchmarked command (hyperfine --ignore-failure). Only for commands whose failure is a known, documented property of the sources being measured — e.g. a test suite with upstream-known failing tests, where the wall-clock time is still the datum. A failing prepare still aborts the run."
+                  },
                   "dependsOn": {
                     "type": "array",
                     "items": { "type": "string", "minLength": 1 },
