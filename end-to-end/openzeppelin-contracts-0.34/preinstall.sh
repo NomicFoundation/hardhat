@@ -37,3 +37,11 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINN
 mv hardhat.config.ts hardhat.config.base.ts
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" hardhat.config.ts
 cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" solx-profiles.ts
+
+# The fork's HH3 conversion has draft-ERC7579Utils.t.sol read
+# hardhat-predeploy's bytecode out of node_modules; its hardhat config grants
+# that read (solidityTest.fsPermissions) but foundry.toml predates the move,
+# so `forge test` fails the suite on vm.readFileBinary. Mirror the project's
+# own permission so both tools run the same suite. foundry.toml is a single
+# [profile.default] table, so appending lands the key in it.
+printf '\nfs_permissions = [{ access = "read", path = "node_modules/hardhat-predeploy/bin" }]\n' >> foundry.toml

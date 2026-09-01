@@ -294,7 +294,7 @@ describe("renderSolxTables", () => {
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
-    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶])\s/gmu)].map((m) => m[1]);
+    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷])\s/gmu)].map((m) => m[1]);
 
     assert.deepEqual(markers, [...new Set(markers)]);
   });
@@ -355,6 +355,25 @@ describe("renderSolxTables", () => {
     ]);
     assert.doesNotMatch(old, /Warm test suite/);
     assert.doesNotMatch(old, /does not compile⁵/);
+  });
+
+  it("marks solady's both-compiler fuzz failure on every hardhat warm cell", () => {
+    const solady = renderSolxTables([
+      entry("solady-solx / warm test solc", 60.0, { times: [60.0] }),
+      entry("solady-solx / warm test solx-0.1.8 via-ir", 55.0, {
+        times: [55.0],
+      }),
+      entry("solady-solx / warm test forge-1.7.1", 50.0, { times: [50.0] }),
+    ]);
+    assert.match(
+      solady,
+      /\| solady-solx \| legacy \| 60\.0 \/ —⁷ \| — \| 50\.0 \/ — \|/,
+    );
+    assert.match(
+      solady,
+      /\| solady-solx \| via-IR \| — \| 55\.0 \/ —⁷ \| — \|/,
+    );
+    assert.match(solady, /⁷ solady's suite exits non-zero on both compilers/);
   });
 
   it("renders RSS, replay and leftovers", () => {
