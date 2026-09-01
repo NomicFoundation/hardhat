@@ -83,8 +83,9 @@ DESCRIPTION
                  | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
-      "command": "<shell command>"      // command to benchmark (required)
-    }
+      "command": "<shell command>",     // command to benchmark (required)
+      "ignoreFailure": <boolean>        // optional: tolerate a non-zero exit
+    }                                   //   (known-failing suites)
 
     // step sequence (no per-run prepare)
     {
@@ -292,8 +293,9 @@ async function main(): Promise<void> {
       logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
 
       try {
-        const entries = await runScenario(scenario, args, peakRssMethod);
-        results.push(...entries);
+        // Entries land in `results` as each phase completes, so a scenario
+        // that fails halfway keeps the numbers it already produced.
+        await runScenario(scenario, args, peakRssMethod, results);
       } catch (error) {
         logError(scenarioFailureMessage(scenario.id, error));
         failures.push(scenario.id);
@@ -506,7 +508,8 @@ async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
   peakRssMethod: PeakRssMethod,
-): Promise<BenchmarkEntry[]> {
+  results: BenchmarkEntry[],
+): Promise<void> {
   const commands = scenario.definition.benchmark?.commands;
 
   if (commands === undefined || Object.keys(commands).length === 0) {
@@ -522,7 +525,7 @@ async function runScenario(
       `Skipping "${scenario.id}" (no commands or steps matched the filters)`,
     );
 
-    return [];
+    return;
   }
 
   logStep("Initializing scenario");
@@ -543,8 +546,15 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  return withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
-    runPhases(scenario.id, scenarioTmpDir, loaded, plan, peakRssMethod),
+  await withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
+    runPhases(
+      scenario.id,
+      scenarioTmpDir,
+      loaded,
+      plan,
+      peakRssMethod,
+      results,
+    ),
   );
 }
 
@@ -554,12 +564,11 @@ async function runPhases(
   loaded: Scenario,
   plan: PlannedCommand[],
   peakRssMethod: PeakRssMethod,
-): Promise<BenchmarkEntry[]> {
-  const entries: BenchmarkEntry[] = [];
-
+  results: BenchmarkEntry[],
+): Promise<void> {
   for (const planned of plan) {
     if ("run" in planned) {
-      entries.push(
+      results.push(
         ...(await runStepsPhase(
           scenarioId,
           scenarioTmpDir,
@@ -574,7 +583,7 @@ async function runPhases(
         )),
       );
     } else {
-      entries.push(
+      results.push(
         ...(await runCommandPhase(
           scenarioId,
           scenarioTmpDir,
@@ -588,8 +597,6 @@ async function runPhases(
       );
     }
   }
-
-  return entries;
 }
 
 /**
@@ -621,7 +628,11 @@ async function runCommandPhase(
         await runPrepare(cfg.prepare, { cwd: workingDir, env });
       }
 
-      await runPlain(cfg.command, { cwd: workingDir, env });
+      await runPlain(cfg.command, {
+        cwd: workingDir,
+        env,
+        ignoreFailure: cfg.ignoreFailure === true,
+      });
 
       return [];
     }
@@ -635,6 +646,7 @@ async function runCommandPhase(
         runs,
         warmup: cfg.warmup,
         prepare: cfg.prepare,
+        ignoreFailure: cfg.ignoreFailure === true,
         peakRssMethod,
         onWarmupCompleted: (i, total) =>
           log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
