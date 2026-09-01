@@ -73,6 +73,7 @@ interface CellData {
 interface Scenario {
   cold: Map<string, CellData>; // key: canonical cell key
   warm: Map<string, CellData>; // "warm test" cells: test command over a cached build
+  warmCompile: Map<string, CellData>; // "warm compile" cells: no-op cache check
   replay: Map<string, CellData>;
 }
 
@@ -212,7 +213,7 @@ export function renderSolxTables(
     const [, prefix, cellRaw] =
       m === null
         ? [undefined, undefined, undefined]
-        : (/^(cold compile|warm test|raw replay) (.*)$/.exec(
+        : (/^(cold compile|warm compile|warm test|raw replay) (.*)$/.exec(
             m.groups!.label,
           ) ?? [undefined, undefined, undefined]);
     const cell = cellRaw === undefined ? undefined : parseCell(cellRaw);
@@ -225,15 +226,18 @@ export function renderSolxTables(
     const scenario = scenarios.get(scenarioId) ?? {
       cold: new Map(),
       warm: new Map(),
+      warmCompile: new Map(),
       replay: new Map(),
     };
     scenarios.set(scenarioId, scenario);
     const bucket =
       prefix === "cold compile"
         ? scenario.cold
-        : prefix === "warm test"
-          ? scenario.warm
-          : scenario.replay;
+        : prefix === "warm compile"
+          ? scenario.warmCompile
+          : prefix === "warm test"
+            ? scenario.warm
+            : scenario.replay;
     const key = cellKey(cell);
     const data = bucket.get(key) ?? {};
     bucket.set(key, data);
@@ -545,6 +549,40 @@ export function renderSolxTables(
     );
   }
 
+  // Warm compile: a no-op cache check — no compiler runs, so the number is
+  // pipeline-independent (Hardhat startup + source hashing; forge analogous).
+  // One row per scenario, picking whichever pipeline's cell exists.
+  const warmCompileRows: string[] = [];
+  for (const id of scenarioIds) {
+    const scenario = scenarios.get(id)!;
+    if (scenario.warmCompile.size === 0) {
+      continue;
+    }
+    const pick = (matchCompiler: (compiler: string) => boolean) => {
+      const key = [...scenario.warmCompile.keys()].find((k) =>
+        matchCompiler(parseCell(k)!.compiler),
+      );
+      return key === undefined ? "—" : wallCpu(scenario.warmCompile.get(key));
+    };
+    warmCompileRows.push(
+      `| ${id} | ${pick((c) => c === "solc")} | ${pick(
+        (c) => c === "solx" || c.startsWith("solx-"),
+      )} | ${pick((c) => c.startsWith("forge-"))} |`,
+    );
+  }
+  if (warmCompileRows.length > 0) {
+    lines.push(
+      "### Warm compile <sub>(no-op cache check, wall / CPU s)</sub>",
+      "",
+      "Nothing recompiles on a warm build, so this is tool startup + source hashing — independent of the compiler and pipeline. It is the compile share of the warm-test numbers above.",
+      "",
+      "| scenario | hardhat + solc 0.8.34 | hardhat + solx | forge + solc 0.8.34 |",
+      "|---|---|---|---|",
+      ...warmCompileRows,
+      "",
+    );
+  }
+
   // Secondary numbers: everything is still generated, just folded away.
   // (The DWARF-cost table retired with the no-dwarf cells — final numbers
   // are recorded in PR #8415's description.)
@@ -561,6 +599,13 @@ export function renderSolxTables(
       if (data.peakRssMb !== undefined) {
         rssRows.push(
           `| ${id} | warm test ${key} | ${fmt(data.peakRssMb, 0)} |`,
+        );
+      }
+    }
+    for (const [key, data] of scenarios.get(id)!.warmCompile) {
+      if (data.peakRssMb !== undefined) {
+        rssRows.push(
+          `| ${id} | warm compile ${key} | ${fmt(data.peakRssMb, 0)} |`,
         );
       }
     }
