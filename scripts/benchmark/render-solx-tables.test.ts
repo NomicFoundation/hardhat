@@ -209,6 +209,9 @@ describe("renderSolxTables", () => {
     entry("openzeppelin-contracts-0.34 / warm test solc via-ir", 80.0, {
       times: [79.9, 80.1],
     }),
+    entry("1inch-swap-vm-solx / cold compile solc via-ir", 267.9, {
+      times: [267.5, 268.3],
+    }),
     entry("uniswap-v4-core-solx / warm compile solc", 2.1, {
       times: [2.0, 2.2],
     }),
@@ -294,7 +297,7 @@ describe("renderSolxTables", () => {
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
-    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷])\s/gmu)].map((m) => m[1]);
+    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷⁸])\s/gmu)].map((m) => m[1]);
 
     assert.deepEqual(markers, [...new Set(markers)]);
   });
@@ -376,6 +379,24 @@ describe("renderSolxTables", () => {
     ]);
     assert.doesNotMatch(old, /Warm test suite/);
     assert.doesNotMatch(old, /does not compile⁵/);
+  });
+
+  it("gives swap-vm a visible cannot-run-tests row instead of dropping it", () => {
+    // Note-only rows render whenever the table has real measurements…
+    assert.match(
+      md,
+      /### Warm test suite[\s\S]*?\| 1inch-swap-vm-solx \| via-IR \| ✗ tests do not compile⁸ \| ✗ tests do not compile⁸ \| — \|/,
+    );
+    assert.match(md, /⁸ swap-vm's Foundry test sources fail to compile/);
+    // …but a report with no test measurements at all renders no table and
+    // no stray footnotes.
+    const old = renderSolxTables([
+      entry("uniswap-v4-core-solx / cold compile solc", 19.6, {
+        times: [19.5, 19.7],
+      }),
+    ]);
+    assert.doesNotMatch(old, /Warm test suite/);
+    assert.doesNotMatch(old, /⁸ swap-vm/);
   });
 
   it("marks solady's both-compiler fuzz failure on every hardhat warm cell", () => {

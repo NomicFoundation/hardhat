@@ -175,6 +175,8 @@ const FOOTNOTES = [
 // keyed "<scenario>|<compiler>[ via-ir]" like CELL_NOTES.
 const WARM_TEST_NOTES: Record<string, string> = {
   "aave-v4-solx|solc via-ir": "✗ does not compile⁵",
+  "1inch-swap-vm-solx|solc via-ir": "✗ tests do not compile⁸",
+  "1inch-swap-vm-solx|solx via-ir": "✗ tests do not compile⁸",
 };
 
 // Cold-test cells that legitimately have no number, keyed like the warm map.
@@ -209,6 +211,13 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
     "input with an identical counterexample under solc and solx — an " +
     "EDR/test interaction, not a compiler divergence (2040 of 2041 pass). " +
     "The full suite runs; the cells set ignoreFailure in scenario.json.",
+  "⁸":
+    "⁸ swap-vm's Foundry test sources fail to compile under BOTH compilers " +
+    "at the 0.8.34 pin (test-under-solx sweep): the src compiles via-IR " +
+    "(the cold-compile rows) but adding the tests breaks each side in its " +
+    "own way. Upstream runs its suite via forge at its own 0.8.30 pin — " +
+    "not benchmarked here. The repo is via-IR-only, so there is no legacy " +
+    "row at all.",
 };
 
 export function renderSolxTables(
@@ -499,13 +508,13 @@ export function renderSolxTables(
     const rows: string[] = [];
     const solxVersions = new Set<string>();
     const forgeVersions = new Set<string>();
+    // A repo that cannot run tests still gets a visible row via its notes,
+    // but a table with no measurement anywhere (an old report) renders
+    // nothing — its note marks are discarded with it.
+    let sawMeasurement = false;
+    const footnotesUsed = new Set<string>();
     for (const id of scenarioIds) {
       const bucket = bucketOf(scenarios.get(id)!);
-      // Notes only annotate scenarios that measured cells in this bucket, so
-      // old reports without them don't grow a note-only table.
-      if (bucket.size === 0) {
-        continue;
-      }
       for (const viaIR of [false, true]) {
         const cellValue = (matchCompiler: (compiler: string) => boolean) => {
           const key = [...bucket.keys()].find((k) => {
@@ -528,10 +537,11 @@ export function renderSolxTables(
           } else if (compiler.startsWith("forge-")) {
             forgeVersions.add(compiler.replace("forge-", ""));
           }
+          sawMeasurement = true;
           const mark =
             marks[`${id}|${compiler}${viaIR ? " via-ir" : ""}`] ?? "";
           if (mark !== "") {
-            testFootnotesUsed.add(mark);
+            footnotesUsed.add(mark);
           }
           return `${wallCpu(bucket.get(key))}${mark}`;
         };
@@ -539,7 +549,7 @@ export function renderSolxTables(
           const note = notes[`${id}|${compiler}${viaIR ? " via-ir" : ""}`];
           const mark = /[⁰¹²³⁴⁵⁶⁷⁸⁹]+$/.exec(note ?? "")?.[0];
           if (note !== undefined && mark !== undefined) {
-            testFootnotesUsed.add(mark);
+            footnotesUsed.add(mark);
           }
           return note;
         };
@@ -557,7 +567,10 @@ export function renderSolxTables(
         }
       }
     }
-    if (rows.length > 0) {
+    if (rows.length > 0 && sawMeasurement) {
+      for (const mark of footnotesUsed) {
+        testFootnotesUsed.add(mark);
+      }
       const solxLabel =
         solxVersions.size > 0 ? ` ${[...solxVersions].sort().join("/")}` : "";
       const forgeLabel =
