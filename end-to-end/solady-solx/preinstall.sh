@@ -56,3 +56,24 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINN
 mv hardhat.config.ts hardhat.config.base.ts
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" hardhat.config.ts
 cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" solx-profiles.ts
+
+# Take BlockHashLibTest#testBlockHash out of test discovery, identically for
+# all three toolchains (rename: not test-prefixed => neither EDR nor forge
+# runs or counts it). One EDR-generated fuzz input makes it revert under BOTH
+# compilers with an identical counterexample — an EDR/test interaction, not a
+# compiler divergence (see /workspace/edr-solady-blockhash-fuzz-note.md) —
+# and EDR keeps paying the full per-run fuzz overhead even for a vm.skip'd
+# test (~9s under solx), so skipping in-code reclaims neither the exit code
+# nor the time. Fail loudly if the anchor moved.
+node -e '
+const fs = require("fs");
+const p = "test/BlockHashLib.t.sol";
+let s = fs.readFileSync(p, "utf8");
+const anchor = "function testBlockHash(";
+if (s.split(anchor).length !== 2) {
+  console.error("solady preinstall: expected exactly one testBlockHash in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, "function skipBlockHash("));
+console.log("solady preinstall: renamed BlockHashLibTest#testBlockHash out of discovery");
+'
