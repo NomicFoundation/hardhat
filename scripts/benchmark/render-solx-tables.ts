@@ -11,8 +11,9 @@ DESCRIPTION
   solx-regression-benchmark.yml produces) and prints markdown tables to
   stdout: one cold-compile pivot per scenario ({solc, shipped solx, pinned
   solx} x {no-opt, legacy, via-IR}, wall / total CPU), a cross-tool parity
-  table, a warm-test table (the "warm test" cells: the whole test command
-  over a cached build), plus a details section with the DWARF cost, peak RSS
+  table, warm-test and cold-test tables (the whole test command over a
+  cached build, and over a clean one where measured), plus a details section
+  with the DWARF cost, peak RSS
   and raw-replay numbers. Every entry in the report is rendered — anything
   the pivot doesn't recognize lands in an "other entries" table rather than
   being dropped.
@@ -73,6 +74,7 @@ interface CellData {
 interface Scenario {
   cold: Map<string, CellData>; // key: canonical cell key
   warm: Map<string, CellData>; // "warm test" cells: test command over a cached build
+  coldTest: Map<string, CellData>; // "cold test" cells: clean build incl. tests + suite
   warmCompile: Map<string, CellData>; // "warm compile" cells: no-op cache check
   replay: Map<string, CellData>;
 }
@@ -175,6 +177,12 @@ const WARM_TEST_NOTES: Record<string, string> = {
   "aave-v4-solx|solc via-ir": "✗ does not compile⁵",
 };
 
+// Cold-test cells that legitimately have no number, keyed like the warm map.
+// The same solc-via-IR failure blocks aave's cold test run (footnote 5).
+const COLD_TEST_NOTES: Record<string, string> = {
+  "aave-v4-solx|solc via-ir": "✗ does not compile⁵",
+};
+
 // Warm-test cells whose number needs a caveat mark appended.
 const WARM_TEST_MARKS: Record<string, string> = {
   "openzeppelin-contracts-0.34|solc via-ir": "⁶",
@@ -223,7 +231,7 @@ export function renderSolxTables(
     const [, prefix, cellRaw] =
       m === null
         ? [undefined, undefined, undefined]
-        : (/^(cold compile|warm compile|warm test|raw replay) (.*)$/.exec(
+        : (/^(cold compile|warm compile|warm test|cold test|raw replay) (.*)$/.exec(
             m.groups!.label,
           ) ?? [undefined, undefined, undefined]);
     const cell = cellRaw === undefined ? undefined : parseCell(cellRaw);
@@ -236,6 +244,7 @@ export function renderSolxTables(
     const scenario = scenarios.get(scenarioId) ?? {
       cold: new Map(),
       warm: new Map(),
+      coldTest: new Map(),
       warmCompile: new Map(),
       replay: new Map(),
     };
@@ -247,7 +256,9 @@ export function renderSolxTables(
           ? scenario.warmCompile
           : prefix === "warm test"
             ? scenario.warm
-            : scenario.replay;
+            : prefix === "cold test"
+              ? scenario.coldTest
+              : scenario.replay;
     const key = cellKey(cell);
     const data = bucket.get(key) ?? {};
     bucket.set(key, data);
@@ -470,94 +481,113 @@ export function renderSolxTables(
     );
   }
 
-  // Warm test suite: the "warm test" cells time the whole test command
-  // (`hardhat test solidity` / `forge test`) over a build already cached by
-  // the cell's prepare — a warm compile check plus the full suite. One row
-  // per scenario x pipeline; the one-time compile cost is the cold-compile
-  // table above.
-  const warmRows: string[] = [];
-  const warmFootnotesUsed = new Set<string>();
-  const warmSolxVersions = new Set<string>();
-  const warmForgeVersions = new Set<string>();
-  for (const id of scenarioIds) {
-    const scenario = scenarios.get(id)!;
-    // Notes only annotate scenarios that measured warm cells at all, so old
-    // reports without warm-test cells don't grow a note-only table.
-    if (scenario.warm.size === 0) {
-      continue;
-    }
-    for (const viaIR of [false, true]) {
-      const cellValue = (matchCompiler: (compiler: string) => boolean) => {
-        const key = [...scenario.warm.keys()].find((k) => {
-          const c = parseCell(k)!;
-          return (
-            matchCompiler(c.compiler) &&
-            c.viaIR === viaIR &&
-            c.dwarf &&
-            !c.noOpt &&
-            !c.parity &&
-            !c.upgrade
+  // Test-suite tables: one row per scenario x pipeline, {solc, solx, forge}
+  // columns. Shared by the warm variant ("warm test": the test command over
+  // a build cached by the cell's prepare — warm compile check + full suite)
+  // and the cold variant ("cold test": clean build including the test
+  // sources, plus the suite — measured only where the compile cells are
+  // src-scoped and a cold-compile+warm-test sum would understate the first
+  // run, i.e. aave).
+  const testFootnotesUsed = new Set<string>();
+  const renderTestSuiteTable = (
+    bucketOf: (s: Scenario) => Map<string, CellData>,
+    notes: Record<string, string>,
+    marks: Record<string, string>,
+    heading: string,
+    blurb: string,
+  ): void => {
+    const rows: string[] = [];
+    const solxVersions = new Set<string>();
+    const forgeVersions = new Set<string>();
+    for (const id of scenarioIds) {
+      const bucket = bucketOf(scenarios.get(id)!);
+      // Notes only annotate scenarios that measured cells in this bucket, so
+      // old reports without them don't grow a note-only table.
+      if (bucket.size === 0) {
+        continue;
+      }
+      for (const viaIR of [false, true]) {
+        const cellValue = (matchCompiler: (compiler: string) => boolean) => {
+          const key = [...bucket.keys()].find((k) => {
+            const c = parseCell(k)!;
+            return (
+              matchCompiler(c.compiler) &&
+              c.viaIR === viaIR &&
+              c.dwarf &&
+              !c.noOpt &&
+              !c.parity &&
+              !c.upgrade
+            );
+          });
+          if (key === undefined) {
+            return undefined;
+          }
+          const compiler = parseCell(key)!.compiler;
+          if (compiler.startsWith("solx-")) {
+            solxVersions.add(compiler.replace("solx-", ""));
+          } else if (compiler.startsWith("forge-")) {
+            forgeVersions.add(compiler.replace("forge-", ""));
+          }
+          const mark =
+            marks[`${id}|${compiler}${viaIR ? " via-ir" : ""}`] ?? "";
+          if (mark !== "") {
+            testFootnotesUsed.add(mark);
+          }
+          return `${wallCpu(bucket.get(key))}${mark}`;
+        };
+        const noteValue = (compiler: string) => {
+          const note = notes[`${id}|${compiler}${viaIR ? " via-ir" : ""}`];
+          const mark = /[⁰¹²³⁴⁵⁶⁷⁸⁹]+$/.exec(note ?? "")?.[0];
+          if (note !== undefined && mark !== undefined) {
+            testFootnotesUsed.add(mark);
+          }
+          return note;
+        };
+        const solc = cellValue((c) => c === "solc") ?? noteValue("solc") ?? "—";
+        const solx =
+          cellValue((c) => c === "solx" || c.startsWith("solx-")) ??
+          noteValue("solx") ??
+          "—";
+        const forge =
+          cellValue((c) => c.startsWith("forge-")) ?? noteValue("forge") ?? "—";
+        if (solc !== "—" || solx !== "—" || forge !== "—") {
+          rows.push(
+            `| ${id} | ${viaIR ? "via-IR" : "legacy"} | ${solc} | ${solx} | ${forge} |`,
           );
-        });
-        if (key === undefined) {
-          return undefined;
         }
-        const compiler = parseCell(key)!.compiler;
-        if (compiler.startsWith("solx-")) {
-          warmSolxVersions.add(compiler.replace("solx-", ""));
-        } else if (compiler.startsWith("forge-")) {
-          warmForgeVersions.add(compiler.replace("forge-", ""));
-        }
-        const mark =
-          WARM_TEST_MARKS[`${id}|${compiler}${viaIR ? " via-ir" : ""}`] ?? "";
-        if (mark !== "") {
-          warmFootnotesUsed.add(mark);
-        }
-        return `${wallCpu(scenario.warm.get(key))}${mark}`;
-      };
-      const noteValue = (compiler: string) => {
-        const note =
-          WARM_TEST_NOTES[`${id}|${compiler}${viaIR ? " via-ir" : ""}`];
-        const mark = /[⁰¹²³⁴⁵⁶⁷⁸⁹]+$/.exec(note ?? "")?.[0];
-        if (note !== undefined && mark !== undefined) {
-          warmFootnotesUsed.add(mark);
-        }
-        return note;
-      };
-      const solc = cellValue((c) => c === "solc") ?? noteValue("solc") ?? "—";
-      const solx =
-        cellValue((c) => c === "solx" || c.startsWith("solx-")) ??
-        noteValue("solx") ??
-        "—";
-      const forge =
-        cellValue((c) => c.startsWith("forge-")) ?? noteValue("forge") ?? "—";
-      if (solc !== "—" || solx !== "—" || forge !== "—") {
-        warmRows.push(
-          `| ${id} | ${viaIR ? "via-IR" : "legacy"} | ${solc} | ${solx} | ${forge} |`,
-        );
       }
     }
-  }
-  if (warmRows.length > 0) {
-    const solxLabel =
-      warmSolxVersions.size > 0
-        ? ` ${[...warmSolxVersions].sort().join("/")}`
-        : "";
-    const forgeLabel =
-      warmForgeVersions.size > 0
-        ? ` ${[...warmForgeVersions].sort().join("/")}`
-        : "";
-    lines.push(
-      "### Warm test suite <sub>(full test command over a cached build: warm compile check + suite, wall / CPU s)</sub>",
-      "",
-      "Fuzz seeds are pinned on both tools; each tool runs its own upstream-configured suite — compare the pass/fail counts in the run log before comparing times across tools.",
-      "",
-      `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx${solxLabel} | forge${forgeLabel} + solc 0.8.34 |`,
-      "|---|---|---|---|---|",
-      ...warmRows,
-      "",
-    );
-  }
+    if (rows.length > 0) {
+      const solxLabel =
+        solxVersions.size > 0 ? ` ${[...solxVersions].sort().join("/")}` : "";
+      const forgeLabel =
+        forgeVersions.size > 0 ? ` ${[...forgeVersions].sort().join("/")}` : "";
+      lines.push(
+        heading,
+        "",
+        blurb,
+        "",
+        `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx${solxLabel} | forge${forgeLabel} + solc 0.8.34 |`,
+        "|---|---|---|---|---|",
+        ...rows,
+        "",
+      );
+    }
+  };
+  renderTestSuiteTable(
+    (s) => s.warm,
+    WARM_TEST_NOTES,
+    WARM_TEST_MARKS,
+    "### Warm test suite <sub>(full test command over a cached build: warm compile check + suite, wall / CPU s)</sub>",
+    "Fuzz seeds are pinned on both tools; each tool runs its own upstream-configured suite — compare the pass/fail counts in the run log before comparing times across tools.",
+  );
+  renderTestSuiteTable(
+    (s) => s.coldTest,
+    COLD_TEST_NOTES,
+    {},
+    "### Cold test suite <sub>(clean build including test sources + full suite, wall / CPU s)</sub>",
+    "The first test run after a clean, measured directly. Only aave carries these cells: its compile cells are src-only, so a cold-compile + warm-test sum would understate its first run.",
+  );
 
   // Warm compile: a no-op cache check — no compiler runs, so the number is
   // pipeline-independent (Hardhat startup + source hashing; forge analogous).
@@ -609,6 +639,13 @@ export function renderSolxTables(
       if (data.peakRssMb !== undefined) {
         rssRows.push(
           `| ${id} | warm test ${key} | ${fmt(data.peakRssMb, 0)} |`,
+        );
+      }
+    }
+    for (const [key, data] of scenarios.get(id)!.coldTest) {
+      if (data.peakRssMb !== undefined) {
+        rssRows.push(
+          `| ${id} | cold test ${key} | ${fmt(data.peakRssMb, 0)} |`,
         );
       }
     }
@@ -667,7 +704,7 @@ export function renderSolxTables(
     );
   }
   for (const mark of Object.keys(WARM_TEST_FOOTNOTES)) {
-    if (warmFootnotesUsed.has(mark)) {
+    if (testFootnotesUsed.has(mark)) {
       lines.push(WARM_TEST_FOOTNOTES[mark]);
     }
   }
