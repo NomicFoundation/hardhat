@@ -335,6 +335,27 @@ describe("renderSolxTables", () => {
     );
   });
 
+  it("renders the cold-test table with aave's solc via-IR FAIL note", () => {
+    const aave = renderSolxTables([
+      entry("aave-v4-solx / cold test solx-0.1.8 via-ir", 320.0, {
+        times: [320.0],
+      }),
+      entry("aave-v4-solx / cold test solc", 450.0, { times: [450.0] }),
+      entry("aave-v4-solx / cold test forge-1.7.1", 380.0, { times: [380.0] }),
+    ]);
+    assert.match(
+      aave,
+      /### Cold test suite[\s\S]*?\| aave-v4-solx \| legacy \| 450\.0 \/ — \| — \| 380\.0 \/ — \|/,
+    );
+    assert.match(
+      aave,
+      /### Cold test suite[\s\S]*?\| aave-v4-solx \| via-IR \| ✗ does not compile⁵ \| 320\.0 \/ — \| — \|/,
+    );
+    assert.match(aave, /⁵ solc via-IR cannot compile aave's Foundry test/);
+    // A report with no cold-test cells must not grow the table at all.
+    assert.doesNotMatch(md, /Cold test suite/);
+  });
+
   it("annotates aave's via-IR solc test FAIL and only when warm cells exist", () => {
     const aave = renderSolxTables([
       entry("aave-v4-solx / warm test solx-0.1.8 via-ir", 200.0, {
