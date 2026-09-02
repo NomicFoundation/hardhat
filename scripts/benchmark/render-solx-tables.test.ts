@@ -399,7 +399,7 @@ describe("renderSolxTables", () => {
     assert.doesNotMatch(old, /⁸ swap-vm/);
   });
 
-  it("marks solady's both-compiler fuzz failure on every hardhat warm cell", () => {
+  it("marks solady's removed-from-discovery test on every warm cell", () => {
     const solady = renderSolxTables([
       entry("solady-solx / warm test solc", 60.0, { times: [60.0] }),
       entry("solady-solx / warm test solx-0.1.8 via-ir", 55.0, {
@@ -409,13 +409,13 @@ describe("renderSolxTables", () => {
     ]);
     assert.match(
       solady,
-      /\| solady-solx \| legacy \| 60\.0 \/ —⁷ \| — \| 50\.0 \/ — \|/,
+      /\| solady-solx \| legacy \| 60\.0 \/ —⁷ \| — \| 50\.0 \/ —⁷ \|/,
     );
     assert.match(
       solady,
       /\| solady-solx \| via-IR \| — \| 55\.0 \/ —⁷ \| — \|/,
     );
-    assert.match(solady, /⁷ solady's suite exits non-zero on both compilers/);
+    assert.match(solady, /⁷ solady runs 2040 of its 2041 tests/);
   });
 
   it("renders RSS, replay and leftovers", () => {
