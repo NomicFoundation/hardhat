@@ -73,8 +73,12 @@ jobs:
     # The blog-launch target scenarios also carry "warm test" cells: the
     # whole test command (`hardhat test solidity` / `forge test`) over a
     # build cached by the cell's prepare, at 3 hyperfine runs (1 on aave —
-    # its suite legs take minutes each). Budgeted at ~1-1.5h on top of the
-    # compile matrix; the timeout carries headroom above the sum.
+    # its suite legs take minutes each). aave additionally carries "cold
+    # test" cells (clean build including test sources + suite, 1 run each):
+    # its compile cells are src-only, so its first-run cost has to be
+    # measured, not summed. Budgeted at ~1.5-2h on top of the compile
+    # matrix (last full run: 5h11m total); the timeout carries headroom
+    # above the sum.
     timeout-minutes: 420
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
