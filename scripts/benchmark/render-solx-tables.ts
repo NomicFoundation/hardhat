@@ -192,6 +192,7 @@ const WARM_TEST_MARKS: Record<string, string> = {
   "solady-solx|solc via-ir": "⁷",
   "solady-solx|solx-0.1.8": "⁷",
   "solady-solx|solx-0.1.8 via-ir": "⁷",
+  "solady-solx|forge-1.7.1": "⁷",
 };
 
 const WARM_TEST_FOOTNOTES: Record<string, string> = {
@@ -206,11 +207,13 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
     "suite still runs — the time is comparable; the cell sets ignoreFailure " +
     "in scenario.json.",
   "⁷":
-    "⁷ solady's suite exits non-zero on both compilers: one upstream fuzz " +
-    "test (BlockHashLibTest#testBlockHash) reverts on an EDR-generated " +
-    "input with an identical counterexample under solc and solx — an " +
-    "EDR/test interaction, not a compiler divergence (2040 of 2041 pass). " +
-    "The full suite runs; the cells set ignoreFailure in scenario.json.",
+    "⁷ solady runs 2040 of its 2041 tests on all three toolchains: " +
+    "preinstall renames BlockHashLibTest#testBlockHash out of discovery " +
+    "because an EDR-generated fuzz input makes it revert under BOTH " +
+    "compilers with an identical counterexample — an EDR/test interaction, " +
+    "not a compiler divergence — and EDR pays the full per-run fuzz " +
+    "overhead even for a vm.skip'd test, so an in-code skip reclaims " +
+    "neither the exit code nor the time.",
   "⁸":
     "⁸ swap-vm's Foundry test sources fail to compile under BOTH compilers " +
     "at the 0.8.34 pin (test-under-solx sweep): the src compiles via-IR " +

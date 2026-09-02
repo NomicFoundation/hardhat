@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Solady (assembly-heavy, solx's hardest case) compiled at solc 0.8.34, benchmarking solx against solc and forge. Mirrors upstream's post_osaka CI profile: the default profile targets paris + skip globs (inexpressible in Hardhat; paris predates solx's EVM floor), and preinstall removes the profile's five ext/ithaca skips for exact scope parity (246 sources on both tools). No solc no-opt cell: test/RedBlackTree.t.sol is stack-too-deep under optimizer-off legacy solc, and upstream only ships optimizer-on — the failure is the datum. The hardhat warm-test cells set ignoreFailure: one upstream fuzz test (BlockHashLibTest#testBlockHash) reverts on an EDR-generated input under BOTH compilers with an identical counterexample (2040 of 2041 pass) — an EDR/test interaction, not a compiler divergence; the full suite still runs, so the times are comparable.",
+  "description": "Solady (assembly-heavy, solx's hardest case) compiled at solc 0.8.34, benchmarking solx against solc and forge. Mirrors upstream's post_osaka CI profile: the default profile targets paris + skip globs (inexpressible in Hardhat; paris predates solx's EVM floor), and preinstall removes the profile's five ext/ithaca skips for exact scope parity (246 sources on both tools). No solc no-opt cell: test/RedBlackTree.t.sol is stack-too-deep under optimizer-off legacy solc, and upstream only ships optimizer-on — the failure is the datum. Preinstall renames BlockHashLibTest#testBlockHash out of test discovery, identically for all three toolchains (2040 tests run everywhere): an EDR-generated fuzz input makes it revert under BOTH compilers with an identical counterexample — an EDR/test interaction, not a compiler divergence — and EDR pays the full per-run fuzz overhead even for a vm.skip'd test, so an in-code skip reclaims neither the exit code hygiene nor the ~7-9s it adds to every hardhat test cell.",
   "tags": ["external-repo", "solx"],
   "repo": "nebasuke/solady",
   "commit": "13d87ff27de01eb671dbee41b6d84ef98d5e2c32",
@@ -75,8 +75,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat compile --build-profile solx-0.1.8",
-        "command": "npx hardhat test solidity --build-profile solx-0.1.8",
-        "ignoreFailure": true
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8"
       },
       "warm test solx-0.1.8 via-ir": {
         "runs": 3,
@@ -85,8 +84,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat compile --build-profile solx-0.1.8-via-ir",
-        "command": "npx hardhat test solidity --build-profile solx-0.1.8-via-ir",
-        "ignoreFailure": true
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
       },
       "warm test solc": {
         "runs": 3,
@@ -95,8 +93,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat compile",
-        "command": "npx hardhat test solidity",
-        "ignoreFailure": true
+        "command": "npx hardhat test solidity"
       },
       "warm test solc via-ir": {
         "runs": 3,
@@ -105,8 +102,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat compile --build-profile solc-via-ir",
-        "command": "npx hardhat test solidity --build-profile solc-via-ir",
-        "ignoreFailure": true
+        "command": "npx hardhat test solidity --build-profile solc-via-ir"
       },
       "warm test forge-1.7.1": {
         "runs": 3,
