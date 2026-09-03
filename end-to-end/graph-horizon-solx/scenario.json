@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Graph Horizon (packages/horizon of the graphprotocol contracts pnpm monorepo — the first monorepo solx scenario) compiled at solc 0.8.34, tracking solx, solc, and forge compile times. Upstream's production profile is solc 0.8.35 + optimizer runs 100 + via-IR + cancun; the cells re-express it at 0.8.34, the only solx-mapped version (contracts and tests carry ^0.8.27-style range pragmas, so no source patching). Every command cds into packages/horizon; `workdir` points bench:dump-standard-json there. The migration stack reduced foundry.toml to a lint-only config; preinstall reinstates the pre-migration one from PR #1, whose [profile.prod] (optimizer runs 100, via-IR) matches the hardhat cells — the via-IR forge cell uses FOUNDRY_PROFILE=prod, and the legacy cell sets the same optimizer via FOUNDRY_ env on the optimizer-off default profile, so both cross-tool parity rows compare like with like. EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill the legacy cells' stack-too-deep past the unannotated assembly in RecurringCollector (see the aave-v4-solx scenario).",
+  "description": "Graph Horizon (packages/horizon of the graphprotocol contracts pnpm monorepo — the first monorepo solx scenario) compiled at solc 0.8.34, tracking solx, solc, and forge compile times. Upstream's production profile is solc 0.8.35 + optimizer runs 100 + via-IR + cancun; the cells re-express it at 0.8.34, the only solx-mapped version (contracts and tests carry ^0.8.27-style range pragmas, so no source patching). Every command cds into packages/horizon; `workdir` points bench:dump-standard-json there. The migration stack reduced foundry.toml to a lint-only config; preinstall reinstates the pre-migration one from PR #1, whose [profile.prod] (optimizer runs 100, via-IR) matches the hardhat cells — the via-IR forge cell uses FOUNDRY_PROFILE=prod, and the legacy cell sets the same optimizer via FOUNDRY_ env on the optimizer-off default profile, so both cross-tool parity rows compare like with like. EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill the legacy cells' stack-too-deep past the unannotated assembly in RecurringCollector (see the aave-v4-solx scenario). The 'diag threads N' cells (1 run each, forge --threads N vs RAYON_NUM_THREADS=N for EDR, same legacy pipeline and seed) are a one-off diagnostic for the runner's forge CPU inflation (~905s CPU for a 17s wall); they land in the report's 'other entries' table, not the pivot. On an 8-core desktop forge scales normally (8.3x wall at 16 threads, 1.8x CPU inflation) and EDR matches it, so the gap is a high-core-count effect that only the runner can measure — see /workspace/hardhat-solx-footnote-research.md.",
   "tags": ["external-repo", "solx"],
   "repo": "NomicFoundation/graphprotocol-contracts",
   "commit": "68661591b7e2e7d1672667769458aa8d84acc332",
@@ -177,6 +177,70 @@
         "dependsOn": ["build workspace deps", "warm forge solc cache"],
         "prepare": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_PROFILE=prod ./.foundry/forge build --offline",
         "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_PROFILE=prod ./.foundry/forge build --offline"
+      },
+      "diag threads 8 forge-1.7.1": {
+        "runs": 1,
+        "dependsOn": ["build workspace deps", "warm forge solc cache"],
+        "prepare": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline --threads 8"
+      },
+      "diag threads 8 solc": {
+        "runs": 1,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat compile",
+        "command": "cd packages/horizon && RAYON_NUM_THREADS=8 npx hardhat test solidity"
+      },
+      "diag threads 16 forge-1.7.1": {
+        "runs": 1,
+        "dependsOn": ["build workspace deps", "warm forge solc cache"],
+        "prepare": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline --threads 16"
+      },
+      "diag threads 16 solc": {
+        "runs": 1,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat compile",
+        "command": "cd packages/horizon && RAYON_NUM_THREADS=16 npx hardhat test solidity"
+      },
+      "diag threads 32 forge-1.7.1": {
+        "runs": 1,
+        "dependsOn": ["build workspace deps", "warm forge solc cache"],
+        "prepare": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline --threads 32"
+      },
+      "diag threads 32 solc": {
+        "runs": 1,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat compile",
+        "command": "cd packages/horizon && RAYON_NUM_THREADS=32 npx hardhat test solidity"
+      },
+      "diag threads 64 forge-1.7.1": {
+        "runs": 1,
+        "dependsOn": ["build workspace deps", "warm forge solc cache"],
+        "prepare": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 ./.foundry/forge build --offline",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_OPTIMIZER_RUNS=100 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline --threads 64"
+      },
+      "diag threads 64 solc": {
+        "runs": 1,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat compile",
+        "command": "cd packages/horizon && RAYON_NUM_THREADS=64 npx hardhat test solidity"
       }
     }
   }
