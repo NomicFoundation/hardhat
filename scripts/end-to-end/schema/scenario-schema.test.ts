@@ -47,10 +47,25 @@ describe("isScenarioDefinition", () => {
       tags: ["solidity-compile"],
       env: { FOO: "bar" },
       submodules: true,
+      workdir: "packages/horizon",
       disabled: true,
     };
 
     assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("rejects a non-string workdir", () => {
+    const value = {
+      description: "Compile a monorepo package",
+      repo: "NomicFoundation/graphprotocol-contracts",
+      commit: "abc123",
+      packageManager: "pnpm",
+      defaultCommand: "cd packages/horizon && npx hardhat compile",
+      tags: ["solx"],
+      workdir: 42,
+    };
+
+    assert.equal(isScenarioDefinition(value), false);
   });
 
   it("accepts bun as a package manager", () => {
@@ -453,6 +468,28 @@ describe("isCommandConfig", () => {
         runs: 3,
         prepare: 42,
         command: "npx hardhat compile",
+      }),
+      false,
+    );
+  });
+
+  it("accepts an optional ignoreFailure boolean", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        command: "npx hardhat test solidity",
+        ignoreFailure: true,
+      }),
+      true,
+    );
+  });
+
+  it("rejects ignoreFailure that is not a boolean", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        command: "npx hardhat test solidity",
+        ignoreFailure: "true",
       }),
       false,
     );

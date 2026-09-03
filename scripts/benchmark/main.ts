@@ -4,6 +4,7 @@ import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
 import { wrapWithTime } from "./helpers/gnu-time.ts";
+import { shellQuote } from "./helpers/shell.ts";
 
 const USAGE = `
 scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
@@ -176,7 +177,7 @@ function buildHyperfineCommand(
   parts.push("--runs", String(runs));
 
   if (prepare !== undefined) {
-    parts.push("--prepare", `'${prepare}'`);
+    parts.push("--prepare", shellQuote(prepare));
   }
 
   if (ignoreFailure) {
@@ -188,10 +189,10 @@ function buildHyperfineCommand(
   }
 
   if (exportJson !== undefined) {
-    parts.push("--export-json", `'${exportJson}'`);
+    parts.push("--export-json", shellQuote(exportJson));
   }
 
-  parts.push(`'${command}'`);
+  parts.push(shellQuote(command));
 
   return parts.join(" ");
 }
