@@ -43,3 +43,28 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINN
 mv hardhat.config.ts hardhat.config.base.ts
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" hardhat.config.ts
 cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" solx-profiles.ts
+
+# Take TickMathTestTest#test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation
+# out of test discovery, identically for all three toolchains (rename: not
+# test-prefixed => neither EDR nor forge runs or counts it). Upstream test bug,
+# still present on Uniswap/v4-core main: the bound admits tick = MAX_TICK - 1,
+# for which priceAtNextTick = getSqrtPriceAtTick(MAX_TICK) = MAX_SQRT_PRICE, and
+# the last assertion calls getTickAtSqrtPrice(MAX_SQRT_PRICE), which reverts
+# InvalidSqrtPrice by definition (valid input is < MAX_SQRT_PRICE). Whether a
+# run hits it depends only on the fuzzer drawing that one tick: upstream's seed
+# on via-IR bytecode never does, EDR's fuzzer never did, and forge's legacy
+# build did (run 33779273436) — its fuzz dictionary is sampled from the
+# bytecode, which differs per pipeline. Not a compiler or tool divergence.
+# Fail loudly if the anchor moved.
+node -e '
+const fs = require("fs");
+const p = "test/libraries/TickMath.t.sol";
+let s = fs.readFileSync(p, "utf8");
+const anchor = "function test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation(";
+if (s.split(anchor).length !== 2) {
+  console.error("uniswap preinstall: expected exactly one test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, "function skip_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation("));
+console.log("uniswap preinstall: renamed TickMathTestTest#test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation out of discovery");
+'
