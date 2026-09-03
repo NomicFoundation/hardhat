@@ -51,7 +51,7 @@ describe("http-provider", () => {
    * mock the network requests.
    */
   describe("HttpProvider#request", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const baseInterceptorOptions = {
       path: "/",
       method: "POST",
@@ -81,7 +81,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -122,7 +122,7 @@ describe("http-provider", () => {
           // as we are mocking the dispatcher
           networkName: "edrNetwork",
           timeout: 20_000,
-          testDispatcher: interceptor,
+          testDispatcher: dispatcher,
         });
 
         const eventPromise = new Promise<void>((resolve) => {
@@ -148,7 +148,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       await assertRejectsWithHardhatError(
@@ -215,7 +215,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -256,7 +256,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -292,7 +292,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -330,7 +330,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -370,7 +370,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       await assertRejectsWithHardhatError(
@@ -415,7 +415,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -489,7 +489,7 @@ describe("http-provider", () => {
         networkName: "exampleNetwork",
         timeout: 20_000,
         jsonRpcRequestWrapper,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       // eth_chainId is handled by the wrapper and returns the hardhat chain ID
