@@ -1,5 +1,9 @@
 import type { CompileCache } from "./cache.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
+import type {
+  CompilationJobSummary,
+  WarningSuppressionContext,
+} from "./printing.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type {
   SolidityCompilerConfig,
@@ -34,7 +38,6 @@ import type {
 
 import os from "node:os";
 import path from "node:path";
-import { styleText } from "node:util";
 
 import {
   assertHardhatInvariant,
@@ -55,7 +58,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
-import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
@@ -75,6 +77,11 @@ import { sortCompilationJobsByDescendingCost } from "./compilation-job-cost.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
+import {
+  hasCompilationErrors,
+  printCompilationResult,
+  printSolcErrorsAndWarnings,
+} from "./printing.js";
 import { readSourceFileFactory } from "./read-source-file.js";
 import {
   formatRootPath,
@@ -83,7 +90,6 @@ import {
   parseRootPath,
 } from "./root-paths-utils.js";
 import { SolcConfigSelector } from "./solc-config-selection.js";
-import { shouldSuppressWarning } from "./warning-suppression.js";
 
 const log = createDebug("hardhat:core:solidity:build-system");
 
@@ -378,7 +384,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
 
       const successfulResults = results.filter(
-        (result) => !this.#hasCompilationErrors(result.compilerOutput),
+        (result) => !hasCompilationErrors(result.compilerOutput),
       );
 
       const isSuccessfulBuild = results.length === successfulResults.length;
@@ -486,10 +492,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             ),
         );
 
-        this.#printSolcErrorsAndWarnings(errors);
-        const successfulResult = !this.#hasCompilationErrors(
-          result.compilerOutput,
-        );
+        printSolcErrorsAndWarnings(errors, this.#warningSuppressionContext());
+        const successfulResult = !hasCompilationErrors(result.compilerOutput);
 
         for (const [
           userSourceName,
@@ -526,9 +530,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       if (!resolvedOptions.quiet) {
         if (isSuccessfulBuild) {
-          await this.#printCompilationResult(runnableCompilationJobs, {
-            scope: resolvedOptions.scope,
-          });
+          printCompilationResult(
+            await this.#compilationJobSummaries(runnableCompilationJobs),
+            { scope: resolvedOptions.scope },
+          );
         }
       }
 
@@ -1413,44 +1418,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
   }
 
-  #isConsoleLogError(error: CompilerOutputError): boolean {
-    const message = error.message;
-
-    return (
-      error.type === "TypeError" &&
-      typeof message === "string" &&
-      message.includes("log") &&
-      message.includes("type(library console)")
-    );
-  }
-
-  #isFatalError(error: CompilerOutputError): boolean {
-    return error.type !== "Warning" && error.severity === "error";
-  }
-
-  #hasCompilationErrors(output: CompilerOutput): boolean {
-    return output.errors?.some((e) => this.#isFatalError(e)) ?? false;
-  }
-
-  /**
-   * This function returns a properly formatted Internal Compiler Error message.
-   *
-   * This is present due to a bug in Solidity. See: https://github.com/ethereum/solidity/issues/9926
-   *
-   * If the error is not an ICE, or if it's properly formatted, this function returns undefined.
-   */
-  #getFormattedInternalCompilerErrorMessage(
-    error: CompilerOutputError,
-  ): string | undefined {
-    if (error.formattedMessage?.trim() !== "InternalCompilerError:") {
-      return;
-    }
-
-    // We trim any final `:`, as we found some at the end of the error messages,
-    // and then trim just in case a blank space was left
-    return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
-  }
-
   async #getExpectedOutputLayout(
     rootFilePath: string,
     scope: BuildScope,
@@ -1529,151 +1496,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  #printSolcErrorsAndWarnings(errors?: CompilerOutputError[]): void {
-    if (errors === undefined) {
-      return;
-    }
-
-    // Filter out specific warnings that should be suppressed
-    const filteredErrors = errors.filter(
-      (error) => !this.#shouldSuppressWarning(error),
-    );
-
-    console.log();
-
-    for (const error of filteredErrors) {
-      if (this.#isFatalError(error)) {
-        const errorMessage: string =
-          this.#getFormattedInternalCompilerErrorMessage(error) ??
-          error.formattedMessage ??
-          error.message;
-
-        console.error(
-          errorMessage
-            .replace(/^\w+:/, (t) => styleText(["red", "bold"], t))
-            .trimEnd() + "\n",
-        );
-      } else {
-        console.warn(
-          (error.formattedMessage ?? error.message)
-            .replace(/^\w+:/, (t) => styleText(["yellow", "bold"], t))
-            .trimEnd() + "\n",
-        );
-      }
-    }
-
-    const hasConsoleErrors: boolean = filteredErrors.some((e) =>
-      this.#isConsoleLogError(e),
-    );
-
-    if (hasConsoleErrors) {
-      console.error(
-        styleText(
-          "red",
-          `The console.log call you made isn't supported. See https://hardhat.org/console-log for the list of supported methods.`,
-        ),
-      );
-      console.log();
-    }
+  #warningSuppressionContext(): WarningSuppressionContext {
+    return {
+      solidityTestsPath: this.#options.solidityTestsPath,
+      projectRoot: this.#options.projectRoot,
+      coverage: this.#options.coverage,
+    };
   }
 
-  #shouldSuppressWarning(error: CompilerOutputError): boolean {
-    const msg = error.formattedMessage ?? error.message;
-    return shouldSuppressWarning(
-      msg,
-      this.#options.solidityTestsPath,
-      this.#options.projectRoot,
-      this.#options.coverage,
-    );
-  }
-
-  async #printCompilationResult(
+  async #compilationJobSummaries(
     runnableCompilationJobs: CompilationJob[],
-    options: { scope: BuildScope },
-  ) {
-    const jobsPerVersionAndEvmVersion = new Map<
-      string,
-      Map<string, CompilationJob[]>
-    >();
-
-    if (runnableCompilationJobs.length === 0) {
-      if (options.scope === "contracts") {
-        console.log("No contracts to compile");
-      } else {
-        console.log("No Solidity tests to compile");
-      }
-
-      return;
-    }
-
-    for (const job of runnableCompilationJobs) {
-      const compilerType = job.solcConfig.type ?? "solc";
-      const solcVersion = job.solcConfig.version;
-      const solcInput = await job.getSolcInput();
-      const evmVersion =
-        solcInput.settings.evmVersion ??
-        `Check solc ${solcVersion}'s doc for its default evm version`;
-
-      // Group by compiler type + Solidity version to produce separate log
-      // lines for e.g. "solc 0.8.33" vs "solx 0.1.3 (Solidity 0.8.33)".
-      const groupKey = `${compilerType}#${solcVersion}`;
-
-      let jobsPerVersion = jobsPerVersionAndEvmVersion.get(groupKey);
-      if (jobsPerVersion === undefined) {
-        jobsPerVersion = new Map();
-        jobsPerVersionAndEvmVersion.set(groupKey, jobsPerVersion);
-      }
-
-      let jobsPerEvmVersion = jobsPerVersion.get(evmVersion);
-      if (jobsPerEvmVersion === undefined) {
-        jobsPerEvmVersion = [];
-        jobsPerVersion.set(evmVersion, jobsPerEvmVersion);
-      }
-
-      jobsPerEvmVersion.push(job);
-    }
-
-    for (const groupKey of [...jobsPerVersionAndEvmVersion.keys()].sort()) {
-      /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
-      This is a valid key, just sorted */
-      const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(groupKey)!;
-      const [compilerType, solidityVersion] = groupKey.split("#");
-
-      for (const evmVersion of [...jobsPerEvmVersion.keys()].sort()) {
-        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
-        This is a valid key, just sorted */
-        const jobs = jobsPerEvmVersion.get(evmVersion)!;
-
-        const rootFiles = jobs.reduce(
-          (count, job) => count + job.dependencyGraph.getRoots().size,
-          0,
-        );
-
-        // For solc, the compiler version is the Solidity version.
-        // For other compilers, extract the compiler's own version from the
-        // longVersion stored on the compilation job, and show the Solidity
-        // version separately.
-        let compilerLabel: string;
-        if (compilerType === "solc") {
-          compilerLabel = `solc ${solidityVersion}`;
-        } else {
-          const longVersion = jobs[0].solcLongVersion;
-          const compilerVersion = longVersion.split("+")[0];
-          compilerLabel = `${compilerType} ${compilerVersion} (Solidity ${solidityVersion})`;
-        }
-
-        console.log(
-          styleText(
-            "bold",
-            `Compiled ${rootFiles} Solidity ${pluralize(
-              options.scope === "contracts" ? "file" : "test file",
-              rootFiles,
-            )} with ${compilerLabel}`,
-          ),
-          `(evm target: ${evmVersion})`,
-        );
-      }
-    }
+  ): Promise<CompilationJobSummary[]> {
+    return await Promise.all(
+      runnableCompilationJobs.map(async (job) => ({
+        compilerType: job.solcConfig.type ?? "solc",
+        solcVersion: job.solcConfig.version,
+        solcLongVersion: job.solcLongVersion,
+        evmVersion: (await job.getSolcInput()).settings.evmVersion,
+        rootFileCount: job.dependencyGraph.getRoots().size,
+      })),
+    );
   }
 
   #ensureSplitCompilationModeIfTestsScope(scope: BuildScope = "contracts") {
