@@ -187,7 +187,11 @@ const COLD_TEST_NOTES: Record<string, string> = {
 
 // Warm-test cells whose number needs a caveat mark appended.
 const WARM_TEST_MARKS: Record<string, string> = {
+  "openzeppelin-contracts-0.34|solc": "⁶",
   "openzeppelin-contracts-0.34|solc via-ir": "⁶",
+  "openzeppelin-contracts-0.34|solx-0.1.8": "⁶",
+  "openzeppelin-contracts-0.34|solx-0.1.8 via-ir": "⁶",
+  "openzeppelin-contracts-0.34|forge-1.7.1": "⁶",
   "solady-solx|solc": "⁷",
   "solady-solx|solc via-ir": "⁷",
   "solady-solx|solx-0.1.8": "⁷",
@@ -202,18 +206,25 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
     "overrides), so the suite cannot run at all. The failure, not a time, " +
     "is the datum.",
   "⁶":
-    "⁶ the suite exits non-zero under solc via-IR: upstream-known test " +
-    "failures in solc's via-IR optimizer (BlockhashTest family). The full " +
-    "suite still runs — the time is comparable; the cell sets ignoreFailure " +
-    "in scenario.json.",
+    "⁶ OZ runs 346 of its 347 tests on all three toolchains: preinstall " +
+    "renames BlockhashTest#testFuzzHistoryBlocks out of discovery. It is an " +
+    "upstream test bug that only solc via-IR with the optimizer exposes: the " +
+    "helper caches block.number across an inner vm.roll and the Yul optimizer " +
+    "legitimately re-reads NUMBER after the roll (forge-std documents " +
+    "vm.getBlockNumber() for this), so the restore roll lands on the wrong " +
+    "block. forge --via-ir fails it identically; legacy and solx pass only by " +
+    "keeping the source evaluation order.",
   "⁷":
     "⁷ solady runs 2040 of its 2041 tests on all three toolchains: " +
-    "preinstall renames BlockHashLibTest#testBlockHash out of discovery " +
-    "because an EDR-generated fuzz input makes it revert under BOTH " +
-    "compilers with an identical counterexample — an EDR/test interaction, " +
-    "not a compiler divergence — and EDR pays the full per-run fuzz " +
-    "overhead even for a vm.skip'd test, so an in-code skip reclaims " +
-    "neither the exit code nor the time.",
+    "preinstall renames BlockHashLibTest#testBlockHash out of discovery. " +
+    "Hardhat's Solidity-test genesis installs a revert stub at the EIP-2935 " +
+    'history-storage address ("EIP2935 is not supported in Hardhat yet", ' +
+    "hardhat#6226) while forge leaves it empty, so the test's non-etched " +
+    "path reverts under BOTH compilers — a Hardhat feature gap, not a " +
+    "compiler divergence. The ~7s it costs the solx cells is EDR building " +
+    "its solx stack-trace decoder (a full DWARF decode) once on the first " +
+    "failure of a run — a vm.skip'd test still triggers it, so an in-code " +
+    "skip reclaims neither the exit code nor the time.",
   "⁸":
     "⁸ swap-vm's Foundry test sources fail to compile under BOTH compilers " +
     "at the 0.8.34 pin (test-under-solx sweep): the src compiles via-IR " +
@@ -412,6 +423,7 @@ export function renderSolxTables(
   const forgeVersions = new Set<string>();
   const solxVersions = new Set<string>();
   let parityUsedFallback = false;
+  let parityUsedExact = false;
   for (const id of scenarioIds) {
     const scenario = scenarios.get(id)!;
     for (const [key, forgeData] of scenario.cold) {
@@ -451,7 +463,8 @@ export function renderSolxTables(
         const exact = find(true);
         if (exact !== undefined) {
           record(exact);
-          return wallCpu(scenario.cold.get(exact));
+          parityUsedExact = true;
+          return `${wallCpu(scenario.cold.get(exact))}⁹`;
         }
         const fallback = find(false);
         if (fallback === undefined) {
@@ -717,6 +730,15 @@ export function renderSolxTables(
     lines.push(
       "⁴ same-scope matrix cell: this scenario's hardhat cells already " +
         "compile the parity source set, so no separate parity cell exists.",
+    );
+  }
+  if (parityUsedExact) {
+    lines.push(
+      "⁹ dedicated parity cell: hardhat measured on forge's source set " +
+        "(`hardhat build --no-expose`, without the hardhat-exposed wrappers " +
+        "that only the Hardhat pipeline generates), so these numbers are " +
+        "smaller than the same scenario's full-repo cells in the matrix " +
+        "above and are the like-for-like comparison with forge.",
     );
   }
   for (const mark of Object.keys(WARM_TEST_FOOTNOTES)) {
