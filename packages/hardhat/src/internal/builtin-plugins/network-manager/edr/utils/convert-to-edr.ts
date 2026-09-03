@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax -- hack */
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
@@ -18,38 +17,11 @@ import type {
 
 import {
   GasReportExecutionStatus,
+  L1Hardfork,
   MineOrdering,
   OpHardfork,
-  SpecId,
-  FRONTIER,
-  HOMESTEAD,
-  DAO_FORK,
-  TANGERINE,
-  SPURIOUS_DRAGON,
-  BYZANTIUM,
-  CONSTANTINOPLE,
-  PETERSBURG,
-  ISTANBUL,
-  MUIR_GLACIER,
-  BERLIN,
-  LONDON,
-  ARROW_GLACIER,
-  GRAY_GLACIER,
-  MERGE,
-  SHANGHAI,
-  CANCUN,
-  PRAGUE,
-  OSAKA,
-  AMSTERDAM,
-  BEDROCK,
-  REGOLITH,
-  CANYON,
-  ECOTONE,
-  FJORD,
-  GRANITE,
-  HOLOCENE,
-  ISTHMUS,
 } from "@nomicfoundation/edr";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -69,60 +41,49 @@ import {
   OpHardforkName,
 } from "../types/hardfork.js";
 
-import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
+import { getHardforkName } from "./hardfork.js";
 
 export function edrL1HardforkToHardhatL1HardforkName(
-  hardfork: SpecId,
+  hardfork: L1Hardfork,
 ): L1HardforkName {
   switch (hardfork) {
-    case SpecId.Frontier:
-      return L1HardforkName.FRONTIER;
-    case SpecId.FrontierThawing:
-      return L1HardforkName.FRONTIER;
-    case SpecId.Homestead:
-      return L1HardforkName.HOMESTEAD;
-    case SpecId.DaoFork:
-      return L1HardforkName.DAO;
-    case SpecId.Tangerine:
-      return L1HardforkName.TANGERINE_WHISTLE;
-    case SpecId.SpuriousDragon:
-      return L1HardforkName.SPURIOUS_DRAGON;
-    case SpecId.Byzantium:
+    case L1Hardfork.Byzantium:
       return L1HardforkName.BYZANTIUM;
-    case SpecId.Constantinople:
+    case L1Hardfork.Constantinople:
       return L1HardforkName.CONSTANTINOPLE;
-    case SpecId.Petersburg:
+    case L1Hardfork.Petersburg:
       return L1HardforkName.PETERSBURG;
-    case SpecId.Istanbul:
+    case L1Hardfork.Istanbul:
       return L1HardforkName.ISTANBUL;
-    case SpecId.MuirGlacier:
+    case L1Hardfork.MuirGlacier:
       return L1HardforkName.MUIR_GLACIER;
-    case SpecId.Berlin:
+    case L1Hardfork.Berlin:
       return L1HardforkName.BERLIN;
-    case SpecId.London:
+    case L1Hardfork.London:
       return L1HardforkName.LONDON;
-    case SpecId.ArrowGlacier:
+    case L1Hardfork.ArrowGlacier:
       return L1HardforkName.ARROW_GLACIER;
-    case SpecId.GrayGlacier:
+    case L1Hardfork.GrayGlacier:
       return L1HardforkName.GRAY_GLACIER;
-    case SpecId.Merge:
+    case L1Hardfork.Merge:
       return L1HardforkName.MERGE;
-    case SpecId.Shanghai:
+    case L1Hardfork.Shanghai:
       return L1HardforkName.SHANGHAI;
-    case SpecId.Cancun:
+    case L1Hardfork.Cancun:
       return L1HardforkName.CANCUN;
-    case SpecId.Prague:
+    case L1Hardfork.Prague:
       return L1HardforkName.PRAGUE;
-    case SpecId.Osaka:
+    case L1Hardfork.Osaka:
       return L1HardforkName.OSAKA;
-    case SpecId.Amsterdam:
+    case L1Hardfork.Amsterdam:
       return L1HardforkName.AMSTERDAM;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
-      throw new Error(
+      assertHardhatInvariant(
+        false,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown L1 hardfork '${hardfork as SpecId}', this shouldn't happen`,
+        `Unknown L1 hardfork '${hardfork as L1Hardfork}', this shouldn't happen`,
       );
   }
 }
@@ -150,103 +111,10 @@ export function edrOpHardforkToHardhatOpHardforkName(
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
-      throw new Error(
+      assertHardhatInvariant(
+        false,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown OP hardfork '${hardfork as OpHardfork}', this shouldn't happen`,
-      );
-  }
-}
-
-export function hardhatHardforkToEdrSpecId(
-  hardfork: string,
-  chainType: ChainType,
-): string {
-  return chainType === OPTIMISM_CHAIN_TYPE
-    ? hardhatOpHardforkToEdrSpecId(hardfork)
-    : hardhatL1HardforkToEdrSpecId(hardfork);
-}
-
-function hardhatOpHardforkToEdrSpecId(hardfork: string): string {
-  const hardforkName = getOpHardforkName(hardfork);
-
-  switch (hardforkName) {
-    case OpHardforkName.BEDROCK:
-      return BEDROCK;
-    case OpHardforkName.REGOLITH:
-      return REGOLITH;
-    case OpHardforkName.CANYON:
-      return CANYON;
-    case OpHardforkName.ECOTONE:
-      return ECOTONE;
-    case OpHardforkName.FJORD:
-      return FJORD;
-    case OpHardforkName.GRANITE:
-      return GRANITE;
-    case OpHardforkName.HOLOCENE:
-      return HOLOCENE;
-    case OpHardforkName.ISTHMUS:
-      return ISTHMUS;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardforkName;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown hardfork name '${hardforkName as string}', this shouldn't happen`,
-      );
-  }
-}
-
-function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
-  const hardforkName = getL1HardforkName(hardfork);
-
-  switch (hardforkName) {
-    case L1HardforkName.FRONTIER:
-      return FRONTIER;
-    case L1HardforkName.HOMESTEAD:
-      return HOMESTEAD;
-    case L1HardforkName.DAO:
-      return DAO_FORK;
-    case L1HardforkName.TANGERINE_WHISTLE:
-      return TANGERINE;
-    case L1HardforkName.SPURIOUS_DRAGON:
-      return SPURIOUS_DRAGON;
-    case L1HardforkName.BYZANTIUM:
-      return BYZANTIUM;
-    case L1HardforkName.CONSTANTINOPLE:
-      return CONSTANTINOPLE;
-    case L1HardforkName.PETERSBURG:
-      return PETERSBURG;
-    case L1HardforkName.ISTANBUL:
-      return ISTANBUL;
-    case L1HardforkName.MUIR_GLACIER:
-      return MUIR_GLACIER;
-    case L1HardforkName.BERLIN:
-      return BERLIN;
-    case L1HardforkName.LONDON:
-      return LONDON;
-    case L1HardforkName.ARROW_GLACIER:
-      return ARROW_GLACIER;
-    case L1HardforkName.GRAY_GLACIER:
-      return GRAY_GLACIER;
-    case L1HardforkName.MERGE:
-      return MERGE;
-    case L1HardforkName.SHANGHAI:
-      return SHANGHAI;
-    case L1HardforkName.CANCUN:
-      return CANCUN;
-    case L1HardforkName.PRAGUE:
-      return PRAGUE;
-    case L1HardforkName.OSAKA:
-      return OSAKA;
-    case L1HardforkName.AMSTERDAM:
-      return AMSTERDAM;
-
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we want to print the fork
-    default:
-      const _exhaustiveCheck: never = hardforkName;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- an enum can be safely cast to a string
-        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
       );
   }
 }
@@ -344,16 +212,25 @@ export function hardhatChainDescriptorsToEdrChainOverrides(
         if (descriptor.hardforkHistory !== undefined) {
           chainOverride.hardforkActivationOverrides = Array.from(
             descriptor.hardforkHistory,
-          ).map(([hardfork, { blockNumber, timestamp }]) => ({
-            condition:
-              blockNumber !== undefined
-                ? { blockNumber: BigInt(blockNumber) }
-                : { timestamp: BigInt(timestamp) },
-            hardfork: hardhatHardforkToEdrSpecId(
-              hardfork,
-              descriptor.chainType,
-            ),
-          }));
+          )
+            // EDR doesn't support pre-Byzantium L1 hardforks, so their
+            // activations are omitted from the overrides
+            .filter(
+              ([hardfork]) =>
+                descriptor.chainType === OPTIMISM_CHAIN_TYPE ||
+                hardforkGte(
+                  hardfork,
+                  L1HardforkName.BYZANTIUM,
+                  descriptor.chainType,
+                ),
+            )
+            .map(([hardfork, { blockNumber, timestamp }]) => ({
+              condition:
+                blockNumber !== undefined
+                  ? { blockNumber: BigInt(blockNumber) }
+                  : { timestamp: BigInt(timestamp) },
+              hardfork: getHardforkName(hardfork, descriptor.chainType),
+            }));
         }
 
         return chainOverride;
