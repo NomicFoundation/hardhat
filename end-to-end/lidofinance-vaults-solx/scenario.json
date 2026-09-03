@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Lido core's modern vaults tree (contracts/0.8.25 only) compiled at solc 0.8.34, tracking forge, solx, and solc compile times on the Hardhat 3 migration branch (lidofinance/core PR #1935). One of two lido scenarios: lidofinance-core-solx measures the whole-repo adoption cost (every cell compiles all five upstream compiler trees, so legacy ballast dominates its wall clock); this one is the like-for-like compiler comparison — identical sources to both compilers at 0.8.34, only the compiler varies. The wrapper config scopes sources to the one tree lido could realistically move to solx; the forge cells scope the same way via FOUNDRY_SRC. The upgrade-tree cell redirects the build to contracts/upgrade (LIDO_BENCH_SOURCES=upgrade): that tree builds via-IR at upstream's 0.8.25 but hits a Yul stack-too-deep from solc 0.8.26 on at every optimizer setting, while solx builds it at 0.8.34 by spilling the stack — so only the solx cell is timed and solc's FAIL is the datum, annotated in CELL_NOTES. Hardhat matrix cells are via-IR only: the vaults tree is IR-native (SRLib hits stack-too-deep and RefSlotCache's struct-array copy to storage is an UnimplementedFeatureError in solc's legacy codegen), so no compiler has legacy or no-opt cells — that FAIL is also the datum. Every hardhat cell passes --no-tests, and the forge cells --skip 'test/**': test/ fixtures span 0.4.24-0.8.9. The migration removed the repo's foundry.toml; preinstall reinstates the pre-migration one so forge compiles the same sources with the same settings — the forge-std remapping resolves from npm, so the removed foundry/lib submodule isn't needed for builds. SKIP_LINT_SOLIDITY/SKIP_INTERFACES_CHECK are upstream's own escape hatches for its build-task override, which otherwise adds solhint + ABI checks to every timed compile (and the solhint lido/fixed-compiler-version rule rejects the caret pragmas preinstall introduces). EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill stack-too-deep despite the deprecated natspec memory-safe annotations in contracts/common's assembly (GIndex/SSZ/BLS; see the aave-v4-solx scenario).",
+  "description": "Lido core's modern vaults tree (contracts/0.8.25 only) compiled at solc 0.8.34, tracking forge, solx, and solc compile times on the Hardhat 3 migration branch (lidofinance/core PR #1935). One of two lido scenarios: lidofinance-core-solx measures the whole-repo adoption cost (every cell compiles all five upstream compiler trees, so legacy ballast dominates its wall clock); this one is the like-for-like compiler comparison — identical sources to both compilers at 0.8.34, only the compiler varies. The wrapper config scopes sources to the one tree lido could realistically move to solx; the forge cells scope the same way via FOUNDRY_SRC. The upgrade-tree cell redirects the build to contracts/upgrade (LIDO_BENCH_SOURCES=upgrade): that tree builds via-IR at upstream's 0.8.25 but hits a Yul stack-too-deep from solc 0.8.26 on at every optimizer setting, while solx builds it at 0.8.34 by spilling the stack — so only the solx cell is timed and solc's FAIL is the datum, annotated in CELL_NOTES. Hardhat matrix cells are via-IR only: the vaults tree is IR-native (SRLib hits stack-too-deep and RefSlotCache's struct-array copy to storage is an UnimplementedFeatureError in solc's legacy codegen), so no compiler has legacy or no-opt cells — that FAIL is also the datum. Every hardhat cell passes --no-tests, and the forge cells --skip 'test/**': test/ fixtures span 0.4.24-0.8.9. The migration removed the repo's foundry.toml; preinstall reinstates the pre-migration one so forge compiles the same sources with the same settings — the forge-std remapping resolves from npm, so the removed foundry/lib submodule isn't needed for builds. SKIP_LINT_SOLIDITY/SKIP_INTERFACES_CHECK are upstream's own escape hatches for its build-task override, which otherwise adds solhint + ABI checks to every timed compile (and the solhint lido/fixed-compiler-version rule rejects the caret pragmas preinstall introduces). EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill stack-too-deep despite the deprecated natspec memory-safe annotations in contracts/common's assembly (GIndex/SSZ/BLS; see the aave-v4-solx scenario). Warm-compile (no-op) cells over the same scoped sources complete the row set; there are no test cells because the Foundry suite belongs to the whole repo and is measured in lidofinance-core-solx.",
   "tags": ["external-repo", "solx"],
   "repo": "NomicFoundation/lido-core",
   "commit": "28bc9f7ff2c4425849bbd883b7e52820feecd4c6",
@@ -63,6 +63,30 @@
         "runs": 5,
         "dependsOn": ["warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_SRC=contracts/0.8.25 ./.foundry/forge build --skip 'test/**' --offline"
+      },
+      "warm compile solc via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solc-via-ir --no-tests",
+        "command": "npx hardhat compile --build-profile solc-via-ir --no-tests"
+      },
+      "warm compile solx-0.1.8 via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests",
+        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
+      },
+      "warm compile forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_SOLC=0.8.34 FOUNDRY_SRC=contracts/0.8.25 ./.foundry/forge build --skip 'test/**' --offline",
         "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_SRC=contracts/0.8.25 ./.foundry/forge build --skip 'test/**' --offline"
       }
     }
