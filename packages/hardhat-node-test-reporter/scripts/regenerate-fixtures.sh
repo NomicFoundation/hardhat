@@ -38,8 +38,9 @@ for dir in $dirs; do
   node_major_version="$(node --version | cut -d. -f1)"
   if [ "$dir" == "integration-tests/fixture-tests/nested-test" ]; then
     result_file_name="result.$node_major_version"
-  elif [ "$dir" == "integration-tests/fixture-tests/async-describe-test" ] && [ "$node_major_version" == "v26" ]; then
-    # Only v26 currently diverges from the generic result.txt for this fixture.
+  elif [ "$dir" == "integration-tests/fixture-tests/async-describe-test" ] &&
+    { [ "$node_major_version" == "v24" ] || [ "$node_major_version" == "v26" ]; }; then
+    # v24 and v26 currently diverge from the generic result.txt for this fixture.
     result_file_name="result.$node_major_version"
   fi
 

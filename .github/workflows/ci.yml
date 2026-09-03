@@ -426,6 +426,10 @@ jobs:
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
+          # The fixtures capture `node:test`'s exact output, which changes in
+          # patch releases, so we need the newest release of each major rather
+          # than whichever one the runner image happens to have cached.
+          check-latest: true
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
