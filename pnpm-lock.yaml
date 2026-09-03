@@ -168,8 +168,8 @@ importers:
   packages/hardhat:
     dependencies:
       '@nomicfoundation/edr':
-        specifier: 0.19.0
-        version: 0.19.0
+        specifier: 0.20.0
+        version: 0.20.0
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.17
         version: link:../hardhat-errors
@@ -3011,54 +3011,54 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.19.0':
-    resolution: {integrity: sha512-Yo2MkZoM85zkasUPJDj8l8QezPdrMzqQUJhp78TUQDq8FQXhdJTZ39k3Jax5OQ3hqjMhMkrGbctn9w9h6mEusg==}
+  '@nomicfoundation/edr-darwin-arm64@0.20.0':
+    resolution: {integrity: sha512-RmET+vMxXzKdAnaySms85Ec9U3F/LxwCLMkFT+6NAWqeTMzvuTJYMnaD1e33PZ2C4v9C1UPOT+s+FbEpv4h3ZQ==}
     engines: {node: '>= 22'}
     cpu: [arm64]
     os: [darwin]
 
-  '@nomicfoundation/edr-darwin-x64@0.19.0':
-    resolution: {integrity: sha512-RC7RVX1iATg9SlJTnKD57A8jRBIBiUKmAdi8maBN4zhmK5Z7aAeiwdQX6VjPOum3c2Mdpp2Q7JfooJxxF6bCvw==}
+  '@nomicfoundation/edr-darwin-x64@0.20.0':
+    resolution: {integrity: sha512-2M5i8EpsXKRKdeVRHVfsjke/m9x4kG7+eK7II4V/Cjof9an76vpMNNvx/VoIkuk6Ttytm1xXUUv0OaVwnYV7rg==}
     engines: {node: '>= 22'}
     cpu: [x64]
     os: [darwin]
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.19.0':
-    resolution: {integrity: sha512-vhEKPUomGwM0Lsjpwd5q/Jc6yE2hpspJBCRYFkCghzCmwgZHtoYn/2nd1nOLsTt7jqMlvAKJSaLCrhz1HCTCTA==}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.20.0':
+    resolution: {integrity: sha512-Wz9sBmQEcrM1D1IX68f4ktTsWJiN2FLcc1WFWifbLT06yaF/GEOn1Kg54VZ1IGoV2Fndm1pJEs/4SUQnJ4Wmdw==}
     engines: {node: '>= 22'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.19.0':
-    resolution: {integrity: sha512-mlkpVUolkSpMIriZyiJeTbgx/m4Ngm9lQtah2BG92H+dgtwMIMze6Q6OQfZG6oi6wMrhDgu8WEyAy3XgIwlcRg==}
+  '@nomicfoundation/edr-linux-arm64-musl@0.20.0':
+    resolution: {integrity: sha512-J4KK55Kk0r+bXwO1SqxbMg3Nkhg7+7ezKgI/SPTjn2EALF8jGuMYvRt9oWe8lz49sraEex7k9GGqicSTe8w1gA==}
     engines: {node: '>= 22'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.19.0':
-    resolution: {integrity: sha512-d0Z+WVbX5mm6s9ozc5TXrCRjQykdN81tGI+eaM4hQcD/S5VSY9rwKuCXyLJ/GkgeI5S8HEHsyVdXEsDJznPyhA==}
+  '@nomicfoundation/edr-linux-x64-gnu@0.20.0':
+    resolution: {integrity: sha512-hlzg26kOHCH7Wg+MIie/maoF6qPr2imrnuQ+N4Spy5miRLgza8nip12GdMunwCvf2Zp1wn8bf2dcp7RGUX0jkw==}
     engines: {node: '>= 22'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@nomicfoundation/edr-linux-x64-musl@0.19.0':
-    resolution: {integrity: sha512-UIrlNqYj9lbUXpBy++WwHeC0xZqyFw9TXy06/8+0PLffI7Si4kiTKfXqdITGQhP6Vf/JuJ8y+jos8oy6bL8jFQ==}
+  '@nomicfoundation/edr-linux-x64-musl@0.20.0':
+    resolution: {integrity: sha512-n1wS0SoKuqvuUbL7HakmSWZx8aSBRuPW3wtC4ly6I0FCCB4xXNEf7bj1KLGNbayWL7ZG3BJIARHUMO8hy7efzQ==}
     engines: {node: '>= 22'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.19.0':
-    resolution: {integrity: sha512-pIyEJBiS8l09Yndz+aE/JmkD39FCqtyiRO+wlx6tX426o4290acRfJ0r7GwTBmqqZD5G4pLOOB0uLIMRyDrY+g==}
+  '@nomicfoundation/edr-win32-x64-msvc@0.20.0':
+    resolution: {integrity: sha512-+E2srJzdeZ2Ro0siU5NqbptzJVSj5Pk79uGj39o5MgJMn5mcPONs3E6w/1SBtB/fmFlD8PPxnL9hN+jlcv1Naw==}
     engines: {node: '>= 22'}
     cpu: [x64]
     os: [win32]
 
-  '@nomicfoundation/edr@0.19.0':
-    resolution: {integrity: sha512-wzuyAylm4XWIahFjy1pFDQfHny4Xsx73T98d8KJAkGG/Rpgp0M36rqS4lzjbGQ1tXDrWEBG0WRr0v1jrQhQ0xg==}
+  '@nomicfoundation/edr@0.20.0':
+    resolution: {integrity: sha512-pjqWjQBWtNZRnDcs05YipQCVQehze3Ap5R/QfDHC8RBUU7ufYW1zluJLxuZZQjdO8jfCaRTkSNUvRWVTnq/EKw==}
     engines: {node: '>= 22'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
@@ -8871,36 +8871,36 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nomicfoundation/edr-darwin-arm64@0.19.0':
+  '@nomicfoundation/edr-darwin-arm64@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-darwin-x64@0.19.0':
+  '@nomicfoundation/edr-darwin-x64@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.19.0':
+  '@nomicfoundation/edr-linux-arm64-gnu@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.19.0':
+  '@nomicfoundation/edr-linux-arm64-musl@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.19.0':
+  '@nomicfoundation/edr-linux-x64-gnu@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-musl@0.19.0':
+  '@nomicfoundation/edr-linux-x64-musl@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.19.0':
+  '@nomicfoundation/edr-win32-x64-msvc@0.20.0':
     optional: true
 
-  '@nomicfoundation/edr@0.19.0':
+  '@nomicfoundation/edr@0.20.0':
     optionalDependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.19.0
-      '@nomicfoundation/edr-darwin-x64': 0.19.0
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.19.0
-      '@nomicfoundation/edr-linux-arm64-musl': 0.19.0
-      '@nomicfoundation/edr-linux-x64-gnu': 0.19.0
-      '@nomicfoundation/edr-linux-x64-musl': 0.19.0
-      '@nomicfoundation/edr-win32-x64-msvc': 0.19.0
+      '@nomicfoundation/edr-darwin-arm64': 0.20.0
+      '@nomicfoundation/edr-darwin-x64': 0.20.0
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.20.0
+      '@nomicfoundation/edr-linux-arm64-musl': 0.20.0
+      '@nomicfoundation/edr-linux-x64-gnu': 0.20.0
+      '@nomicfoundation/edr-linux-x64-musl': 0.20.0
+      '@nomicfoundation/edr-win32-x64-msvc': 0.20.0
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
