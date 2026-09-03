@@ -228,11 +228,14 @@ Both were attributed to solc in the 0.1.7 document without an established mechan
   byte — same counterexample calldata, same two assertion values. It is a fuzz test on the
   seed-driven Solidity runner, and the seed is pinned to the same value in both sweeps. So this row
   is deterministic and the failure is a stable property of the solc-via-IR control.
+  **Root-caused 2026-09-02: an upstream OZ test bug, not a solc bug** — see "Control-only
+  failures" below. Do not carry this row forward as a solc-attributed failure.
 - `MerkleTree > push > pushing to a full tree reverts`, openzeppelin mocha via-IR: **did not
   reproduce**. Mocha is not driven by that seed.
 
 Read together, that is what one would expect if the first is deterministic and the second
-intermittent. Neither is a solx observation. Neither has an established mechanism.
+intermittent. Neither is a solx observation. The first has an established mechanism (below); the
+second does not.
 
 ## Finding 1: EIP-170 overshoot is real on four repositories, not nine
 
@@ -379,7 +382,9 @@ Three findings:
   off — the same deterministic failure this document's control-only section attributes to solc,
   now narrowed to solc's via-IR optimizer. solady via-IR: the two
   `testLambertW0WadMonotonicallyIncreasing` variants (FixedPointMathLib, plain and CLZ) fail
-  only with the optimizer OFF. Neither is root-caused. Every other pipeline that built shows
+  only with the optimizer OFF. The OZ flip is root-caused (an upstream test bug that only the
+  via-IR optimizer exposes — see "Control-only failures"); the LambertW0 pair is not. Every other
+  pipeline that built shows
   zero flips.
 - **The scale statement.** Across the ten pipelines where both solc variants ran the suite,
   flipping solc's own optimizer flag changes three test outcomes. The solx-vs-solc differential
@@ -408,16 +413,28 @@ grew for this measurement.
 ## Control-only failures
 
 - `BlockhashTest#testFuzzHistoryBlocks`, openzeppelin solidity via-IR. Reproduced from 0.1.7 byte
-  for byte. Attributed to solc because that is the side that fails; no mechanism established. The
-  optimizer-off baseline section narrows it one level: it passes under solc-via-ir with the
-  optimizer off, so it is a property of solc's via-IR optimizer pipeline specifically.
+  for byte. **Root-caused 2026-09-02 — an upstream OZ test bug, not a solc bug, not EDR.** The
+  test helper `_setHistoryBlockhash` reads `block.number` before an inner `vm.roll` and reuses it
+  for the restore roll. `block.number` is constant within a transaction, so solc's Yul optimizer
+  treats NUMBER as movable: via-IR folds `(number() - 1) + 1` to `number()` and rematerializes it
+  after the inner roll, so the restore lands on `targetBlock + 1` and `Blockhash.blockHash` takes
+  the native BLOCKHASH branch (distance 1) instead of the EIP-2935 read. forge 1.7.1 `--via-ir`
+  fails it identically with solc 0.8.34; `vm.getBlockNumber() - 1` fixes it (forge-std documents
+  this, foundry-rs/foundry#6180). Optimizer-off and legacy pass only because they keep the source
+  evaluation order; solx passes because it does not rematerialize NUMBER across the call. It
+  fails on every input with `offset >= 257`, so it is seed-independent. Full write-up and repro:
+  `/workspace/oz-blockhash-viair-root-cause.md`. The benchmark's OZ preinstall now renames the
+  test out of discovery on all three toolchains (346 tests). **For the next sweep: expect this row
+  to disappear from the solc-via-ir control; if it reappears, the rename anchor moved.**
 
 ## Shared failures excluded from verdicts
 
 - solady, both pairs: `BlockHashLibTest#testBlockHash(uint256,uint256,uint256,bytes32)` fails under
-  both compilers with the same counterexample. Not root-caused. It sits on vendored bytecode
-  injected with `vm.etch`, which is consistent with reading it as environmental rather than
-  compiler-related.
+  both compilers with the same counterexample. **Root-caused 2026-09-02: not a fuzz-input issue and not a compiler one. Hardhat's Solidity test genesis (EDR `l1_genesis_state`, Prague and later) installs a revert stub at the EIP-2935 history-storage address ("EIP2935 is not supported in Hardhat yet", NomicFoundation/hardhat#6226); forge leaves the address empty. The test's non-etched path (`_randomChance(2)`) calls that address as the system address and the stub reverts, so `require(success)` fails on every non-etched iteration under both compilers. Fixed-input repro: forge passes both paths, Hardhat fails the non-etched one with that revert string.** It is a Hardhat feature gap, not a
+  test bug: on a real Prague+ chain the system write succeeds. Write-up:
+  `/workspace/edr-solady-blockhash-fuzz-note.md`. The benchmark's solady preinstall renames the test
+  out of discovery on all three toolchains (2040 tests). **For the next sweep: expect this row to be
+  absent; if it reappears, the rename anchor moved.**
 
 ## lidofinance-core mocha (row 18)
 
