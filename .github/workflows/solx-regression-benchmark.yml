@@ -49,11 +49,16 @@ jobs:
     # solx compiler doesn't run on every solc perf PR.
     #
     # The fork-safety guard keeps untrusted forks off the self-hosted runner.
+    # workflow_dispatch passes it by construction: only collaborators with
+    # write access can dispatch, and it always runs a ref of this repository
+    # (without this clause a dispatch off a branch was skipped — run
+    # 33776292316 — because it has no pull_request payload to compare).
     if: |
       !cancelled() && !failure() &&
       (github.event_name != 'pull_request' ||
         contains(github.event.pull_request.labels.*.name, 'ci:perf-solx')) &&
       (github.ref == 'refs/heads/main' ||
+        github.event_name == 'workflow_dispatch' ||
         github.repository == github.event.pull_request.head.repo.full_name)
 
     # Every scenario now runs the symmetrical 11-cell matrix — {solc, shipped
