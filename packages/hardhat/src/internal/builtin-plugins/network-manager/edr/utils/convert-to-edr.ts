@@ -212,25 +212,13 @@ export function hardhatChainDescriptorsToEdrChainOverrides(
         if (descriptor.hardforkHistory !== undefined) {
           chainOverride.hardforkActivationOverrides = Array.from(
             descriptor.hardforkHistory,
-          )
-            // EDR doesn't support pre-Byzantium L1 hardforks, so their
-            // activations are omitted from the overrides
-            .filter(
-              ([hardfork]) =>
-                descriptor.chainType === OPTIMISM_CHAIN_TYPE ||
-                hardforkGte(
-                  hardfork,
-                  L1HardforkName.BYZANTIUM,
-                  descriptor.chainType,
-                ),
-            )
-            .map(([hardfork, { blockNumber, timestamp }]) => ({
-              condition:
-                blockNumber !== undefined
-                  ? { blockNumber: BigInt(blockNumber) }
-                  : { timestamp: BigInt(timestamp) },
-              hardfork: getHardforkName(hardfork, descriptor.chainType),
-            }));
+          ).map(([hardfork, { blockNumber, timestamp }]) => ({
+            condition:
+              blockNumber !== undefined
+                ? { blockNumber: BigInt(blockNumber) }
+                : { timestamp: BigInt(timestamp) },
+            hardfork: getHardforkName(hardfork, descriptor.chainType),
+          }));
         }
 
         return chainOverride;

@@ -2,12 +2,17 @@ import type { ChainType } from "../../../../../types/network.js";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 
+/**
+ * The L1 hardforks Hardhat supports, in activation order.
+ *
+ * The list starts at Byzantium because EDR cannot execute anything earlier:
+ * `L1Hardfork` has no pre-Byzantium variants, and EDR's L1 block builder
+ * rejects any hardfork whose EVM spec is below Byzantium. Accepting
+ * `chainstart`, `homestead`, `dao`, `tangerineWhistle` or `spuriousDragon`
+ * here would only let a config through that fails when the provider is
+ * created.
+ */
 export enum L1HardforkName {
-  FRONTIER = "chainstart",
-  HOMESTEAD = "homestead",
-  DAO = "dao",
-  TANGERINE_WHISTLE = "tangerineWhistle",
-  SPURIOUS_DRAGON = "spuriousDragon",
   BYZANTIUM = "byzantium",
   CONSTANTINOPLE = "constantinople",
   PETERSBURG = "petersburg",

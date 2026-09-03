@@ -164,7 +164,7 @@ describe("Amsterdam L1 hardfork conversion round-trip", () => {
 });
 
 describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
-  it("omits pre-Byzantium L1 hardfork activations from the overrides", () => {
+  it("passes every L1 hardfork activation through, converting the conditions", () => {
     const chainDescriptors: ChainDescriptorsConfig = new Map([
       [
         1n,
@@ -173,10 +173,9 @@ describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
           chainType: L1_CHAIN_TYPE,
           blockExplorers: {},
           hardforkHistory: new Map([
-            [L1HardforkName.FRONTIER, { blockNumber: 0 }],
-            [L1HardforkName.DAO, { blockNumber: 1_920_000 }],
             [L1HardforkName.BYZANTIUM, { blockNumber: 4_370_000 }],
             [L1HardforkName.LONDON, { blockNumber: 12_965_000 }],
+            [L1HardforkName.CANCUN, { timestamp: 1_710_338_135 }],
           ]),
         },
       ],
@@ -188,10 +187,20 @@ describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
     );
 
     assert.equal(overrides.length, 1);
-    assert.deepEqual(
-      overrides[0].hardforkActivationOverrides?.map(({ hardfork }) => hardfork),
-      [L1HardforkName.BYZANTIUM, L1HardforkName.LONDON],
-    );
+    assert.deepEqual(overrides[0].hardforkActivationOverrides, [
+      {
+        condition: { blockNumber: 4_370_000n },
+        hardfork: L1HardforkName.BYZANTIUM,
+      },
+      {
+        condition: { blockNumber: 12_965_000n },
+        hardfork: L1HardforkName.LONDON,
+      },
+      {
+        condition: { timestamp: 1_710_338_135n },
+        hardfork: L1HardforkName.CANCUN,
+      },
+    ]);
   });
 
   it("keeps every OP hardfork activation", () => {
