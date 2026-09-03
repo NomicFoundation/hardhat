@@ -2,6 +2,7 @@ import type {
   HardhatRuntimeEnvironmentHooks,
   HookManager,
 } from "../../../../types/hooks.js";
+import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type {
   BuildOptions,
   CompilationJobCreationError,
@@ -25,7 +26,6 @@ import type {
   SolidityBuildSystemOptions,
   SolidityBuildSystemImplementation as SolidityBuildSystemImplementationT,
 } from "../build-system/build-system.js";
-import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type { RustSolidityBuildSystem as RustSolidityBuildSystemT } from "@nomicfoundation/hardhat-solidity-build-system";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -34,8 +34,7 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 const log = createDebug("hardhat:core:solidity:build-system");
 
 let SolidityBuildSystemImplementation:
-  | typeof SolidityBuildSystemImplementationT
-  | undefined;
+  typeof SolidityBuildSystemImplementationT | undefined;
 
 let RustSolidityBuildSystem: typeof RustSolidityBuildSystemT | undefined;
 
@@ -155,9 +154,8 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     // two callers racing here can't each construct one.
     if (useRust) {
       if (RustSolidityBuildSystem === undefined) {
-        const portModule = await import(
-          "@nomicfoundation/hardhat-solidity-build-system"
-        );
+        const portModule =
+          await import("@nomicfoundation/hardhat-solidity-build-system");
         RustSolidityBuildSystem = portModule.RustSolidityBuildSystem;
       }
     } else if (SolidityBuildSystemImplementation === undefined) {
@@ -166,9 +164,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
         buildSystemModule.SolidityBuildSystemImplementation;
     }
 
-    const integration = useRust
-      ? await this.#rustIntegration()
-      : undefined;
+    const integration = useRust ? await this.#rustIntegration() : undefined;
 
     if (this.#buildSystem === undefined) {
       if (useRust) {
@@ -198,9 +194,8 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   }
 
   async #rustIntegration() {
-    const { rustIntegrationFor } = await import(
-      "../build-system/rust-integration.js"
-    );
+    const { rustIntegrationFor } =
+      await import("../build-system/rust-integration.js");
 
     return rustIntegrationFor(this.#hooks, this.#options);
   }
@@ -214,12 +209,10 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
    * decision can't see — see `unhonoredSolidityHooks`.
    */
   async #decideUseRust(): Promise<boolean> {
-    const { decideBuildSystemImplementation } = await import(
-      "@nomicfoundation/hardhat-solidity-build-system"
-    );
-    const { unhonoredSolidityHooks } = await import(
-      "../build-system/rust-integration.js"
-    );
+    const { decideBuildSystemImplementation } =
+      await import("@nomicfoundation/hardhat-solidity-build-system");
+    const { unhonoredSolidityHooks } =
+      await import("../build-system/rust-integration.js");
 
     const decision = decideBuildSystemImplementation({
       flagEnabled: this.#rust.flagEnabled,

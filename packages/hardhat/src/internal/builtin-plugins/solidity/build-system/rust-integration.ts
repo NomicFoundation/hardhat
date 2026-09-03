@@ -1,6 +1,6 @@
 import type { SolidityBuildSystemOptions } from "./build-system.js";
-import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type { HookManager } from "../../../../types/hooks.js";
+import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type {
   HardhatIntegration,
   ProvisionedCompiler,
@@ -10,18 +10,21 @@ import type {
 import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import {
   SOLIDITY_HOOKS,
   UNHONORED_HOOKS_WITH_BUILTIN_HANDLER,
   UNHONORED_HOOKS_WITHOUT_BUILTIN_HANDLER,
 } from "@nomicfoundation/hardhat-solidity-build-system";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 
 import { getSolcCompilerForConfig } from "../solidity-hooks.js";
 
 import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
-import { printCompilationResult, printSolcErrorsAndWarnings } from "./printing.js";
+import {
+  printCompilationResult,
+  printSolcErrorsAndWarnings,
+} from "./printing.js";
 
 /**
  * The `solidity` hooks a plugin registered that the Rust port doesn't honor.
@@ -71,10 +74,16 @@ async function unhonoredSolidityHooks(
 
   // In the order the table declares them, so that the reason a build fell back
   // doesn't depend on which plugin was asked first.
-  return Object.keys(SOLIDITY_HOOKS)
-    .filter((hook): hook is SolidityHookName =>
-      unhonored.has(hook as SolidityHookName),
-    );
+  // In the order the table declares them, so that the reason a build fell back
+  // doesn't depend on which plugin was asked first.
+  return [...unhonored].sort(
+    (one, other) => declarationOrder(one) - declarationOrder(other),
+  );
+}
+
+/** Where a hook appears in the table, which is the order to report them in. */
+function declarationOrder(hook: SolidityHookName): number {
+  return Object.keys(SOLIDITY_HOOKS).indexOf(hook);
 }
 
 /**
@@ -89,7 +98,9 @@ function wasmRunnerFor(compilerPath: string): {
   command: string;
   args: string[];
 } {
-  const scriptPath = fileURLToPath(import.meta.resolve("./compiler/solcjs-runner.js"));
+  const scriptPath = fileURLToPath(
+    import.meta.resolve("./compiler/solcjs-runner.js"),
+  );
 
   // If the script is a TypeScript file, we need to pass the --import tsx/esm
   // which is available, as we are running the tests
@@ -110,7 +121,12 @@ function wasmRunnerFor(compilerPath: string): {
 }
 
 function provisionedCompilerOf(
-  config: { type?: string; version: string; path?: string; preferWasm?: boolean },
+  config: {
+    type?: string;
+    version: string;
+    path?: string;
+    preferWasm?: boolean;
+  },
   compiler: { longVersion: string; compilerPath: string; isSolcJs: boolean },
 ): ProvisionedCompiler {
   return {
@@ -136,7 +152,12 @@ function provisionedCompilerOf(
  * failure is sent across as a value rather than thrown here.
  */
 function unavailableCompilerOf(
-  config: { type?: string; version: string; path?: string; preferWasm?: boolean },
+  config: {
+    type?: string;
+    version: string;
+    path?: string;
+    preferWasm?: boolean;
+  },
   error: unknown,
 ): ProvisionedCompiler {
   ensureError(error);
@@ -280,7 +301,11 @@ export function rustIntegrationFor(
       return await hooks.hasHandlers("solidity", "getCompilationJobErrors");
     },
 
-    async runCompilationJobErrorsHook(compilationJob, compilerOutput, remapped) {
+    async runCompilationJobErrorsHook(
+      compilationJob,
+      compilerOutput,
+      remapped,
+    ) {
       return await hooks.runHandlerChain(
         "solidity",
         "getCompilationJobErrors",
