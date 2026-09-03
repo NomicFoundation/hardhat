@@ -265,6 +265,46 @@ export function rustIntegrationFor(
     createSpinner(text) {
       return createSpinner({ text, enabled: true });
     },
+
+    async runBuildHook(rootFilePaths, buildOptions, build) {
+      return await hooks.runHandlerChain(
+        "solidity",
+        "build",
+        [rootFilePaths, buildOptions],
+        async (_context, nextRootFilePaths, nextOptions) =>
+          await build(nextRootFilePaths, nextOptions),
+      );
+    },
+
+    async hasCompilationJobErrorsHandlers() {
+      return await hooks.hasHandlers("solidity", "getCompilationJobErrors");
+    },
+
+    async runCompilationJobErrorsHook(compilationJob, compilerOutput, remapped) {
+      return await hooks.runHandlerChain(
+        "solidity",
+        "getCompilationJobErrors",
+        [compilationJob, compilerOutput],
+        // The default is what the port already produced: the compiler's errors
+        // with their source names rewritten into paths of the project.
+        async () => remapped,
+      );
+    },
+
+    async hasProcessArtifactsHandlers() {
+      return await hooks.hasHandlers(
+        "solidity",
+        "processArtifactsAfterSuccessfulBuild",
+      );
+    },
+
+    async runProcessArtifactsHook(artifactPaths, rootFilePaths, buildOptions) {
+      await hooks.runSequentialHandlers(
+        "solidity",
+        "processArtifactsAfterSuccessfulBuild",
+        [artifactPaths, rootFilePaths, buildOptions],
+      );
+    },
   };
 }
 
