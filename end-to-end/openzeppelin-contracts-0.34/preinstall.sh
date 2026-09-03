@@ -45,3 +45,52 @@ cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" solx-profiles.ts
 # own permission so both tools run the same suite. foundry.toml is a single
 # [profile.default] table, so appending lands the key in it.
 printf '\nfs_permissions = [{ access = "read", path = "node_modules/hardhat-predeploy/bin" }]\n' >> foundry.toml
+
+# Take BlockhashTest#testFuzzHistoryBlocks out of test discovery, identically
+# for all three toolchains (rename: not test-prefixed => neither EDR nor forge
+# runs or counts it). It is an upstream test bug that only surfaces under solc
+# via-IR with the optimizer on: _setHistoryBlockhash caches block.number across
+# an inner vm.roll, and the Yul optimizer legitimately re-reads NUMBER after the
+# roll (block.number is constant within a transaction; forge-std documents
+# vm.getBlockNumber() for exactly this, foundry-rs/foundry#6180), so the restore
+# roll lands on targetBlock+1 and the library takes the native BLOCKHASH branch.
+# forge --via-ir fails it the same way; solc legacy and solx pass only because
+# they keep the source evaluation order. Root cause and repro:
+# /workspace/oz-blockhash-viair-root-cause.md. Fail loudly if the anchor moved.
+node -e '
+const fs = require("fs");
+const p = "test/utils/Blockhash.t.sol";
+let s = fs.readFileSync(p, "utf8");
+const anchor = "function testFuzzHistoryBlocks(";
+if (s.split(anchor).length !== 2) {
+  console.error("openzeppelin preinstall: expected exactly one testFuzzHistoryBlocks in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, "function skipFuzzHistoryBlocks("));
+console.log("openzeppelin preinstall: renamed BlockhashTest#testFuzzHistoryBlocks out of discovery");
+'
+
+# Patch the fork's own hardhat-exposed plugin to pass the active build profile
+# to getCompilationJobs. Without it the task resolves jobs for the `default`
+# profile, whose build-info Hardhat deletes whenever another profile is active,
+# so under every non-default profile (all solx cells, solc via-IR) it misses
+# the cache and re-runs an AST-only solc compile of all 666 sources plus a
+# rewrite of the 286 exposed files on every invocation: ~2.8s per run,
+# charged to those cells only (the plain solc cell is the default profile).
+# Measured: OZ warm compile 3.9s solx vs 1.1s solc on the runner; a plain
+# solc profile with runs=201 shows the same penalty, so this is the fork's
+# plugin, not solx. One-line upstream fix, applied here until the fork
+# re-pins (see /workspace/hardhat-solx-footnote-research.md). Fail loudly if
+# the anchor moved.
+node -e '
+const fs = require("fs");
+const p = "hardhat/hardhat-exposed/tasks/generate-exposed-contracts.ts";
+let s = fs.readFileSync(p, "utf8");
+const anchor = "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force })";
+if (s.split(anchor).length !== 2) {
+  console.error("openzeppelin preinstall: expected exactly one getCompilationJobs call in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force, buildProfile: hre.globalOptions.buildProfile })"));
+console.log("openzeppelin preinstall: hardhat-exposed now passes the active build profile to getCompilationJobs");
+'
