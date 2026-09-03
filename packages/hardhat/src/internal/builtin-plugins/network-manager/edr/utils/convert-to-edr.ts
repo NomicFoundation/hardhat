@@ -262,9 +262,14 @@ export function hardhatMiningIntervalToEdrMiningInterval(
       return BigInt(config);
     }
   } else {
+    // EDR requires both bounds of a range to be at least 1. A range means
+    // interval mining is enabled, so a bound of 0 can't be forwarded as the
+    // "disabled" value a scalar 0 stands for: 1ms is the nearest interval that
+    // keeps the user's intent. The bounds are otherwise left as they are, so
+    // EDR still reports a range whose minimum is above its maximum.
     return {
-      min: BigInt(config[0]),
-      max: BigInt(config[1]),
+      min: BigInt(Math.max(1, config[0])),
+      max: BigInt(Math.max(1, config[1])),
     };
   }
 }
