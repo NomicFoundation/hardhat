@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -15,6 +15,7 @@ import { download } from "@nomicfoundation/hardhat-utils/request";
 import {
   CompilerDownloaderImplementation as CompilerDownloader,
   CompilerPlatform,
+  proxiedDownload,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
 
 describe(
@@ -492,6 +493,137 @@ describe(
         assert.ok(compiler !== undefined, "Compiler should be defined");
         assert.equal(compiler.version, "0.8.31");
         assert.equal(compiler.longVersion, "0.8.31+commit.fd3a2265");
+      });
+    });
+
+    describe("proxiedDownload (default download function)", function () {
+      // Test that proxiedDownload correctly injects proxy dispatcher options
+      // based on environment variables. We call proxiedDownload directly and
+      // pass a stub as the 5th argument (downloadFn) to capture what options
+      // it computes — no real network requests are made.
+
+      const PROXY_URL = "http://proxy.example.com:8080";
+
+      afterEach(function () {
+        for (const key of [
+          "HTTPS_PROXY",
+          "https_proxy",
+          "HTTP_PROXY",
+          "http_proxy",
+          "NO_PROXY",
+        ]) {
+          delete process.env[key];
+        }
+      });
+
+      function makeStubDownload(): {
+        stub: typeof download;
+        captured: Array<Parameters<typeof download>[3]>;
+      } {
+        const captured: Array<Parameters<typeof download>[3]> = [];
+        const stub: typeof download = async (
+          _url,
+          _dest,
+          _req,
+          dispatcherOptions,
+        ) => {
+          captured.push(dispatcherOptions);
+        };
+        return { stub, captured };
+      }
+
+      it("should pass { proxy } in dispatcherOptions when HTTPS_PROXY is set", async function () {
+        process.env.HTTPS_PROXY = PROXY_URL;
+        const { stub, captured } = makeStubDownload();
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          undefined,
+          stub,
+        );
+
+        assert.deepEqual(captured[0], { proxy: PROXY_URL });
+      });
+
+      it("should pass { proxy } in dispatcherOptions when http_proxy is set as a fallback", async function () {
+        // For https URLs, http_proxy is the last fallback but should still be picked up
+        process.env.http_proxy = PROXY_URL;
+        const { stub, captured } = makeStubDownload();
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          undefined,
+          stub,
+        );
+
+        assert.deepEqual(captured[0], { proxy: PROXY_URL });
+      });
+
+      it("should pass undefined dispatcherOptions when no proxy env vars are set", async function () {
+        const { stub, captured } = makeStubDownload();
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          undefined,
+          stub,
+        );
+
+        assert.equal(captured[0], undefined);
+      });
+
+      it("should pass undefined dispatcherOptions when NO_PROXY=*", async function () {
+        process.env.HTTPS_PROXY = PROXY_URL;
+        process.env.NO_PROXY = "*";
+        const { stub, captured } = makeStubDownload();
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          undefined,
+          stub,
+        );
+
+        assert.equal(captured[0], undefined);
+      });
+
+      it("should pass undefined dispatcherOptions when the host is in NO_PROXY", async function () {
+        process.env.HTTPS_PROXY = PROXY_URL;
+        process.env.NO_PROXY = "binaries.soliditylang.org";
+        const { stub, captured } = makeStubDownload();
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          undefined,
+          stub,
+        );
+
+        assert.equal(captured[0], undefined);
+      });
+
+      it("should not override caller-supplied dispatcherOptions", async function () {
+        process.env.HTTPS_PROXY = PROXY_URL;
+        const { stub, captured } = makeStubDownload();
+        const callerOptions = { pool: true as const };
+
+        await proxiedDownload(
+          "https://binaries.soliditylang.org/wasm/list.json",
+          "/dev/null",
+          undefined,
+          callerOptions,
+          stub,
+        );
+
+        // The caller's options should be forwarded as-is; the proxy is ignored.
+        assert.equal(captured[0], callerOptions);
       });
     });
 

@@ -24,11 +24,40 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
-import { download } from "@nomicfoundation/hardhat-utils/request";
+import {
+  download,
+  getProxyUrl,
+  shouldUseProxy,
+} from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import AdmZip from "adm-zip";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
+
+/**
+ * A wrapper around {@link download} that automatically routes the request
+ * through an HTTP/HTTPS proxy when one is configured via the standard
+ * `HTTPS_PROXY`, `https_proxy`, `HTTP_PROXY`, or `http_proxy` environment
+ * variables, and the target URL is not excluded by `NO_PROXY`.
+ *
+ * @param downloadFn Overrides the inner {@link download} call. Used in tests only.
+ * @internal Exported for testing only.
+ */
+export async function proxiedDownload(
+  url: string,
+  destination: string,
+  requestOptions?: Parameters<typeof download>[2],
+  dispatcherOptions?: Parameters<typeof download>[3],
+  downloadFn: typeof download = download,
+): ReturnType<typeof download> {
+  const proxy = shouldUseProxy(url) ? getProxyUrl(url) : undefined;
+  return await downloadFn(
+    url,
+    destination,
+    requestOptions,
+    dispatcherOptions ?? (proxy !== undefined ? { proxy } : undefined),
+  );
+}
 
 const log = createDebug(
   "hardhat:core:solidity:build-system:compiler:downloader",
@@ -160,7 +189,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
-    downloadFunction: typeof download = download,
+    downloadFunction: typeof download = proxiedDownload,
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
