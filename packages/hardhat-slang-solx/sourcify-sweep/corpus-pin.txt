@@ -1,0 +1,2 @@
+url=https://github.com/nebasuke/sourcify-corpora/releases/download/sourcify-corpus-solc-0.8.34-20260818/sourcify-corpus-solc-0.8.34-20260818.tar.xz
+sha256=596d304f4f0f3fe303494c97c00644813edbc1b359d8be2714967be44a093f39
