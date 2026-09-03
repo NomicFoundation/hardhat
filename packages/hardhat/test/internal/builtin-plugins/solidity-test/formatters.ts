@@ -100,7 +100,7 @@ describe("formatInlineConfigErrors", () => {
     );
   });
 
-  it("names only the contract for an unlocatable contract-level directive", () => {
+  it("names only the contract for a contract-level directive that can't be located", () => {
     const formatted = formatInlineConfigErrors(
       [
         sourceError({
