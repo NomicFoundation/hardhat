@@ -173,6 +173,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.17
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-solidity-build-system':
+        specifier: link:../../../../packages/hardhat-solidity-build-system
+        version: link:../../../../packages/hardhat-solidity-build-system
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^4.1.6
         version: link:../hardhat-utils

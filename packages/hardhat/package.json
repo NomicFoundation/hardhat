@@ -95,6 +95,7 @@
   "dependencies": {
     "@nomicfoundation/edr": "0.19.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.17",
+    "@nomicfoundation/hardhat-solidity-build-system": "link:../../../../packages/hardhat-solidity-build-system",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.6",
     "@nomicfoundation/hardhat-vendored": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",

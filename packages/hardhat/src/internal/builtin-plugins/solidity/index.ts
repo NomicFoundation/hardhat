@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
-import { globalOption, task } from "../../core/config.js";
+import { globalFlag, globalOption, task } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
@@ -63,6 +63,11 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
       description: "The build profile to use",
       type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
+    }),
+    globalFlag({
+      name: "rustBuildSystem",
+      description:
+        "Build Solidity with the experimental Rust implementation of the build system",
     }),
   ],
   npmPackage: "hardhat",

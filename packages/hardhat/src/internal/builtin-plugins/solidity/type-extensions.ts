@@ -331,6 +331,7 @@ declare module "../../../types/hre.js" {
 declare module "../../../types/global-options.js" {
   export interface GlobalOptions {
     buildProfile: string;
+    rustBuildSystem: boolean;
   }
 }
 
