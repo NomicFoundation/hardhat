@@ -297,7 +297,7 @@ describe("renderSolxTables", () => {
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
-    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷⁸])\s/gmu)].map((m) => m[1]);
+    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷⁸⁹])\s/gmu)].map((m) => m[1]);
 
     assert.deepEqual(markers, [...new Set(markers)]);
   });
@@ -311,12 +311,12 @@ describe("renderSolxTables", () => {
       md,
       /\| uniswap-v4-core-solx \| via-IR \| 30\.0 \/ 31\.0 \| 25\.0 \/ — \| 22\.0 \/ — \|/,
     );
-    // OZ's solc via-IR suite has upstream-known failures: number + caveat mark.
+    // OZ skips one upstream-buggy test on every toolchain: number + caveat mark.
     assert.match(
       md,
       /\| openzeppelin-contracts-0\.34 \| via-IR \| 80\.0 \/ —⁶ \| — \| — \|/,
     );
-    assert.match(md, /⁶ the suite exits non-zero under solc via-IR/);
+    assert.match(md, /⁶ OZ runs 346 of its 347 tests on all three toolchains/);
     // No legacy warm cells in the fixture: no legacy row in the warm table.
     assert.doesNotMatch(
       md,
@@ -451,7 +451,12 @@ describe("renderSolxTables", () => {
     );
     assert.match(
       md,
-      /\| openzeppelin-contracts-0\.34 \| legacy \| 40\.0 \/ 42\.0 \| — \| 14\.6 \/ 16\.3 \|/,
+      /\| openzeppelin-contracts-0\.34 \| legacy \| 40\.0 \/ 42\.0⁹ \| — \| 14\.6 \/ 16\.3 \|/,
+    );
+    // Dedicated parity cells are a smaller source set than the matrix: marked.
+    assert.match(
+      md,
+      /⁹ dedicated parity cell: hardhat measured on forge's source set/,
     );
     // The version-pinned cell fills the solx column (shipped cells retired).
     assert.match(
