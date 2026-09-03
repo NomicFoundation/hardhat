@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times.",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times. The legacy forge cells (FOUNDRY_VIA_IR=false on the same profile, everything else identical) mirror the hardhat legacy profile, so forge is measured in both pipelines like hardhat is — upstream ships via-IR, so the via-IR forge cells remain the ones that describe upstream's own build.",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/uniswap-v4-core",
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
@@ -147,6 +147,24 @@
         "dependsOn": ["warm forge solc cache"],
         "prepare": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
         "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "cold compile forge-1.7.1": {
+        "runs": 5,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "warm compile forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "warm test forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
       }
     }
   }
