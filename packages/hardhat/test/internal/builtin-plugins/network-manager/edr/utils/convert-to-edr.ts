@@ -177,10 +177,6 @@ describe("hardhatMiningIntervalToEdrMiningInterval", () => {
     });
   });
 
-  // EDR rejects a range whose minimum is 0, so it has to be raised to 1 here.
-  // A range means interval mining is enabled, so 0 can't be passed through as
-  // the "disabled" value a scalar 0 stands for; 1ms is the nearest interval
-  // that keeps the user's intent.
   it("raises a range minimum of 0 to 1", () => {
     assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([0, 5000]), {
       min: 1n,
