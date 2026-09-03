@@ -5,6 +5,7 @@ import { l1HardforkLatest, opLatestHardfork } from "@nomicfoundation/edr";
 
 import {
   getCurrentHardfork,
+  getHardforks,
   isValidHardforkName,
   L1HardforkName,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
@@ -42,5 +43,29 @@ describe("Amsterdam is a selectable L1 hardfork", () => {
       isValidHardforkName(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE),
       true,
     );
+  });
+});
+
+describe("pre-Byzantium L1 hardforks are not selectable", () => {
+  const PRE_BYZANTIUM = [
+    "chainstart",
+    "homestead",
+    "dao",
+    "tangerineWhistle",
+    "spuriousDragon",
+  ];
+
+  it("are not valid L1 hardfork names", () => {
+    for (const hardfork of PRE_BYZANTIUM) {
+      assert.equal(
+        isValidHardforkName(hardfork, L1_CHAIN_TYPE),
+        false,
+        `${hardfork} should not be a valid L1 hardfork name`,
+      );
+    }
+  });
+
+  it("byzantium is the oldest supported L1 hardfork", () => {
+    assert.equal(getHardforks(L1_CHAIN_TYPE)[0], L1HardforkName.BYZANTIUM);
   });
 });

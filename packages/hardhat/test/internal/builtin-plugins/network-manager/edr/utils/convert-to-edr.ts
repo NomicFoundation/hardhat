@@ -1,10 +1,10 @@
 import type { ChainDescriptorsConfig } from "../../../../../../src/types/config.js";
+import type { ChainType } from "../../../../../../src/types/network.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { GasEstimationMode, L1Hardfork } from "@nomicfoundation/edr";
-
 
 import {
   getCurrentHardfork,
@@ -16,11 +16,11 @@ import {
   hardhatChainDescriptorsToEdrChainOverrides,
   hardhatGasEstimationModeToEdrGasEstimationMode,
   hardhatMiningIntervalToEdrMiningInterval,
-
   resolveDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
 import { getHardforkName } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/hardfork.js";
 import {
+  GENERIC_CHAIN_TYPE,
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../../../../src/internal/constants.js";
@@ -213,7 +213,7 @@ describe("hardhatMiningIntervalToEdrMiningInterval", () => {
 });
 
 describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
-  it("omits pre-Byzantium L1 hardfork activations from the overrides", () => {
+  it("converts block-number and timestamp activations to bigint conditions", () => {
     const chainDescriptors: ChainDescriptorsConfig = new Map([
       [
         1n,
@@ -222,10 +222,8 @@ describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
           chainType: L1_CHAIN_TYPE,
           blockExplorers: {},
           hardforkHistory: new Map([
-            [L1HardforkName.FRONTIER, { blockNumber: 0 }],
-            [L1HardforkName.DAO, { blockNumber: 1_920_000 }],
-            [L1HardforkName.BYZANTIUM, { blockNumber: 4_370_000 }],
             [L1HardforkName.LONDON, { blockNumber: 12_965_000 }],
+            [L1HardforkName.CANCUN, { timestamp: 1_710_338_135 }],
           ]),
         },
       ],
@@ -236,38 +234,65 @@ describe("hardhatChainDescriptorsToEdrChainOverrides", () => {
       L1_CHAIN_TYPE,
     );
 
-    assert.equal(overrides.length, 1);
-    assert.deepEqual(
-      overrides[0].hardforkActivationOverrides?.map(({ hardfork }) => hardfork),
-      [L1HardforkName.BYZANTIUM, L1HardforkName.LONDON],
-    );
+    assert.deepEqual(overrides[0].hardforkActivationOverrides, [
+      {
+        condition: { blockNumber: 12_965_000n },
+        hardfork: L1HardforkName.LONDON,
+      },
+      {
+        condition: { timestamp: 1_710_338_135n },
+        hardfork: L1HardforkName.CANCUN,
+      },
+    ]);
   });
 
-  it("keeps every OP hardfork activation", () => {
+  it("omits hardforkActivationOverrides when there is no hardfork history", () => {
     const chainDescriptors: ChainDescriptorsConfig = new Map([
+      [1n, { name: "Mainnet", chainType: L1_CHAIN_TYPE, blockExplorers: {} }],
+    ]);
+
+    const overrides = hardhatChainDescriptorsToEdrChainOverrides(
+      chainDescriptors,
+      L1_CHAIN_TYPE,
+    );
+
+    assert.deepEqual(overrides, [{ chainId: 1n, name: "Mainnet" }]);
+  });
+
+  describe("chain type selection", () => {
+    const chainDescriptors: ChainDescriptorsConfig = new Map([
+      [1n, { name: "Mainnet", chainType: L1_CHAIN_TYPE, blockExplorers: {} }],
       [
         10n,
         {
           name: "OP Mainnet",
           chainType: OPTIMISM_CHAIN_TYPE,
           blockExplorers: {},
-          hardforkHistory: new Map([
-            [OpHardforkName.BEDROCK, { blockNumber: 0 }],
-            [OpHardforkName.CANYON, { timestamp: 1_704_992_401 }],
-          ]),
+        },
+      ],
+      [
+        999n,
+        {
+          name: "Some Chain",
+          chainType: GENERIC_CHAIN_TYPE,
+          blockExplorers: {},
         },
       ],
     ]);
 
-    const overrides = hardhatChainDescriptorsToEdrChainOverrides(
-      chainDescriptors,
-      OPTIMISM_CHAIN_TYPE,
-    );
+    const chainIdsFor = (chainType: ChainType) =>
+      hardhatChainDescriptorsToEdrChainOverrides(
+        chainDescriptors,
+        chainType,
+      ).map(({ chainId }) => chainId);
 
-    assert.equal(overrides.length, 1);
-    assert.deepEqual(
-      overrides[0].hardforkActivationOverrides?.map(({ hardfork }) => hardfork),
-      [OpHardforkName.BEDROCK, OpHardforkName.CANYON],
-    );
+    it("includes both generic and l1 chains when generic is requested", () => {
+      assert.deepEqual(chainIdsFor(GENERIC_CHAIN_TYPE), [1n, 999n]);
+    });
+
+    it("includes only exact matches for a specific chain type", () => {
+      assert.deepEqual(chainIdsFor(L1_CHAIN_TYPE), [1n]);
+      assert.deepEqual(chainIdsFor(OPTIMISM_CHAIN_TYPE), [10n]);
+    });
   });
 });

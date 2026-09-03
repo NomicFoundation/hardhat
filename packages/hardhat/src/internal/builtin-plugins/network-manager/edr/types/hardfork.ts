@@ -2,12 +2,10 @@ import type { ChainType } from "../../../../../types/network.js";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 
+/**
+ * The L1 hardforks Hardhat supports, in activation order.
+ */
 export enum L1HardforkName {
-  FRONTIER = "chainstart",
-  HOMESTEAD = "homestead",
-  DAO = "dao",
-  TANGERINE_WHISTLE = "tangerineWhistle",
-  SPURIOUS_DRAGON = "spuriousDragon",
   BYZANTIUM = "byzantium",
   CONSTANTINOPLE = "constantinople",
   PETERSBURG = "petersburg",
