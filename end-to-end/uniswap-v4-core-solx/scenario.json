@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times. The legacy forge cells (FOUNDRY_VIA_IR=false on the same profile, everything else identical) mirror the hardhat legacy profile, so forge is measured in both pipelines like hardhat is — upstream ships via-IR, so the via-IR forge cells remain the ones that describe upstream's own build.",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times. The legacy forge cells (FOUNDRY_VIA_IR=false on the same profile, everything else identical) mirror the hardhat legacy profile, so forge is measured in both pipelines like hardhat is — upstream ships via-IR, so the via-IR forge cells remain the ones that describe upstream's own build. Preinstall renames TickMathTestTest#test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation out of discovery on all three toolchains (597 tests everywhere): an upstream test bug — at tick = MAX_TICK - 1 it asserts getTickAtSqrtPrice(MAX_SQRT_PRICE), which reverts by definition — that only surfaces when a fuzzer draws that tick; forge's legacy build did (its fuzz dictionary follows the bytecode), the via-IR builds and EDR did not.",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/uniswap-v4-core",
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
