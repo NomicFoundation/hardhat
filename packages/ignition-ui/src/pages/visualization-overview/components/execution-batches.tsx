@@ -34,7 +34,7 @@ export const ExecutionBatches: React.FC<{
       (acc, id) => {
         return { ...acc, [id]: createRef<HTMLDivElement>() };
       },
-      {} as Record<string, React.RefObject<HTMLDivElement>>,
+      {} as Record<string, React.RefObject<HTMLDivElement | null>>,
     ),
   );
 
@@ -93,8 +93,8 @@ export const ExecutionBatches: React.FC<{
       <RootModuleBackground>
         <RootModuleName>[ {ignitionModule.id} ]</RootModuleName>
         <Actions
-          currentlyHovered={currentlyHovered}
-          hoveredFuture={hoveredFuture}
+          $currentlyHovered={currentlyHovered}
+          $hoveredFuture={hoveredFuture}
         >
           {futureBatches.map((batch, i) => (
             <FutureBatch
@@ -164,23 +164,26 @@ const SectionSubHeader = styled.div`
   margin-top: 2rem;
 `;
 
-const Actions = styled.div<{ currentlyHovered: string; hoveredFuture: string }>`
+const Actions = styled.div<{
+  $currentlyHovered: string;
+  $hoveredFuture: string;
+}>`
   display: grid;
   row-gap: 1.5rem;
 
-  ${({ currentlyHovered }) =>
-    currentlyHovered &&
+  ${({ $currentlyHovered }) =>
+    $currentlyHovered &&
     `
-    .${currentlyHovered} {
+    .${$currentlyHovered} {
       background: #16181D;
       color: #FBF8D8;
     }
   `}
 
-  ${({ hoveredFuture }) =>
-    hoveredFuture &&
+  ${({ $hoveredFuture }) =>
+    $hoveredFuture &&
     `
-    .${hoveredFuture} {
+    .${$hoveredFuture} {
       background: #16181D;
       color: #FBF8D8;
       box-shadow: -2px 2px 4px 0px #6C6F7433;
