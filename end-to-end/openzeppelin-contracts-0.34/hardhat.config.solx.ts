@@ -43,6 +43,14 @@ export default {
   // solidity-test fuzz seed. The solx and solc control runs then see
   // identical fuzz inputs, and failures reproduce.
   test: withPinnedFuzzSeed(base.test),
+  // Forge-scope cells (the "parity" warm cells in scenario.json): generate no
+  // hardhat-exposed wrappers, so the build is the same source set forge
+  // compiles. The scenario's prepare removes the previously generated
+  // contracts-exposed/ first — the plugin's config hook keeps that directory
+  // in the source roots, so stale wrappers would otherwise still be built.
+  ...(process.env.OZ_BENCH_NO_EXPOSE === "1"
+    ? { exposed: { ...base.exposed, include: [] } }
+    : {}),
   solidity: {
     profiles: buildSolxProfiles({
       baseSettings: base.solidity.settings,

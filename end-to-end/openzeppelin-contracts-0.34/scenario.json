@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "OpenZeppelin's Hardhat 3 fork compiled at solc 0.8.34, benchmarking solx against solc side by side. The warm-test cells time the whole test command over a cached build (warm compile check + suite); Preinstall renames BlockhashTest#testFuzzHistoryBlocks out of discovery on all three toolchains: an upstream test bug (block.number cached across an inner vm.roll) that only the solc via-IR optimizer exposes, so the suite is 346 tests everywhere and exits zero. Preinstall also patches the fork's hardhat-exposed task to pass the active build profile to getCompilationJobs: unpatched, every non-default-profile invocation (all solx cells, solc via-IR) re-ran an AST-only solc compile of all sources (~2.8s), which was the whole OZ warm-compile gap (3.9s solx vs 1.1s solc) and a ~2.8s bias against solx in the warm-test cells. Preinstall appends the fork's own hardhat-side fs permission (read node_modules/hardhat-predeploy/bin, used by draft-ERC7579Utils.t.sol) to foundry.toml so forge can run the same suite. The forge warm-test cell sets FOUNDRY_FUZZ_RUNS=5000 and FOUNDRY_FUZZ_MAX_TEST_REJECTS=150000: the fork's hardhat test config declares those (mirrored from upstream's CI), but its foundry.toml predates the conversion and would leave forge at the 256-run default — 20x less fuzz work than the hardhat cells.",
+  "description": "OpenZeppelin's Hardhat 3 fork compiled at solc 0.8.34, benchmarking solx against solc side by side. The warm-test cells time the whole test command over a cached build (warm compile check + suite); Preinstall renames BlockhashTest#testFuzzHistoryBlocks out of discovery on all three toolchains: an upstream test bug (block.number cached across an inner vm.roll) that only the solc via-IR optimizer exposes, so the suite is 346 tests everywhere and exits zero. Preinstall also patches the fork's hardhat-exposed task to pass the active build profile to getCompilationJobs: unpatched, every non-default-profile invocation (all solx cells, solc via-IR) re-ran an AST-only solc compile of all sources (~2.8s), which was the whole OZ warm-compile gap (3.9s solx vs 1.1s solc) and a ~2.8s bias against solx in the warm-test cells. Preinstall appends the fork's own hardhat-side fs permission (read node_modules/hardhat-predeploy/bin, used by draft-ERC7579Utils.t.sol) to foundry.toml so forge can run the same suite. The forge warm-test cell sets FOUNDRY_FUZZ_RUNS=5000 and FOUNDRY_FUZZ_MAX_TEST_REJECTS=150000: the fork's hardhat test config declares those (mirrored from upstream's CI), but its foundry.toml predates the conversion and would leave forge at the 256-run default — 20x less fuzz work than the hardhat cells. The via-IR forge cells (FOUNDRY_VIA_IR=true on the same profile, everything else identical) mirror the hardhat solc-via-ir profile, so forge is measured in both pipelines like hardhat is — upstream ships legacy, so the legacy forge cells remain the ones that describe upstream's own build. The 'parity' warm cells are Hardhat on forge's source set: OZ_BENCH_NO_EXPOSE=1 makes the wrapper config set exposed.include to [] (and the prepare removes the previously generated contracts-exposed/), so the no-op compile check and the test command run without the 286 hardhat-exposed wrappers forge never builds — the like-for-like comparison with the forge warm cells; the non-parity warm cells stay the full-repo cost a Hardhat user pays. The Foundry suite does not import the wrappers (forge runs it without them), so the test counts are unchanged. Parity cells exist for both pipelines so each forge cell has a same-scope Hardhat counterpart.",
   "tags": ["external-repo", "solx"],
   "repo": "nomicfoundation/openzeppelin-contracts",
   "commit": "f72b6b4616806a0cb29eb61d6baf05ab5ff01558",
@@ -152,6 +152,114 @@
         "dependsOn": ["warm forge solc cache"],
         "prepare": "FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline",
         "command": "FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+      },
+      "cold compile forge-1.7.1 via-ir": {
+        "runs": 5,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_VIA_IR=true FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+      },
+      "warm compile forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=true FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=true FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+      },
+      "warm test forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=true FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=true FOUNDRY_SOLC=0.8.34 FOUNDRY_FUZZ_RUNS=5000 FOUNDRY_FUZZ_MAX_TEST_REJECTS=150000 FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
+      },
+      "warm compile solc parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat compile"
+      },
+      "warm test solc parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity"
+      },
+      "warm compile solx-0.1.8 parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8"
+      },
+      "warm test solx-0.1.8 parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity --build-profile solx-0.1.8"
+      },
+      "cold compile solc via-ir parity": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat build --build-profile solc-via-ir --no-expose"
+      },
+      "warm compile solc via-ir parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solc-via-ir",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solc-via-ir"
+      },
+      "warm test solc via-ir parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solc-via-ir",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "cold compile solx-0.1.8 via-ir parity": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat build --build-profile solx-0.1.8-via-ir --no-expose"
+      },
+      "warm compile solx-0.1.8 via-ir parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8-via-ir",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8-via-ir"
+      },
+      "warm test solx-0.1.8 via-ir parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8-via-ir",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
       }
     }
   }

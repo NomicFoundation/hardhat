@@ -174,6 +174,7 @@ const FOOTNOTES = [
 // Warm-test cells that legitimately have no number (the FAIL is the datum),
 // keyed "<scenario>|<compiler>[ via-ir]" like CELL_NOTES.
 const WARM_TEST_NOTES: Record<string, string> = {
+  "aave-v4-solx|forge-1.7.1 via-ir": "✗ does not compile⁵",
   "aave-v4-solx|solc via-ir": "✗ does not compile⁵",
   "1inch-swap-vm-solx|solc via-ir": "✗ tests do not compile⁸",
   "1inch-swap-vm-solx|solx via-ir": "✗ tests do not compile⁸",
@@ -203,8 +204,10 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
   "⁵":
     "⁵ solc via-IR cannot compile aave's Foundry test sources (its cold " +
     "via-IR cells compile src only, mirroring upstream's per-file via-IR " +
-    "overrides), so the suite cannot run at all. The failure, not a time, " +
-    "is the datum.",
+    "overrides), so the suite cannot run at all — under hardhat + solc and " +
+    "under forge, whose codegen is the same solc 0.8.34; the via-IR forge " +
+    "test cell is deliberately absent rather than a repeat of the failure. " +
+    "The failure, not a time, is the datum.",
   "⁶":
     "⁶ OZ runs 346 of its 347 tests on all three toolchains: preinstall " +
     "renames BlockhashTest#testFuzzHistoryBlocks out of discovery. It is an " +
@@ -581,6 +584,34 @@ export function renderSolxTables(
             `| ${id} | ${viaIR ? "via-IR" : "legacy"} | ${solc} | ${solx} | ${forge} |`,
           );
         }
+        // Dedicated parity cells (hardhat on forge's source set) get their
+        // own row: that is the like-for-like comparison with the forge
+        // column, which is forge scope by construction.
+        const parityValue = (matchCompiler: (compiler: string) => boolean) => {
+          const key = [...bucket.keys()].find((k) => {
+            const c = parseCell(k)!;
+            return (
+              matchCompiler(c.compiler) &&
+              c.parity &&
+              c.viaIR === viaIR &&
+              c.dwarf &&
+              !c.noOpt &&
+              !c.upgrade
+            );
+          });
+          return key === undefined ? undefined : wallCpu(bucket.get(key));
+        };
+        const solcParity = parityValue((c) => c === "solc");
+        const solxParity = parityValue(
+          (c) => c === "solx" || c.startsWith("solx-"),
+        );
+        if (solcParity !== undefined || solxParity !== undefined) {
+          parityUsedExact = true;
+          sawMeasurement = true;
+          rows.push(
+            `| ${id} (forge scope)⁹ | ${viaIR ? "via-IR" : "legacy"} | ${solcParity ?? "—"} | ${solxParity ?? "—"} | ${forge} |`,
+          );
+        }
       }
     }
     if (rows.length > 0 && sawMeasurement) {
@@ -627,17 +658,31 @@ export function renderSolxTables(
     if (scenario.warmCompile.size === 0) {
       continue;
     }
-    const pick = (matchCompiler: (compiler: string) => boolean) => {
-      const key = [...scenario.warmCompile.keys()].find((k) =>
-        matchCompiler(parseCell(k)!.compiler),
-      );
+    const pick = (
+      matchCompiler: (compiler: string) => boolean,
+      parity = false,
+    ) => {
+      const key = [...scenario.warmCompile.keys()].find((k) => {
+        const c = parseCell(k)!;
+        return matchCompiler(c.compiler) && c.parity === parity;
+      });
       return key === undefined ? "—" : wallCpu(scenario.warmCompile.get(key));
     };
+    const forge = pick((c) => c.startsWith("forge-"));
     warmCompileRows.push(
       `| ${id} | ${pick((c) => c === "solc")} | ${pick(
         (c) => c === "solx" || c.startsWith("solx-"),
-      )} | ${pick((c) => c.startsWith("forge-"))} |`,
+      )} | ${forge} |`,
     );
+    // Forge-scope no-op (OZ: without the hardhat-exposed wrappers).
+    const solcParity = pick((c) => c === "solc", true);
+    const solxParity = pick((c) => c === "solx" || c.startsWith("solx-"), true);
+    if (solcParity !== "—" || solxParity !== "—") {
+      parityUsedExact = true;
+      warmCompileRows.push(
+        `| ${id} (forge scope)⁹ | ${solcParity} | ${solxParity} | ${forge} |`,
+      );
+    }
   }
   if (warmCompileRows.length > 0) {
     lines.push(
@@ -735,10 +780,12 @@ export function renderSolxTables(
   if (parityUsedExact) {
     lines.push(
       "⁹ dedicated parity cell: hardhat measured on forge's source set " +
-        "(`hardhat build --no-expose`, without the hardhat-exposed wrappers " +
-        "that only the Hardhat pipeline generates), so these numbers are " +
-        "smaller than the same scenario's full-repo cells in the matrix " +
-        "above and are the like-for-like comparison with forge.",
+        "(without the hardhat-exposed wrappers that only the Hardhat " +
+        "pipeline generates: `hardhat build --no-expose` for the cold " +
+        "cells, OZ_BENCH_NO_EXPOSE=1 for the warm ones), so these numbers " +
+        "are smaller than the same scenario's full-repo cells and are the " +
+        "like-for-like comparison with forge, which never builds the " +
+        "wrappers.",
     );
   }
   for (const mark of Object.keys(WARM_TEST_FOOTNOTES)) {
