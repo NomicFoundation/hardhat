@@ -9,6 +9,7 @@ import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { configVariable } from "../../../../src/config.js";
 import {
@@ -221,9 +222,9 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.getUrl(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_URL,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_URL,
       {
-        url: "not a url",
+        configVariable: `the configuration variable "foo"`,
       },
     );
 
@@ -253,9 +254,9 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.getBigInt(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_BIGINT,
       {
-        value: "not a bigint",
+        configVariable: `the configuration variable "foo"`,
       },
     );
 
@@ -263,13 +264,64 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("Should throw if the configuration variable is not a valid hex string", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    process.env.foo = "not a hex string";
+
+    await assertRejectsWithHardhatError(
+      variable.getHexString(),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
+      {
+        configVariable: `the configuration variable "foo"`,
+      },
+    );
+
+    delete process.env.foo;
+  });
+
+  it("should not include the value of a configuration variable in its errors", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    process.env.foo = "super-secret-value";
+
+    for (const getter of [
+      async () => await variable.getUrl(),
+      async () => await variable.getBigInt(),
+      async () => await variable.getHexString(),
+    ]) {
+      let thrownError: Error | undefined;
+
+      try {
+        await getter();
+      } catch (error) {
+        ensureError(error);
+        thrownError = error;
+      }
+
+      assert.ok(thrownError !== undefined, "The getter should have thrown");
+      assert.ok(
+        !thrownError.message.includes("super-secret-value"),
+        `The error message must not include the value, but it was: ${thrownError.message}`,
+      );
+    }
+
+    delete process.env.foo;
+  });
+
+  it("Should throw if an inline configuration value is not a valid hex string", async () => {
     const variable = new FixedValueConfigurationVariable("not a hex string");
 
     await assertRejectsWithHardhatError(
       variable.getHexString(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
       {
-        value: "not a hex string",
+        configVariable: "an inline configuration value",
       },
     );
   });
