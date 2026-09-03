@@ -10,6 +10,7 @@ import type {
 import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import {
   SOLIDITY_HOOKS,
@@ -109,19 +110,50 @@ function wasmRunnerFor(compilerPath: string): {
 }
 
 function provisionedCompilerOf(
-  compilerType: string | undefined,
-  version: string,
+  config: { type?: string; version: string; path?: string; preferWasm?: boolean },
   compiler: { longVersion: string; compilerPath: string; isSolcJs: boolean },
 ): ProvisionedCompiler {
   return {
-    compilerType,
-    version,
+    compilerType: config.type,
+    version: config.version,
+    configuredPath: config.path,
+    configuredPreferWasm: config.preferWasm,
     longVersion: compiler.longVersion,
     compilerPath: compiler.compilerPath,
     isSolcJs: compiler.isSolcJs,
     wasmRunner: compiler.isSolcJs
       ? wasmRunnerFor(compiler.compilerPath)
       : undefined,
+  };
+}
+
+/**
+ * A compiler the port should refuse to use, and only if a job selects it.
+ *
+ * Hardhat locates the compiler of each compilation job from that job's own
+ * configuration, so a configured compiler nothing selects is never located and
+ * can't fail a build. Provisioning up front would break that, which is why a
+ * failure is sent across as a value rather than thrown here.
+ */
+function unavailableCompilerOf(
+  config: { type?: string; version: string; path?: string; preferWasm?: boolean },
+  error: unknown,
+): ProvisionedCompiler {
+  ensureError(error);
+
+  return {
+    compilerType: config.type,
+    version: config.version,
+    configuredPath: config.path,
+    configuredPreferWasm: config.preferWasm,
+    longVersion: "",
+    compilerPath: "",
+    isSolcJs: false,
+    unavailableReason: error.message,
+    // The error itself, so that the wrapper throws Hardhat's own rather than a
+    // plain one carrying the same sentence: only the message can cross into
+    // Rust and come back.
+    unavailableError: error,
   };
 }
 
@@ -167,20 +199,31 @@ export function rustIntegrationFor(
       const seen = new Set<string>();
 
       for (const config of configs) {
-        const key = `${config.type ?? "solc"}#${config.version}`;
+        // Everything the port looks a compiler up by, which is everything
+        // `getCompiler` looks at: two configs of one version pointing at
+        // different binaries are two compilers.
+        const key = JSON.stringify([
+          config.type ?? "solc",
+          config.version,
+          config.path,
+          config.preferWasm,
+        ]);
 
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
 
-        provisioned.push(
-          provisionedCompilerOf(
-            config.type,
-            config.version,
-            await getSolcCompilerForConfig(config, profile.preferWasm),
-          ),
-        );
+        try {
+          provisioned.push(
+            provisionedCompilerOf(
+              config,
+              await getSolcCompilerForConfig(config, profile.preferWasm),
+            ),
+          );
+        } catch (error) {
+          provisioned.push(unavailableCompilerOf(config, error));
+        }
       }
 
       return provisioned;
@@ -201,8 +244,7 @@ export function rustIntegrationFor(
 
       return [
         provisionedCompilerOf(
-          undefined,
-          version,
+          { version },
           await getCompiler(version, { preferWasm: false }),
         ),
       ];
