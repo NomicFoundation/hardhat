@@ -193,6 +193,12 @@ const WARM_TEST_MARKS: Record<string, string> = {
   "openzeppelin-contracts-0.34|solx-0.1.8": "⁶",
   "openzeppelin-contracts-0.34|solx-0.1.8 via-ir": "⁶",
   "openzeppelin-contracts-0.34|forge-1.7.1": "⁶",
+  "uniswap-v4-core-solx|solc": "¹⁰",
+  "uniswap-v4-core-solx|solc via-ir": "¹⁰",
+  "uniswap-v4-core-solx|solx-0.1.8": "¹⁰",
+  "uniswap-v4-core-solx|solx-0.1.8 via-ir": "¹⁰",
+  "uniswap-v4-core-solx|forge-1.7.1": "¹⁰",
+  "uniswap-v4-core-solx|forge-1.7.1 via-ir": "¹⁰",
   "solady-solx|solc": "⁷",
   "solady-solx|solc via-ir": "⁷",
   "solady-solx|solx-0.1.8": "⁷",
@@ -228,6 +234,16 @@ const WARM_TEST_FOOTNOTES: Record<string, string> = {
     "its solx stack-trace decoder (a full DWARF decode) once on the first " +
     "failure of a run — a vm.skip'd test still triggers it, so an in-code " +
     "skip reclaims neither the exit code nor the time.",
+  "¹⁰":
+    "¹⁰ Uniswap v4 runs 597 of its 598 tests on all three toolchains: " +
+    "preinstall renames TickMathTestTest#test_fuzz_getTickAtSqrtPrice_" +
+    "getSqrtPriceAtTick_relation out of discovery. Upstream test bug (still " +
+    "on Uniswap/v4-core main): its bound admits tick = MAX_TICK - 1, where " +
+    "the final assertion calls getTickAtSqrtPrice(MAX_SQRT_PRICE), which " +
+    "reverts InvalidSqrtPrice by definition. Only a fuzzer that draws that " +
+    "tick sees it — forge's legacy build did (its dictionary follows the " +
+    "bytecode), the via-IR builds and EDR did not. Not a compiler or tool " +
+    "divergence.",
   "⁸":
     "⁸ swap-vm's Foundry test sources fail to compile under BOTH compilers " +
     "at the 0.8.34 pin (test-under-solx sweep): the src compiles via-IR " +
