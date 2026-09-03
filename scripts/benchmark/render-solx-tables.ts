@@ -662,7 +662,7 @@ export function renderSolxTables(
     COLD_TEST_NOTES,
     {},
     "### Cold test suite <sub>(clean build including test sources + full suite, wall / CPU s)</sub>",
-    "The first test run after a clean, measured directly. Only aave carries these cells: its compile cells are src-only, so a cold-compile + warm-test sum would understate its first run.",
+    "The first test run after a clean, measured directly. Only scenarios whose compile cells exclude the test sources carry these cells (aave, lido-core): there a cold-compile + warm-test sum would understate the first run.",
   );
 
   // Warm compile: a no-op cache check — no compiler runs, so the number is
