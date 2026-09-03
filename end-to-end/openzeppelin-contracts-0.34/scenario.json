@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "OpenZeppelin's Hardhat 3 fork compiled at solc 0.8.34, benchmarking solx against solc side by side. The warm-test cells time the whole test command over a cached build (warm compile check + suite); the solc via-IR one sets ignoreFailure because the suite has upstream-known failures under solc's via-IR optimizer (BlockhashTest) — the full suite still runs, so the time is comparable. Preinstall appends the fork's own hardhat-side fs permission (read node_modules/hardhat-predeploy/bin, used by draft-ERC7579Utils.t.sol) to foundry.toml so forge can run the same suite. The forge warm-test cell sets FOUNDRY_FUZZ_RUNS=5000 and FOUNDRY_FUZZ_MAX_TEST_REJECTS=150000: the fork's hardhat test config declares those (mirrored from upstream's CI), but its foundry.toml predates the conversion and would leave forge at the 256-run default — 20x less fuzz work than the hardhat cells.",
+  "description": "OpenZeppelin's Hardhat 3 fork compiled at solc 0.8.34, benchmarking solx against solc side by side. The warm-test cells time the whole test command over a cached build (warm compile check + suite); Preinstall renames BlockhashTest#testFuzzHistoryBlocks out of discovery on all three toolchains: an upstream test bug (block.number cached across an inner vm.roll) that only the solc via-IR optimizer exposes, so the suite is 346 tests everywhere and exits zero. Preinstall also patches the fork's hardhat-exposed task to pass the active build profile to getCompilationJobs: unpatched, every non-default-profile invocation (all solx cells, solc via-IR) re-ran an AST-only solc compile of all sources (~2.8s), which was the whole OZ warm-compile gap (3.9s solx vs 1.1s solc) and a ~2.8s bias against solx in the warm-test cells. Preinstall appends the fork's own hardhat-side fs permission (read node_modules/hardhat-predeploy/bin, used by draft-ERC7579Utils.t.sol) to foundry.toml so forge can run the same suite. The forge warm-test cell sets FOUNDRY_FUZZ_RUNS=5000 and FOUNDRY_FUZZ_MAX_TEST_REJECTS=150000: the fork's hardhat test config declares those (mirrored from upstream's CI), but its foundry.toml predates the conversion and would leave forge at the 256-run default — 20x less fuzz work than the hardhat cells.",
   "tags": ["external-repo", "solx"],
   "repo": "nomicfoundation/openzeppelin-contracts",
   "commit": "f72b6b4616806a0cb29eb61d6baf05ab5ff01558",
@@ -121,8 +121,7 @@
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat compile --build-profile solc-via-ir",
-        "command": "npx hardhat test solidity --build-profile solc-via-ir",
-        "ignoreFailure": true
+        "command": "npx hardhat test solidity --build-profile solc-via-ir"
       },
       "warm test forge-1.7.1": {
         "runs": 3,

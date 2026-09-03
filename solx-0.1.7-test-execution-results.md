@@ -294,6 +294,9 @@ went red.
 - openzeppelin-contracts, solidity, solc-via-ir:
   `BlockhashTest#testFuzzHistoryBlocks(uint16,uint256,bytes32)` fails under the control only.
   solx passes it. An unexplained blockhash divergence.
+  *(Addendum 2026-09-02: root-caused as an upstream OZ test bug — `block.number` cached across an
+  inner `vm.roll`, re-read by the via-IR optimizer. Not solc, not EDR. See the 0.1.8 results doc,
+  "Control-only failures", and `/workspace/oz-blockhash-viair-root-cause.md`.)*
 
 These are not a solx quality signal. They are two unexplained divergences that happen to sit on
 the control side.
@@ -304,6 +307,9 @@ the control side.
   identically under solx and solc, with the same counterexample. It was not root-caused. It sits
   on vendored bytecode injected with `vm.etch`, which is consistent with reading it as
   environmental rather than compiler-related.
+  *(Addendum 2026-09-02: root-caused — Hardhat's test genesis puts a revert stub at the EIP-2935
+  address (hardhat#6226) and the test's non-etched path calls it; forge leaves the address empty.
+  Not solx, not solc. See the 0.1.8 results doc and `/workspace/edr-solady-blockhash-fuzz-note.md`.)*
 
 ## lidofinance-core mocha (row 18)
 
