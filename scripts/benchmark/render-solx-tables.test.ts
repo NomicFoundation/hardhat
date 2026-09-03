@@ -297,7 +297,7 @@ describe("renderSolxTables", () => {
   it("gives every footnote a distinct marker", () => {
     // A static footnote once collided with the conditional parity one, so the
     // report showed two different notes under the same superscript.
-    const markers = [...md.matchAll(/^([¹²³⁴⁵⁶⁷⁸⁹])\s/gmu)].map((m) => m[1]);
+    const markers = [...md.matchAll(/^([⁰¹²³⁴⁵⁶⁷⁸⁹]+)\s/gmu)].map((m) => m[1]);
 
     assert.deepEqual(markers, [...new Set(markers)]);
   });
@@ -309,7 +309,7 @@ describe("renderSolxTables", () => {
     );
     assert.match(
       md,
-      /\| uniswap-v4-core-solx \| via-IR \| 30\.0 \/ 31\.0 \| 25\.0 \/ — \| 22\.0 \/ — \|/,
+      /\| uniswap-v4-core-solx \| via-IR \| 30\.0 \/ 31\.0¹⁰ \| 25\.0 \/ —¹⁰ \| 22\.0 \/ —¹⁰ \|/,
     );
     // OZ skips one upstream-buggy test on every toolchain: number + caveat mark.
     assert.match(
