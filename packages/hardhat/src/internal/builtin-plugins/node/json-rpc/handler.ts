@@ -256,6 +256,7 @@ const _handleError = (error: Error): JsonRpcResponse => {
   // that would be lost when wrapped in InternalError below.
   const txHash = extractTxHash(error);
   const returnData = extractReturnData(error);
+  const reason = extractErrorReason(error);
 
   // Check if this is a revert error (code 3) matching the geth/anvil convention.
   const isRevertError =
@@ -271,9 +272,12 @@ const _handleError = (error: Error): JsonRpcResponse => {
 
   // Revert errors (code 3): return raw hex to match the geth/anvil convention
   // that viem/ethers/web3.js rely on. Other errors keep the wrapper for diagnostics.
+  // `reason` is the discriminator clients use to recognize specific failures
+  // (e.g. "InternalCallOutOfGas") once the error class itself is lost to
+  // serialization, so it must survive it.
   const data: unknown = isRevertError
     ? returnData
-    : { message: error.message, txHash, data: returnData };
+    : { message: error.message, txHash, data: returnData, reason };
 
   const response: FailedJsonRpcResponse = {
     jsonrpc: "2.0",
@@ -316,5 +320,15 @@ function extractReturnData(error: Error): string | undefined {
 
   if (isObject(error.data) && typeof error.data.data === "string") {
     return error.data.data;
+  }
+}
+
+function extractErrorReason(error: Error): string | undefined {
+  if (
+    "data" in error &&
+    isObject(error.data) &&
+    typeof error.data.reason === "string"
+  ) {
+    return error.data.reason;
   }
 }

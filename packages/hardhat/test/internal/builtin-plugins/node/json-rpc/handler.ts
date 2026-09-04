@@ -12,6 +12,7 @@ import {
   isJsonRpcResponse,
 } from "../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import {
+  InternalCallOutOfGasError,
   InternalError,
   InvalidJsonInputError,
   InvalidRequestError,
@@ -71,6 +72,13 @@ describe("JSON-RPC handler", async function () {
       (err as any).data = "0xcafe";
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
       (err as any).transactionHash = "0xdef456";
+      throw err;
+    },
+    internalCallOutOfGas: () => {
+      // Simulates the EdrProvider's estimation failure for the
+      // noInternalOutOfGas gas estimation mode
+      const err = new InternalCallOutOfGasError();
+      err.data = { reason: "InternalCallOutOfGas" };
       throw err;
     },
     revertWithDataAndTxHash: () => {
@@ -339,6 +347,30 @@ describe("JSON-RPC handler", async function () {
     );
     assert.equal(rpcRes.error.data.txHash, "0xdef456");
     assert.equal(rpcRes.error.data.data, "0xcafe");
+  });
+
+  it("should preserve the error data reason so clients can recognize the failure", async function () {
+    // The reason discriminator is the only way http clients of a
+    // `hardhat node` server can recognize this failure once the error class
+    // is lost to serialization, so it must survive it.
+    const rpcReq: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "internalCallOutOfGas",
+      id: 1,
+    };
+
+    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
+
+    assert.ok(
+      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
+      "Expected a failed JSON-RPC response",
+    );
+    assert.equal(rpcRes.error.code, InternalCallOutOfGasError.CODE);
+    assert.ok(
+      isObject(rpcRes.error.data),
+      "Expected error data to be an object",
+    );
+    assert.equal(rpcRes.error.data.reason, "InternalCallOutOfGas");
   });
 
   it("should expose revert data as a hex string for code 3 errors (geth/anvil convention)", async function () {

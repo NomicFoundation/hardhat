@@ -1,4 +1,7 @@
-import type { EdrNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
+import type {
+  EdrNetworkConfigOverride,
+  EdrNetworkHDAccountsConfig,
+} from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type {
   LocalConfig,
@@ -10,6 +13,7 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
+import { GasEstimationMode } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -18,7 +22,10 @@ import {
   assertRejectsWithHardhatError,
   createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  hexStringToNumber,
+  numberToHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import {
@@ -31,6 +38,7 @@ import {
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
+  InternalCallOutOfGasError,
   InvalidArgumentsError,
   ProviderError,
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
@@ -213,6 +221,181 @@ describe("edr-provider", () => {
         return;
       }
       assert.fail("Function did not throw any error");
+    });
+
+    describe("gas estimation of transactions with internal out-of-gas calls", () => {
+      const contractAddress = "0x1234567890123456789012345678901234567890";
+      // Runtime bytecode that CALLs itself with a fixed gas of 100. The
+      // inner frame always runs out of gas, while the outer frame ignores
+      // the result of the call and succeeds.
+      const alwaysInternalOogCode = "0x60006000600060006000306064f15000";
+
+      async function connectWithAlwaysInternalOogContract(
+        override?: EdrNetworkConfigOverride,
+      ) {
+        const { provider } = await hre.network.create({ override });
+
+        await provider.request({
+          method: "hardhat_setCode",
+          params: [contractAddress, alwaysInternalOogCode],
+        });
+
+        const accounts = await provider.request({
+          method: "eth_accounts",
+        });
+
+        assertHardhatInvariant(
+          Array.isArray(accounts) && typeof accounts[0] === "string",
+          "There should be at least one account",
+        );
+
+        return { provider, sender: accounts[0] };
+      }
+
+      it("should throw an InternalCallOutOfGasError in the default estimation mode (noInternalOutOfGas)", async () => {
+        const { provider, sender } =
+          await connectWithAlwaysInternalOogContract();
+
+        try {
+          await provider.request({
+            method: "eth_estimateGas",
+            params: [{ from: sender, to: contractAddress }],
+          });
+        } catch (error) {
+          assert.ok(
+            error instanceof InternalCallOutOfGasError,
+            "Error is not an InternalCallOutOfGasError",
+          );
+          assert.equal(error.code, InternalCallOutOfGasError.CODE);
+          assert.match(error.message, /internal call runs out of gas/);
+          assert.ok(
+            typeof error.data === "object" &&
+              error.data !== null &&
+              "reason" in error.data &&
+              error.data.reason === "InternalCallOutOfGas",
+            "The error data should contain the InternalCallOutOfGas reason",
+          );
+          return;
+        }
+        assert.fail("Function did not throw any error");
+      });
+
+      it("should estimate and mine a transaction whose internal call ran out of gas when gasEstimationMode is topLevelSuccess", async () => {
+        const { provider, sender } = await connectWithAlwaysInternalOogContract(
+          {
+            gasEstimationMode: "topLevelSuccess",
+          },
+        );
+
+        const estimation = await provider.request({
+          method: "eth_estimateGas",
+          params: [{ from: sender, to: contractAddress }],
+        });
+
+        assertHardhatInvariant(
+          typeof estimation === "string",
+          "The estimation should be a string",
+        );
+
+        // The estimation only needs to cover the top-level call, so it
+        // should be close to the base transaction cost.
+        assert.ok(
+          hexStringToNumber(estimation) >= 21_000,
+          "The estimation should cover the base transaction cost",
+        );
+
+        // The network uses gas: "auto", so the transaction is sent with that
+        // estimate. The internal call runs out of gas, but the contract
+        // ignores its result, so the transaction still succeeds: this is the
+        // silent internal failure that the noInternalOutOfGas mode prevents.
+        const txHash = await provider.request({
+          method: "eth_sendTransaction",
+          params: [{ from: sender, to: contractAddress }],
+        });
+
+        const receipt = await provider.request({
+          method: "eth_getTransactionReceipt",
+          params: [txHash],
+        });
+
+        assertHardhatInvariant(
+          typeof receipt === "object" &&
+            receipt !== null &&
+            "status" in receipt,
+          "The receipt should have a status field",
+        );
+
+        assert.equal(receipt.status, "0x1");
+      });
+
+      it("should fall back to the default transaction gas limit for transactions with automatic gas", async () => {
+        // A pre-Osaka hardfork, where the default transaction gas limit is
+        // the block gas limit. That makes it distinguishable from the
+        // EIP-7825 cap that the default hardfork would resolve to, so this
+        // test fails if the wiring is removed.
+        const { provider, sender } = await connectWithAlwaysInternalOogContract(
+          {
+            hardfork: "prague",
+            blockGasLimit: 30_000_000,
+          },
+        );
+
+        // The network uses gas: "auto" and the default estimation mode
+        // (noInternalOutOfGas), so the gas estimation runs as part of the
+        // eth_sendTransaction request. The estimation fails because of the
+        // internal out-of-gas error, and the provider's default transaction
+        // gas limit is used instead.
+        const txHash = await provider.request({
+          method: "eth_sendTransaction",
+          params: [{ from: sender, to: contractAddress }],
+        });
+
+        const tx = await provider.request({
+          method: "eth_getTransactionByHash",
+          params: [txHash],
+        });
+
+        assertHardhatInvariant(
+          typeof tx === "object" &&
+            tx !== null &&
+            "gas" in tx &&
+            typeof tx.gas === "string",
+          "The transaction should have a gas field",
+        );
+
+        assert.equal(hexStringToNumber(tx.gas), 30_000_000);
+      });
+
+      it("should cap the automatic gas fallback to a block gas limit lower than the EIP-7825 cap", async () => {
+        const { provider, sender } = await connectWithAlwaysInternalOogContract(
+          {
+            blockGasLimit: 5_000_000,
+          },
+        );
+
+        // Same fallback as above, but the block gas limit is lower than the
+        // EIP-7825 cap: the fallback must not exceed it, or the transaction
+        // would be rejected instead of mined.
+        const txHash = await provider.request({
+          method: "eth_sendTransaction",
+          params: [{ from: sender, to: contractAddress }],
+        });
+
+        const tx = await provider.request({
+          method: "eth_getTransactionByHash",
+          params: [txHash],
+        });
+
+        assertHardhatInvariant(
+          typeof tx === "object" &&
+            tx !== null &&
+            "gas" in tx &&
+            typeof tx.gas === "string",
+          "The transaction should have a gas field",
+        );
+
+        assert.equal(hexStringToNumber(tx.gas), 5_000_000);
+      });
     });
 
     describe("eth_getProof", () => {
@@ -596,6 +779,7 @@ describe("edr-provider", () => {
           "hex",
         ),
         gas: "auto",
+        gasEstimationMode: "noInternalOutOfGas",
         gasMultiplier: 1,
         gasPrice: "auto",
         hardfork: "osaka",
@@ -779,6 +963,25 @@ describe("edr-provider", () => {
         );
 
         assert.equal(providerConfig.transactionGasCap, false);
+      });
+    });
+
+    describe("gasEstimationMode", () => {
+      // The full mode-to-enum mapping is unit tested in convert-to-edr.ts;
+      // here we only check that the configured mode reaches EDR, using the
+      // non-default value.
+      it("should map the configured mode to the EDR enum", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, gasEstimationMode: "topLevelSuccess" },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(
+          providerConfig.gasEstimationMode,
+          GasEstimationMode.TopLevelSuccess,
+        );
       });
     });
   });
