@@ -151,5 +151,36 @@ describe("config resolution", () => {
         flatHre.config.test.solidity,
       );
     });
+
+    it("should resolve every declared profile independently", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            profiles: {
+              default: { isolate: true, fuzz: { runs: 5, seed: "0x1" } },
+              ci: {
+                fuzz: { runs: 500 },
+                forking: { url: "https://example.com/ci", blockNumber: 123 },
+              },
+            },
+          },
+        },
+      });
+
+      const { default: defaultProfile, ci } = hre.config.test.solidity.profiles;
+
+      assert.equal(defaultProfile.isolate, true);
+      assert.equal(defaultProfile.fuzz.runs, 5);
+      assert.equal(defaultProfile.fuzz.seed, "0x1");
+      assert.equal(defaultProfile.forking, undefined);
+
+      // Everything `ci` doesn't set comes from the built-in defaults rather
+      // than from `default`: profiles don't inherit from each other.
+      assert.equal(ci.isolate, undefined);
+      assert.equal(ci.fuzz.runs, 500);
+      assert.equal(ci.fuzz.seed, DEFAULT_FUZZ_SEED);
+      assert.equal(ci.forking?.blockNumber, 123n);
+      assert.equal(await ci.forking?.url?.get(), "https://example.com/ci");
+    });
   });
 });

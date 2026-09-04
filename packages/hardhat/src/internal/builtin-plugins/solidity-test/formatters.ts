@@ -43,8 +43,8 @@ function formatInlineConfigDirectiveProblem(
   switch (problem.kind) {
     case "InlineConfigInvalidSyntax":
       return `missing "=" in "${problem.directive}"`;
-    case "InlineConfigUnsupportedProfile":
-      return `unsupported profile "${problem.profile}". Only the "default" profile is supported`;
+    case "InlineConfigUndeclaredProfile":
+      return `unknown profile "${problem.profile}". Declared profiles: ${problem.declaredProfiles.map((name) => `"${name}"`).join(", ")}`;
     case "InlineConfigInvalidKey":
       return `invalid key "${problem.key}"`;
     case "InlineConfigInvalidKeyForTestType":

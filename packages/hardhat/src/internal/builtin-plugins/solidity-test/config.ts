@@ -26,7 +26,11 @@ import {
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
-import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+import {
+  DEFAULT_TEST_PROFILE,
+  RESERVED_TEST_PROFILE_NAMES,
+  TEST_PROFILE_NAME_PATTERN,
+} from "./test-profiles.js";
 
 // the keccak256 of "built for ethereum"
 export const DEFAULT_FUZZ_SEED =
@@ -136,12 +140,27 @@ const solidityTestProfilesUserConfigType = z.object({
       (profiles) => DEFAULT_TEST_PROFILE in profiles,
       "A `default` profile is required when using `profiles`",
     )
-    .refine(
-      (profiles) =>
-        !(DEFAULT_TEST_PROFILE in profiles) ||
-        Object.keys(profiles).every((name) => name === DEFAULT_TEST_PROFILE),
-      "Only the `default` profile is supported. Other profile names will be supported in a future release.",
-    ),
+    .superRefine((profiles, ctx) => {
+      for (const profileName of Object.keys(profiles)) {
+        if (!TEST_PROFILE_NAME_PATTERN.test(profileName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [profileName],
+            message:
+              "Invalid profile name. Profile names can only contain letters, numbers, underscores and dashes",
+          });
+          continue;
+        }
+
+        if (RESERVED_TEST_PROFILE_NAMES.includes(profileName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [profileName],
+            message: `\`${profileName}\` can't be used as a profile name, as it's an inline test configuration key`,
+          });
+        }
+      }
+    }),
 });
 
 const solidityTestUserConfigType = conditionalUnionType(
@@ -222,42 +241,33 @@ export async function resolveSolidityTestUserConfig(
   testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
   testsPath ??= "test";
 
-  const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
+  const rpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
 
   const solidityUserConfig = userConfig.test?.solidity;
-  let profileUserConfig: SolidityTestProfileUserConfig | undefined;
+
+  // The flat config shape is sugar for a single `default` profile.
+  let profilesUserConfig: Record<string, SolidityTestProfileUserConfig>;
   if (solidityUserConfig !== undefined && "profiles" in solidityUserConfig) {
-    profileUserConfig = solidityUserConfig.profiles[DEFAULT_TEST_PROFILE];
-    assertHardhatInvariant(
-      profileUserConfig !== undefined,
-      "default profile must be present when the profiles wrapper user config is supplied",
-    );
+    profilesUserConfig = solidityUserConfig.profiles;
   } else {
-    profileUserConfig = solidityUserConfig;
+    profilesUserConfig = { [DEFAULT_TEST_PROFILE]: solidityUserConfig ?? {} };
   }
 
-  const resolvedForking = resolveSolidityTestForkingConfig(
-    profileUserConfig?.forking,
-    resolveConfigurationVariable,
+  assertHardhatInvariant(
+    DEFAULT_TEST_PROFILE in profilesUserConfig,
+    "default profile must be present when the profiles wrapper user config is supplied",
   );
 
-  const {
-    memoryLimit,
-    fuzz,
-    invariant,
-    eip712Types,
-    ...otherProfileUserConfig
-  } = profileUserConfig ?? {};
-
-  const resolvedDefaultProfile = {
-    rpcCachePath: defaultRpcCachePath,
-    ...otherProfileUserConfig,
-    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
-    fuzz: resolveFuzzConfig(fuzz),
-    invariant: resolveInvariantConfig(invariant),
-    forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(eip712Types),
-  };
+  const profiles: Record<string, SolidityTestProfileConfig> = {};
+  for (const [profileName, profileUserConfig] of Object.entries(
+    profilesUserConfig,
+  )) {
+    profiles[profileName] = resolveSolidityTestProfileUserConfig(
+      profileUserConfig,
+      rpcCachePath,
+      resolveConfigurationVariable,
+    );
+  }
 
   return {
     ...resolvedConfig,
@@ -270,10 +280,36 @@ export async function resolveSolidityTestUserConfig(
     },
     test: {
       ...resolvedConfig.test,
-      solidity: {
-        profiles: { [DEFAULT_TEST_PROFILE]: resolvedDefaultProfile },
-      },
+      solidity: { profiles },
     },
+  };
+}
+
+function resolveSolidityTestProfileUserConfig(
+  profileUserConfig: SolidityTestProfileUserConfig,
+  rpcCachePath: string,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): SolidityTestProfileConfig {
+  const {
+    memoryLimit,
+    fuzz,
+    invariant,
+    forking,
+    eip712Types,
+    ...otherProfileUserConfig
+  } = profileUserConfig;
+
+  return {
+    rpcCachePath,
+    ...otherProfileUserConfig,
+    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
+    fuzz: resolveFuzzConfig(fuzz),
+    invariant: resolveInvariantConfig(invariant),
+    forking: resolveSolidityTestForkingConfig(
+      forking,
+      resolveConfigurationVariable,
+    ),
+    eip712Types: resolveEip712TypesConfig(eip712Types),
   };
 }
 
