@@ -36,5 +36,16 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     async () => await import("./pad.js"),
   );
 
-  return [convertTask, padTask];
+  const toChecksumAddressTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "to-checksum-address"],
+      "Convert an address to its EIP-55 checksummed representation",
+    ).addPositionalArgument({
+      name: "address",
+      description: "The address to convert",
+    }),
+    async () => await import("./to-checksum-address.js"),
+  );
+
+  return [convertTask, padTask, toChecksumAddressTask];
 }
