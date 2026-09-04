@@ -38,6 +38,7 @@
     "./types/solidity": "./dist/src/types/solidity.js",
     "./console.sol": "./console.sol",
     "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js",
+    "./internal/edr": "./dist/src/internal/edr/exports.js",
     "./internal/gas-analytics": "./dist/src/internal/builtin-plugins/gas-analytics/exports.js",
     "./internal/solidity": "./dist/src/internal/builtin-plugins/solidity/exports.js",
     "./utils/contract-names": "./dist/src/utils/contract-names.js",
@@ -93,7 +94,7 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.19.0",
+    "@nomicfoundation/edr": "0.20.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.17",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.6",
     "@nomicfoundation/hardhat-vendored": "workspace:^3.0.4",
