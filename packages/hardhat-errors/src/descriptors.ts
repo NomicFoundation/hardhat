@@ -418,12 +418,14 @@ You can define it using a plugin like hardhat-keystore, or set it as an environm
         websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
       },
       INVALID_URL: {
+        // [DEPRECATED]
         number: 8,
         messageTemplate: "Invalid URL: {url}",
         websiteTitle: "Invalid URL",
         websiteDescription: `Given value was not a valid URL.`,
       },
       INVALID_BIGINT: {
+        // [DEPRECATED]
         number: 9,
         messageTemplate: "Invalid BigInt: {value}",
         websiteTitle: "Invalid BigInt",
@@ -582,6 +584,30 @@ If that command fails with EBADENGINE, update Node.js to its latest patch releas
 This is usually caused by a known npm bug with optional dependencies (https://github.com/npm/cli/issues/4828), which npm fixed in version 11.3.0. Node.js 22 bundles npm 10, which never received the backport, so it can write a lockfile that omits the platform packages.
 
 Updating npm to 11.3.0 or later and regenerating the lockfile fixes it. Note that the npm fix is not retroactive: an already-affected lockfile has to be regenerated at least once. If updating npm fails with an EBADENGINE error, update Node.js to a newer version first, then retry.`,
+      },
+      INVALID_CONFIG_VARIABLE_URL: {
+        number: 28,
+        messageTemplate: `Invalid URL value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable URL",
+        websiteDescription: `The value of a configuration variable was not a valid URL.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
+      },
+      INVALID_CONFIG_VARIABLE_BIGINT: {
+        number: 29,
+        messageTemplate: `Invalid BigInt value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable BigInt",
+        websiteDescription: `The value of a configuration variable was not a valid BigInt.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
+      },
+      INVALID_CONFIG_VARIABLE_HEX_STRING: {
+        number: 30,
+        messageTemplate: `Invalid hex string value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable hex string",
+        websiteDescription: `The value of a configuration variable was not a valid hex string.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
       },
     },
     INTERNAL: {
@@ -1001,11 +1027,13 @@ If you need to flatten your project, refactor your Solidity sources to remove th
     NETWORK: {
       INVALID_URL: {
         number: 700,
-        messageTemplate: 'Invalid URL "{value}" for network or forking.',
+        messageTemplate: 'Invalid URL for the network "{networkName}"',
         websiteTitle: "Invalid URL for network or forking",
         websiteDescription: `You are trying to connect to a network with an invalid network or forking URL.
 
-Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.`,
+Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.
+
+The URL is not shown, as it may come from a configuration variable holding a secret.`,
       },
       INVALID_REQUEST_PARAMS: {
         number: 701,

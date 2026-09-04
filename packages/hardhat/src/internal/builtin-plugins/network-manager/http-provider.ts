@@ -75,7 +75,7 @@ export class HttpProvider extends BaseProvider {
   }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.INVALID_URL, {
-        value: url,
+        networkName,
       });
     }
 
