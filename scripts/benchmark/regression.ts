@@ -1,13 +1,14 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
-import { execSync } from "node:child_process";
-import { performance } from "node:perf_hooks";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { runBenchmark } from "./main.ts";
-import type { BenchArgs } from "./helpers/args.ts";
-import { computeStats, mean, type BenchmarkStats } from "./helpers/stats.ts";
+import {
+  computeStats,
+  mean,
+  type BenchmarkStats,
+  type TimingStats,
+} from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -18,7 +19,11 @@ import {
   init as e2eInit,
 } from "../end-to-end/subcommands/init.ts";
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
-import type { ScenarioDefinition, StepsVariant } from "../end-to-end/types.ts";
+import type {
+  CommandVariant,
+  ScenarioDefinition,
+  StepsVariant,
+} from "../end-to-end/types.ts";
 import {
   compilePatterns,
   matchesAny,
@@ -26,10 +31,22 @@ import {
   planCommands,
 } from "./helpers/plan.ts";
 import {
-  gnuTimeAvailable,
-  readTimeOutput,
-  wrapWithTime,
-} from "./helpers/gnu-time.ts";
+  CommandFailedError,
+  formatOutput,
+  runMeasured,
+  runPlain,
+  runSeries,
+  shellQuote,
+  type MeasuredRun,
+} from "./helpers/runner.ts";
+import {
+  encodeSeriesTable,
+  fiveNumberSummary,
+  pickRepresentativeRun,
+  procSamplingAvailable,
+  toSeriesTable,
+  treeTotalMb,
+} from "./helpers/mem-series.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -47,14 +64,14 @@ DESCRIPTION
   "benchmark": { "commands": { ... } } in the order they appear in
   scenario.json. Each command entry is one of two shapes:
 
-    // single command, benchmarked with hyperfine
+    // single command
     {
-      "runs":    <positive integer>,    // hyperfine runs (required)
-      "prepare": "<shell snippet>",     // optional --prepare hook
+      "runs":    <positive integer>,    // measured runs (required)
+      "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
     }
 
-    // step sequence, timed in-process (no hyperfine, no per-run prepare)
+    // step sequence (no per-run prepare)
     {
       "runs":  <positive integer>,      // times to run the whole sequence
       "steps": {                         // ordered; each step timed individually
@@ -71,23 +88,35 @@ DESCRIPTION
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
 
-  Writes a flat JSON array in benchmark-action/github-action-benchmark's
-  customSmallerIsBetter format. Every timed name — hyperfine command or
-  measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
-  entry with the total CPU time (user+system). Wall-clock entries carry
-  their per-run samples in the "extra" field; "(cpu)" entries carry their
-  mean user/system there instead.
+  Single commands and measured steps are executed identically: one bash spawn
+  per run, wall-clock timed in-process (with the shell-spawn overhead measured
+  up-front and subtracted, like hyperfine's calibration) and CPU timed by
+  bash's \`time\` builtin.
 
-  Each benchmark is wrapped in GNU time (/usr/bin/time, required — the script
-  aborts if it is missing) to capture peak RSS (the largest resident set size
-  any process in its subtree reached, in MB). This is emitted as a separate
-  "<scenarioId> / <name> (peak RSS)" entry (unit MB): its value is the highest
-  peak observed, with the per-run peaks and their statistics
-  (mean/stddev/min/max/median) in the entry's extra. Step sequences record one
-  peak per run and take their CPU times from the same GNU time output;
-  hyperfine single commands record a single aggregate peak across all runs
-  (their CPU comes from hyperfine). The highest peak is also embedded as
-  "peakRssMb" in the time entry's extra.
+  Writes a flat JSON array in benchmark-action/github-action-benchmark's
+  customSmallerIsBetter format. Every timed name — single command or
+  measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
+  entry with the total CPU time (user+system). Both carry their per-run
+  samples and statistics (times/min/max/median/mean) in the "extra" field;
+  the "(cpu)" entry additionally carries its mean user/system split.
+
+  On Linux, the process tree of every measured run is additionally sampled
+  every 100 ms via /proc, yielding one "<scenarioId> / <name> (memory)" entry
+  (unit MB) tracking the tree-total RSS: the per-sample sum across every
+  process in the tree (hardhat, solc, test workers, ...). The entry's value is
+  the mean over the pooled samples of all runs, with min/max/median/mean of
+  that pool in the extra field ("max" is the sampled tree peak — being a sum,
+  it can far exceed any single process on parallel workloads, and shared pages
+  are counted once per process, a small stable overcount). The extra field
+  also carries the raw per-process series of one representative run (the run
+  with the median tree peak) as a shared "tMs" axis plus one MB array per
+  process label — losslessly compressed into "seriesGz" (base64 of gzip of
+  the delta-encoded table) unless the raw "series" object is smaller — and,
+  per run, its duration, [p0,p25,p50,p75,p100]+mean tree-total summary, and
+  "maxProcessRssMb": the exact peak of its largest single process (kernel
+  VmHWM, the counter behind GNU time's %M — the number to compare against
+  per-process limits). When /proc is unavailable (e.g. macOS), memory entries
+  are skipped and a warning is printed.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -180,12 +209,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (!gnuTimeAvailable()) {
-    logError(
-      "GNU time (/usr/bin/time) is required to measure CPU time and peak RSS. " +
-        "Install the `time` package.",
+  if (!procSamplingAvailable()) {
+    logWarning(
+      "/proc is not available — memory will not be " +
+        "measured. Memory measurements require Linux.",
     );
-    process.exit(1);
   }
 
   const results: BenchmarkEntry[] = [];
@@ -465,7 +493,7 @@ async function runScenario(
   for (const planned of plan) {
     if ("run" in planned) {
       entries.push(
-        ...runStepsPhase(
+        ...(await runStepsPhase(
           scenario.id,
           scenarioTmpDir,
           loaded.workingDir,
@@ -475,74 +503,90 @@ async function runScenario(
           new Set(planned.run),
           new Set(planned.once),
           new Set(planned.emit),
-        ),
+        )),
       );
 
       continue;
     }
 
-    const exportPath = path.join(
-      scenarioTmpDir,
-      `${slugify(planned.name)}.json`,
+    entries.push(
+      ...(await runCommandPhase(
+        scenario.id,
+        scenarioTmpDir,
+        loaded.workingDir,
+        loaded.definition.env,
+        planned.name,
+        planned.cfg,
+        planned.emit,
+      )),
     );
-    // Only reported commands need a memory reading; prerequisites run unwrapped.
-    const timeFile = planned.emit
-      ? path.join(scenarioTmpDir, `${slugify(planned.name)}.time`)
-      : undefined;
-
-    await runPhase(
-      planned.name,
-      buildBenchArgs(scenario.scenarioJsonPath, args, {
-        command: planned.cfg.command,
-        prepare: planned.cfg.prepare,
-        // A single run suffices when the command runs purely as a
-        // prerequisite of a later entry.
-        runs: planned.emit ? planned.cfg.runs : 1,
-        exportJson: exportPath,
-        timeFile,
-      }),
-    );
-
-    // Non-selected single commands still run above (state prerequisites for a
-    // later selected command) but are not reported.
-    if (planned.emit) {
-      const result = readHyperfineResult(exportPath);
-      entries.push(
-        ...toEntries(
-          scenario.id,
-          planned.name,
-          result,
-          timeFile !== undefined
-            ? [readTimeOutput(timeFile).peakRssMb]
-            : undefined,
-        ),
-        toCpuEntry(scenario.id, planned.name, result),
-      );
-    }
   }
 
   return entries;
 }
 
 /**
- * Run a step-sequence command: execute the ordered steps in-process, once per
- * run, timing each step's wall-clock with the high-resolution monotonic clock.
- * CPU time (user/system) and peak RSS both come from a single GNU time wrapper
- * around each emitted step (Node exposes no child rusage). Returns a
- * wall-clock entry plus a "(cpu)" entry per emitted step, and a peak-RSS
- * entry.
+ * Run a single-command benchmark: `cfg.runs` measured runs, each preceded by
+ * the optional unmeasured `cfg.prepare` hook. Non-selected commands still run
+ * (state prerequisites for a later selected command) but are not measured or
+ * reported — and only once instead of their configured `runs`, since their
+ * dependents only observe that they ran once before them.
+ */
+async function runCommandPhase(
+  scenarioId: string,
+  scenarioTmpDir: string,
+  workingDir: string,
+  env: Record<string, string> | undefined,
+  name: string,
+  cfg: CommandVariant,
+  emit: boolean,
+): Promise<BenchmarkEntry[]> {
+  const runs = emit ? cfg.runs : 1;
+
+  logStep(`${fmt.pkg(name)} (${runs} run${runs === 1 ? "" : "s"})`);
+
+  try {
+    if (!emit) {
+      if (cfg.prepare !== undefined) {
+        await runPlain(cfg.prepare, { cwd: workingDir, env });
+      }
+
+      await runPlain(cfg.command, { cwd: workingDir, env });
+
+      return [];
+    }
+
+    const runs = await runSeries(
+      cfg.command,
+      path.join(scenarioTmpDir, `${slugify(name)}-cpu.txt`),
+      { cwd: workingDir, env, runs: cfg.runs, prepare: cfg.prepare },
+    );
+
+    return measuredRunsToEntries(scenarioId, name, runs);
+  } catch (error) {
+    throw benchmarkError(
+      `${scenarioId} / ${name} failed`,
+      cfg.command,
+      workingDir,
+      error,
+    );
+  }
+}
+
+/**
+ * Run a step-sequence command: execute the ordered steps once per run, each
+ * measured step through the shared runner (wall-clock, CPU and memory in a
+ * single spawn). Returns the entries of every emitted step.
  *
  * `runSteps` is the set of step names to execute (selected steps plus their
  * prerequisites); other steps are skipped. `onceSteps` is the subset of those
  * that run purely as cross-command prerequisites — they execute on the final
  * run only, so the sequence's tail matches a full execution while their
  * external dependents still observe them having run. `emit` is the subset to
- * time and report — steps that run but aren't in `emit` are prerequisites only
- * (emitted steps are never in `onceSteps`).
- * The GNU time wrapper's fork+exec is negligible against multi-second
- * compiles.
+ * measure and report — steps that run but aren't in `emit` are prerequisites
+ * only and run unmeasured (emitted steps are never in `onceSteps`).
  */
-function runStepsPhase(
+async function runStepsPhase(
   scenarioId: string,
   scenarioTmpDir: string,
   workingDir: string,
@@ -552,7 +596,7 @@ function runStepsPhase(
   runSteps: Set<string>,
   onceSteps: Set<string>,
   emit: Set<string>,
-): BenchmarkEntry[] {
+): Promise<BenchmarkEntry[]> {
   const totalSteps = Object.keys(cfg.steps).length;
   const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
 
@@ -561,231 +605,120 @@ function runStepsPhase(
   const runs = stepNames.some((n) => !onceSteps.has(n)) ? cfg.runs : 1;
 
   logStep(
-    `${fmt.pkg(seqName)} (${runs} runs${
+    `${fmt.pkg(seqName)} (${runs} run${runs === 1 ? "" : "s"}${
       stepNames.length < totalSteps
         ? `, ${stepNames.length} of ${totalSteps} steps`
         : ""
     })`,
   );
 
-  const samples = new Map<
-    string,
-    { times: number[]; user: number[]; system: number[] }
-  >();
-  const peakRssMb = new Map<string, number[]>();
-  const timeFile = (stepName: string) =>
-    path.join(scenarioTmpDir, `${slugify(seqName)}-${slugify(stepName)}.time`);
+  const samples = new Map<string, MeasuredRun[]>();
 
   for (const stepName of stepNames) {
     if (emit.has(stepName)) {
-      samples.set(stepName, { times: [], user: [], system: [] });
-      peakRssMb.set(stepName, []);
+      samples.set(stepName, []);
     }
   }
 
+  const timingPath = path.join(scenarioTmpDir, `${slugify(seqName)}-cpu.txt`);
+
   for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
-      // Run steps that only need to run once on the last run, so its result can be
-      // observed by consequent commands
+      // Steps that only need to run once do so on the last run, so their
+      // result can be observed by subsequent commands.
       if (onceSteps.has(stepName) && run < runs - 1) {
         continue;
       }
 
       const step = cfg.steps[stepName];
-      // Measured (emitted) steps are wrapped in GNU time, which writes their
-      // CPU time (user/system) and peak RSS to the step's time file (an inner
-      // shell covers the whole command, which has shell operators like && and
-      // >>). Prerequisite steps run plain.
-      const command = emit.has(stepName)
-        ? wrapWithTime(step.command, timeFile(stepName), true)
-        : step.command;
-      const start = performance.now();
+      const stepRuns = samples.get(stepName);
 
       try {
-        execSync(command, {
-          shell: "/bin/bash",
-          cwd: workingDir,
-          stdio: ["ignore", "pipe", "pipe"],
-          encoding: "utf-8",
-          // The default 1 MiB maxBuffer would make chatty-but-successful
-          // steps (e.g. a full hardhat compile) throw ENOBUFS.
-          maxBuffer: 64 * 1024 * 1024,
-          env: { ...process.env, ...env },
-        });
+        if (stepRuns !== undefined) {
+          stepRuns.push(
+            await runMeasured(step.command, timingPath, {
+              cwd: workingDir,
+              env,
+            }),
+          );
+        } else {
+          // Prerequisite steps run plain.
+          await runPlain(step.command, { cwd: workingDir, env });
+        }
       } catch (error) {
-        // Only the first line: execSync embeds the child's full stderr in
-        // its message, and the streams are appended whole below.
-        const original = (
-          error instanceof Error ? error.message : String(error)
-        ).split("\n", 1)[0];
-        const { stdout, stderr } = error as {
-          stdout?: string;
-          stderr?: string;
-        };
-        throw new Error(
-          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${runs}: ${original}\n` +
-            `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}\n` +
-            formatOutput({ stdout, stderr }),
-          { cause: error },
+        throw benchmarkError(
+          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${runs}`,
+          step.command,
+          workingDir,
+          error,
         );
-      }
-
-      const elapsed = (performance.now() - start) / 1000;
-      const sample = samples.get(stepName);
-
-      if (sample !== undefined) {
-        const measured = readTimeOutput(timeFile(stepName));
-        sample.times.push(elapsed);
-        sample.user.push(measured.user);
-        sample.system.push(measured.system);
-        peakRssMb.get(stepName)?.push(measured.peakRssMb);
       }
     }
   }
 
-  return [...samples].flatMap(([stepName, s]) => {
-    const stats: BenchmarkStats = {
-      ...computeStats(s.times),
-      user: mean(s.user),
-      system: mean(s.system),
-    };
-    const cpuStddev = computeStats(
-      s.user.map((u, i) => u + s.system[i]),
-    ).stddev;
-
-    return [
-      ...toEntries(scenarioId, stepName, stats, peakRssMb.get(stepName)),
-      toCpuEntry(scenarioId, stepName, stats, cpuStddev),
-    ];
-  });
+  return [...samples].flatMap(([stepName, stepRuns]) =>
+    measuredRunsToEntries(scenarioId, stepName, stepRuns),
+  );
 }
 
-// Failures are rare and abort the scenario, so the whole output is shown
-// rather than a tail — a compiler error can sit thousands of warning lines
-// above the end.
-function formatOutput(streams: { stdout?: string; stderr?: string }): string {
-  return Object.entries(streams)
-    .map(([name, text]) => [name, (text ?? "").trimEnd()] as const)
-    .filter(([, text]) => text !== "")
-    .map(([name, text]) => `  --- ${name} ---\n${text}`)
-    .join("\n");
+// Contextualize a failed benchmark command: first line of the failure, a
+// repro hint, and the captured output. The whole output is shown rather than
+// a tail — failures are rare and abort the scenario, and a compiler error can
+// sit thousands of warning lines above the end.
+function benchmarkError(
+  context: string,
+  command: string,
+  workingDir: string,
+  error: unknown,
+): Error {
+  const original = (
+    error instanceof Error ? error.message : String(error)
+  ).split("\n", 1)[0];
+  const output =
+    error instanceof CommandFailedError
+      ? formatOutput({ stdout: error.stdout, stderr: error.stderr })
+      : "";
+
+  return new Error(
+    `${context}: ${original}\n` +
+      `  Reproduce with: cd ${shellQuote(workingDir)} && ${command}\n` +
+      output,
+    { cause: error },
+  );
+}
+
+// Aggregate the measured runs of one benchmark name into its report entries:
+// wall-clock, "(cpu)" and "(memory)".
+function measuredRunsToEntries(
+  scenarioId: string,
+  label: string,
+  runs: MeasuredRun[],
+): BenchmarkEntry[] {
+  const stats: BenchmarkStats = {
+    ...computeStats(runs.map((r) => r.wallSeconds)),
+    user: mean(runs.map((r) => r.user)),
+    system: mean(runs.map((r) => r.system)),
+  };
+  const cpuStats = computeStats(runs.map((r) => r.user + r.system));
+
+  return [
+    toTimeEntry(scenarioId, label, stats),
+    toCpuEntry(scenarioId, label, stats, cpuStats),
+    ...toMemoryEntries(scenarioId, label, runs),
+  ];
 }
 
 function slugify(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-async function runPhase(label: string, benchArgs: BenchArgs): Promise<void> {
-  try {
-    await runBenchmark(benchArgs);
-  } catch (error) {
-    const original = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `${label} phase failed: ${original}\n  Reproduce with: ${buildReproCommand(benchArgs)}`,
-      { cause: error },
-    );
-  }
-}
-
-function buildReproCommand(benchArgs: BenchArgs): string {
-  const parts: string[] = [
-    "pnpm bench",
-    "--scenario",
-    shellQuote(benchArgs.scenarioPath),
-  ];
-
-  if (benchArgs.command !== undefined) {
-    parts.push("--command", shellQuote(benchArgs.command));
-  }
-
-  if (benchArgs.prepare !== undefined) {
-    parts.push("--prepare", shellQuote(benchArgs.prepare));
-  }
-
-  if (benchArgs.runs !== undefined) {
-    parts.push("--runs", String(benchArgs.runs));
-  }
-
-  parts.push(
-    "--e2e-clone-dir",
-    shellQuote(benchArgs.e2eCloneDirectory),
-    "--show-output",
-  );
-
-  return parts.join(" ");
-}
-
-function shellQuote(value: string): string {
-  if (/^[\w@./:=-]+$/.test(value)) {
-    return value;
-  }
-
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-function buildBenchArgs(
-  scenarioPath: string,
-  args: RegressionArgs,
-  phase: {
-    command: string | undefined;
-    prepare: string | undefined;
-    runs: number;
-    exportJson: string;
-    timeFile: string | undefined;
-  },
-): BenchArgs {
-  return {
-    scenarioPath,
-    command: phase.command,
-    init: false,
-    useLocal: UseLocal.No,
-    forcePublish: ForcePublish.No,
-    forceCheckout: ForceCheckout.No,
-    precompile: false,
-    prepare: phase.prepare,
-    ignoreFailure: false,
-    showOutput: true,
-    warmup: 0,
-    runs: phase.runs,
-    exportJson: phase.exportJson,
-    timeFile: phase.timeFile,
-    e2eCloneDirectory: args.e2eCloneDirectory,
-  };
-}
-
-// hyperfine's per-result object matches BenchmarkStats, including the mean
-// `user`/`system` CPU time.
-function readHyperfineResult(exportPath: string): BenchmarkStats {
-  const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: BenchmarkStats[];
-  };
-
-  if (!Array.isArray(raw.results) || raw.results.length === 0) {
-    throw new Error(`Hyperfine export at ${exportPath} has no results`);
-  }
-
-  return raw.results[0];
-}
-
-// One benchmark produces a timing entry and, when peak RSS was captured, a
-// separate memory entry (its own MB series, independently charted + alerted).
-// `peakRssMb` holds one peak per run (a single aggregate value for hyperfine
-// single commands, one per outer run for step sequences). The tracked value
-// is the highest peak; the full per-run distribution goes in the entry's
-// `extra`, and the peak is also embedded in the timing entry's `extra`
-// for convenience.
-function toEntries(
+// The wall-clock entry: per-run times and their statistics in `extra`.
+function toTimeEntry(
   scenarioId: string,
   phaseLabel: string,
   result: BenchmarkStats,
-  peakRssMb: number[] | undefined,
-): BenchmarkEntry[] {
-  const rss =
-    peakRssMb !== undefined && peakRssMb.length > 0
-      ? computeStats(peakRssMb)
-      : undefined;
-
-  const timeEntry: BenchmarkEntry = {
+): BenchmarkEntry {
+  return {
     name: `${scenarioId} / ${phaseLabel}`,
     unit: "s",
     value: result.mean,
@@ -796,49 +729,94 @@ function toEntries(
       max: result.max,
       median: result.median,
       mean: result.mean,
-      ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
     }),
   };
-
-  if (rss === undefined) {
-    return [timeEntry];
-  }
-
-  const memEntry: BenchmarkEntry = {
-    name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
-    unit: "MB",
-    // Peak RSS is a max within each run; across runs we track the highest peak
-    // and expose the spread (mean/stddev/…) in `extra`.
-    value: rss.max,
-    range: "",
-    extra: JSON.stringify({
-      times: rss.times,
-      min: rss.min,
-      max: rss.max,
-      median: rss.median,
-      mean: rss.mean,
-      stddev: rss.stddev,
-    }),
-  };
-
-  return [timeEntry, memEntry];
 }
 
+// The CPU entry: its tracked value is the mean total CPU time (user+system).
+// `extra` mirrors the wall-clock entry — per-run totals plus their statistics
+// — extended with the mean user/system split.
 function toCpuEntry(
   scenarioId: string,
   phaseLabel: string,
   result: BenchmarkStats,
-  // hyperfine exports only mean user/system (no per-run CPU samples), so its
-  // entries carry no spread.
-  cpuStddev: number = 0,
+  cpu: TimingStats,
 ): BenchmarkEntry {
   return {
     name: `${scenarioId} / ${phaseLabel} (cpu)`,
     unit: "s",
-    value: result.user + result.system,
-    range: `± ${cpuStddev}`,
-    extra: JSON.stringify({ user: result.user, system: result.system }),
+    value: cpu.mean,
+    range: `± ${cpu.stddev}`,
+    extra: JSON.stringify({
+      times: cpu.times,
+      min: cpu.min,
+      max: cpu.max,
+      median: cpu.median,
+      mean: cpu.mean,
+      user: result.user,
+      system: result.system,
+    }),
   };
+}
+
+// The memory entry: tree-total RSS (per-sample sum across all processes; a
+// sampled quantity, and shared pages are counted once per process — a small,
+// stable overcount). Its charted value is the mean over the pooled samples of
+// all runs, with min/max/median/mean of that pool in `extra` (the same stats
+// shape as the other charts; `max` is the sampled tree peak). `extra` also
+// carries the raw sampled series of the representative run — one MB array per
+// process label on a shared `tMs` axis, encoded by encodeSeriesTable (usually
+// delta+gzip+base64 in `seriesGz`, raw under `series` when tiny) — plus each
+// run's duration, [p0,p25,p50,p75,p100]+mean tree-total summary, and
+// `maxProcessRssMb`: the exact peak of its largest single process (kernel
+// VmHWM, a max never a sum — the number to compare against per-process
+// limits). Skipped (empty) when /proc sampling is unavailable or a run
+// yielded no samples.
+function toMemoryEntries(
+  scenarioId: string,
+  phaseLabel: string,
+  runs: MeasuredRun[],
+): BenchmarkEntry[] {
+  const memories = runs.map((r) => r.memory);
+
+  if (
+    memories.some(
+      (memory) => memory === undefined || memory.samples.length === 0,
+    )
+  ) {
+    return [];
+  }
+
+  const defined = memories as Array<NonNullable<(typeof memories)[number]>>;
+  const totals = defined.map((memory) => memory.samples.map(treeTotalMb));
+  const summaries = totals.map((t) => fiveNumberSummary(t).map(Math.round));
+  const representative = pickRepresentativeRun(summaries.map((s) => s[4]));
+  const pooled = computeStats(totals.flat());
+  const runMeans = totals.map(mean);
+  const table = toSeriesTable(defined[representative].samples);
+
+  return [
+    {
+      name: `${scenarioId} / ${phaseLabel} (memory)`,
+      unit: "MB",
+      value: Math.round(pooled.mean),
+      range: `± ${computeStats(runMeans).stddev}`,
+      extra: JSON.stringify({
+        min: Math.round(pooled.min),
+        max: Math.round(pooled.max),
+        median: Math.round(pooled.median),
+        mean: Math.round(pooled.mean),
+        representativeRun: representative,
+        ...encodeSeriesTable(table),
+        runs: runs.map((run, i) => ({
+          durationMs: Math.round(run.wallSeconds * 1000),
+          maxProcessRssMb: defined[i].maxProcessRssMb,
+          total: summaries[i],
+          mean: Math.round(runMeans[i]),
+        })),
+      }),
+    },
+  ];
 }
 
 function writeOutput(outputPath: string, entries: BenchmarkEntry[]): void {

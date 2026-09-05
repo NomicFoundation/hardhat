@@ -1,0 +1,310 @@
+<!doctype html>
+<!--
+  Template for render-mem-series.ts, which replaces the data placeholder in
+  the script below. The page is self-contained (no network access): canvas
+  line charts, crosshair tooltip, per-chart legend with click-to-isolate,
+  light/dark via prefers-color-scheme. Series hues are a colorblind-validated
+  8-slot palette (stepped per theme); the tree total uses the ink color and
+  the "other" fold the muted gray, so neither consumes a hue.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark memory over time</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --surface: #fcfcfb; --panel: #f2f1ee; --ink: #171614; --ink-2: #52514e;
+    --ink-3: #8a887f; --line: #e3e1dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #232322; --ink: #f4f3ef; --ink-2: #c3c2b7;
+      --ink-3: #8a887f; --line: #3a3936;
+    }
+  }
+  body {
+    margin: 0; background: var(--surface); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  .page { max-width: 1020px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--ink-3); font-size: 13px; margin: 0 0 28px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px 16px 12px; margin: 0 0 24px; overflow-x: auto;
+  }
+  .panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+  canvas { display: block; width: 100%; height: 260px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px;
+    color: var(--ink-2); cursor: pointer; border: 0; background: none;
+    padding: 2px 0; font-variant-numeric: tabular-nums;
+  }
+  .chip .swatch { width: 14px; height: 3px; border-radius: 2px; }
+  .chip.off { opacity: 0.35; }
+  .runs { border-collapse: collapse; font-size: 12.5px; margin-top: 12px; }
+  .runs caption { text-align: left; color: var(--ink-3); font-size: 12px; padding-bottom: 4px; }
+  .runs th, .runs td { padding: 2px 12px 2px 0; text-align: right; color: var(--ink-2); }
+  .runs th { color: var(--ink-3); font-weight: 500; }
+  .runs th:first-child, .runs td:first-child { text-align: left; }
+  .tooltip {
+    position: fixed; display: none; pointer-events: none; z-index: 10;
+    background: var(--ink); color: var(--surface); border-radius: 6px;
+    font-size: 12.5px; line-height: 1.5; padding: 6px 10px; white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  }
+  .tooltip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Memory over time</h1>
+  <p class="sub" id="subtitle"></p>
+  <div id="charts"></div>
+</div>
+<div class="tooltip" id="tooltip"></div>
+<script>
+"use strict";
+const DATA = __DATA__;
+
+const HUES_LIGHT = ["#2a78d6", "#008300", "#e87ba4", "#eda100", "#1baf7a", "#eb6834", "#4a3aa7", "#e34948"];
+const HUES_DARK = ["#3987e5", "#008300", "#d55181", "#c98500", "#199e70", "#d95926", "#9085e9", "#e66767"];
+// Line styles multiply the 8 hues into 24 identities: slots 0-7 solid,
+// 8-15 dashed, 16-23 dotted. [on, off] pixel patterns for ctx.setLineDash.
+const DASHES = [[], [7, 4], [2, 3]];
+
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+const css = (name) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// Stable label -> hue+style slot across every chart; "other" is always gray.
+function lineColor(line) {
+  if (line.kind === "total") return css("--ink");
+  if (line.label === "other") return css("--ink-3");
+  const slot = DATA.labels.indexOf(line.label);
+  const hues = darkQuery.matches ? HUES_DARK : HUES_LIGHT;
+  return hues[slot % hues.length];
+}
+
+function lineDash(line) {
+  if (line.kind === "total" || line.label === "other") return [];
+  const slot = DATA.labels.indexOf(line.label);
+  return DASHES[Math.floor(slot / HUES_LIGHT.length) % DASHES.length];
+}
+
+function niceStep(range, ticks) {
+  const rough = range / ticks;
+  const power = Math.pow(10, Math.floor(Math.log10(rough)));
+  for (const m of [1, 2, 5, 10]) {
+    if (m * power >= rough) return m * power;
+  }
+  return 10 * power;
+}
+
+const M = { l: 56, r: 12, t: 10, b: 30 };
+
+function drawChart(canvas, chart, hidden) {
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+
+  const lines = chart.lines.filter((l) => !hidden.has(l.label));
+  const maxT = Math.max(1, ...lines.flatMap((l) => l.tMs));
+  const maxMb = Math.max(1, ...lines.flatMap((l) => l.mb));
+  const x = (t) => M.l + (t / maxT) * (w - M.l - M.r);
+  const y = (mb) => M.t + (h - M.t - M.b) * (1 - mb / maxMb);
+
+  ctx.font = "11px system-ui, sans-serif";
+  ctx.strokeStyle = css("--line");
+  ctx.fillStyle = css("--ink-3");
+  ctx.lineWidth = 1;
+
+  const yStep = niceStep(maxMb, 4);
+  for (let mb = 0; mb <= maxMb; mb += yStep) {
+    ctx.beginPath();
+    ctx.moveTo(M.l, y(mb));
+    ctx.lineTo(w - M.r, y(mb));
+    ctx.stroke();
+    ctx.textAlign = "right";
+    ctx.fillText(mb + " MB", M.l - 7, y(mb) + 4);
+  }
+
+  const xStep = niceStep(maxT / 1000, 8);
+  ctx.textAlign = "center";
+  for (let s = 0; s * 1000 <= maxT; s += xStep) {
+    ctx.fillText(s + " s", x(s * 1000), h - 12);
+  }
+
+  for (const line of lines) {
+    ctx.beginPath();
+    for (let i = 0; i < line.tMs.length; i++) {
+      const px = x(line.tMs[i]);
+      const py = y(line.mb[i]);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.lineWidth = line.kind === "total" ? 2.5 : 2;
+    ctx.strokeStyle = lineColor(line);
+    ctx.setLineDash(lineDash(line));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  return { x, y, maxT, w, h };
+}
+
+const tooltip = document.getElementById("tooltip");
+
+function attachHover(canvas, chart, hidden, geometry) {
+  canvas.addEventListener("mousemove", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = event.clientX - rect.left;
+    const { x, maxT, w } = geometry.current;
+    if (mx < M.l || mx > w - M.r) {
+      tooltip.style.display = "none";
+      return;
+    }
+
+    const tAt = ((mx - M.l) / (w - M.l - M.r)) * maxT;
+    const rows = [];
+    for (const line of chart.lines) {
+      if (hidden.has(line.label) || line.tMs.length === 0) continue;
+      let best = 0;
+      for (let i = 1; i < line.tMs.length; i++) {
+        if (Math.abs(line.tMs[i] - tAt) < Math.abs(line.tMs[best] - tAt)) best = i;
+      }
+      rows.push({ line, mb: line.mb[best], tMs: line.tMs[best] });
+    }
+    if (rows.length === 0) {
+      tooltip.style.display = "none";
+      return;
+    }
+    rows.sort((a, b) => b.mb - a.mb);
+
+    tooltip.textContent = "";
+    const head = document.createElement("strong");
+    head.textContent = "t = " + (rows[0].tMs / 1000).toFixed(1) + " s";
+    tooltip.append(head);
+    for (const row of rows) {
+      const div = document.createElement("div");
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = lineColor(row.line);
+      div.append(dot, row.line.label + ": " + row.mb + " MB");
+      tooltip.append(div);
+    }
+    tooltip.style.display = "block";
+    tooltip.style.left = Math.min(event.clientX + 14, innerWidth - 240) + "px";
+    tooltip.style.top = event.clientY + 14 + "px";
+  });
+  canvas.addEventListener("mouseleave", () => (tooltip.style.display = "none"));
+}
+
+function buildRunsTable(table) {
+  const el = document.createElement("table");
+  el.className = "runs";
+  if (table.report !== undefined) {
+    const caption = document.createElement("caption");
+    caption.textContent = table.report;
+    el.append(caption);
+  }
+
+  const header = document.createElement("tr");
+  for (const name of ["run", "duration", "max process RSS", "mean", "p0", "p25", "p50", "p75", "p100"]) {
+    const th = document.createElement("th");
+    th.textContent = name;
+    header.append(th);
+  }
+  el.append(header);
+
+  table.runs.forEach((run, i) => {
+    const tr = document.createElement("tr");
+    const mb = (v) => (v !== undefined ? Math.round(v) + " MB" : "—");
+    const cells = [
+      String(i + 1),
+      (run.durationMs / 1000).toFixed(1) + " s",
+      mb(run.maxProcessRssMb),
+      mb(run.mean),
+      ...(run.total ?? Array(5).fill(undefined)).map(mb),
+    ];
+    for (const text of cells) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      tr.append(td);
+    }
+    el.append(tr);
+  });
+
+  return el;
+}
+
+const redraws = [];
+
+for (const chart of DATA.charts) {
+  const panel = document.createElement("section");
+  panel.className = "panel";
+  const title = document.createElement("h2");
+  title.textContent = chart.title;
+  const canvas = document.createElement("canvas");
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  panel.append(title, canvas, legend);
+  for (const table of chart.runTables) panel.append(buildRunsTable(table));
+  document.getElementById("charts").append(panel);
+
+  const hidden = new Set();
+  const geometry = { current: null };
+  const redraw = () => (geometry.current = drawChart(canvas, chart, hidden));
+
+  for (const line of chart.lines) {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.type = "button";
+    const swatch = document.createElement("span");
+    swatch.className = "swatch";
+    const label = document.createElement("span");
+    label.textContent = line.label;
+    chip.append(swatch, label);
+    const paint = () => {
+      const color = lineColor(line);
+      const dash = lineDash(line);
+      // Mirror the canvas dash pattern in the legend swatch.
+      swatch.style.background =
+        dash.length === 0
+          ? color
+          : "repeating-linear-gradient(90deg, " + color + " 0 " + dash[0] +
+            "px, transparent " + dash[0] + "px " + (dash[0] + dash[1]) + "px)";
+    };
+    paint();
+    redraws.push(paint);
+    chip.addEventListener("click", () => {
+      hidden.has(line.label) ? hidden.delete(line.label) : hidden.add(line.label);
+      chip.classList.toggle("off", hidden.has(line.label));
+      redraw();
+    });
+    legend.append(chip);
+  }
+
+  redraw();
+  redraws.push(redraw);
+  attachHover(canvas, chart, hidden, geometry);
+}
+
+document.getElementById("subtitle").textContent =
+  DATA.charts.length + " benchmark" + (DATA.charts.length === 1 ? "" : "s") +
+  " · RSS of the representative run; a bold line is a process tree's total" +
+  " · click a legend entry to toggle its line";
+
+const redrawAll = () => redraws.forEach((fn) => fn());
+addEventListener("resize", redrawAll);
+darkQuery.addEventListener("change", redrawAll);
+</script>
+</body>
+</html>
