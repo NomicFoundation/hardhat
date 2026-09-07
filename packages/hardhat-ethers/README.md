@@ -293,3 +293,15 @@ function getContractAtFromArtifact(
   signer?: ethers.Signer,
 ): Promise<ethers.Contract>;
 ```
+
+## Native secp256k1 public key derivation
+
+Deriving a public key from a secret key is the slowest cryptographic primitive ethers implements in JavaScript, and it runs whenever a wallet is created: `new Wallet(secretKey)`, `Wallet.createRandom()`, `computeAddress` and every node of an HD wallet derivation.
+
+When you connect to a network, this plugin replaces ethers' derivation with EDR's native one. The results are identical, invalid secret keys are still reported by ethers, and only the speed differs. If the native implementation isn't available (e.g. due to an unsupported platform or an EDR version that predates it), ethers keeps using its own and nothing else changes.
+
+A few limitations are worth knowing about:
+
+- ethers offers hooks to register alternative implementations of its hash functions, but none for this, so the plugin overwrites `SigningKey.computePublicKey`, which isn't part of its public API. A future version of ethers could derive keys some other way, which would leave the results correct but silently undo the speedup. To avoid that going unnoticed, the plugin derives a known secret key right after installing the replacement, and checks both that the values are right and that ethers actually used it. If either check fails, ethers' own implementation is restored, and the reason is reported under the `hardhat:ethers:native-secp256k1` debug scope.
+- The replacement reaches the ethers module instance that this plugin resolves: the ESM build of the copy it imports. Code that resolves a **separate** copy, or that `require`s ethers, which loads its distinct CommonJS build even from the same copy, keeps using the JavaScript implementation. Using `ethers` from the network connection avoids this.
+- Only the derivation of a public key from a secret key is replaced. Converting a public key between its compressed and uncompressed encodings, and recovering one from a signature, still run in JavaScript.
