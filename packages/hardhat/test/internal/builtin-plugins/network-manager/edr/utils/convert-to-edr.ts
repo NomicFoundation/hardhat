@@ -11,6 +11,7 @@ import {
 import {
   edrL1HardforkToHardhatL1HardforkName,
   hardhatHardforkToEdrSpecId,
+  hardhatMiningIntervalToEdrMiningInterval,
   resolveDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
 import {
@@ -157,5 +158,36 @@ describe("Amsterdam L1 hardfork conversion round-trip", () => {
       edrL1HardforkToHardhatL1HardforkName(SpecId.Amsterdam),
       L1HardforkName.AMSTERDAM,
     );
+  });
+});
+
+describe("hardhatMiningIntervalToEdrMiningInterval", () => {
+  it("disables interval mining for a scalar 0", () => {
+    assert.equal(hardhatMiningIntervalToEdrMiningInterval(0), undefined);
+  });
+
+  it("converts a scalar interval to a bigint", () => {
+    assert.equal(hardhatMiningIntervalToEdrMiningInterval(5000), 5000n);
+  });
+
+  it("converts a range as it is", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([1000, 5000]), {
+      min: 1000n,
+      max: 5000n,
+    });
+  });
+
+  it("raises a range minimum of 0 to 1", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([0, 5000]), {
+      min: 1n,
+      max: 5000n,
+    });
+  });
+
+  it("raises both bounds of a [0, 0] range to 1", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([0, 0]), {
+      min: 1n,
+      max: 1n,
+    });
   });
 });
