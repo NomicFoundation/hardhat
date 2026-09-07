@@ -32,6 +32,13 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
 
   protected abstract _getRawValue(): Promise<string>;
 
+  /**
+   * A description of this variable, used to identify it in error messages.
+   *
+   * Resolved values may be secrets, so they must never be included in errors.
+   */
+  protected abstract _getDescription(): string;
+
   constructor(public readonly format: string) {
     assertHardhatInvariant(
       this.format.includes(CONFIGURATION_VARIABLE_MARKER),
@@ -57,9 +64,10 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
       new URL(value);
       return value;
     } catch (_error) {
-      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_URL, {
-        url: value,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_URL,
+        { configVariable: this._getDescription() },
+      );
     }
   }
 
@@ -69,9 +77,10 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
     try {
       return BigInt(value);
     } catch (_error) {
-      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT, {
-        value,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_BIGINT,
+        { configVariable: this._getDescription() },
+      );
     }
   }
 
@@ -81,10 +90,8 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
       return normalizeHexString(value);
     } catch {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
-        {
-          value,
-        },
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
+        { configVariable: this._getDescription() },
       );
     }
   }
@@ -110,6 +117,10 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     if (!LazyResolvedConfigurationVariable.#mutexes.has(hooks)) {
       LazyResolvedConfigurationVariable.#mutexes.set(hooks, new AsyncMutex());
     }
+  }
+
+  protected _getDescription(): string {
+    return `the configuration variable "${this.name}"`;
   }
 
   protected async _getRawValue(): Promise<string> {
@@ -155,6 +166,10 @@ export class FixedValueConfigurationVariable extends BaseResolvedConfigurationVa
   constructor(value: string) {
     super(CONFIGURATION_VARIABLE_MARKER);
     this.#value = value;
+  }
+
+  protected _getDescription(): string {
+    return "an inline configuration value";
   }
 
   protected async _getRawValue(): Promise<string> {
