@@ -1,0 +1,171 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times. The legacy forge cells (FOUNDRY_VIA_IR=false on the same profile, everything else identical) mirror the hardhat legacy profile, so forge is measured in both pipelines like hardhat is — upstream ships via-IR, so the via-IR forge cells remain the ones that describe upstream's own build. Preinstall renames TickMathTestTest#test_fuzz_getTickAtSqrtPrice_getSqrtPriceAtTick_relation out of discovery on all three toolchains (597 tests everywhere): an upstream test bug — at tick = MAX_TICK - 1 it asserts getTickAtSqrtPrice(MAX_SQRT_PRICE), which reverts by definition — that only surfaces when a fuzzer draws that tick; forge's legacy build did (its fuzz dictionary follows the bytecode), the via-IR builds and EDR did not.",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/uniswap-v4-core",
+  "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
+  "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false"
+  },
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "assert fresh hardhat-slang-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
+            "measure": false
+          },
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          },
+          "warm forge solc cache": {
+            "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build && ./.foundry/forge clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx-0.1.8": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.8"
+      },
+      "cold compile solx-0.1.8 via-ir": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir"
+      },
+      "cold compile solc": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc no-opt": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-no-opt"
+      },
+      "cold compile solc via-ir": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile forge-1.7.1 via-ir": {
+        "runs": 5,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "warm test solx-0.1.8": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8",
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8"
+      },
+      "warm test solx-0.1.8 via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8-via-ir",
+        "command": "npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
+      },
+      "warm test solc": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile",
+        "command": "npx hardhat test solidity"
+      },
+      "warm test solc via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solc-via-ir",
+        "command": "npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "warm test forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
+      },
+      "warm compile solc": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile",
+        "command": "npx hardhat compile"
+      },
+      "warm compile solx-0.1.8": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8",
+        "command": "npx hardhat compile --build-profile solx-0.1.8"
+      },
+      "warm compile forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "cold compile forge-1.7.1": {
+        "runs": 5,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "warm compile forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "warm test forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline",
+        "command": "FOUNDRY_VIA_IR=false FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
+      }
+    }
+  }
+}

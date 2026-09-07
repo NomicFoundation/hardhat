@@ -1,0 +1,92 @@
+# Vendored by the lidofinance-core-solx benchmark scenario: the pre-migration
+# foundry.toml from NomicFoundation/lido-core@242beb163, which the Hardhat 3
+# migration removed. Copied verbatim except for the last two
+# compilation_restrictions entries (marked below), which the benchmark adds. Its per-tree
+# additional_compiler_profiles / compilation_restrictions mirror
+# hardhat.config.ts, and that is what makes the forge cells comparable to the
+# hardhat ones.
+[profile.default]
+# The source directory
+src = 'contracts'
+
+# The artifact directory
+out = 'foundry/out'
+
+# A list of paths to look for libraries in
+libs = ['node_modules', 'foundry/lib']
+
+# The test directory
+test = 'test'
+
+# Whether to cache builds or not
+cache = true
+
+# The cache directory if enabled
+cache_path = 'foundry/cache'
+
+# Only run tests in contracts matching the specified glob pattern
+match_path = '**/test/**/*.t.sol'
+
+# Enable latest EVM features
+evm_version = "prague"
+optimizer = true
+optimizer_runs = 200
+
+fmt = { int_types = 'long' }
+
+# profiles required by compilation_restrictions
+additional_compiler_profiles = [
+    { name = "solc0424", optimizer = true, optimizer_runs = 200, evm_version = "constantinople" },
+    { name = "solc06x_089", optimizer = true, optimizer_runs = 200, evm_version = "istanbul" },
+    { name = "solc0825", optimizer = true, optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    { name = "v3", optimizer = true, optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    { name = "vaultHub", optimizer = true, optimizer_runs = 100, via_ir = true, evm_version = "cancun" },
+]
+
+# align compiler settings with hardhat.config.ts
+compilation_restrictions = [
+    { paths = "contracts/0.4.24/**", optimizer_runs = 200, evm_version = "constantinople" },
+    { paths = "contracts/0.6.11/**", optimizer_runs = 200, evm_version = "istanbul" },
+    { paths = "contracts/0.6.12/**", optimizer_runs = 200, evm_version = "istanbul" },
+    { paths = "contracts/0.8.9/**", optimizer_runs = 200, evm_version = "istanbul" },
+    { paths = "contracts/0.8.25/**", optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    { paths = "contracts/upgrade/**", optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    # NB: Foundry cannot safely mirror Hardhat's strict VaultHub runs=100 override
+    # together with a runs=200 rule on the same import graph, so we keep a merge-safe
+    # range here for compatibility.
+    { paths = "contracts/0.8.25/vaults/VaultHub.sol", min_optimizer_runs = 100, max_optimizer_runs = 200, via_ir = true, evm_version = "cancun" },
+    # Benchmark delta, not upstream: the hardhat cells configure exactly one
+    # compiler above 0.8.9 — 0.8.34, the only version in hardhat-slang-solx's
+    # map, which preinstall.sh's pragma relaxation lets the modern tree reach
+    # — so
+    # every ranged pragma resolves there. forge otherwise picks the newest solc
+    # it can fetch, which would both diverge from the hardhat cells and drift as
+    # releases land. The exact-pinned trees (legacy, and contracts/upgrade at
+    # 0.8.25 — the pragmas preinstall leaves alone) are unaffected by the cap.
+    { paths = "contracts/**", version = "<=0.8.34" },
+    # Benchmark delta, not upstream: this file's pragma floor (>=0.8.9) is a lie —
+    # its `assembly ("memory-safe")` dialect string only parses from solc 0.8.13.
+    # forge 1.7.1's compilation-unit partition depends on which solc versions
+    # ~/.svm already holds, and with only 0.8.34 installed (the persistent
+    # runner's state after the graph-horizon cells) it groups this file into a
+    # 0.8.9 unit and dies on the parse error (CI run 32305937072). The floor pins
+    # it where every cache state can compile it; its only importer is the
+    # 0.8.25-pinned upgrade tree, so no legacy-tree restriction merge conflicts.
+    { paths = "contracts/common/lib/Bytes32String.sol", version = ">=0.8.13" },
+]
+
+[profile.default.invariant]
+runs = 256
+depth = 500
+
+[profile.deep]
+# Inherits all settings from default profile
+# Used for certification runs (10,000 invariant runs)
+# Run with: FOUNDRY_PROFILE=deep forge test
+
+[profile.deep.fuzz]
+runs = 10000
+
+[profile.deep.invariant]
+runs = 10000
+depth = 500

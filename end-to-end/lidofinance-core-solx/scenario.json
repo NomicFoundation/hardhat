@@ -1,0 +1,133 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Lido core on the Hardhat 3 migration branch (lidofinance/core PR #1935), tracking forge, solx, and solc compile times. One of two lido scenarios: this one measures the whole-repo adoption cost, so every cell carries the legacy trees as ballast and the wall clocks converge on the shared critical path; lidofinance-vaults-solx is the companion like-for-like comparison, scoped to the sources both compilers build at 0.8.34. The repo's older trees (0.4.24-0.8.9) predate the 0.8.x language era and can never compile at the 0.8.34 solx requires, so every cell — the solx ones included — builds them with upstream's own solc versions, and only the modern vaults tree (contracts/0.8.25) moves to the compiler under test at 0.8.34. That mixed shape is what adopting solx here would actually look like, and it keeps every cell compiling the whole source graph instead of a slice of it. The forge cells match the same per-tree assignment through the vendored foundry.toml's compilation_restrictions, capped at 0.8.34 so ranged pragmas resolve where the hardhat cells put them. Hardhat cells are via-IR only: the vaults tree is IR-native (SRLib hits stack-too-deep and RefSlotCache's struct-array copy to storage is an UnimplementedFeatureError in solc's legacy codegen), so no compiler has legacy or no-opt cells — that FAIL is the datum, annotated in CELL_NOTES. contracts/upgrade stays on upstream's own 0.8.25 in every cell (preinstall leaves its exact pragmas alone): its UpgradeVoteScript.sol builds via-IR at 0.8.25 but hits a Yul stack-too-deep from solc 0.8.26 on, so it cannot follow the modern tree to 0.8.34 — solx compiles it there, but a solx cell with no solc cell to compare against is not a comparison, so it rides as ballast like the older trees. One path sits out of every compile cell, on both tools: test/ (harnesses and fixtures the base happens to declare as a source root) — hardhat drops it from the source roots and passes --no-tests; forge skips it by glob. The warm-test cells are the exception: lido-core also carries a Foundry suite (19 .t.sol, 216 tests, upstream ran it with forge before the Hardhat 3 migration), and those cells time `hardhat test solidity` / `forge test` over a cached build that includes test/ (LIDO_BENCH_INCLUDE_TESTS=1 re-adds it to the wrapper's source roots; forge builds it by default). Fixtures in the 0.4.24-0.8.9 trees compile on upstream's own solc ballast in every cell; the ^0.8.25 harnesses follow the modern tree to the compiler under test. The suite is via-IR only like the rest of the scenario, one run per cell (invariant fuzzing dominates the ~3 min wall), fuzz seed pinned on both tools, both at their 256-run defaults (the vendored toml's invariant runs=256/depth=500 is forge's default and matches EDR's). The solx leg's one wrinkle is already covered by the scenario env: ValidatorExitDelayVerifier__Harness needs EVM_DISABLE_MEMORY_SAFE_ASM_CHECK to spill (the production contract compiles clean). One residual asymmetry: forge also compiles contracts/common and contracts/openzeppelin as standalone targets under the toml's default settings, because a restriction pinning them to the modern tree's settings conflicts with the legacy trees that import them — it runs in parallel with the other units and cost no measurable wall time locally. The migration removed the repo's foundry.toml; preinstall reinstates the pre-migration one (which aligns per-tree compiler settings with hardhat.config.ts via compilation_restrictions) so forge compiles the same sources with the same settings — the forge-std remapping resolves from npm, so the removed foundry/lib submodule isn't needed for builds. SKIP_LINT_SOLIDITY/SKIP_INTERFACES_CHECK are upstream's own escape hatches for its build-task override, which otherwise adds solhint + ABI checks to every timed compile (and the solhint lido/fixed-compiler-version rule rejects the caret pragmas preinstall introduces). EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill stack-too-deep despite the deprecated natspec memory-safe annotations in contracts/common's assembly (GIndex/SSZ/BLS; see the aave-v4-solx scenario). Warm-compile cells (no-op over the compile scope) and cold-test cells (clean, then the full test command including the test-source compile, 1 run each) complete the row set: like aave, lido's compile cells exclude test/, so a cold-compile + warm-test sum would understate the first test run.",
+  "tags": ["external-repo", "solx"],
+  "repo": "NomicFoundation/lido-core",
+  "commit": "28bc9f7ff2c4425849bbd883b7e52820feecd4c6",
+  "packageManager": "yarn",
+  "submodules": false,
+  "preinstall": "./preinstall.sh",
+  "env": {
+    "SKIP_LINT_SOLIDITY": "1",
+    "SKIP_INTERFACES_CHECK": "1",
+    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1"
+  },
+  "defaultCommand": "npx hardhat compile --build-profile solx-via-ir --no-tests",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "assert fresh hardhat-slang-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
+            "measure": false
+          },
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile --build-profile solc-via-ir --no-tests && npx hardhat compile --build-profile solx-via-ir --no-tests && npx hardhat clean",
+            "measure": false
+          },
+          "warm forge solc cache": {
+            "command": "./.foundry/forge build && ./.foundry/forge clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx-0.1.8 via-ir": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
+      },
+      "cold compile solc via-ir": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir --no-tests"
+      },
+      "cold compile forge-1.7.1 via-ir": {
+        "runs": 5,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "./.foundry/forge build --skip 'test/**' --offline"
+      },
+      "warm test solx-0.1.8 via-ir": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat compile --build-profile solx-0.1.8-via-ir",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
+      },
+      "warm test solc via-ir": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat compile --build-profile solc-via-ir",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "warm test forge-1.7.1 via-ir": {
+        "runs": 1,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge build --offline",
+        "command": "FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
+      },
+      "warm compile solc via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solc-via-ir --no-tests",
+        "command": "npx hardhat compile --build-profile solc-via-ir --no-tests"
+      },
+      "cold test solc via-ir": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "warm compile solx-0.1.8 via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests",
+        "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
+      },
+      "cold test solx-0.1.8 via-ir": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solx-0.1.8-via-ir"
+      },
+      "warm compile forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge build --skip 'test/**' --offline",
+        "command": "./.foundry/forge build --skip 'test/**' --offline"
+      },
+      "cold test forge-1.7.1 via-ir": {
+        "runs": 1,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry/forge test --offline"
+      }
+    }
+  }
+}

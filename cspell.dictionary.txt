@@ -7,6 +7,7 @@ anonymization
 APDU
 arrayified
 authorizationify
+avgs
 behaviour
 besu
 Besu
@@ -47,6 +48,7 @@ fqns
 Fqns
 FQNs
 gcda
+Ghiglia
 gnueabihf
 hdkey
 hdpath
@@ -83,7 +85,9 @@ myfun
 mykey
 mylib
 mylock
+misparses
 napi
+nebasuke
 niño
 NFKC
 Nomic
@@ -110,6 +114,8 @@ riscv
 sarasa
 schaable
 sokol
+solady
+Solady
 solcjs
 SOLCJS
 solx
@@ -117,6 +123,7 @@ Solx
 sourcify
 Sourcify
 SOURCIFY
+stackification
 ssfi
 Ssfi
 stringifying
@@ -131,12 +138,14 @@ txts
 ufixed
 Uints
 Uncontended
+uncompilable
 uncompiled
 undownloadable
 unidici
 unmined
 unpad
 unpadded
+unpair
 unparseable
 Unpayable
 unpublishing

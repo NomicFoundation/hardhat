@@ -17,21 +17,21 @@ describe("wrapWithTime", () => {
   it("wraps a lone program without an inner shell", () => {
     assert.equal(
       wrapWithTime("hyperfine --runs 3 'npx hardhat compile'", "/t/m", false),
-      "/usr/bin/time -o '/t/m' -f '%U %S %M' hyperfine --runs 3 'npx hardhat compile'",
+      "/usr/bin/time -o /t/m -f '%U %S %M' hyperfine --runs 3 'npx hardhat compile'",
     );
   });
 
   it("wraps a shell command under sh -c so operators are covered", () => {
     assert.equal(
       wrapWithTime("printf x >> f && npx hardhat compile", "/t/m", true),
-      `/usr/bin/time -o '/t/m' -f '%U %S %M' sh -c 'printf x >> f && npx hardhat compile'`,
+      `/usr/bin/time -o /t/m -f '%U %S %M' sh -c 'printf x >> f && npx hardhat compile'`,
     );
   });
 
   it("escapes single quotes in the wrapped command", () => {
     assert.equal(
       wrapWithTime("echo 'hi'", "/t/m", true),
-      `/usr/bin/time -o '/t/m' -f '%U %S %M' sh -c 'echo '\\''hi'\\'''`,
+      `/usr/bin/time -o /t/m -f '%U %S %M' sh -c 'echo '\\''hi'\\'''`,
     );
   });
 });
