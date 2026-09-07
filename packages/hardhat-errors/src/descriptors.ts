@@ -1384,6 +1384,14 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
         websiteDescription:
           "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
       },
+      TEST_PROFILE_NOT_FOUND: {
+        number: 822,
+        messageTemplate: `The Solidity test profile "{testProfile}" is not defined in your Hardhat config. Declared profiles: {declaredProfiles}`,
+        websiteTitle: "Solidity test profile not defined",
+        websiteDescription: `The Solidity test profile you are trying to use is not defined in your Hardhat config.
+
+Declare it under \`test.solidity.profiles\`, or select one of the profiles you already declared.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
