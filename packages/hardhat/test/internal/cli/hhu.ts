@@ -60,6 +60,7 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 AVAILABLE SUBTASKS:
 
   constants zero-address           Print the zero address
+  constants zero-hash              Print the zero hash
   convert pad                      Pad a hex string to a given byte length
   convert to-checksum-address      Convert an address to its EIP-55 checksummed representation
   fetch block-number               Print the latest block number
@@ -88,6 +89,7 @@ Usage: hhu [GLOBAL OPTIONS] constants <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK 
 AVAILABLE SUBTASKS:
 
   constants zero-address      Print the zero address
+  constants zero-hash         Print the zero hash
 
 GLOBAL OPTIONS:
 
