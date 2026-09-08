@@ -29,7 +29,9 @@ export async function balancesHaveChanged<
     hash: resolvedTxHash,
   });
 
-  const senderAddress = receipt.from;
+  // `receipt.from` is returned lowercased by viem, while the user-provided
+  // addresses may be checksummed, so we normalize both sides before comparing.
+  const senderAddress = receipt.from.toLowerCase();
   const blockNrAfterTx = receipt.blockNumber;
 
   const beforeBalances = await Promise.all(
@@ -48,7 +50,7 @@ export async function balancesHaveChanged<
         blockNumber: blockNrAfterTx,
       });
 
-      if (address === senderAddress) {
+      if (address.toLowerCase() === senderAddress) {
         const senderGasFee = receipt.effectiveGasPrice * receipt.gasUsed;
         balance = balance + senderGasFee;
       }
