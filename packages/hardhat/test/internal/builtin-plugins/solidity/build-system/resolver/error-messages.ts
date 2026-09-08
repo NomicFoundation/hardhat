@@ -539,6 +539,22 @@ If you want to use the remapping, write your import as "contracts/Token.sol" ins
 If you still want to be able to do it, try adding this remapping "contracts/=contracts/" to the "remappings.txt" file in the root of your project.`,
         );
       });
+
+      it("Should suggest a relative import for a bare-filename sibling", () => {
+        const result = formatImportResolutionError({
+          type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+          fromFsPath: "/project/contracts/Factory.sol",
+          importPath: "Storage.sol",
+          suggestedRelativeImport: "./Storage.sol",
+        });
+
+        assert.equal(
+          result,
+          `You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.
+
+If you meant to import a local file next to this one, write your import as "./Storage.sol" instead.`,
+        );
+      });
     });
 
     describe("IMPORT_DOES_NOT_EXIST", () => {
