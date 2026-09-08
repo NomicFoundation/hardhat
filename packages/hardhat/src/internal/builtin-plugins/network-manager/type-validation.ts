@@ -319,6 +319,12 @@ const edrNetworkUserConfigSchema = z.object({
   blockGasLimit: z.optional(gasLimitWithDisableUserConfigSchema),
   coinbase: z.optional(z.string()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
+  gasEstimationMode: z.optional(
+    unionType(
+      [z.literal("topLevelSuccess"), z.literal("noInternalOutOfGas")],
+      "Expected 'topLevelSuccess' or 'noInternalOutOfGas'",
+    ),
+  ),
   hardfork: z.optional(z.string()),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(

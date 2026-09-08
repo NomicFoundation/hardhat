@@ -10,6 +10,9 @@ export const EDR_NETWORK_DEFAULT_COINBASE =
 
 export const DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT = 60_000_000n;
 
+// EIP-7825 per-transaction gas cap, enforced from L1's Osaka hardfork onwards
+export const EIP_7825_TRANSACTION_GAS_CAP = 16_777_216n;
+
 interface EdrNetworkDefaultHDAccountsConfigParams extends DefaultHDAccountsConfigParams {
   mnemonic: string;
   accountsBalance: bigint;

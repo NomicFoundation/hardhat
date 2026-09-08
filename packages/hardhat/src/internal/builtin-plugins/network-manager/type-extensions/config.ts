@@ -110,6 +110,7 @@ declare module "../../../../types/config.js" {
     blockGasLimit?: number | bigint | false;
     coinbase?: string;
     forking?: EdrNetworkForkingUserConfig;
+    gasEstimationMode?: "topLevelSuccess" | "noInternalOutOfGas";
     hardfork?: string;
     initialBaseFeePerGas?: number | bigint;
     initialDate?: string | Date;
@@ -253,6 +254,7 @@ declare module "../../../../types/config.js" {
     blockGasLimit?: bigint | false;
     coinbase: Uint8Array;
     forking?: EdrNetworkForkingConfig;
+    gasEstimationMode: "topLevelSuccess" | "noInternalOutOfGas";
     hardfork: string;
     initialBaseFeePerGas?: bigint;
     initialDate: string | Date;

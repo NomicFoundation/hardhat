@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { AMSTERDAM, SpecId } from "@nomicfoundation/edr";
+import { AMSTERDAM, GasEstimationMode, SpecId } from "@nomicfoundation/edr";
 
 import {
   getCurrentHardfork,
@@ -10,6 +10,7 @@ import {
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   edrL1HardforkToHardhatL1HardforkName,
+  hardhatGasEstimationModeToEdrGasEstimationMode,
   hardhatHardforkToEdrSpecId,
   resolveDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
@@ -141,6 +142,20 @@ describe("resolveDefaultTransactionGasLimit", () => {
         ARBITRARY_BLOCK_GAS_LIMIT,
       );
     });
+  });
+});
+
+describe("hardhatGasEstimationModeToEdrGasEstimationMode", () => {
+  it("maps the hardhat gas estimation modes to the EDR ones", () => {
+    assert.equal(
+      hardhatGasEstimationModeToEdrGasEstimationMode("topLevelSuccess"),
+      GasEstimationMode.TopLevelSuccess,
+    );
+
+    assert.equal(
+      hardhatGasEstimationModeToEdrGasEstimationMode("noInternalOutOfGas"),
+      GasEstimationMode.NoInternalOutOfGas,
+    );
   });
 });
 
