@@ -12,6 +12,7 @@ import {
   generateAddressBytes,
   randomAddress,
   isValidChecksumAddress,
+  toChecksumAddress,
 } from "../src/eth.js";
 
 describe("eth", () => {
@@ -55,22 +56,23 @@ describe("eth", () => {
     });
   });
 
+  // EIP-55 test vectors (https://eips.ethereum.org/EIPS/eip-55#test-cases)
+  const eip55ChecksumAddresses = [
+    // All caps
+    "0x52908400098527886E0F7030069857D2E4169EE7",
+    "0x8617E340B3D01FA5F11F306F4090FD50E238070D",
+    // All Lower
+    "0xde709f2102306220921060314715629080e2fb77",
+    "0x27b1fdb04752bbc536007a920d24acb045561c26",
+    // Normal
+    "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+    "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
+    "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB",
+    "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb",
+  ];
+
   describe("isValidChecksumAddress", () => {
     it("Should return true for valid checksum addresses", async () => {
-      const eip55ChecksumAddresses = [
-        // All caps
-        "0x52908400098527886E0F7030069857D2E4169EE7",
-        "0x8617E340B3D01FA5F11F306F4090FD50E238070D",
-        // All Lower
-        "0xde709f2102306220921060314715629080e2fb77",
-        "0x27b1fdb04752bbc536007a920d24acb045561c26",
-        // Normal
-        "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
-        "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
-        "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB",
-        "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb",
-      ];
-
       for (const address of eip55ChecksumAddresses) {
         assert.equal(await isValidChecksumAddress(address), true);
       }
@@ -100,6 +102,36 @@ describe("eth", () => {
           "0xZZ015c60e0be116b1f0cd534704db9c92118fb6a",
         ),
         false,
+      );
+    });
+  });
+
+  describe("toChecksumAddress", () => {
+    it("Should convert addresses to their EIP-55 checksummed representation", async () => {
+      for (const address of eip55ChecksumAddresses) {
+        // Lowercased, uppercased and already checksummed inputs
+        assert.equal(await toChecksumAddress(address.toLowerCase()), address);
+        assert.equal(
+          await toChecksumAddress(`0x${address.slice(2).toUpperCase()}`),
+          address,
+        );
+        assert.equal(await toChecksumAddress(address), address);
+      }
+    });
+
+    it("Should throw InvalidParameterError if the input is not an address", async () => {
+      await assert.rejects(toChecksumAddress("0x1234"), {
+        name: "InvalidParameterError",
+        message: "Expected an Ethereum address. Received: 0x1234",
+      });
+
+      await assert.rejects(
+        toChecksumAddress("5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"),
+        {
+          name: "InvalidParameterError",
+          message:
+            "Expected an Ethereum address. Received: 5aaeb6053f3e94c9b9a09f33669435e7ef1beaed",
+        },
       );
     });
   });
