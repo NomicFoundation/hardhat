@@ -45,6 +45,7 @@
     "profiler": "node ./scripts/profiler/main.ts",
     "profiler:flamegraph": "node ./scripts/profiler/helpers/flamegraph.ts",
     "bench": "node ./scripts/benchmark/main.ts",
-    "bench:regression": "node ./scripts/benchmark/regression.ts"
+    "bench:regression": "node ./scripts/benchmark/regression.ts",
+    "bench:render:mem-series": "node ./scripts/benchmark/render-mem-series.ts"
   }
 }

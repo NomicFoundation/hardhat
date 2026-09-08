@@ -1,15 +1,25 @@
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { init as e2eInit } from "../end-to-end/subcommands/init.ts";
 import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
-import { wrapWithTime } from "./helpers/gnu-time.ts";
+import { computeStats, mean } from "./helpers/stats.ts";
+import { runSeries, type MeasuredRun } from "./helpers/runner.ts";
+import { procSamplingAvailable, toSeriesTable } from "./helpers/mem-series.ts";
 
 const USAGE = `
-scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
+scripts/benchmark/main.ts — Benchmark Hardhat scenarios
 
 DESCRIPTION
-  Initializes an e2e scenario and benchmarks a command using hyperfine.
+  Initializes an e2e scenario and benchmarks a command: wall-clock time
+  (with the shell-spawn overhead measured up-front and subtracted, like
+  hyperfine's calibration), CPU time via bash's time builtin, and — on
+  Linux — a memory-over-time series sampled from /proc every 100 ms with
+  the exact peak of the largest single process (VmHWM).
   Use --use-local to detect changed packages, publish them to Verdaccio,
   and pin the scenario to those versions before benchmarking.
 
@@ -31,20 +41,16 @@ OPTIONS
                         Only applies when init runs
   --precompile          Run "npx hardhat compile" in the scenario before
                         benchmarking (useful for warming up compilation caches)
-  --prepare <cmd>       Execute CMD before each timing run. Forwarded to
-                        hyperfine's --prepare flag. Useful for clearing disk
-                        caches or resetting state between runs
-  --warmup <n>          Warmup runs before benchmarking (default: 0). Forwarded
-                        to hyperfine's --warmup flag. Useful for filling disk
-                        caches for I/O-heavy programs
-  --runs <n>            Number of benchmark runs (default: 10). Forwarded to
-                        hyperfine's --runs flag
-  --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
-                        Forwarded to hyperfine's --ignore-failure flag
-  --show-output         Print stdout and stderr of the benchmarked command.
-                        Forwarded to hyperfine's --show-output flag
-  --export-json <path>  Write hyperfine's JSON report to PATH. Forwarded to
-                        hyperfine's --export-json flag
+  --prepare <cmd>       Execute CMD unmeasured before each timing run (warmup
+                        runs included). Useful for clearing disk caches or
+                        resetting state between runs
+  --warmup <n>          Unmeasured warmup runs before benchmarking (default: 0).
+                        Useful for filling disk caches for I/O-heavy programs
+  --runs <n>            Number of benchmark runs (default: 10)
+  --ignore-failure      Ignore non-zero exit codes of the benchmarked command
+  --show-output         Print stdout and stderr of the benchmarked command
+  --export-json <path>  Write a hyperfine-compatible JSON report to PATH,
+                        extended with each run's memory series
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
 
 EXAMPLES
@@ -67,7 +73,6 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     showOutput,
     warmup,
     exportJson,
-    timeFile,
     e2eCloneDirectory,
   } = benchArgs;
 
@@ -81,7 +86,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   const benchCommand = command ?? scenario.definition.defaultCommand;
   const runs = benchArgs.runs ?? 10;
 
-  if (init) {
+  if (init || !existsSync(scenario.workingDir)) {
     logStep("Initializing scenario");
     await e2eInit(
       e2eCloneDirectory,
@@ -104,38 +109,100 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     );
   }
 
-  logStep("Running benchmark");
-  const hyperfineCommand = buildHyperfineCommand(
-    benchCommand,
-    warmup,
-    runs,
-    prepare,
-    ignoreFailure,
-    showOutput,
-    exportJson,
-  );
+  if (!procSamplingAvailable()) {
+    logWarning(
+      "/proc is not available — memory will not be " +
+        "measured. Memory measurements require Linux.",
+    );
+  }
 
+  logStep("Running benchmark");
   log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
   log(`Warmup: ${warmup}, Runs: ${runs}`);
 
-  // Wrap the whole hyperfine run in GNU time to capture peak RSS across all
-  // runs (the CPU fields in its output are unused here — hyperfine reports
-  // per-run CPU itself). This doesn't perturb hyperfine's own per-run timing.
-  const commandToRun =
-    timeFile !== undefined
-      ? wrapWithTime(hyperfineCommand, timeFile, false)
-      : hyperfineCommand;
-
-  await e2eExec(
-    e2eCloneDirectory,
-    scenarioPath,
-    commandToRun,
-    useLocal,
-    forceCheckout,
-    forcePublish,
+  const timingPath = path.join(
+    mkdtempSync(path.join(tmpdir(), "hardhat-bench-")),
+    "cpu.txt",
   );
 
+  const measured = await runSeries(benchCommand, timingPath, {
+    cwd: scenario.workingDir,
+    env: scenario.definition.env,
+    runs,
+    warmup,
+    prepare,
+    ignoreFailure,
+    showOutput,
+  });
+
+  report(measured);
+
+  if (exportJson !== undefined) {
+    writeFileSync(exportJson, buildExport(benchCommand, measured));
+    log(`Report written to ${exportJson}`);
+  }
+
   log(fmt.success("Benchmark complete"));
+}
+
+function report(measured: MeasuredRun[]): void {
+  const stats = computeStats(measured.map((r) => r.wallSeconds));
+  const seconds = (s: number) => `${s.toFixed(3)} s`;
+
+  log(`  Time (mean ± σ):   ${seconds(stats.mean)} ± ${seconds(stats.stddev)}`);
+  log(
+    `  Range (min … max): ${seconds(stats.min)} … ${seconds(stats.max)}  (${measured.length} runs)`,
+  );
+  log(
+    `  CPU (user, system): ${seconds(mean(measured.map((r) => r.user)))}, ${seconds(mean(measured.map((r) => r.system)))}`,
+  );
+
+  const peaks = measured
+    .map((r) => r.memory?.maxProcessRssMb)
+    .filter((peak) => peak !== undefined);
+
+  if (peaks.length === measured.length) {
+    log(`  Max process RSS:   ${Math.max(...peaks)} MB`);
+  }
+}
+
+/**
+ * Render the report in hyperfine's --export-json shape ({ results: [{ times,
+ * mean, stddev, min, max, median, user, system }] }) so downstream consumers
+ * keep working, extended with each run's memory series (`memory[i]` holds the
+ * i-th run's exact largest-single-process peak and its per-process series
+ * over a shared time axis).
+ */
+function buildExport(command: string, measured: MeasuredRun[]): string {
+  const stats = computeStats(measured.map((r) => r.wallSeconds));
+
+  return JSON.stringify(
+    {
+      results: [
+        {
+          command,
+          mean: stats.mean,
+          stddev: stats.stddev,
+          median: stats.median,
+          user: mean(measured.map((r) => r.user)),
+          system: mean(measured.map((r) => r.system)),
+          min: stats.min,
+          max: stats.max,
+          times: stats.times,
+          memory: measured.map((r) =>
+            r.memory !== undefined
+              ? {
+                  maxProcessRssMb: r.memory.maxProcessRssMb,
+                  ...toSeriesTable(r.memory.samples),
+                }
+              : null,
+          ),
+        },
+      ],
+    },
+    null,
+    2,
+  );
 }
 
 async function cliMain(): Promise<void> {
@@ -156,44 +223,6 @@ async function cliMain(): Promise<void> {
     logError(error.message);
     process.exit(1);
   }
-}
-
-function buildHyperfineCommand(
-  command: string,
-  warmup: number,
-  runs: number,
-  prepare: string | undefined,
-  ignoreFailure: boolean,
-  showOutput: boolean,
-  exportJson: string | undefined,
-): string {
-  const parts: string[] = ["hyperfine"];
-
-  if (warmup > 0) {
-    parts.push("--warmup", String(warmup));
-  }
-
-  parts.push("--runs", String(runs));
-
-  if (prepare !== undefined) {
-    parts.push("--prepare", `'${prepare}'`);
-  }
-
-  if (ignoreFailure) {
-    parts.push("--ignore-failure");
-  }
-
-  if (showOutput) {
-    parts.push("--show-output");
-  }
-
-  if (exportJson !== undefined) {
-    parts.push("--export-json", `'${exportJson}'`);
-  }
-
-  parts.push(`'${command}'`);
-
-  return parts.join(" ");
 }
 
 if (import.meta.main) {
