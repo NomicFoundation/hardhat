@@ -7,6 +7,7 @@ import * as ethers from "ethers";
 
 import { HardhatEthersProvider } from "./hardhat-ethers-provider/hardhat-ethers-provider.js";
 import { HardhatHelpers } from "./hardhat-helpers/hardhat-helpers.js";
+import { registerNativeKeccak256 } from "./native-keccak256.js";
 
 export async function initializeEthers(
   ethereumProvider: EthereumProvider,
@@ -14,6 +15,8 @@ export async function initializeEthers(
   networkConfig: NetworkConfig,
   artifactManager: ArtifactManager,
 ): Promise<HardhatEthers> {
+  await registerNativeKeccak256();
+
   const provider = new HardhatEthersProvider(
     ethereumProvider,
     networkName,
