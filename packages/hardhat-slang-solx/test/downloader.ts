@@ -41,25 +41,25 @@ describe("hardhat-slang-solx downloader", () => {
   let assetName: string;
   let expectedDigest: string;
 
-  let mockedDispatcher: Interceptable;
+  let mockedInterceptor: Interceptable;
 
   function interceptChecksum(
-    dispatcher: Interceptable,
+    interceptable: Interceptable,
     body: string,
     times = 1,
   ): void {
-    dispatcher
+    interceptable
       .intercept({ path: `/${assetName}.sha256`, method: "GET" })
       .reply(200, body)
       .times(times);
   }
 
   function interceptBinary(
-    dispatcher: Interceptable,
+    interceptable: Interceptable,
     body: string,
     times = 1,
   ): void {
-    dispatcher
+    interceptable
       .intercept({ path: `/${assetName}`, method: "GET" })
       .reply(200, body)
       .times(times);
@@ -75,24 +75,27 @@ describe("hardhat-slang-solx downloader", () => {
     ).slice(2);
 
     mockAgent = await getTestDispatcher();
-    mockedDispatcher = mockAgent.get(SOLX_RELEASES_BASE_URL);
+    mockedInterceptor = mockAgent.get(SOLX_RELEASES_BASE_URL);
 
     // Any request the tests don't intercept is a bug, not a network call.
     mockAgent.disableNetConnect();
   });
 
   afterEach(async () => {
+    mockAgent.enableNetConnect();
+    await mockAgent.close();
+
     resetMockCacheDir();
 
     await safeRemoveTmpDir(tmpDir);
   });
 
   it("should successfully verify the download against the sidecar and keep the binary", async () => {
-    interceptChecksum(mockedDispatcher, expectedDigest);
-    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, expectedDigest);
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS);
 
     const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
-      dispatcher: mockedDispatcher,
+      dispatcher: mockAgent,
     });
 
     assert.equal(binaryPath, await getSolxBinaryPath(TEST_SOLX_VERSION));
@@ -111,11 +114,11 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("should accept a sha256sum-style sidecar, with the filename after the digest", async () => {
-    interceptChecksum(mockedDispatcher, `${expectedDigest}  ${assetName}`);
-    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, `${expectedDigest}  ${assetName}`);
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS);
 
     const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
-      dispatcher: mockedDispatcher,
+      dispatcher: mockAgent,
     });
 
     assert.ok(
@@ -125,11 +128,11 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("should accept an uppercase digest", async () => {
-    interceptChecksum(mockedDispatcher, expectedDigest.toUpperCase());
-    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, expectedDigest.toUpperCase());
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS);
 
     const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
-      dispatcher: mockedDispatcher,
+      dispatcher: mockAgent,
     });
 
     assert.ok(
@@ -139,12 +142,12 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("fails when the sidecar request errors", async () => {
-    mockedDispatcher
+    mockedInterceptor
       .intercept({ path: `/${assetName}.sha256`, method: "GET" })
       .replyWithError(new Error("socket hang up"));
 
     await assertRejectsWithHardhatError(
-      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockedDispatcher }),
+      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockAgent }),
       HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.CHECKSUM_DOWNLOAD_FAILED,
       {
         version: TEST_SOLX_VERSION,
@@ -155,12 +158,12 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("should fail without downloading the binary when the sidecar is missing", async () => {
-    mockedDispatcher
+    mockedInterceptor
       .intercept({ path: `/${assetName}.sha256`, method: "GET" })
       .reply(404, "Not Found");
 
     await assertRejectsWithHardhatError(
-      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockedDispatcher }),
+      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockAgent }),
       HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.CHECKSUM_DOWNLOAD_FAILED,
       {
         version: TEST_SOLX_VERSION,
@@ -178,10 +181,10 @@ describe("hardhat-slang-solx downloader", () => {
 
   it("fails when the sidecar isn't a digest, without downloading the binary", async () => {
     // A proxy serving its own error page with a 200 is the realistic case.
-    interceptChecksum(mockedDispatcher, "<html><body>Not Found</body></html>");
+    interceptChecksum(mockedInterceptor, "<html><body>Not Found</body></html>");
 
     await assertRejectsWithHardhatError(
-      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockedDispatcher }),
+      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockAgent }),
       HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.CHECKSUM_DOWNLOAD_FAILED,
       {
         version: TEST_SOLX_VERSION,
@@ -198,16 +201,16 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("deletes the binary and fails when the digest doesn't match", async () => {
-    interceptChecksum(mockedDispatcher, expectedDigest, RETRY_COUNT);
+    interceptChecksum(mockedInterceptor, expectedDigest, RETRY_COUNT);
     interceptBinary(
-      mockedDispatcher,
+      mockedInterceptor,
       "a different binary entirely",
       RETRY_COUNT,
     );
 
     await assertRejectsWithHardhatError(
       downloadSolx(TEST_SOLX_VERSION, noop, {
-        dispatcher: mockedDispatcher,
+        dispatcher: mockAgent,
         retryDelayMs: 0,
       }),
       HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.INVALID_DOWNLOAD,
@@ -222,12 +225,12 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("recovers when a retry downloads the binary correctly", async () => {
-    interceptChecksum(mockedDispatcher, expectedDigest, 2);
-    interceptBinary(mockedDispatcher, "truncated");
-    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, expectedDigest, 2);
+    interceptBinary(mockedInterceptor, "truncated");
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS);
 
     const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
-      dispatcher: mockedDispatcher,
+      dispatcher: mockAgent,
       retryDelayMs: 0,
     });
 
@@ -238,11 +241,11 @@ describe("hardhat-slang-solx downloader", () => {
   });
 
   it("leaves no temporary file behind after a successful download", async () => {
-    interceptChecksum(mockedDispatcher, expectedDigest);
-    interceptBinary(mockedDispatcher, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, expectedDigest);
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS);
 
     const binaryPath = await downloadSolx(TEST_SOLX_VERSION, noop, {
-      dispatcher: mockedDispatcher,
+      dispatcher: mockAgent,
     });
 
     assert.ok(
@@ -260,7 +263,7 @@ describe("hardhat-slang-solx downloader", () => {
 
     assert.equal(
       await downloadSolx(TEST_SOLX_VERSION, noop, {
-        dispatcher: mockedDispatcher,
+        dispatcher: mockAgent,
       }),
       binaryPath,
     );

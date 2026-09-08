@@ -1295,8 +1295,8 @@ importers:
         specifier: ^1.3.1
         version: 1.4.1
       undici:
-        specifier: ^6.28.0
-        version: 6.28.0
+        specifier: ^7.29.0
+        version: 7.29.0
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.7
@@ -7163,6 +7163,10 @@ packages:
   undici@6.28.0:
     resolution: {integrity: sha512-LIY910g9TI13YS95lrMFrs8Rm/u/irgHeTWoKCoteeJ04CUJ92eEfj0rVn+7VKMPBpUPiUoBKfhNyLI23EE/KA==}
     engines: {node: '>=18.17'}
+
+  undici@7.29.0:
+    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+    engines: {node: '>=20.18.1'}
 
   unique-filename@5.0.0:
     resolution: {integrity: sha512-2RaJTAvAb4owyjllTfXzFClJ7WsGxlykkPvCr9pA//LD9goVq+m4PPAeBgNodGZ7nSrntT/auWpJ6Y5IFXcfjg==}
@@ -13621,6 +13625,8 @@ snapshots:
   undici-types@7.16.0: {}
 
   undici@6.28.0: {}
+
+  undici@7.29.0: {}
 
   unique-filename@5.0.0:
     dependencies:
