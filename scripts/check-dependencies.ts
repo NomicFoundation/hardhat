@@ -22,6 +22,15 @@ const ALLOWED_DIFFERENT_VERSION_SPECS = new Map([
       "@nomicfoundation/hardhat-toolbox-mocha-ethers",
     ]),
   ],
+  [
+    // hardhat-ledger holds micro-eth-signer at 0.14 while the rest of the
+    // monorepo is on 0.19. 0.19 collapsed its subpath exports into the root and
+    // no longer reaches `encoder` from `typed-data`, which hardhat-ledger needs
+    // to sign typed data on devices that cannot take a whole typed message.
+    // Remove when that package moves to the new Ledger libraries.
+    "micro-eth-signer",
+    new Set(["@nomicfoundation/hardhat-ledger"]),
+  ],
 ]);
 
 function main() {

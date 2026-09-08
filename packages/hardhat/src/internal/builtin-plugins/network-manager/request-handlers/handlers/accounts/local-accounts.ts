@@ -6,7 +6,6 @@ import type {
 import type { RequestHandler } from "../../types.js";
 import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 import type * as MicroEthSignerT from "micro-eth-signer";
-import type * as MicroEthSignerTypedDataT from "micro-eth-signer/typed-data";
 
 import {
   assertHardhatInvariant,
@@ -32,7 +31,6 @@ import {
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
-let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
 
 import { getRequestParams } from "../../../json-rpc.js";
 import { ChainId } from "../chain-id/chain-id.js";
@@ -129,19 +127,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData =
-              await import("micro-eth-signer/typed-data");
+          if (microEthSigner === undefined) {
+            microEthSigner = await import("micro-eth-signer");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            microEthSignerTypedData.personal.sign(
-              data,
-              privateKey,
-              EXTRA_ENTROPY,
-            ),
+            microEthSigner.eip191Signer.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -159,19 +152,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData =
-              await import("micro-eth-signer/typed-data");
+          if (microEthSigner === undefined) {
+            microEthSigner = await import("micro-eth-signer");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            microEthSignerTypedData.personal.sign(
-              data,
-              privateKey,
-              EXTRA_ENTROPY,
-            ),
+            microEthSigner.eip191Signer.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -201,17 +189,13 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       // if we don't manage the address, the method is forwarded
       const privateKey = await this.#getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
-        if (microEthSignerTypedData === undefined) {
-          microEthSignerTypedData = await import("micro-eth-signer/typed-data");
+        if (microEthSigner === undefined) {
+          microEthSigner = await import("micro-eth-signer");
         }
 
         return this.#createJsonRpcResponse(
           jsonRpcRequest.id,
-          microEthSignerTypedData.signTyped(
-            typedMessage,
-            privateKey,
-            EXTRA_ENTROPY,
-          ),
+          microEthSigner.signTyped(typedMessage, privateKey, EXTRA_ENTROPY),
         );
       }
     }
@@ -482,7 +466,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
     const signedTransaction = transaction.signBy(privateKey, EXTRA_ENTROPY);
 
-    return signedTransaction.toRawBytes();
+    return signedTransaction.toBytes();
   }
 
   #createJsonRpcResponse(
