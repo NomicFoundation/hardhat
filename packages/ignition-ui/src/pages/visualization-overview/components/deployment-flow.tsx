@@ -66,7 +66,7 @@ export const DeploymentFlow: React.FC<{
                 key={`batch-btn-${i}`}
                 onMouseEnter={() => setCurrentlyHovered(`batch-${i}`)}
                 onMouseLeave={() => setCurrentlyHovered("")}
-                isCurrentlyHovered={currentlyHovered === `batch-${i}`}
+                $isCurrentlyHovered={currentlyHovered === `batch-${i}`}
               >
                 Batch <strong>#{i + 1}</strong>
               </BatchBtn>
@@ -74,9 +74,9 @@ export const DeploymentFlow: React.FC<{
           </BatchBtnSection>
 
           <HighlightedFutures
-            futures={futuresToHighlight}
-            deploys={deploys}
-            others={others}
+            $futures={futuresToHighlight}
+            $deploys={deploys}
+            $others={others}
           >
             <Mermaid ignitionModule={ignitionModule} />
           </HighlightedFutures>
@@ -128,36 +128,36 @@ const FlowTooltip: React.FC = () => (
 );
 
 const HighlightedFutures = styled.div<{
-  futures: string[];
-  deploys: string[];
-  others: string[];
+  $futures: string[];
+  $deploys: string[];
+  $others: string[];
 }>`
-  ${({ deploys }) =>
-    deploys.map(
-      (id) => css`
-        g[id^="flowchart-${id}-"] rect {
+  ${({ $deploys }) =>
+    $deploys.map(
+      (id: string) => css`
+        g[id*="flowchart-${id}-"] rect {
           fill: #fbf8d8 !important;
         }
       `,
     )}
 
-  ${({ others }) =>
-    others.map(
-      (id) => css`
-        g[id^="flowchart-${id}-"] rect {
+  ${({ $others }) =>
+    $others.map(
+      (id: string) => css`
+        g[id*="flowchart-${id}-"] rect {
           fill: #f8f2ff !important;
         }
       `,
     )}
 
-  ${({ futures }) =>
-    futures.map(
-      (id) => css`
-        g[id^="flowchart-${id}-"] rect {
+  ${({ $futures }) =>
+    $futures.map(
+      (id: string) => css`
+        g[id*="flowchart-${id}-"] rect {
           fill: #16181d !important;
         }
 
-        g[id^="flowchart-${id}-"] span {
+        g[id*="flowchart-${id}-"] span {
           color: #fbf8d8 !important;
         }
       `,
@@ -187,7 +187,7 @@ const BatchBtnSection = styled.div`
   width: 100%;
 `;
 
-const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
+const BatchBtn = styled.span<{ $isCurrentlyHovered: boolean }>`
   font-size: 0.8rem;
   width: 86px;
   text-align: center;
@@ -200,7 +200,7 @@ const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
   white-space: nowrap;
 
   ${(props) =>
-    props.isCurrentlyHovered &&
+    props.$isCurrentlyHovered &&
     `
     background: #16181D;
     color: #FBF8D8;
