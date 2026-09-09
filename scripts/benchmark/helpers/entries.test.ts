@@ -123,24 +123,43 @@ describe("measuredRunsToEntries", () => {
 });
 
 describe("toCpuEntry", () => {
+  const USER = [1.0, 1.2];
+  const SYSTEM = [0.4, 0.6];
+  // Derived by hand, so a change to how totals are paired fails the tests.
+  const TOTALS = computeStats([1.0 + 0.4, 1.2 + 0.6]);
+
   it("tracks the mean of per-run totals with their spread", () => {
-    const user = [1.0, 1.2];
-    const system = [0.4, 0.6];
-    const entry = toCpuEntry("scenario", "test", user, system);
+    const entry = toCpuEntry("scenario", "test", USER, SYSTEM);
 
     assert.equal(entry.name, "scenario / test (cpu)");
     assert.equal(entry.unit, "s");
-
-    const totals = computeStats([1.0 + 0.4, 1.2 + 0.6]);
-    assert.equal(entry.value, totals.mean);
-    assert.equal(entry.range, `± ${totals.stddev}`);
+    assert.equal(entry.value, TOTALS.mean);
+    assert.equal(entry.range, `± ${TOTALS.stddev}`);
   });
 
-  it("carries the mean user/system split in extra", () => {
-    const extra = JSON.parse(
-      toCpuEntry("s", "x", [1.0, 1.2], [0.4, 0.6]).extra,
-    );
+  it("renders on the dashboard: per-run totals and statistics in extra", () => {
+    const extra = JSON.parse(toCpuEntry("s", "x", USER, SYSTEM).extra);
 
-    assert.deepEqual(extra, { user: 1.1, system: 0.5 });
+    assert.deepEqual(extra.times, TOTALS.times);
+    assertChartable(extra, TOTALS);
+  });
+
+  it("carries the user/system split as per-run stats sub-objects", () => {
+    const extra = JSON.parse(toCpuEntry("s", "x", USER, SYSTEM).extra);
+
+    assert.deepEqual(extra.user, {
+      times: [1.0, 1.2],
+      min: 1.0,
+      max: 1.2,
+      median: 1.1,
+      mean: 1.1,
+    });
+    assert.deepEqual(extra.system, {
+      times: [0.4, 0.6],
+      min: 0.4,
+      max: 0.6,
+      median: 0.5,
+      mean: 0.5,
+    });
   });
 });
