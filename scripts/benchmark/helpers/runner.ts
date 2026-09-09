@@ -89,9 +89,10 @@ export async function runMeasured(
       system: cpu.system,
       peakRssMb: sampler?.stop(),
     };
-  } finally {
+  } catch (error) {
     // A failed run must still clear the sampler's interval.
     sampler?.stop();
+    throw error;
   }
 }
 
