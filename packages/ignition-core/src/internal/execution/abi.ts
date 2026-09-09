@@ -415,7 +415,8 @@ export function getEventArgumentFromReceipt(
 /**
  * Decodes an error from a failed evm execution.
  *
- * @param returnData The data, as returned by the JSON-RPC.
+ * @param returnData The data, as returned by the JSON-RPC. `null` if the
+ *  JSON-RPC server reported the failure without any usable data.
  * @param customErrorReported A value indicating if the JSON-RPC error
  *  reported that it was due to a custom error.
  * @param decodeCustomError A function that decodes custom errors, returning
@@ -425,13 +426,13 @@ export function getEventArgumentFromReceipt(
  * @returns A `FailedEvmExecutionResult` with the decoded error.
  */
 export function decodeError(
-  returnData: string,
+  returnData: string | null,
   customErrorReported: boolean,
   decodeCustomError?: (
     returnData: string,
   ) => RevertWithCustomError | RevertWithInvalidData | undefined,
 ): FailedEvmExecutionResult {
-  if (returnData === "0x") {
+  if (returnData === null || returnData === "0x") {
     return { type: EvmExecutionResultTypes.REVERT_WITHOUT_REASON };
   }
 

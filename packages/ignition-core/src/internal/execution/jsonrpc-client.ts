@@ -342,7 +342,9 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       };
     } catch (error) {
       if (error instanceof Error) {
-        const errorWithData = error as { data?: string | { data?: string } };
+        const errorWithData = error as {
+          data?: string | null | { data?: string | null };
+        };
         const data =
           typeof errorWithData.data === "string"
             ? errorWithData.data
