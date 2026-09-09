@@ -95,12 +95,12 @@
                   "runs": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Number of hyperfine runs for this command"
+                    "description": "Number of measured runs for this command"
                   },
                   "prepare": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
+                    "description": "Optional shell snippet to run, unmeasured, before each timed run"
                   },
                   "command": {
                     "type": "string",
@@ -160,7 +160,7 @@
               }
             ]
           },
-          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk. Each entry is either a single hyperfine command or an in-process step sequence."
+          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk. Each entry is either a single command or a step sequence."
         }
       },
       "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"
