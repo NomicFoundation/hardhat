@@ -44,6 +44,11 @@ describe("parseCpuTiming", () => {
   it("throws when the system time is missing", () => {
     assert.throws(() => parseCpuTiming("1.25\n", "x"));
   });
+
+  it("throws on unexpected extra tokens", () => {
+    assert.throws(() => parseCpuTiming("1.25 0.75 0.99\n", "x"));
+    assert.throws(() => parseCpuTiming("stray output\n1.25 0.75\n", "x"));
+  });
 });
 
 describe("shellQuote", () => {
