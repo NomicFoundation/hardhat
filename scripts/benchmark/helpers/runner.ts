@@ -199,9 +199,14 @@ export function parseCpuTiming(
   raw: string,
   source: string,
 ): { user: number; system: number } {
-  const [user, system] = raw.trim().split(/\s+/).map(Number);
+  const fields = raw.trim().split(/\s+/);
+  const [user, system] = fields.map(Number);
 
-  if (!Number.isFinite(user) || !Number.isFinite(system)) {
+  if (
+    fields.length !== 2 ||
+    !Number.isFinite(user) ||
+    !Number.isFinite(system)
+  ) {
     throw new Error(
       `Unparseable bash time output at ${source}: ${JSON.stringify(raw)}`,
     );
