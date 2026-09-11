@@ -46,11 +46,7 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on two branches, [`main`](https://github.com/NomicFoundation/hardhat/tree/main) and [`development`](https://github.com/NomicFoundation/hardhat/tree/development).
-
-The `main` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `main`, so when in doubt use this branch.
-
-The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into main, and release from main. Examples of things that should be based on development are features that require significant changes to the codebase, or bug fixes that involve a major refactor.
+We work on the [`main`](https://github.com/NomicFoundation/hardhat/tree/main) branch, which stays in sync with the latest released version of each package. Base pull requests on `main` unless maintainers ask otherwise.
 
 ### Website and documentation branching
 
@@ -64,7 +60,7 @@ Note that the `main` branch is automatically deployed, so take care when merging
 
 We keep our dependencies versions in sync between the different projects.
 
-Running `node scripts/check-dependencies.js` from the root folder checks that every project specifies the same versions of each dependency. It will print an error if the versions get out of sync.
+Running `node scripts/check-dependencies.ts` from the root folder checks that every project specifies the same versions of each dependency. It will print an error if the versions get out of sync.
 
 ## Performance and dependencies loading
 
