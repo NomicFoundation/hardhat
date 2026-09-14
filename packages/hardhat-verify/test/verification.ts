@@ -13,6 +13,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
+import { ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 import { VERIFICATION_PROVIDERS } from "../src/internal/verification-providers.js";
 import {
   verifyContract,
@@ -25,8 +26,7 @@ describe("verification", () => {
   describe("verifyContract", () => {
     describe("base cases", () => {
       useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
-        .origin;
+      const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
       });
@@ -56,7 +56,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -81,7 +81,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -113,7 +113,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -147,7 +147,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -179,7 +179,7 @@ describe("verification", () => {
           },
           localHre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -193,8 +193,7 @@ describe("verification", () => {
 
     describe("retry behavior", () => {
       useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
-        .origin;
+      const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
       });
@@ -226,7 +225,7 @@ describe("verification", () => {
             { address },
             hre,
             () => {},
-            testDispatcher.interceptable,
+            testDispatcher.dispatcher,
             provider,
           ),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
@@ -255,7 +254,7 @@ describe("verification", () => {
           { address },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
