@@ -266,8 +266,8 @@ export function hardhatMiningIntervalToEdrMiningInterval(
     }
   } else {
     return {
-      min: BigInt(config[0]),
-      max: BigInt(config[1]),
+      min: BigInt(Math.max(1, config[0])),
+      max: BigInt(Math.max(1, config[1])),
     };
   }
 }
