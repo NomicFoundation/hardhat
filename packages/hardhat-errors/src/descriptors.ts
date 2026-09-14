@@ -1175,7 +1175,7 @@ Read the [documentation](https://hardhat.org/hd-wallet-config) to learn how to d
       },
       CANT_DERIVE_KEY: {
         number: 718,
-        messageTemplate: `Cannot derive key "{path}" from mnemonic "{mnemonic}". Try using another mnemonic or deriving fewer keys.`,
+        messageTemplate: `Cannot derive key "{path}" from the given mnemonic. Try using another mnemonic or deriving fewer keys.`,
         websiteTitle: "Could not derive an HD key",
         websiteDescription: `One of your HD keys could not be derived.
 
