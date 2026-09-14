@@ -17,7 +17,7 @@ export const FutureBatch: React.FC<{
   setToggled: (id: string, newToggleState: boolean) => void;
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
-  scrollRefMap: Record<string, React.RefObject<HTMLDivElement>>;
+  scrollRefMap: Record<string, React.RefObject<HTMLDivElement | null>>;
 }> = ({
   batch,
   index,
@@ -58,7 +58,7 @@ const BatchHeader = styled.div`
   padding: 1rem;
 `;
 
-const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
+const FutureBtn = styled.div<{ $isLibrary: boolean; $toggled: boolean }>`
   padding: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -68,21 +68,21 @@ const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
   border-top-right-radius: 5px;
 
   ${(props) =>
-    props.toggled &&
+    props.$toggled &&
     `
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     `}
 
   ${(props) =>
-    !props.toggled &&
+    !props.$toggled &&
     `
       border-bottom-left-radius: 5px;
       border-bottom-right-radius: 5px;
     `}
 
   ${(props) =>
-    !props.isLibrary &&
+    !props.$isLibrary &&
     `
     cursor: pointer;
   `}
@@ -95,7 +95,7 @@ const FutureBlock: React.FC<{
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
   classKey: string;
-  scrollRef: React.RefObject<HTMLDivElement>;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }> = ({
   future,
   toggleState,
@@ -122,8 +122,8 @@ const FutureBlock: React.FC<{
     <div ref={scrollRef}>
       <FutureBtn
         className={`${className} ${classKey}`}
-        isLibrary={isLibrary}
-        toggled={toggled}
+        $isLibrary={isLibrary}
+        $toggled={toggled}
         onClick={() => setToggled(futureId, !toggled)}
       >
         <FutureHeader

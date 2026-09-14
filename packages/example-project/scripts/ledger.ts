@@ -34,7 +34,7 @@ async function ethSendTransaction() {
     // Shared properties
     to: hardhatAddress,
     value: 10000000n,
-    gas: 310000n,
+    gasLimit: 310000n,
 
     // Enable the properties that you need for a specific transaction type
     // and comment out the ones that you don't need

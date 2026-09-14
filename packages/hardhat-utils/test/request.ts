@@ -32,6 +32,12 @@ import {
 import { createTmpDir } from "./helpers/fs.js";
 import { initializeTestDispatcher } from "./helpers/request.js";
 
+// The responseError interceptor only decodes the body of application/json and
+// text/plain responses, so mocked error replies need an explicit Content-Type.
+const jsonResponseOptions = {
+  headers: { "Content-Type": "application/json" },
+};
+
 describe("Requests util", () => {
   describe("getDispatcher", () => {
     it("Should return a ProxyAgent dispatcher if a proxy url was provided", async () => {
@@ -84,7 +90,6 @@ describe("Requests util", () => {
           headersTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           bodyTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           connectTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
-          maxRedirections: DEFAULT_MAX_REDIRECTS,
         };
         const options = getBaseDispatcherOptions();
 
@@ -98,7 +103,6 @@ describe("Requests util", () => {
           headersTimeout: timeout,
           bodyTimeout: timeout,
           connectTimeout: timeout,
-          maxRedirections: DEFAULT_MAX_REDIRECTS,
         };
         const options = getBaseDispatcherOptions(timeout);
 
@@ -110,7 +114,6 @@ describe("Requests util", () => {
           headersTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           bodyTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           connectTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
-          maxRedirections: DEFAULT_MAX_REDIRECTS,
           keepAliveTimeout: 10,
           keepAliveMaxTimeout: 10,
         };
@@ -125,7 +128,6 @@ describe("Requests util", () => {
           headersTimeout: timeout,
           bodyTimeout: timeout,
           connectTimeout: timeout,
-          maxRedirections: DEFAULT_MAX_REDIRECTS,
           keepAliveTimeout: 10,
           keepAliveMaxTimeout: 10,
         };
@@ -143,7 +145,6 @@ describe("Requests util", () => {
         headers: {
           "User-Agent": DEFAULT_USER_AGENT,
         },
-        throwOnError: true,
       };
       const { dispatcher, ...options } = await getBaseRequestOptions(url);
 
@@ -191,16 +192,35 @@ describe("Requests util", () => {
       assert.deepEqual(headers, expectedHeaders);
     });
 
-    it("Should return the provided dispatcher", async () => {
+    it("Should compose the interceptors onto the provided dispatcher", async () => {
       const url = "http://localhost";
       const dispatcher = new Client(url);
+      dispatcher.pipelining = 123456789; // Arbitrary value to check that the returned dispatcher is a proxy
+
       const { dispatcher: returnedDispatcher } = await getBaseRequestOptions(
         url,
         {},
         dispatcher,
       );
 
-      assert.equal(dispatcher, returnedDispatcher);
+      // Composing returns a proxy over the provided dispatcher, in which
+      // `dispatch` is wrapped by the interceptors and every other property is
+      // read from the original.
+      assert.notEqual(
+        returnedDispatcher.dispatch,
+        dispatcher.dispatch,
+        "Should wrap dispatch with the interceptors",
+      );
+
+      assert.ok(
+        returnedDispatcher instanceof Client,
+        "Should proxy the provided dispatcher",
+      );
+      assert.equal(
+        returnedDispatcher.pipelining,
+        123456789,
+        "Should read the properties of the provided dispatcher",
+      );
     });
 
     it("Should return a dispatcher based on the provided options", async () => {
@@ -236,7 +256,7 @@ describe("Requests util", () => {
   });
 
   describe("getRequest", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const url = "http://localhost";
     const baseInterceptorOptions = {
       path: "/",
@@ -248,7 +268,7 @@ describe("Requests util", () => {
 
     it("Should make a basic get request", async () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await getRequest(url, undefined, interceptor);
+      const response = await getRequest(url, undefined, dispatcher);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -263,7 +283,7 @@ describe("Requests util", () => {
       interceptor
         .intercept({ ...baseInterceptorOptions, query: queryParams })
         .reply(200, {});
-      const response = await getRequest(url, { queryParams }, interceptor);
+      const response = await getRequest(url, { queryParams }, dispatcher);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -280,7 +300,7 @@ describe("Requests util", () => {
           headers: { ...baseInterceptorOptions.headers, ...extraHeaders },
         })
         .reply(200, {});
-      const response = await getRequest(url, { extraHeaders }, interceptor);
+      const response = await getRequest(url, { extraHeaders }, dispatcher);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -293,7 +313,7 @@ describe("Requests util", () => {
       const requestPromise = getRequest(
         url,
         { abortSignal: abortController.signal },
-        interceptor,
+        dispatcher,
       );
       abortController.abort();
 
@@ -305,20 +325,70 @@ describe("Requests util", () => {
       });
     });
 
+    it("Should follow redirects", async () => {
+      interceptor
+        .intercept(baseInterceptorOptions)
+        .reply(301, "", { headers: { location: `${url}/redirected` } });
+      interceptor
+        .intercept({ ...baseInterceptorOptions, path: "/redirected" })
+        .reply(200, {});
+
+      const response = await getRequest(url, undefined, dispatcher);
+
+      assert.equal(response.statusCode, 200);
+      await response.body.json();
+    });
+
     it("Should throw if the request fails", async () => {
       interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(getRequest(url, undefined, interceptor), {
+      await assert.rejects(getRequest(url, undefined, dispatcher), {
         name: "ResponseStatusCodeError",
         message: `Received an unexpected status code from ${url}`,
+      });
+    });
+
+    it("Should stop following redirects after DEFAULT_MAX_REDIRECTS", async () => {
+      // One redirect more than the limit. The last one replies with a distinct
+      // status code so that we can tell it was returned instead of followed.
+      for (let i = 0; i <= DEFAULT_MAX_REDIRECTS; i++) {
+        interceptor
+          .intercept({
+            ...baseInterceptorOptions,
+            path: i === 0 ? "/" : `/redirect-${i}`,
+          })
+          .reply(i === DEFAULT_MAX_REDIRECTS ? 302 : 301, "", {
+            headers: { location: `${url}/redirect-${i + 1}` },
+          });
+      }
+
+      const response = await getRequest(url, undefined, dispatcher);
+
+      assert.equal(response.statusCode, 302);
+      await response.body.text();
+    });
+
+    it("Should describe the status code in the cause of a failed request", async () => {
+      interceptor
+        .intercept(baseInterceptorOptions)
+        .reply(400, { error: "Bad Request" }, jsonResponseOptions);
+
+      await assert.rejects(getRequest(url, undefined, dispatcher), (err) => {
+        ensureError(err);
+        ensureError(err.cause);
+        assert.equal(
+          err.cause.message,
+          "Response status code 400: Bad Request",
+        );
+        return true;
       });
     });
   });
 
   describe("postJsonRequest", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const url = "http://localhost";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
@@ -333,7 +403,7 @@ describe("Requests util", () => {
 
     it("Should make a basic post request", async () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await postJsonRequest(url, body, undefined, interceptor);
+      const response = await postJsonRequest(url, body, undefined, dispatcher);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -354,7 +424,7 @@ describe("Requests util", () => {
         url,
         body,
         { queryParams },
-        interceptor,
+        dispatcher,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -376,7 +446,7 @@ describe("Requests util", () => {
         url,
         body,
         { extraHeaders },
-        interceptor,
+        dispatcher,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -391,7 +461,7 @@ describe("Requests util", () => {
         url,
         body,
         { abortSignal: abortController.signal },
-        interceptor,
+        dispatcher,
       );
       abortController.abort();
 
@@ -408,7 +478,7 @@ describe("Requests util", () => {
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(postJsonRequest(url, body, undefined, interceptor), {
+      await assert.rejects(postJsonRequest(url, body, undefined, dispatcher), {
         name: "ResponseStatusCodeError",
         message: `Received an unexpected status code from ${url}`,
       });
@@ -416,7 +486,7 @@ describe("Requests util", () => {
   });
 
   describe("postFormRequest", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const url = "http://localhost";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
@@ -431,7 +501,7 @@ describe("Requests util", () => {
 
     it("Should make a basic post request", async () => {
       interceptor.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await postFormRequest(url, body, undefined, interceptor);
+      const response = await postFormRequest(url, body, undefined, dispatcher);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -452,7 +522,7 @@ describe("Requests util", () => {
         url,
         body,
         { queryParams },
-        interceptor,
+        dispatcher,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -474,7 +544,7 @@ describe("Requests util", () => {
         url,
         body,
         { extraHeaders },
-        interceptor,
+        dispatcher,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -489,7 +559,7 @@ describe("Requests util", () => {
         url,
         body,
         { abortSignal: abortController.signal },
-        interceptor,
+        dispatcher,
       );
       abortController.abort();
 
@@ -506,7 +576,7 @@ describe("Requests util", () => {
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(postFormRequest(url, body, undefined, interceptor), {
+      await assert.rejects(postFormRequest(url, body, undefined, dispatcher), {
         name: "ResponseStatusCodeError",
         message: `Received an unexpected status code from ${url}`,
       });
@@ -514,7 +584,7 @@ describe("Requests util", () => {
   });
 
   describe("download", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const tmp = createTmpDir("request", "test");
     const url = "http://localhost";
     const baseInterceptorOptions = {
@@ -528,7 +598,7 @@ describe("Requests util", () => {
     it("Should download a file", async () => {
       const destination = path.join(tmp.path, "file.txt");
       interceptor.intercept(baseInterceptorOptions).reply(200, "file content");
-      await download(url, destination, undefined, interceptor);
+      await download(url, destination, undefined, dispatcher);
 
       assert.ok(await exists(destination), "Should create the file");
       assert.equal(await readUtf8File(destination), "file content");
@@ -540,7 +610,7 @@ describe("Requests util", () => {
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(download(url, destination, undefined, interceptor), {
+      await assert.rejects(download(url, destination, undefined, dispatcher), {
         name: "ResponseStatusCodeError",
         message: `Received an unexpected status code from ${url}`,
       });
@@ -553,7 +623,7 @@ describe("Requests util", () => {
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(download(url, destination, undefined, interceptor));
+      await assert.rejects(download(url, destination, undefined, dispatcher));
 
       const files = await readdir(tmpDir);
       const tempFiles = files.filter((f) => f.startsWith("tmp-"));

@@ -6,7 +6,7 @@ export const SELECTED_CONFLICT_REMEDIATION =
   "Rename one of the structs, or scope your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts` so that only one of them is selected.";
 
 export const DEPENDENCY_CONFLICT_REMEDIATION =
-  "Rename one of the structs so the name has a single definition. The clashing name is pulled in as a dependency of a selected struct, so if you don't need that selected struct, deselecting it with your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts` also resolves the conflict.";
+  "Rename one of the structs so the name has a single definition. The clashing name is pulled in as a dependency of a selected struct, but none of its definitions is in a selected source, so you can also resolve the conflict with your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts`: include the source containing the canonical definition so it wins the clash, or deselect the struct that depends on it if you don't need it.";
 
 /**
  * Produces the flat list of canonical EIP-712 type strings expected by EDR.
@@ -220,12 +220,14 @@ function transitiveDeps(
  *   - Both sides selected: throw immediately — genuinely ambiguous which to
  *     emit.
  *   - Current side non-selected: defer; the stored definition keeps the name.
- *     Throw only if the name is reachable from a selected struct (its
- *     transitive deps), since then which copy got inlined would depend on
- *     iteration order. Names unreachable from the selected set are silently
- *     deduped (first wins), so a non-selected struct that merely shares a
- *     name with a selected root or an unreferenced struct never aborts the
- *     run.
+ *     Throw only if the name has no selected definition AND is reachable from
+ *     a selected struct (its transitive deps), since only then which copy got
+ *     inlined would depend on iteration order. A name with a selected
+ *     definition always resolves to it deterministically (selected structs
+ *     come first), so a non-selected struct that shares a name with a
+ *     selected one never aborts the run — even when that name is also a
+ *     dependency of another selected struct. Names unreachable from the
+ *     selected set are likewise silently deduped (first wins).
  */
 function indexByName(
   structs: CollectedStruct[],
@@ -276,9 +278,9 @@ function indexByName(
 
     // Non-selected side, so the stored definition (selected if the name has
     // one, since selected sources come first) keeps the name. Defer: throw
-    // later only if the name is reachable from a selected struct. Sharing a
-    // name with a selected root or an unreferenced struct is harmless and
-    // must not abort.
+    // later only if the name has no selected definition and is reachable from
+    // a selected struct. Sharing a name with a selected definition or an
+    // unreferenced struct is harmless and must not abort.
     if (!deferredConflicts.has(struct.name)) {
       deferredConflicts.set(struct.name, {
         firstSource: sourceByName.get(struct.name) ?? "<unknown>",
@@ -290,7 +292,7 @@ function indexByName(
   if (deferredConflicts.size > 0) {
     const reachable = reachableFromSelected(byName, selectedNames);
     for (const [name, sources] of deferredConflicts) {
-      if (reachable.has(name)) {
+      if (reachable.has(name) && !selectedNames.has(name)) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
           { name, ...sources, remediation: DEPENDENCY_CONFLICT_REMEDIATION },

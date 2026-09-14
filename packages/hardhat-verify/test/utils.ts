@@ -61,8 +61,17 @@ interface PendingInterceptorInternal {
   timesInvoked?: number;
 }
 
+/**
+ * Sets up a mock agent for tests.
+ *
+ * Use `interceptable` to declare the mocked responses, and `dispatcher` as the
+ * dispatcher passed to the request helpers. They must be kept apart: undici's
+ * interceptors only work when they are composed onto the mock agent, as the
+ * mock pool returned by `MockAgent#get` doesn't support them.
+ */
 export function initializeTestDispatcher(options: InitializeOptions = {}): {
   readonly interceptable: Interceptable;
+  readonly dispatcher: TestDispatcher;
 } {
   const { url = "http://localhost", timeout } = options;
 
@@ -112,6 +121,9 @@ export function initializeTestDispatcher(options: InitializeOptions = {}): {
   return {
     get interceptable() {
       return interceptable;
+    },
+    get dispatcher() {
+      return mockAgent;
     },
   };
 }
