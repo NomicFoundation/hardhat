@@ -60,7 +60,7 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.17",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.5",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
-    "ethereum-cryptography": "^2.2.1",
+    "ethereum-cryptography": "^3.0.0",
     "ethers": "^6.14.0",
     "zod": "^3.23.8"
   },
