@@ -16,3 +16,5 @@ minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - hardhat
   - "@nomicfoundation/*"
+  # Renovate security update: adm-zip@0.6.1
+  - adm-zip@0.6.1
