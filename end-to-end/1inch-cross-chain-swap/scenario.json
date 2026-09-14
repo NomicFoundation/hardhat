@@ -46,6 +46,16 @@
         "runs": 15,
         "command": "npx hardhat test solidity --no-compile",
         "dependsOn": ["cold compile"]
+      },
+      "test solidity -vvv": {
+        "runs": 15,
+        "command": "npx hardhat test solidity --no-compile -vvv",
+        "dependsOn": ["cold compile"]
+      },
+      "test solidity -vvvv": {
+        "runs": 15,
+        "command": "npx hardhat test solidity --no-compile -vvvv",
+        "dependsOn": ["cold compile"]
       }
     }
   }

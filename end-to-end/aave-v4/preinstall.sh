@@ -53,8 +53,29 @@ if (!fdRe.test(fdConfig)) {
 }
 fs.writeFileSync(fdPath, fdConfig.replace(fdRe, \`runs = \${fuzzRuns}\`));
 
+// 3) tests/unit/Hub/Hub.Rounding.t.sol — drop the contract-level
+//    \`forge-config: default.disable_block_gas_limit = true\` directive.
+//    Hardhat does not support this particular key, and rejects the 
+//    directive as unsupported.
+const roundingPath = 'tests/unit/Hub/Hub.Rounding.t.sol';
+const rounding = fs.readFileSync(roundingPath, 'utf8');
+const roundingRe =
+  /^\\/\\/\\/ forge-config: default\\.disable_block_gas_limit = true\\r?\\n/m;
+if (!roundingRe.test(rounding)) {
+  console.error(
+    'aave-v4 preinstall: expected contract-level forge-config directive not ' +
+      'found in ' + roundingPath +
+      ' — the pinned commit may have changed. Refusing to run the benchmark ' +
+      'against an unexpected workload.',
+  );
+  process.exit(1);
+}
+fs.writeFileSync(roundingPath, rounding.replace(roundingRe, ''));
+
 console.log(
   \`aave-v4 preinstall: reduced fuzz runs 1000 -> \${fuzzRuns} in \` +
-    'hardhat.config.ts and foundry.toml for benchmarking',
+    'hardhat.config.ts and foundry.toml, and removed the unsupported ' +
+    'disable_block_gas_limit forge-config directive from ' + roundingPath +
+    ' for benchmarking',
 );
 "

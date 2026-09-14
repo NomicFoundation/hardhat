@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.15.0",
+  "version": "3.16.0",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -104,8 +104,8 @@
     "adm-zip": "^0.6.0",
     "chokidar": "^5.0.0",
     "enquirer": "^2.3.0",
-    "ethereum-cryptography": "^2.2.1",
-    "micro-eth-signer": "^0.14.0",
+    "ethereum-cryptography": "^3.0.0",
+    "micro-eth-signer": "^0.19.0",
     "p-map": "^7.0.6",
     "resolve.exports": "^2.0.3",
     "semver": "^7.8.5",

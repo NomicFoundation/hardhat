@@ -142,6 +142,7 @@ describe("config-resolution", () => {
         allowBlocksWithSameTimestamp: true,
         allowUnlimitedContractSize: true,
         blockGasLimit: 20_000_000,
+        gasEstimationMode: "topLevelSuccess",
         initialDate: new Date(),
         loggingEnabled: true,
         minGasPrice: 10,
@@ -175,6 +176,10 @@ describe("config-resolution", () => {
         edrNetworkConfig.blockGasLimit,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast for testing
         BigInt(userConfig.blockGasLimit as number),
+      );
+      assert.equal(
+        edrNetworkConfig.gasEstimationMode,
+        userConfig.gasEstimationMode,
       );
       assert.equal(edrNetworkConfig.initialDate, userConfig.initialDate);
       assert.equal(edrNetworkConfig.loggingEnabled, userConfig.loggingEnabled);
@@ -216,6 +221,7 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
       assert.equal(edrNetworkConfig.allowUnlimitedContractSize, undefined);
       assert.equal(edrNetworkConfig.blockGasLimit, undefined);
+      assert.equal(edrNetworkConfig.gasEstimationMode, "noInternalOutOfGas");
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(
         Math.abs(initialDate.getTime() - now.getTime()) < 1000,

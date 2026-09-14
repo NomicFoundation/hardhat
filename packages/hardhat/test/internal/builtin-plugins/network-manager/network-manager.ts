@@ -2946,6 +2946,37 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
+    describe("gasEstimationMode", () => {
+      describe("edr config", () => {
+        it("should validate a valid network config", async () => {
+          let validationErrors = await validateNetworkUserConfig(
+            edrConfig({ gasEstimationMode: "topLevelSuccess" }),
+          );
+
+          assertValidationErrors(validationErrors, []);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ gasEstimationMode: "noInternalOutOfGas" }),
+          );
+
+          assertValidationErrors(validationErrors, []);
+        });
+
+        it("should not validate an invalid network config", async () => {
+          const validationErrors = await validateNetworkUserConfig(
+            edrConfig({ gasEstimationMode: "something else" }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "gasEstimationMode"],
+              message: "Expected 'topLevelSuccess' or 'noInternalOutOfGas'",
+            },
+          ]);
+        });
+      });
+    });
+
     describe("hardfork", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {

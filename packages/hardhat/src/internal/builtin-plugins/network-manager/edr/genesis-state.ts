@@ -3,7 +3,7 @@ import type {
   EdrNetworkForkingConfig,
 } from "../../../../types/config.js";
 import type { ChainType } from "../../../../types/network.js";
-import type * as MicroEthSignerAddressT from "micro-eth-signer/address";
+import type * as MicroEthSignerT from "micro-eth-signer";
 
 import {
   l1GenesisState,
@@ -21,7 +21,7 @@ import { OPTIMISM_CHAIN_TYPE } from "../../../constants.js";
 import { hardhatAccountsToEdrOwnedAccounts } from "./utils/convert-to-edr.js";
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
-let microEthSignerAddress: typeof MicroEthSignerAddressT | undefined;
+let microEthSigner: typeof MicroEthSignerT | undefined;
 
 const noForkingConfigCacheMarkerObject = {};
 
@@ -135,11 +135,11 @@ async function createGenesisStateAndOwnedAccounts(
   genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
 }> {
-  if (microEthSignerAddress === undefined) {
-    microEthSignerAddress = await import("micro-eth-signer/address");
+  if (microEthSigner === undefined) {
+    microEthSigner = await import("micro-eth-signer");
   }
 
-  const { addr } = microEthSignerAddress;
+  const { addr } = microEthSigner;
 
   const ownedAccounts = await hardhatAccountsToEdrOwnedAccounts(accountsConfig);
 

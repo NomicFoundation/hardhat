@@ -101,3 +101,33 @@ export class UnknownError extends ProviderError {
     super(message, UnknownError.CODE, parent);
   }
 }
+
+/**
+ * Thrown by `eth_estimateGas` when the network's `gasEstimationMode` is
+ * `"noInternalOutOfGas"` and an internal call runs out of gas even when the
+ * transaction is executed with the maximum amount of gas available, meaning
+ * that no gas limit can prevent the internal out-of-gas error.
+ */
+export class InternalCallOutOfGasError extends ProviderError {
+  public static readonly CODE = -32000;
+
+  constructor(
+    message: string = "Gas estimation failed: an internal call runs out of gas regardless of the transaction's gas limit, so no reliable estimate exists. Set an explicit gas limit for the transaction, or set the network's gasEstimationMode to 'topLevelSuccess' to only require the top-level call to succeed.",
+    parent?: Error,
+  ) {
+    super(message, InternalCallOutOfGasError.CODE, parent);
+  }
+}
+
+/**
+ * Detects the error data of EDR's estimation failure for the
+ * `NoInternalOutOfGas` gas estimation mode, reported when an internal call
+ * runs out of gas even when the transaction is executed with the maximum
+ * amount of gas available.
+ *
+ * The `reason` discriminator it looks for is also what `hardhat node` puts on
+ * the wire, so clients of an http connection can recognize the failure.
+ */
+export function isInternalCallOutOfGasErrorData(errorData: unknown): boolean {
+  return isObject(errorData) && errorData.reason === "InternalCallOutOfGas";
+}
