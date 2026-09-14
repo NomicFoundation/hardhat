@@ -46,7 +46,7 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on the [`main`](https://github.com/NomicFoundation/hardhat/tree/main) branch, which stays in sync with the latest released version of each package. Base pull requests on `main` unless maintainers ask otherwise.
+We work on the [`main`](https://github.com/NomicFoundation/hardhat/tree/main) branch, which stays in sync with the latest released version of each package. Pull requests should be based on `main`.
 
 ### Website and documentation branching
 
