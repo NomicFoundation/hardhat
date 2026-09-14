@@ -1033,7 +1033,7 @@ If you need to flatten your project, refactor your Solidity sources to remove th
 
 Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.
 
-The URL is not shown, as it may come contain an API key or other secret.`,
+The URL is not shown, as it may contain an API key or other secret.`,
       },
       INVALID_REQUEST_PARAMS: {
         number: 701,
