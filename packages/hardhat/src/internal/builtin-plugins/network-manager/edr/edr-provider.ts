@@ -40,6 +40,8 @@ import { getGlobalEdrContext } from "../../../edr/context.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 import {
+  InternalCallOutOfGasError,
+  isInternalCallOutOfGasErrorData,
   InvalidArgumentsError,
   ProviderError,
   UnknownError,
@@ -57,6 +59,7 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatForkingConfigToEdrForkConfig,
+  hardhatGasEstimationModeToEdrGasEstimationMode,
   resolveDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
 import { warnIfExperimentalHardfork } from "./utils/hardfork.js";
@@ -79,11 +82,32 @@ interface EdrProviderConfig {
 }
 
 export class EdrProvider extends BaseProvider {
+  /**
+   * The value the underlying EDR provider was configured with, applied to
+   * RPC call and transaction requests that omit a `gas` field. Exposed so
+   * that the automatic gas handler's estimation fallback can reuse it
+   * instead of recomputing it.
+   */
+  public readonly defaultTransactionGasLimit: bigint;
+
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+
+  #blockGasLimitEnforced: boolean;
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
   readonly #traceOutput: TraceOutputManager | undefined;
+
+  /**
+   * Whether the network rejects transactions whose gas limit exceeds the block
+   * gas limit. It is false only for networks configured with
+   * `blockGasLimit: false`.
+   *
+   * `evm_setBlockGasLimit` turns this on permanently.
+   */
+  public get isBlockGasLimitEnforced(): boolean {
+    return this.#blockGasLimitEnforced;
+  }
 
   public static async createContractDecoder(
     tracingConfig: TracingConfigWithBuffers,
@@ -179,6 +203,10 @@ export class EdrProvider extends BaseProvider {
 
       edrProvider = new EdrProvider(
         provider,
+        providerConfig.defaultTransactionGasLimit,
+        // EDR only enforces a block gas limit when it was given a mining one,
+        // which `blockGasLimit: false` omits
+        providerConfig.mining.blockGasLimit !== undefined,
         traceOutput,
         jsonRpcRequestWrapper,
       );
@@ -202,12 +230,16 @@ export class EdrProvider extends BaseProvider {
    */
   private constructor(
     provider: Provider,
+    defaultTransactionGasLimit: bigint,
+    blockGasLimitEnforced: boolean,
     traceOutput: TraceOutputManager | undefined,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
+    this.defaultTransactionGasLimit = defaultTransactionGasLimit;
+    this.#blockGasLimitEnforced = blockGasLimitEnforced;
     this.#traceOutput = traceOutput;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
 
@@ -261,6 +293,11 @@ export class EdrProvider extends BaseProvider {
 
     if (jsonRpcRequest.method === "evm_revert") {
       this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
+
+    // This makes even a `blockGasLimit: false` network enforce a limit.
+    if (jsonRpcRequest.method === "evm_setBlockGasLimit") {
+      this.#blockGasLimitEnforced = true;
     }
 
     // Override EDR version string with Hardhat version string with EDR backend,
@@ -325,7 +362,18 @@ export class EdrProvider extends BaseProvider {
 
       const stackTrace = edrResponse.stackTrace();
 
-      if (stackTrace?.kind === "StackTrace") {
+      // The InternalCallOutOfGas estimation failure must win over a solidity
+      // stack trace: the automatic gas fallback in MultipliedGasEstimation
+      // relies on receiving an InternalCallOutOfGasError. It is scoped to
+      // eth_estimateGas, the only method the gas estimation mode affects, so
+      // that no other method loses its stack trace to this branch.
+      if (
+        method === "eth_estimateGas" &&
+        isInternalCallOutOfGasErrorData(errorData)
+      ) {
+        error = new InternalCallOutOfGasError();
+        error.data = responseError.data;
+      } else if (stackTrace?.kind === "StackTrace") {
         // If we have a stack trace, we know that the json rpc response data
         // is an object with the data and transactionHash fields
         assertHardhatInvariant(
@@ -507,6 +555,9 @@ export async function getProviderConfig(
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
     defaultTransactionGasLimit,
+    gasEstimationMode: hardhatGasEstimationModeToEdrGasEstimationMode(
+      networkConfig.gasEstimationMode,
+    ),
     genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
