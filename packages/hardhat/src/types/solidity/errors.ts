@@ -272,7 +272,17 @@ export interface DirectImportToLocalFileError {
   type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
   fromFsPath: string;
   importPath: string;
-  suggestedRemapping: string;
+  /**
+   * A remapping that would make this direct import resolve. Present when the
+   * import path contains a directory prefix that can be remapped.
+   */
+  suggestedRemapping?: string;
+  /**
+   * A relative import that would resolve to the same local file. Present for
+   * slash-less (bare filename) imports of a sibling file, which remappings
+   * cannot express.
+   */
+  suggestedRelativeImport?: string;
 }
 
 export type ImportResolutionError =

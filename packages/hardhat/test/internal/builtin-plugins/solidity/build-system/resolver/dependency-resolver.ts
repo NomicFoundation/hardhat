@@ -3241,6 +3241,53 @@ submodule2/=lib/submodule2/src/`,
               "contracts/=contracts/",
             );
           });
+
+          it("Should suggest a relative import for a bare-filename sibling file", async () => {
+            const localTemplate: TestProjectTemplate = {
+              name: "bare-filename-direct-import-suggestion",
+              version: "1.0.0",
+              files: {
+                "contracts/Factory.sol": `Factory`,
+                "contracts/Storage.sol": `Storage`,
+              },
+            };
+
+            await using project = await useTestProjectTemplate(localTemplate);
+            const resolver = await ResolverImplementation.create(
+              project.path,
+              readUtf8File,
+            );
+
+            const factory = await resolver.resolveProjectFile(
+              path.join(project.path, "contracts/Factory.sol"),
+            );
+            assert.ok(factory.success, "Result should be successful");
+
+            assert.deepEqual(
+              await resolver.resolveImport(factory.value, "Storage.sol"),
+              {
+                success: false,
+                error: {
+                  type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+                  fromFsPath: factory.value.fsPath,
+                  importPath: "Storage.sol",
+                  suggestedRelativeImport: "./Storage.sol",
+                },
+              },
+            );
+
+            const missing = await resolver.resolveImport(
+              factory.value,
+              "Missing.sol",
+            );
+            assert.equal(missing.success, false);
+            if (missing.success === false) {
+              assert.equal(
+                missing.error.type,
+                ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX,
+              );
+            }
+          });
         });
 
         describe("From an npm file", () => {

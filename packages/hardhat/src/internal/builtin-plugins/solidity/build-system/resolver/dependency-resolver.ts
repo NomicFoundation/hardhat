@@ -941,6 +941,25 @@ export class ResolverImplementation implements Resolver {
     from: ResolvedFile;
     importPath: string;
   }): Promise<ImportResolutionError | undefined> {
+    // Bare filenames like `import "Storage.sol"` cannot be expressed as a
+    // remapping prefix (those require a trailing `/`). If a sibling file
+    // exists, suggest the relative form instead of the misleading npm-syntax
+    // error.
+    if (!importPath.includes("/")) {
+      const siblingFsPath = path.join(path.dirname(from.fsPath), importPath);
+
+      if (await exists(siblingFsPath)) {
+        return {
+          type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+          fromFsPath: from.fsPath,
+          importPath,
+          suggestedRelativeImport: `./${importPath}`,
+        };
+      }
+
+      return undefined;
+    }
+
     let baseDir = path.dirname(from.fsPath);
     const firstDir = importPath.substring(0, importPath.indexOf("/"));
     // If there's no directory separator, or the import is just a directory
