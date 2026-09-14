@@ -59,7 +59,6 @@ async function derivePrivateKeysImpl(
 
     if (privateKey === undefined) {
       throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.CANT_DERIVE_KEY, {
-        mnemonic,
         path: hdpath,
       });
     }

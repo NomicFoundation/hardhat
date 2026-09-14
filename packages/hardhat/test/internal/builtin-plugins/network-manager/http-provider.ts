@@ -41,7 +41,7 @@ describe("http-provider", () => {
           timeout: 20_000,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_URL,
-        { value: "invalid url" },
+        { networkName: "exampleNetwork" },
       );
     });
   });
