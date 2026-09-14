@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
+import { shellQuote } from "./shell.ts";
+
 // GNU time (the `time` apt package). One wrapper captures both CPU time
 // (user + system seconds) and peak RSS (the maximum resident set size any
 // process in the command's subtree reached, in KB) with negligible runtime
@@ -82,8 +84,4 @@ export function readTimeOutput(outFile: string): TimeOutput {
     system: Number(match[2]),
     peakRssMb: Math.round(Number(match[3]) / 1024),
   };
-}
-
-function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
 }

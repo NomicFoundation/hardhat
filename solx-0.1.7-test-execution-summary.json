@@ -1,0 +1,586 @@
+[
+  {
+    "scenarioId": "1inch-aqua-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 49,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 3805
+    },
+    "control": {
+      "passing": 49,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 9023
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:56:59.731Z"
+  },
+  {
+    "scenarioId": "1inch-aqua-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 49,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 3865
+    },
+    "control": {
+      "passing": 49,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 2979
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:56:46.165Z"
+  },
+  {
+    "scenarioId": "1inch-swap-vm-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "harness-failures",
+    "verdictDetail": "test universe mismatch: 0 tests executed under solx vs 706 under the control \u2014 a side that silently runs nothing is not comparable (check the build log for swallowed compiler errors)",
+    "solx": {
+      "passing": 0,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 37263
+    },
+    "control": {
+      "passing": 706,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 238821
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": true,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:35:14.655Z"
+  },
+  {
+    "scenarioId": "aave-v4-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "(control provenance failed: no fresh build-info files found under /tmp/e2e-solx-test-eval/aave-v4-solx (build may not have run))",
+    "solx": {
+      "passing": 1559,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 211121
+    },
+    "control": {
+      "passing": null,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 760426
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": true
+    },
+    "timestamp": "2026-08-21T00:23:55.612Z"
+  },
+  {
+    "scenarioId": "aave-v4-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "cannot-compile",
+    "verdictDetail": "test-source build fails before any test runs",
+    "solx": {
+      "passing": null,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 119127
+    },
+    "control": {
+      "passing": 1559,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 347025
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": true,
+      "control": false
+    },
+    "timestamp": "2026-08-21T00:31:44.550Z"
+  },
+  {
+    "scenarioId": "ens-verifiable-factory-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 23,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 3266
+    },
+    "control": {
+      "passing": 23,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 5609
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:37:24.467Z"
+  },
+  {
+    "scenarioId": "ens-verifiable-factory-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 23,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 3276
+    },
+    "control": {
+      "passing": 23,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 3306
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:08:19.330Z"
+  },
+  {
+    "scenarioId": "graph-horizon-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 574,
+      "failing": null,
+      "skipped": 2,
+      "exitCode": 0,
+      "durationMs": 31536
+    },
+    "control": {
+      "passing": 574,
+      "failing": null,
+      "skipped": 2,
+      "exitCode": 0,
+      "durationMs": 290409
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:15:37.917Z"
+  },
+  {
+    "scenarioId": "graph-horizon-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 574,
+      "failing": null,
+      "skipped": 2,
+      "exitCode": 0,
+      "durationMs": 39890
+    },
+    "control": {
+      "passing": 574,
+      "failing": null,
+      "skipped": 2,
+      "exitCode": 0,
+      "durationMs": 48637
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:10:14.724Z"
+  },
+  {
+    "scenarioId": "lidofinance-core-solx",
+    "runner": "mocha",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 1266,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 67664
+    },
+    "control": {
+      "passing": 1266,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 82922
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-21T00:34:49.429Z"
+  },
+  {
+    "scenarioId": "openzeppelin-contracts-0.34",
+    "runner": "mocha",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 7654,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 96103
+    },
+    "control": {
+      "passing": 7653,
+      "failing": 1,
+      "skipped": 1,
+      "exitCode": 1,
+      "durationMs": 204361
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [
+      "MerkleTree > push > pushing to a full tree reverts"
+    ],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:49:02.791Z"
+  },
+  {
+    "scenarioId": "openzeppelin-contracts-0.34",
+    "runner": "mocha",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 7654,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 99861
+    },
+    "control": {
+      "passing": 7654,
+      "failing": null,
+      "skipped": 1,
+      "exitCode": 0,
+      "durationMs": 120403
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:44:01.319Z"
+  },
+  {
+    "scenarioId": "openzeppelin-contracts-0.34",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 347,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 62587
+    },
+    "control": {
+      "passing": 346,
+      "failing": 1,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 178759
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [
+      "BlockhashTest#testFuzzHistoryBlocks(uint16,uint256,bytes32)"
+    ],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:55:42.670Z"
+  },
+  {
+    "scenarioId": "openzeppelin-contracts-0.34",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 347,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 64579
+    },
+    "control": {
+      "passing": 347,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 91856
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T22:51:40.283Z"
+  },
+  {
+    "scenarioId": "solady-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 2040,
+      "failing": 1,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 25052
+    },
+    "control": {
+      "passing": 2040,
+      "failing": 1,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 144583
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [
+      "BlockHashLibTest#testBlockHash(uint256,uint256,uint256,bytes32)"
+    ],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:39:14.754Z"
+  },
+  {
+    "scenarioId": "solady-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 2040,
+      "failing": 1,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 27029
+    },
+    "control": {
+      "passing": 2040,
+      "failing": 1,
+      "skipped": null,
+      "exitCode": 1,
+      "durationMs": 32764
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [
+      "BlockHashLibTest#testBlockHash(uint256,uint256,uint256,bytes32)"
+    ],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:36:24.327Z"
+  },
+  {
+    "scenarioId": "uniswap-v4-core-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7-via-ir",
+    "controlProfile": "solc-via-ir",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 598,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 16868
+    },
+    "control": {
+      "passing": 598,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 77868
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:18:46.715Z"
+  },
+  {
+    "scenarioId": "uniswap-v4-core-solx",
+    "runner": "solidity",
+    "solxProfile": "solx-0.1.7",
+    "controlProfile": "default",
+    "verdict": "pass",
+    "verdictDetail": "",
+    "solx": {
+      "passing": 598,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 19066
+    },
+    "control": {
+      "passing": 598,
+      "failing": null,
+      "skipped": null,
+      "exitCode": 0,
+      "durationMs": 23140
+    },
+    "solxOnlyFailures": [],
+    "bothFailures": [],
+    "controlOnlyFailures": [],
+    "eip170Failures": [],
+    "determinism": [],
+    "compileErrorMarker": {
+      "solx": false,
+      "control": false
+    },
+    "timestamp": "2026-08-20T23:17:11.214Z"
+  }
+]

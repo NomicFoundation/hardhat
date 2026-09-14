@@ -1,0 +1,73 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch SwapVM fork compiled at solc 0.8.34 — a genuinely via-IR-forced repo (upstream ships via-IR + custom Yul optimizerSteps only). Legacy compiles are impossible for both compilers: solc is stack-too-deep, and solx's LLVM stackification rejects the recursive SwapVM runLoop. solx 0.1.4 (the shipped map when this scenario was written) hits a YulException on via-IR that 0.1.7 fixes; the version-pinned solx-0.1.8 cell is the shipped measurement now that the plugin maps 0.8.34 to 0.1.8. The repo's @1inch npm deps pin pragma 0.8.30 exactly; the 'relax dependency pragmas' prime step relaxes them post-install (preinstall covers the repo's own sources). Warm-compile (no-op) cells exist for solc and forge; solx has none because it cannot compile the repo at all. There are no test cells: the Foundry test sources do not compile at the 0.8.34 pin under solc, and forge's codegen is that same solc.",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/1inch-swap-vm",
+  "commit": "7102f412db16aaf10dafa8dd40c4b85f99f0bb4e",
+  "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_block_exotic_subdeps": "false",
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false"
+  },
+  "submodules": false,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx-0.1.8-via-ir",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "relax dependency pragmas": {
+            "command": "node ./relax-dep-pragmas.cjs",
+            "measure": false
+          },
+          "assert fresh hardhat-slang-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
+            "measure": false
+          },
+          "download solc and warm caches": {
+            "command": "npx hardhat compile --build-profile solc-via-ir && npx hardhat clean",
+            "measure": false
+          },
+          "warm forge solc cache": {
+            "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' && ./.foundry/forge clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solc via-ir": {
+        "runs": 5,
+        "dependsOn": [
+          "relax dependency pragmas",
+          "assert fresh hardhat-slang-solx",
+          "download solc and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile forge-1.7.1 via-ir": {
+        "runs": 5,
+        "dependsOn": ["relax dependency pragmas", "warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' --offline"
+      },
+      "warm compile solc via-ir": {
+        "runs": 3,
+        "dependsOn": [
+          "relax dependency pragmas",
+          "assert fresh hardhat-slang-solx",
+          "download solc and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile solc-via-ir",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "warm compile forge-1.7.1 via-ir": {
+        "runs": 3,
+        "dependsOn": ["relax dependency pragmas", "warm forge solc cache"],
+        "prepare": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' --offline",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' --offline"
+      }
+    }
+  }
+}
