@@ -4,6 +4,7 @@ import { styleText } from "node:util";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
+import { OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import {
   getCurrentHardfork,
   hardforkGte,
@@ -80,4 +81,17 @@ export function getOpHardforkName(name: string): OpHardforkName {
   );
 
   return hardforkName;
+}
+
+/**
+ * Validates that `hardfork` is a hardfork name supported by Hardhat for the
+ * given chain type, and returns it.
+ */
+export function getHardforkName(
+  hardfork: string,
+  chainType: ChainType,
+): L1HardforkName | OpHardforkName {
+  return chainType === OPTIMISM_CHAIN_TYPE
+    ? getOpHardforkName(hardfork)
+    : getL1HardforkName(hardfork);
 }
