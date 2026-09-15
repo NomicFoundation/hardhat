@@ -96,6 +96,8 @@ onuncaughtexception
 packument
 perché
 perché
+pids
+Pids
 popd
 PREVRANDAO
 pushd

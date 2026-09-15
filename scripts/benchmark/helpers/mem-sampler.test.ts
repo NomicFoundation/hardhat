@@ -1,3 +1,4 @@
+// cSpell:ignore tkthreadd <-- the \t escape glues onto kthreadd when tokenized
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { parseKbField } from "./mem-sampler.ts";
