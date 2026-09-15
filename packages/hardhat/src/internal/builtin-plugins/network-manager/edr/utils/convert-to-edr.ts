@@ -9,21 +9,23 @@ import type {
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
 import type { GasMeasurement } from "../../../gas-analytics/types.js";
+import type { OpHardforkName } from "../types/hardfork.js";
 import type {
   IntervalRange,
   ChainOverride,
   ForkConfig,
   GasReport,
+  L1Hardfork,
+  OpHardfork,
 } from "@nomicfoundation/edr";
 
 import {
   GasEstimationMode,
   GasReportExecutionStatus,
-  L1Hardfork,
+  l1HardforkToString,
   MineOrdering,
-  OpHardfork,
+  opHardforkToString,
 } from "@nomicfoundation/edr";
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -38,88 +40,31 @@ import {
   EIP_7825_TRANSACTION_GAS_CAP,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
+import { hardforkGte, L1HardforkName } from "../types/hardfork.js";
+
 import {
-  hardforkGte,
-  L1HardforkName,
-  OpHardforkName,
-} from "../types/hardfork.js";
+  getHardforkName,
+  getL1HardforkName,
+  getOpHardforkName,
+} from "./hardfork.js";
 
-import { getHardforkName } from "./hardfork.js";
-
+/**
+ * Returns Hardhat's name for an EDR hardfork.
+ */
 export function edrL1HardforkToHardhatL1HardforkName(
   hardfork: L1Hardfork,
 ): L1HardforkName {
-  switch (hardfork) {
-    case L1Hardfork.Byzantium:
-      return L1HardforkName.BYZANTIUM;
-    case L1Hardfork.Constantinople:
-      return L1HardforkName.CONSTANTINOPLE;
-    case L1Hardfork.Petersburg:
-      return L1HardforkName.PETERSBURG;
-    case L1Hardfork.Istanbul:
-      return L1HardforkName.ISTANBUL;
-    case L1Hardfork.MuirGlacier:
-      return L1HardforkName.MUIR_GLACIER;
-    case L1Hardfork.Berlin:
-      return L1HardforkName.BERLIN;
-    case L1Hardfork.London:
-      return L1HardforkName.LONDON;
-    case L1Hardfork.ArrowGlacier:
-      return L1HardforkName.ARROW_GLACIER;
-    case L1Hardfork.GrayGlacier:
-      return L1HardforkName.GRAY_GLACIER;
-    case L1Hardfork.Merge:
-      return L1HardforkName.MERGE;
-    case L1Hardfork.Shanghai:
-      return L1HardforkName.SHANGHAI;
-    case L1Hardfork.Cancun:
-      return L1HardforkName.CANCUN;
-    case L1Hardfork.Prague:
-      return L1HardforkName.PRAGUE;
-    case L1Hardfork.Osaka:
-      return L1HardforkName.OSAKA;
-    case L1Hardfork.Amsterdam:
-      return L1HardforkName.AMSTERDAM;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      assertHardhatInvariant(
-        false,
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown L1 hardfork '${hardfork as L1Hardfork}', this shouldn't happen`,
-      );
-  }
+  return getL1HardforkName(l1HardforkToString(hardfork));
 }
 
+/**
+ * Returns Hardhat's name for an EDR OP hardfork. See
+ * {@link edrL1HardforkToHardhatL1HardforkName}.
+ */
 export function edrOpHardforkToHardhatOpHardforkName(
   hardfork: OpHardfork,
 ): OpHardforkName {
-  switch (hardfork) {
-    case OpHardfork.Bedrock:
-      return OpHardforkName.BEDROCK;
-    case OpHardfork.Regolith:
-      return OpHardforkName.REGOLITH;
-    case OpHardfork.Canyon:
-      return OpHardforkName.CANYON;
-    case OpHardfork.Ecotone:
-      return OpHardforkName.ECOTONE;
-    case OpHardfork.Fjord:
-      return OpHardforkName.FJORD;
-    case OpHardfork.Granite:
-      return OpHardforkName.GRANITE;
-    case OpHardfork.Holocene:
-      return OpHardforkName.HOLOCENE;
-    case OpHardfork.Isthmus:
-      return OpHardforkName.ISTHMUS;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      assertHardhatInvariant(
-        false,
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown OP hardfork '${hardfork as OpHardfork}', this shouldn't happen`,
-      );
-  }
+  return getOpHardforkName(opHardforkToString(hardfork));
 }
 
 export function hardhatMiningIntervalToEdrMiningInterval(

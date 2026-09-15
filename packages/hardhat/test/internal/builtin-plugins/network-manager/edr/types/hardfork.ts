@@ -1,13 +1,23 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { l1HardforkLatest, opLatestHardfork } from "@nomicfoundation/edr";
+import {
+  L1Hardfork,
+  l1HardforkFromString,
+  l1HardforkLatest,
+  l1HardforkToString,
+  OpHardfork,
+  opHardforkFromString,
+  opHardforkToString,
+  opLatestHardfork,
+} from "@nomicfoundation/edr";
 
 import {
   getCurrentHardfork,
   getHardforks,
   isValidHardforkName,
   L1HardforkName,
+  OpHardforkName,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   edrL1HardforkToHardhatL1HardforkName,
@@ -67,5 +77,69 @@ describe("pre-Byzantium L1 hardforks are not selectable", () => {
 
   it("byzantium is the oldest supported L1 hardfork", () => {
     assert.equal(getHardforks(L1_CHAIN_TYPE)[0], L1HardforkName.BYZANTIUM);
+  });
+});
+
+describe("Hardhat and EDR agree on hardfork names", () => {
+  function edrL1Hardforks(): L1Hardfork[] {
+    return Object.getOwnPropertyNames(L1Hardfork).map(
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- the names come from the enum object itself, so they index it safely */
+      (variant) => L1Hardfork[variant as keyof typeof L1Hardfork],
+    );
+  }
+
+  function edrOpHardforks(): OpHardfork[] {
+    return Object.getOwnPropertyNames(OpHardfork).map(
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- the names come from the enum object itself, so they index it safely */
+      (variant) => OpHardfork[variant as keyof typeof OpHardfork],
+    );
+  }
+
+  describe("L1", () => {
+    it("every Hardhat hardfork name is one EDR accepts", () => {
+      for (const name of Object.values(L1HardforkName)) {
+        assert.equal(
+          l1HardforkToString(l1HardforkFromString(name)),
+          name,
+          `EDR does not round-trip the L1 hardfork name "${name}"`,
+        );
+      }
+    });
+
+    it("every EDR hardfork has a Hardhat name", () => {
+      for (const hardfork of edrL1Hardforks()) {
+        const name = l1HardforkToString(hardfork);
+        assert.equal(
+          isValidHardforkName(name, L1_CHAIN_TYPE),
+          true,
+          `EDR supports the L1 hardfork "${name}" but Hardhat has no name for it`,
+        );
+      }
+    });
+  });
+
+  describe("OP", () => {
+    it("every Hardhat hardfork name is one EDR accepts", () => {
+      for (const name of Object.values(OpHardforkName)) {
+        assert.equal(
+          opHardforkToString(opHardforkFromString(name)),
+          name,
+          `EDR does not round-trip the OP hardfork name "${name}"`,
+        );
+      }
+    });
+
+    it("every EDR hardfork has a Hardhat name", () => {
+      for (const hardfork of edrOpHardforks()) {
+        const name = opHardforkToString(hardfork);
+        assert.equal(
+          isValidHardforkName(name, OPTIMISM_CHAIN_TYPE),
+          true,
+          `EDR supports the OP hardfork "${name}" but Hardhat has no name for it`,
+        );
+      }
+    });
   });
 });
