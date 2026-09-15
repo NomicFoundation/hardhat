@@ -27,7 +27,10 @@ export const Mermaid: React.FC<{
     mermaid.initialize({
       maxTextSize: 5000000,
       flowchart: {
-        padding: 50,
+        padding: 8,
+        rankSpacing: 25,
+        wrappingWidth: 400,
+        subGraphTitleMargin: { top: 0, bottom: 20 },
       },
     });
 

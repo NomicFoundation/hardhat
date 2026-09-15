@@ -59,7 +59,7 @@ export async function installNativeSecp256k1(): Promise<void> {
 async function loadAndInstallNativeSecp256k1(): Promise<void> {
   try {
     const { getNativeSecp256k1PublicKeyFromSecretKey } =
-      await import("hardhat/internal/edr");
+      await import("hardhat/internal/native-crypto");
 
     const nativePublicKeyFromSecretKey =
       await getNativeSecp256k1PublicKeyFromSecretKey();

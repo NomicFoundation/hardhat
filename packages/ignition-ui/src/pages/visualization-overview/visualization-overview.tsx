@@ -151,7 +151,7 @@ const Contents = styled.div`
 
 const Panel = styled.div`
   padding: 20px 0 40px 0;
-  :not(:last-child) {
+  &:not(:last-child) {
     border-bottom: 1px solid #b0b2b5;
   }
 `;

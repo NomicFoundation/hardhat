@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { AMSTERDAM, SpecId } from "@nomicfoundation/edr";
+import { AMSTERDAM, GasEstimationMode, SpecId } from "@nomicfoundation/edr";
 
 import {
   getCurrentHardfork,
@@ -10,7 +10,9 @@ import {
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   edrL1HardforkToHardhatL1HardforkName,
+  hardhatGasEstimationModeToEdrGasEstimationMode,
   hardhatHardforkToEdrSpecId,
+  hardhatMiningIntervalToEdrMiningInterval,
   resolveDefaultTransactionGasLimit,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
 import {
@@ -144,6 +146,20 @@ describe("resolveDefaultTransactionGasLimit", () => {
   });
 });
 
+describe("hardhatGasEstimationModeToEdrGasEstimationMode", () => {
+  it("maps the hardhat gas estimation modes to the EDR ones", () => {
+    assert.equal(
+      hardhatGasEstimationModeToEdrGasEstimationMode("topLevelSuccess"),
+      GasEstimationMode.TopLevelSuccess,
+    );
+
+    assert.equal(
+      hardhatGasEstimationModeToEdrGasEstimationMode("noInternalOutOfGas"),
+      GasEstimationMode.NoInternalOutOfGas,
+    );
+  });
+});
+
 describe("Amsterdam L1 hardfork conversion round-trip", () => {
   it("maps the AMSTERDAM name to EDR's Amsterdam spec id", () => {
     assert.equal(
@@ -157,5 +173,36 @@ describe("Amsterdam L1 hardfork conversion round-trip", () => {
       edrL1HardforkToHardhatL1HardforkName(SpecId.Amsterdam),
       L1HardforkName.AMSTERDAM,
     );
+  });
+});
+
+describe("hardhatMiningIntervalToEdrMiningInterval", () => {
+  it("disables interval mining for a scalar 0", () => {
+    assert.equal(hardhatMiningIntervalToEdrMiningInterval(0), undefined);
+  });
+
+  it("converts a scalar interval to a bigint", () => {
+    assert.equal(hardhatMiningIntervalToEdrMiningInterval(5000), 5000n);
+  });
+
+  it("converts a range as it is", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([1000, 5000]), {
+      min: 1000n,
+      max: 5000n,
+    });
+  });
+
+  it("raises a range minimum of 0 to 1", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([0, 5000]), {
+      min: 1n,
+      max: 5000n,
+    });
+  });
+
+  it("raises both bounds of a [0, 0] range to 1", () => {
+    assert.deepEqual(hardhatMiningIntervalToEdrMiningInterval([0, 0]), {
+      min: 1n,
+      max: 1n,
+    });
   });
 });

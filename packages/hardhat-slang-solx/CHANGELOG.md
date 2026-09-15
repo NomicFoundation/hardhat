@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-slang-solx
 
+## 3.0.3
+
+### Patch Changes
+
+- [#8597](https://github.com/NomicFoundation/hardhat/pull/8597) [`6684224`](https://github.com/NomicFoundation/hardhat/commit/6684224124c48fe84904797f3c2d0c715014e64c) Thanks [@kanej](https://github.com/kanej)! - Added slang-solx compiler support as a Hardhat plugin.
+
 ## 3.0.2
 
 ### Patch Changes

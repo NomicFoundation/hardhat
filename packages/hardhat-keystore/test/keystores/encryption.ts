@@ -6,7 +6,7 @@ import type {
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { bytesToHex, hexToBytes, randomBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes, randomBytes } from "@noble/hashes/utils.js";
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
 
 import {

@@ -3,7 +3,7 @@ import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/edr";
+import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 import hardhatEthersPlugin from "../src/index.js";
 import { getNativeSecp256k1CallCount } from "../src/internal/native-secp256k1.js";

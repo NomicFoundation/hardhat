@@ -294,6 +294,10 @@ function getContractAtFromArtifact(
 ): Promise<ethers.Contract>;
 ```
 
+## Native Keccak-256
+
+Keccak-256 is used by virtually every ethers operation, and ethers implements it in pure JavaScript. On the first network connection, this plugin replaces it with EDR's native implementation, which is significantly faster. The results are identical; only the speed differs.
+
 ## Native secp256k1 public key derivation
 
 Deriving a public key from a secret key is the slowest cryptographic primitive ethers implements in JavaScript, and it runs whenever a wallet is created: `new Wallet(secretKey)`, `Wallet.createRandom()`, `computeAddress` and every node of an HD wallet derivation.

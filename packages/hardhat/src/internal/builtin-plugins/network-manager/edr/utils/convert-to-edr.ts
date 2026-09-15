@@ -3,6 +3,7 @@ import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
   ChainDescriptorsConfig,
+  EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
@@ -17,6 +18,7 @@ import type {
 } from "@nomicfoundation/edr";
 
 import {
+  GasEstimationMode,
   GasReportExecutionStatus,
   MineOrdering,
   OpHardfork,
@@ -61,6 +63,7 @@ import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
+  EIP_7825_TRANSACTION_GAS_CAP,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
 import {
@@ -263,8 +266,8 @@ export function hardhatMiningIntervalToEdrMiningInterval(
     }
   } else {
     return {
-      min: BigInt(config[0]),
-      max: BigInt(config[1]),
+      min: BigInt(Math.max(1, config[0])),
+      max: BigInt(Math.max(1, config[1])),
     };
   }
 }
@@ -277,6 +280,17 @@ export function hardhatMempoolOrderToEdrMineOrdering(
       return MineOrdering.Fifo;
     case "priority":
       return MineOrdering.Priority;
+  }
+}
+
+export function hardhatGasEstimationModeToEdrGasEstimationMode(
+  gasEstimationMode: EdrNetworkConfig["gasEstimationMode"],
+): GasEstimationMode {
+  switch (gasEstimationMode) {
+    case "topLevelSuccess":
+      return GasEstimationMode.TopLevelSuccess;
+    case "noInternalOutOfGas":
+      return GasEstimationMode.NoInternalOutOfGas;
   }
 }
 
@@ -423,7 +437,7 @@ export function resolveDefaultTransactionGasLimit(params: {
   }
 
   if (hardforkGte(hardfork, L1HardforkName.OSAKA, chainType)) {
-    return 16_777_216n; // EIP-7825 transaction gas cap
+    return EIP_7825_TRANSACTION_GAS_CAP;
   }
 
   return blockGasLimit;

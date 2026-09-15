@@ -3,6 +3,7 @@ import type EventEmitter from "node:events";
 import type * as UndiciT from "undici";
 
 import crypto from "node:crypto";
+import { STATUS_CODES } from "node:http";
 import path from "node:path";
 
 import { mkdir } from "../fs.js";
@@ -42,7 +43,6 @@ export async function getBaseRequestOptions(
   signal?: EventEmitter | AbortSignal | undefined;
   dispatcher: UndiciT.Dispatcher;
   headers: Record<string, string>;
-  throwOnError: true;
 }> {
   if (undici === undefined) {
     undici = await import("undici");
@@ -53,13 +53,17 @@ export async function getBaseRequestOptions(
       ? dispatcherOrDispatcherOptions
       : await getDispatcher(requestUrl, dispatcherOrDispatcherOptions);
 
-  // We could use the global dispatcher if neither dispatcher nor dispatcherOptions were passed,
-  // but there's no way to configure it, so we don't do it.
-  // https://github.com/nodejs/undici/blob/961b76ad7cac17d23580d172702e11a080974f5d/lib/global.js#L9
+  // We always build our own dispatcher instead of letting undici fall back to
+  // the global one, which is a bare `new Agent()` and would drop our timeouts.
+  // Configuring it with `setGlobalDispatcher` would affect the whole process.
+  // https://github.com/nodejs/undici/blob/v7.29.0/lib/global.js#L10-L12
   return {
-    dispatcher,
+    dispatcher: dispatcher.compose(
+      undici.interceptors.redirect({ maxRedirections: DEFAULT_MAX_REDIRECTS }),
+      // responseError is what makes 4xx and 5xx responses throw
+      undici.interceptors.responseError(),
+    ),
     headers: getHeaders(requestUrl, extraHeaders),
-    throwOnError: true,
     ...(abortSignal !== undefined ? { signal: abortSignal } : {}),
     ...(queryParams !== undefined ? { query: queryParams } : {}),
   };
@@ -134,7 +138,7 @@ export function getBaseDispatcherOptions(
   isTestDispatcher: boolean = false,
 ): UndiciT.Client.Options {
   // These have good defaults for production, but need to be tweaked to avoid hanging tests.
-  // https://github.com/nodejs/undici/blob/961b76ad7cac17d23580d172702e11a080974f5d/docs/docs/best-practices/writing-tests.md
+  // https://github.com/nodejs/undici/blob/v7.29.0/docs/docs/best-practices/writing-tests.md
   const keepAliveTimeouts = isTestDispatcher
     ? { keepAliveTimeout: 10, keepAliveMaxTimeout: 10 }
     : {};
@@ -143,7 +147,6 @@ export function getBaseDispatcherOptions(
     headersTimeout: timeout,
     bodyTimeout: timeout,
     connectTimeout: timeout,
-    maxRedirections: DEFAULT_MAX_REDIRECTS,
     ...keepAliveTimeouts,
   };
 }
@@ -173,7 +176,34 @@ export function handleError(e: Error, requestUrl: string): void {
     throw new RequestTimeoutError(requestUrl, e);
   }
 
-  if (errorCode === "UND_ERR_RESPONSE_STATUS_CODE") {
+  if (errorCode === "UND_ERR_RESPONSE") {
+    describeResponseError(e);
     throw new ResponseStatusCodeError(requestUrl, e);
   }
+}
+
+/**
+ * Restores the message that undici used to produce for status code errors.
+ *
+ * Until v7, undici's `throwOnError` described the failure as
+ * `Response status code <code>: <reason>`. The `responseError` interceptor that
+ * replaced it always uses the generic "Response Error" instead, dropping the
+ * only actionable part of the message. Consumers surface this message to users,
+ * so we describe the error again.
+ */
+function describeResponseError(e: Error): void {
+  if (e.message !== "Response Error") {
+    return;
+  }
+
+  const statusCode = "statusCode" in e ? e.statusCode : undefined;
+  if (typeof statusCode !== "number") {
+    return;
+  }
+
+  const reason = STATUS_CODES[statusCode];
+
+  e.message = `Response status code ${statusCode}${
+    reason !== undefined ? `: ${reason}` : ""
+  }`;
 }

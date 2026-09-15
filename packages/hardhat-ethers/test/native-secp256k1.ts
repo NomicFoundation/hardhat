@@ -1,4 +1,4 @@
-import type { Secp256k1PublicKeyFromSecretKey } from "hardhat/internal/edr";
+import type { Secp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
@@ -6,7 +6,7 @@ import { describe, it, before } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
 import * as ethers from "ethers";
-import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/edr";
+import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 import {
   getNativeSecp256k1CallCount,
