@@ -520,13 +520,15 @@ describe("http-provider", () => {
 
     // Each case below names the variable it covers and sets only that one, so
     // a proxy configured in the environment running the tests would otherwise
-    // decide the result through one of the fallbacks instead.
+    // decide the result through one of the fallbacks instead. NO_PROXY is
+    // cleared too, as `getHttpDispatcher` checks it before the proxy variables.
     beforeEach(() => {
       for (const name of [
         "http_proxy",
         "HTTP_PROXY",
         "https_proxy",
         "HTTPS_PROXY",
+        "NO_PROXY",
       ]) {
         unsetEnvVar(name);
       }
