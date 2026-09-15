@@ -1,12 +1,10 @@
-import type { Secp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
-
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { describe, it, before } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
 import * as ethers from "ethers";
-import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
+import { secp256k1PublicKeyFromSecretKey as nativePublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 import {
   getNativeSecp256k1CallCount,
@@ -22,17 +20,8 @@ const MNEMONIC =
   "legal winner thank year wave sausage worth useful legal winner thank yellow";
 
 describe("native secp256k1 installation", () => {
-  let nativePublicKeyFromSecretKey: Secp256k1PublicKeyFromSecretKey;
-
-  before(async () => {
-    const maybeNative = await getNativeSecp256k1PublicKeyFromSecretKey();
-    assert.ok(
-      maybeNative !== undefined,
-      "EDR's native secp256k1 derivation should be available on the platforms that run this suite",
-    );
-    nativePublicKeyFromSecretKey = maybeNative;
-
-    await installNativeSecp256k1();
+  before(() => {
+    installNativeSecp256k1();
   });
 
   it("should derive public keys through the native implementation", () => {
@@ -196,10 +185,10 @@ describe("native secp256k1 installation", () => {
     }
   });
 
-  it("should not install again on later calls", async () => {
+  it("should not install again on later calls", () => {
     const computePublicKey = ethers.SigningKey.computePublicKey;
 
-    await installNativeSecp256k1();
+    installNativeSecp256k1();
 
     assert.equal(
       ethers.SigningKey.computePublicKey,

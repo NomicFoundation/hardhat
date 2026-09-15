@@ -2,6 +2,7 @@ import type { BytesLike } from "ethers";
 
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { computeAddress, getBytes, hexlify, SigningKey } from "ethers";
+import { secp256k1PublicKeyFromSecretKey as nativePublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 const log = createDebug("hardhat:ethers:native-secp256k1");
 
@@ -18,7 +19,7 @@ const SELF_CHECK_COMPRESSED_PUBLIC_KEY =
 const SECRET_KEY_LENGTH = 32;
 const UNCOMPRESSED_PUBLIC_KEY_LENGTH = 65;
 
-let installationPromise: Promise<void> | undefined;
+let installed = false;
 let nativeCallCount = 0;
 
 /**
@@ -37,40 +38,33 @@ export function getNativeSecp256k1CallCount(): number {
  *
  * ethers has hooks to register alternative implementations of its hash
  * functions, but none for this, so the static method is overwritten instead.
- * That isn't part of ethers' public API: a future
- * version could stop routing through it, which wouldn't produce wrong results
- * but would silently undo this optimization. To detect that, the replacement is
- * validated against a known secret key before being kept, checking both that
- * the derived values are correct and that ethers actually called it. If either
- * fails, ethers' own implementation is restored.
+ * That isn't part of ethers' public API: a future version could stop routing
+ * through it, which wouldn't produce wrong results but would silently undo this
+ * optimization. To detect that, the replacement is validated against a known
+ * secret key before being kept, checking both that the derived values are
+ * correct and that ethers actually called it. If either fails, ethers' own
+ * implementation is restored.
  *
  * The replacement is per-module-instance, so this only affects the ethers
  * instance that this plugin resolves; code that resolves another one keeps
- * using the JS implementation.
+ * using the JS implementation. It only installs on its first call, so later
+ * connections don't overwrite an implementation installed in between.
  *
- * If the native implementation isn't available, this leaves ethers as it is,
- * reporting it only under DEBUG.
+ * Both ethers and EDR are imported statically: this module is only loaded on
+ * the first network connection, by which point both are already loaded, so
+ * there's nothing to defer.
+ *
+ * If the replacement can't be installed, this leaves ethers as it is, reporting
+ * it only under DEBUG.
  */
-export async function installNativeSecp256k1(): Promise<void> {
-  installationPromise ??= loadAndInstallNativeSecp256k1();
-  return await installationPromise;
-}
+export function installNativeSecp256k1(): void {
+  if (installed) {
+    return;
+  }
 
-async function loadAndInstallNativeSecp256k1(): Promise<void> {
+  installed = true;
+
   try {
-    const { getNativeSecp256k1PublicKeyFromSecretKey } =
-      await import("hardhat/internal/native-crypto");
-
-    const nativePublicKeyFromSecretKey =
-      await getNativeSecp256k1PublicKeyFromSecretKey();
-
-    if (nativePublicKeyFromSecretKey === undefined) {
-      log(
-        "EDR's native secp256k1 derivation isn't available; keeping ethers' JS one",
-      );
-      return;
-    }
-
     const jsComputePublicKey = SigningKey.computePublicKey;
 
     SigningKey.computePublicKey = function (
@@ -115,7 +109,8 @@ async function loadAndInstallNativeSecp256k1(): Promise<void> {
 
     log("Installed EDR's native secp256k1 derivation into ethers");
   } catch (error) {
-    // Swallowed to avoid breaking users if it's missing.
+    // Assigning to the method throws if ethers has frozen `SigningKey`.
+    // Swallowed so that such an ethers doesn't break network connections.
     log("Failed to install EDR's native secp256k1 derivation: %O", error);
   }
 }

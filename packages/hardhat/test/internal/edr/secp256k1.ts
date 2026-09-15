@@ -1,7 +1,5 @@
-import type { Secp256k1PublicKeyFromSecretKey } from "../../../src/internal/edr/secp256k1.js";
-
 import assert from "node:assert/strict";
-import { describe, it, before } from "node:test";
+import { describe, it } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -9,7 +7,7 @@ import {
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
 
-import { getNativeSecp256k1PublicKeyFromSecretKey } from "../../../src/internal/edr/secp256k1.js";
+import { secp256k1PublicKeyFromSecretKey } from "../../../src/internal/edr/exports.js";
 
 // The order of the secp256k1 curve, i.e. the first scalar that is out of range.
 const CURVE_ORDER = BigInt(
@@ -20,29 +18,9 @@ function secretKeyOf(scalar: bigint): Uint8Array {
   return hexStringToBytes(scalar.toString(16).padStart(64, "0"));
 }
 
-describe("getNativeSecp256k1PublicKeyFromSecretKey", () => {
-  let publicKeyFromSecretKey: Secp256k1PublicKeyFromSecretKey;
-
-  before(async () => {
-    const native = await getNativeSecp256k1PublicKeyFromSecretKey();
-
-    assert.ok(
-      native !== undefined,
-      "EDR's native secp256k1 derivation should be available on the platforms that run this suite",
-    );
-
-    publicKeyFromSecretKey = native;
-  });
-
-  it("should return the same instance on every call", async () => {
-    assert.equal(
-      await getNativeSecp256k1PublicKeyFromSecretKey(),
-      publicKeyFromSecretKey,
-    );
-  });
-
+describe("EDR's native secp256k1 public key derivation", () => {
   it("should derive the well-known public key of a known secret key", () => {
-    const publicKey = publicKeyFromSecretKey(
+    const publicKey = secp256k1PublicKeyFromSecretKey(
       hexStringToBytes(
         "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
       ),
@@ -57,7 +35,7 @@ describe("getNativeSecp256k1PublicKeyFromSecretKey", () => {
 
   it("should return an uncompressed point for every valid secret key", () => {
     for (const scalar of [BigInt(1), BigInt(1337), CURVE_ORDER - BigInt(1)]) {
-      const publicKey = publicKeyFromSecretKey(secretKeyOf(scalar));
+      const publicKey = secp256k1PublicKeyFromSecretKey(secretKeyOf(scalar));
 
       assert.equal(publicKey.length, 65);
       assert.equal(publicKey[0], 0x04);
@@ -74,7 +52,7 @@ describe("getNativeSecp256k1PublicKeyFromSecretKey", () => {
       const secretKey = secretKeyOf(scalar);
 
       assertThrows(
-        () => publicKeyFromSecretKey(secretKey),
+        () => secp256k1PublicKeyFromSecretKey(secretKey),
         undefined,
         `0x${scalar.toString(16)} should be rejected`,
       );
@@ -84,7 +62,7 @@ describe("getNativeSecp256k1PublicKeyFromSecretKey", () => {
   it("should throw for inputs that aren't 32 bytes", () => {
     for (const length of [0, 31, 33, 65]) {
       assertThrows(
-        () => publicKeyFromSecretKey(new Uint8Array(length).fill(1)),
+        () => secp256k1PublicKeyFromSecretKey(new Uint8Array(length).fill(1)),
         undefined,
         `a ${length}-byte input should be rejected`,
       );

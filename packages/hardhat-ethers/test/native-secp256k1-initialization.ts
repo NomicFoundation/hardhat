@@ -3,7 +3,6 @@ import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { getNativeSecp256k1PublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
 import hardhatEthersPlugin from "../src/index.js";
 import { getNativeSecp256k1CallCount } from "../src/internal/native-secp256k1.js";
@@ -13,11 +12,6 @@ const SECRET_KEY =
 
 describe("native secp256k1 installation from a network connection", () => {
   before(async () => {
-    assert.ok(
-      (await getNativeSecp256k1PublicKeyFromSecretKey()) !== undefined,
-      "EDR's native secp256k1 derivation should be available on the platforms that run this suite",
-    );
-
     const hre = await createHardhatRuntimeEnvironment({
       plugins: [hardhatEthersPlugin],
     });

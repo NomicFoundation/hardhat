@@ -1,3 +1,4 @@
-export { keccak256 } from "@nomicfoundation/edr";
-export { getNativeSecp256k1PublicKeyFromSecretKey } from "./secp256k1.js";
-export type { Secp256k1PublicKeyFromSecretKey } from "./secp256k1.js";
+export {
+  keccak256,
+  secp256k1PublicKeyFromSecretKey,
+} from "@nomicfoundation/edr";
