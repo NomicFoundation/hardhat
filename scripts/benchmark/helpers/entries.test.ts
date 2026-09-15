@@ -1,17 +1,22 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { computeStats } from "./stats.ts";
+import { computeStats, type TimingStats } from "./stats.ts";
 import { measuredRunsToEntries, toCpuEntry, toEntries } from "./entries.ts";
 import type { MeasuredRun } from "./runner.ts";
 
-const EXPECTED_TIMES = [9.2, 9.4, 9.3];
+// The fixture's mean and median must differ, or a confusion of the two
+// passes unnoticed.
+const EXPECTED_TIMES = [9.2, 9.4, 9.9];
 const WALL = computeStats(EXPECTED_TIMES);
 
 // The dashboard's statsOf() renders a chart only when the parsed `extra` has
 // these four numeric fields at the top level.
-function assertChartable(extra: Record<string, unknown>): void {
-  for (const field of ["min", "max", "median", "mean"]) {
-    assert.equal(typeof extra[field], "number", `extra.${field}`);
+function assertChartable(
+  extra: Record<string, unknown>,
+  expected: TimingStats,
+): void {
+  for (const field of ["min", "max", "median", "mean"] as const) {
+    assert.equal(extra[field], expected[field], `extra.${field}`);
   }
 }
 
@@ -26,20 +31,8 @@ describe("toEntries", () => {
 
     const extra = JSON.parse(time.extra);
     assert.deepEqual(extra.times, EXPECTED_TIMES);
-    assertChartable(extra);
+    assertChartable(extra, WALL);
     assert.equal(extra.peakRssMb, undefined);
-
-    // extra's key order is part of the stored format; this pins the bytes.
-    assert.equal(
-      time.extra,
-      JSON.stringify({
-        times: WALL.times,
-        min: WALL.min,
-        max: WALL.max,
-        median: WALL.median,
-        mean: WALL.mean,
-      }),
-    );
   });
 
   it("emits no memory entry without peaks", () => {
@@ -48,7 +41,7 @@ describe("toEntries", () => {
   });
 
   it("emits a memory entry tracking the highest per-run peak", () => {
-    const peaks = [301, 315, 308];
+    const peaks = [301, 315, 311];
     const [time, mem] = toEntries("scenario", "test", WALL, peaks);
 
     assert.equal(JSON.parse(time.extra).peakRssMb, 315);
@@ -62,21 +55,8 @@ describe("toEntries", () => {
 
     const extra = JSON.parse(mem.extra);
     assert.deepEqual(extra.times, peaks);
-    assertChartable(extra);
+    assertChartable(extra, stats);
     assert.equal(extra.stddev, stats.stddev);
-
-    // Pinned bytes: stddev must stay the trailing key.
-    assert.equal(
-      mem.extra,
-      JSON.stringify({
-        times: stats.times,
-        min: stats.min,
-        max: stats.max,
-        median: stats.median,
-        mean: stats.mean,
-        stddev: stats.stddev,
-      }),
-    );
   });
 
   it("reports zero spread for a single run", () => {

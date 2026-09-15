@@ -113,7 +113,6 @@ export function toEntries(
   return [timeEntry, memEntry];
 }
 
-// Key order is part of the emitted bytes.
 interface SampleStats {
   times: number[];
   min: number;
