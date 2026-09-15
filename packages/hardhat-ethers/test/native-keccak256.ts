@@ -1,10 +1,10 @@
-import type { Keccak256 } from "hardhat/internal/edr";
+import type { Keccak256 } from "hardhat/internal/native-crypto";
 
 import assert from "node:assert/strict";
 import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
-import { getNativeKeccak256 } from "hardhat/internal/edr";
+import { getNativeKeccak256 } from "hardhat/internal/native-crypto";
 
 import { registerNativeKeccak256 } from "../src/internal/native-keccak256.js";
 

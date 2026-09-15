@@ -3,7 +3,7 @@ import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { getNativeKeccak256 } from "hardhat/internal/edr";
+import { getNativeKeccak256 } from "hardhat/internal/native-crypto";
 
 import hardhatEthersPlugin from "../src/index.js";
 

@@ -26,7 +26,8 @@ export async function registerNativeKeccak256(): Promise<void> {
 
 async function loadAndRegisterNativeKeccak256(): Promise<void> {
   try {
-    const { getNativeKeccak256 } = await import("hardhat/internal/edr");
+    const { getNativeKeccak256 } =
+      await import("hardhat/internal/native-crypto");
 
     const nativeKeccak256 = await getNativeKeccak256();
 
