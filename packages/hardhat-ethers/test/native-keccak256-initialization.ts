@@ -3,7 +3,6 @@ import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { getNativeKeccak256 } from "hardhat/internal/native-crypto";
 
 import hardhatEthersPlugin from "../src/index.js";
 
@@ -11,11 +10,6 @@ const SENTINEL_DIGEST = new Uint8Array(32).fill(0xfe);
 
 describe("native keccak256 registration from a network connection", () => {
   before(async () => {
-    assert.ok(
-      (await getNativeKeccak256()) !== undefined,
-      "EDR's native keccak256 should be available on the platforms that run this suite",
-    );
-
     ethers.keccak256.register(() => SENTINEL_DIGEST);
 
     const hre = await createHardhatRuntimeEnvironment({

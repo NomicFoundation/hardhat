@@ -1,29 +1,18 @@
-import type { Keccak256 } from "hardhat/internal/native-crypto";
-
 import assert from "node:assert/strict";
 import { describe, it, before } from "node:test";
 
 import * as ethers from "ethers";
-import { getNativeKeccak256 } from "hardhat/internal/native-crypto";
+import { keccak256 as nativeKeccak256 } from "hardhat/internal/native-crypto";
 
 import { registerNativeKeccak256 } from "../src/internal/native-keccak256.js";
 
 const SENTINEL_DIGEST = new Uint8Array(32).fill(0xfe);
 
 describe("native keccak256 registration", () => {
-  let nativeKeccak256: Keccak256;
-
-  before(async () => {
-    const maybeNative = await getNativeKeccak256();
-    assert.ok(
-      maybeNative !== undefined,
-      "EDR's native keccak256 should be available on the platforms that run this suite",
-    );
-    nativeKeccak256 = maybeNative;
-
+  before(() => {
     ethers.keccak256.register(() => SENTINEL_DIGEST);
 
-    await registerNativeKeccak256();
+    registerNativeKeccak256();
   });
 
   it("should install the native implementation over the registered one", () => {
@@ -39,12 +28,12 @@ describe("native keccak256 registration", () => {
     );
   });
 
-  it("should not register again on later calls", async () => {
+  it("should not register again on later calls", () => {
     const digestBefore = ethers.keccak256("0x1337");
 
     ethers.keccak256.register(() => SENTINEL_DIGEST);
     try {
-      await registerNativeKeccak256();
+      registerNativeKeccak256();
 
       assert.equal(
         ethers.keccak256("0x1337"),

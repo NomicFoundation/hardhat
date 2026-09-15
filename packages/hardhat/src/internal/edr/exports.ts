@@ -1,2 +1,1 @@
-export { getNativeKeccak256 } from "./keccak.js";
-export type { Keccak256 } from "./keccak.js";
+export { keccak256 } from "@nomicfoundation/edr";

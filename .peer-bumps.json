@@ -10,7 +10,7 @@
     {
       "package": "@nomicfoundation/hardhat-ethers",
       "peer": "hardhat",
-      "reason": "The plugin imports `hardhat/internal/edr` to register EDR's native Keccak-256 into ethers, and that export subpath is new in the next version of Hardhat."
+      "reason": "The plugin imports `hardhat/internal/native-crypto` to register EDR's native Keccak-256 into ethers, and that export subpath is new in the next version of Hardhat."
     }
   ]
 }

@@ -15,7 +15,7 @@ export async function initializeEthers(
   networkConfig: NetworkConfig,
   artifactManager: ArtifactManager,
 ): Promise<HardhatEthers> {
-  await registerNativeKeccak256();
+  registerNativeKeccak256();
 
   const provider = new HardhatEthersProvider(
     ethereumProvider,

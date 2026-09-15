@@ -1,31 +1,12 @@
-import type { Keccak256 } from "../../../src/internal/edr/keccak.js";
-
 import assert from "node:assert/strict";
-import { describe, it, before } from "node:test";
+import { describe, it } from "node:test";
 
 import { keccak256 as jsKeccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { getNativeKeccak256 } from "../../../src/internal/edr/keccak.js";
+import { keccak256 } from "../../../src/internal/edr/exports.js";
 
-describe("getNativeKeccak256", () => {
-  let keccak256: Keccak256;
-
-  before(async () => {
-    const nativeKeccak256 = await getNativeKeccak256();
-
-    assert.ok(
-      nativeKeccak256 !== undefined,
-      "EDR's native keccak256 should be available on the platforms that run this suite",
-    );
-
-    keccak256 = nativeKeccak256;
-  });
-
-  it("should return the same instance on every call", async () => {
-    assert.equal(await getNativeKeccak256(), keccak256);
-  });
-
+describe("EDR's native keccak256", () => {
   it("should hash the well-known test vectors", () => {
     assert.equal(
       bytesToHexString(keccak256(new Uint8Array(0))),
