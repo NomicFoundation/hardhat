@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import { Sourcify, SOURCIFY_API_URL } from "../src/internal/sourcify.js";
@@ -48,6 +51,18 @@ describe("sourcify", () => {
     const responseOptions = { headers: { "Content-Type": "application/json" } };
 
     describe("constructor", () => {
+      const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+      // The proxy is read from the environment, so one configured in the
+      // environment running the tests would otherwise decide the results below.
+      beforeEach(() => {
+        unsetEnvVar("https_proxy");
+        unsetEnvVar("HTTPS_PROXY");
+        unsetEnvVar("http_proxy");
+        unsetEnvVar("HTTP_PROXY");
+        unsetEnvVar("NO_PROXY");
+      });
+
       it("should create an instance with the correct properties", () => {
         const sourcify = new Sourcify(sourcifyConfig);
 
@@ -76,7 +91,7 @@ describe("sourcify", () => {
       });
 
       it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
 
         const sourcify = new Sourcify({
           ...sourcifyConfig,
@@ -86,24 +101,19 @@ describe("sourcify", () => {
         assert.deepEqual(sourcify.dispatcherOrDispatcherOptions, {
           proxy: "http://test-proxy:8080",
         });
-
-        delete process.env.https_proxy;
       });
 
       it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
+        setEnvVar("NO_PROXY", "*");
 
         const sourcify = new Sourcify(sourcifyConfig);
 
         assert.deepEqual(sourcify.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
       });
 
       it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
         const dispatcher = await getDispatcher(sourcifyApiUrl);
 
         const sourcify = new Sourcify({
@@ -112,8 +122,6 @@ describe("sourcify", () => {
         });
 
         assert.deepEqual(sourcify.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
       it("should configure no proxy when no environment variables are set", () => {
