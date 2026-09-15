@@ -321,6 +321,7 @@ async function execute(
     });
 
     let wallSeconds = 0;
+    let drainTimer: NodeJS.Timeout | undefined;
     const stdout = new CappedBuffer();
     const stderr = new CappedBuffer();
 
@@ -352,13 +353,18 @@ async function execute(
 
       // An orphaned grandchild can hold the stdio pipes open forever.
       // Severing them after the grace period lets "close" fire.
-      setTimeout(() => {
+      drainTimer = setTimeout(() => {
         child.stdout?.destroy();
         child.stderr?.destroy();
-      }, STREAM_DRAIN_GRACE_MS).unref();
+      }, STREAM_DRAIN_GRACE_MS);
+      drainTimer.unref();
     });
 
     child.on("close", (code, signal) => {
+      // The armed timer's closure retains the child and its capped buffers;
+      // drop it once the pipes have closed on their own.
+      clearTimeout(drainTimer);
+
       const reason =
         signal !== null
           ? `was killed by signal ${signal}`
