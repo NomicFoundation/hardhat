@@ -29,6 +29,9 @@ const CALIBRATION_RUNS = 20;
 
 const STREAM_DRAIN_GRACE_MS = 5_000;
 
+// Absolute path: a scenario env may replace PATH with one that has no bash.
+export const BASH = "/bin/bash";
+
 export interface RunOptions {
   cwd: string;
   env?: Record<string, string>;
@@ -307,7 +310,7 @@ async function execute(
 ): Promise<{ wallSeconds: number }> {
   return new Promise((resolve, reject) => {
     const start = performance.now();
-    const child = spawn("bash", ["-c", command], {
+    const child = spawn(BASH, ["-c", command], {
       cwd: options.cwd,
       stdio: [
         "ignore",
