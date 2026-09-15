@@ -1,5 +1,6 @@
 import { computeStats, mean, type TimingStats } from "./stats.ts";
 import { logWarning } from "./log.ts";
+import { procSamplingAvailable } from "./mem-sampler.ts";
 import type { MeasuredRun } from "./runner.ts";
 
 /**
@@ -33,7 +34,13 @@ export function measuredRunsToEntries(
     }
   }
 
-  if (peaks.length > 0 && peaks.length !== runs.length) {
+  // A benchmark that missed every reading must warn, or its series
+  // vanishes from the dashboard silently. Without /proc, the startup
+  // warning suffices.
+  if (
+    peaks.length !== runs.length &&
+    (peaks.length > 0 || procSamplingAvailable())
+  ) {
     logWarning(
       `${scenarioId} / ${label}: peak RSS missing for ` +
         `${runs.length - peaks.length} of ${runs.length} runs — ` +
@@ -106,8 +113,17 @@ export function toEntries(
   return [timeEntry, memEntry];
 }
 
+// Key order is part of the emitted bytes.
+interface SampleStats {
+  times: number[];
+  min: number;
+  max: number;
+  median: number;
+  mean: number;
+}
+
 // The per-run samples and their statistics, in the shape the dashboard reads.
-function toSampleStats(stats: TimingStats): Record<string, number | number[]> {
+function toSampleStats(stats: TimingStats): SampleStats {
   return {
     times: stats.times,
     min: stats.min,

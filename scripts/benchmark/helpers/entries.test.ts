@@ -28,6 +28,18 @@ describe("toEntries", () => {
     assert.deepEqual(extra.times, EXPECTED_TIMES);
     assertChartable(extra);
     assert.equal(extra.peakRssMb, undefined);
+
+    // extra's key order is part of the stored format; this pins the bytes.
+    assert.equal(
+      time.extra,
+      JSON.stringify({
+        times: WALL.times,
+        min: WALL.min,
+        max: WALL.max,
+        median: WALL.median,
+        mean: WALL.mean,
+      }),
+    );
   });
 
   it("emits no memory entry without peaks", () => {
@@ -52,6 +64,19 @@ describe("toEntries", () => {
     assert.deepEqual(extra.times, peaks);
     assertChartable(extra);
     assert.equal(extra.stddev, stats.stddev);
+
+    // Pinned bytes: stddev must stay the trailing key.
+    assert.equal(
+      mem.extra,
+      JSON.stringify({
+        times: stats.times,
+        min: stats.min,
+        max: stats.max,
+        median: stats.median,
+        mean: stats.mean,
+        stddev: stats.stddev,
+      }),
+    );
   });
 
   it("reports zero spread for a single run", () => {

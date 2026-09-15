@@ -20,12 +20,14 @@ import { mean } from "./stats.ts";
  *   {@link MemorySampler}.
  */
 
-// Chatty commands (a full hardhat compile) can emit tens of MiB; retain a
-// capped prefix instead of failing the run.
+// Chatty commands (a full hardhat compile) can emit tens of MiB; cap the
+// retained output so the driver's memory stays bounded.
 const MAX_CAPTURED_OUTPUT_MIB = 64;
 const MAX_CAPTURED_OUTPUT = MAX_CAPTURED_OUTPUT_MIB * 1024 * 1024;
 
 const CALIBRATION_RUNS = 20;
+
+const STREAM_DRAIN_GRACE_MS = 5_000;
 
 export interface RunOptions {
   cwd: string;
@@ -51,7 +53,7 @@ export interface MeasuredRun {
 }
 
 /**
- * Run a command without measuring it (prerequisite steps, --prepare hooks).
+ * Run a command without measuring it (prerequisite steps, prepare hooks).
  */
 export async function runPlain(
   command: string,
@@ -74,6 +76,10 @@ export async function runMeasured(
   calibrationSeconds: number,
   options: RunOptions,
 ): Promise<MeasuredRun> {
+  // A wrapper that dies before its redirect must not leave a previous run's
+  // report to be read as this run's.
+  rmSync(timingPath, { force: true });
+
   const sampler = procSamplingAvailable() ? new MemorySampler() : undefined;
 
   try {
@@ -115,7 +121,8 @@ export interface SeriesOptions extends RunOptions {
  * Run a command `runs` times and measure each run. Warm-up runs execute
  * unmeasured first. `prepare` runs unmeasured before every run, including
  * before warm-up runs. `ignoreFailure` applies to the benchmarked command
- * only, never to prepare.
+ * only, never to prepare. The shell-spawn calibration is measured once for
+ * the whole series.
  */
 export async function runSeries(
   command: string,
@@ -178,6 +185,7 @@ export async function runPrepare(
           `Prepare command failed: ${error.message}`,
           error.stdout,
           error.stderr,
+          command,
         )
       : error;
   }
@@ -190,11 +198,11 @@ export async function runPrepare(
  * only `time`'s report reaches `timingPath`. The command runs in a subshell:
  * a top-level `exit` must not skip the report. The timed pipeline must stay
  * a brace group — timing the subshell directly reroutes the report to the
- * subshell's redirected stderr. LC_NUMERIC pins bash's locale-dependent
- * decimal separator.
+ * subshell's redirected stderr. LC_ALL pins bash's locale-dependent decimal
+ * separator; LC_NUMERIC would be outranked by an inherited LC_ALL.
  */
 export function wrapWithCpuTiming(command: string, timingPath: string): string {
-  return `{ LC_NUMERIC=C; TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
+  return `{ LC_ALL=C; TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
@@ -246,11 +254,19 @@ export function formatOutput(streams: {
 export class CommandFailedError extends Error {
   public readonly stdout: string;
   public readonly stderr: string;
+  /** The failing command, when it is not the benchmarked one (prepare). */
+  public readonly command?: string;
 
-  constructor(message: string, stdout: string, stderr: string) {
+  constructor(
+    message: string,
+    stdout: string,
+    stderr: string,
+    command?: string,
+  ) {
     super(message);
     this.stdout = stdout;
     this.stderr = stderr;
+    this.command = command;
   }
 }
 
@@ -307,6 +323,12 @@ async function execute(
 
     child.stdout?.on("data", (chunk: Buffer) => stdout.append(chunk));
     child.stderr?.on("data", (chunk: Buffer) => stderr.append(chunk));
+    child.stdout?.on("error", (error: Error) =>
+      logWarning(`stdout capture failed: ${error.message}`),
+    );
+    child.stderr?.on("error", (error: Error) =>
+      logWarning(`stderr capture failed: ${error.message}`),
+    );
 
     if (sampler !== undefined && child.pid !== undefined) {
       sampler.start(child.pid);
@@ -324,6 +346,13 @@ async function execute(
 
     child.on("exit", () => {
       wallSeconds = (performance.now() - start) / 1000;
+
+      // An orphaned grandchild can hold the stdio pipes open forever.
+      // Severing them after the grace period lets "close" fire.
+      setTimeout(() => {
+        child.stdout?.destroy();
+        child.stderr?.destroy();
+      }, STREAM_DRAIN_GRACE_MS).unref();
     });
 
     child.on("close", (code, signal) => {
@@ -352,8 +381,6 @@ async function execute(
   });
 }
 
-// Accumulates stream chunks up to MAX_CAPTURED_OUTPUT, then drops the rest
-// (with a truncation marker) instead of failing the run.
 class CappedBuffer {
   private chunks: Buffer[] = [];
   private length: number = 0;
@@ -378,7 +405,7 @@ class CappedBuffer {
     const text = Buffer.concat(this.chunks).toString("utf-8");
 
     return this.truncated
-      ? `${text}\n[output truncated at ${MAX_CAPTURED_OUTPUT_MIB} MiB]`
+      ? `${text}\n[remaining output truncated after ${MAX_CAPTURED_OUTPUT_MIB} MiB]`
       : text;
   }
 }

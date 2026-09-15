@@ -35,7 +35,10 @@ import {
   shellQuote,
   type MeasuredRun,
 } from "./helpers/runner.ts";
-import { procSamplingAvailable } from "./helpers/mem-sampler.ts";
+import {
+  procSamplingAvailable,
+  SAMPLE_INTERVAL_MS,
+} from "./helpers/mem-sampler.ts";
 import {
   measuredRunsToEntries,
   type BenchmarkEntry,
@@ -75,9 +78,9 @@ DESCRIPTION
       }
     }
 
-  Step sequences share state across steps, so state carries between them
-  without re-preparing before every run. The command name (or, for a
-  sequence, each measured step name) becomes the on-disk benchmark name:
+  Step sequences share state across steps, so one reset step per run
+  replaces a per-run prepare. The command name (or, for a sequence, each
+  measured step name) becomes the on-disk benchmark name:
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
 
@@ -89,14 +92,15 @@ DESCRIPTION
   mean user/system there instead.
 
   On Linux, the process tree of every measured run is additionally sampled
-  every 100 ms via /proc, tracking each process's peak RSS. A process
-  shorter than the sampling interval can be missed. This is emitted as a
-  separate "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is
-  the highest single-process peak observed across runs,
-  with the per-run peaks and their statistics (mean/stddev/min/max/median)
-  in the entry's extra. The highest peak is also embedded as "peakRssMb" in
-  the time entry's extra. When /proc is unavailable (e.g. macOS), memory
-  entries are skipped and a warning is printed.
+  every ${SAMPLE_INTERVAL_MS} ms via /proc, tracking each process's peak RSS. A process
+  shorter than the sampling interval can be missed, as can a spike in the
+  final interval. This is emitted as a separate
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
+  highest single-process peak observed across runs, with the per-run peaks
+  and their statistics (mean/stddev/min/max/median) in the entry's extra.
+  The highest peak is also embedded as "peakRssMb" in the time entry's
+  extra. Memory entries are skipped, with a warning, when peak-RSS
+  sampling is unavailable (e.g. macOS) or a run yielded no reading.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -176,14 +180,19 @@ async function main(): Promise<void> {
 
   const scenarios = collectScenarios(args);
 
+  if (scenarios === undefined) {
+    return;
+  }
+
   if (scenarios.length === 0) {
     logError("No scenarios matched the provided filters");
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (!procSamplingAvailable()) {
     logWarning(
-      "Linux /proc is unavailable — peak RSS entries will be skipped (timing is unaffected)",
+      "Peak-RSS sampling is unavailable (needs Linux /proc with per-task children listings) — memory entries will be skipped (timing is unaffected)",
     );
   }
 
@@ -254,23 +263,28 @@ async function main(): Promise<void> {
 
   writeOutput(args.output, results);
 
+  // process.exitCode instead of process.exit: an immediate exit can discard
+  // stdio still buffered in CI pipes, truncating the failure output.
   if (failFastExit) {
     logError(
       `Aborted on first failure (--fail-fast). Partial results (${results.length} entries) written to ${args.output}`,
     );
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (failures.length > 0) {
     logError(
-      `${failures.length} scenario(s) failed: ${failures.join(", ")}. Partial results written to ${args.output}`,
+      `${failures.length} scenario${failures.length === 1 ? "" : "s"} failed: ${failures.join(", ")}. Partial results written to ${args.output}`,
     );
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (args.benchmarks !== undefined && results.length === 0) {
     logError("No benchmarks matched the provided --benchmarks filter");
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   log(
@@ -330,7 +344,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
   };
 }
 
-function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
+function collectScenarios(args: RegressionArgs): ScenarioEntry[] | undefined {
   const entries: ScenarioEntry[] = [];
   const invalid: string[] = [];
   const scenarioRes = compilePatterns(args.scenarios);
@@ -410,7 +424,8 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       console.error(`  - ${line}`);
     }
 
-    process.exit(1);
+    process.exitCode = 1;
+    return undefined;
   }
 
   return entries;
@@ -510,7 +525,11 @@ async function runCommandPhase(
 ): Promise<BenchmarkEntry[]> {
   const runs = emit ? cfg.runs : 1;
 
-  logStep(`${fmt.pkg(name)} (${runs} run${runs === 1 ? "" : "s"})`);
+  logStep(
+    `${fmt.pkg(name)} (${runs} run${runs === 1 ? "" : "s"}${
+      emit ? "" : ", prerequisite"
+    })`,
+  );
 
   try {
     if (!emit) {
@@ -529,10 +548,10 @@ async function runCommandPhase(
       {
         cwd: workingDir,
         env,
-        runs: cfg.runs,
+        runs,
         prepare: cfg.prepare,
-        onRunCompleted: (run, i) =>
-          log(`  run ${i + 1}/${cfg.runs}: ${formatRun(run)}`),
+        onRunCompleted: (run, i, total) =>
+          log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
       },
     );
 
@@ -584,7 +603,7 @@ async function runStepsPhase(
       stepNames.length < totalSteps
         ? `, ${stepNames.length} of ${totalSteps} steps`
         : ""
-    })`,
+    }${emit.size === 0 ? ", prerequisite" : ""})`,
   );
 
   const samples = new Map<string, MeasuredRun[]>();
@@ -621,8 +640,11 @@ async function runStepsPhase(
             },
           );
           stepRuns.push(measured);
-          log(`  ${stepName} run ${run + 1}/${runs}: ${formatRun(measured)}`);
+          log(
+            `  ${stepName} run ${runCounter(run, runs)}: ${formatRun(measured)}`,
+          );
         } else {
+          log(fmt.deemphasize(`  ${stepName} (prerequisite)`));
           await runPlain(step.command, { cwd: workingDir, env });
         }
       } catch (error) {
@@ -643,9 +665,9 @@ async function runStepsPhase(
 }
 
 // Contextualize a failed benchmark command: first line of the failure, a
-// repro hint, and the captured output. The scenario's env var names are
-// listed so the repro can be completed — values stay out of the message,
-// which lands in CI logs and may hold secrets (e.g. RPC URLs).
+// repro hint, and the captured output. The env var names are listed so the
+// repro can be completed. Their values stay out of this message: it lands
+// in CI logs, which must not hold secrets (e.g. RPC URLs).
 function benchmarkError(
   context: string,
   command: string,
@@ -660,15 +682,21 @@ function benchmarkError(
     error instanceof CommandFailedError
       ? formatOutput({ stdout: error.stdout, stderr: error.stderr })
       : "";
+  // A prepare hook's failure must show the hook in the repro, not the
+  // benchmarked command.
+  const failing =
+    error instanceof CommandFailedError && error.command !== undefined
+      ? error.command
+      : command;
   const envNames = Object.keys(env ?? {});
   const envHint =
     envNames.length > 0
-      ? `  The command ran with scenario env vars: ${envNames.join(", ")} (values in scenario.json)\n`
+      ? `  The command ran with scenario env vars: ${envNames.join(", ")} (declared in scenario.json)\n`
       : "";
 
   return new Error(
     `${context}: ${original}\n` +
-      `  Reproduce with: cd ${shellQuote(workingDir)} && ${command}\n` +
+      `  Reproduce with: cd ${shellQuote(workingDir)} && ${failing}\n` +
       envHint +
       output,
     { cause: error },
@@ -677,12 +705,17 @@ function benchmarkError(
 
 function formatRun(run: MeasuredRun): string {
   return (
-    `${run.wallSeconds.toFixed(3)} s` +
+    `${run.wallSeconds.toFixed(3)} s, cpu ${(run.user + run.system).toFixed(3)} s` +
     (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
   );
 }
 
-// Where bash's `time` builtin reports for a benchmark name — see runMeasured.
+function runCounter(index: number, total: number): string {
+  return `${String(index + 1).padStart(String(total).length)}/${total}`;
+}
+
+// One report file per command or step sequence, overwritten by each run;
+// it survives a crash for diagnosis.
 function cpuTimingPath(scenarioTmpDir: string, name: string): string {
   return path.join(scenarioTmpDir, `${slugify(name)}-cpu.txt`);
 }
