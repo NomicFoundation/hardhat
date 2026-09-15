@@ -184,7 +184,7 @@ export function rustIntegrationFor(
       return provisioned;
     },
 
-    async provisionCompilersForBuildInfo(compilerType, version) {
+    async provisionCompilersForBuildInfo(compilerType, version, quiet) {
       // Replaying solc Build Info uses its recorded compiler directly, just
       // like TypeScript. Non-solc project configurations fall back before the
       // Rust facade is constructed; other non-solc replay inputs are unsupported.
@@ -192,7 +192,7 @@ export function rustIntegrationFor(
         return [];
       }
 
-      await downloadSolcCompilers(new Set([version]), false);
+      await downloadSolcCompilers(new Set([version]), quiet ?? false);
 
       return [
         provisionedCompilerOf(
