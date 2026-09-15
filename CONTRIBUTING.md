@@ -133,8 +133,6 @@ When tests are run, Hardhat gets initialized multiple times, and that means unlo
 
 This problem is normally not present if you are monkey-patching an object that you initialized, but it is when monkey-patching a class, its prototype, or a singleton object initialized by the library itself.
 
-For an example on how to do it properly, please take a look at the `hardhat-truffle5` plugin.
-
 ## Note about small PRs and airdrop farming
 
 We generally really appreciate external contributions, and strongly encourage meaningful additions and fixes! However, due to a recent increase in small PRs potentially created to farm airdrops, we might need to close a PR without explanation if any of the following apply:
