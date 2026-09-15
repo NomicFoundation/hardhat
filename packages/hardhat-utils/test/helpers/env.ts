@@ -1,8 +1,8 @@
-// IMPORTANT: this file is duplicated verbatim at
-// `packages/hardhat-utils/test/helpers/env.ts` because `hardhat-test-utils`
-// depends on `hardhat-utils`, so the latter can't import from here. Any change
-// to `createEnvChanges` / `createTestEnvManager` should be mirrored in that
-// file.
+// IMPORTANT: this file mirrors `packages/hardhat-test-utils/src/env.ts`.
+// `hardhat-test-utils` depends on `hardhat-utils`, so we can't import from
+// there here — this would be a circular dependency. Any change to
+// `createEnvChanges` / `createTestEnvManager` should be mirrored in the
+// canonical file.
 
 import { afterEach } from "node:test";
 
