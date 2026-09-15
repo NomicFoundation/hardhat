@@ -8,6 +8,7 @@ import type {
 import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 
@@ -222,8 +223,14 @@ export function rustIntegrationFor(
         "solidity",
         "build",
         [rootFilePaths, buildOptions],
-        async (_context, nextRootFilePaths, nextOptions) =>
-          await build(nextRootFilePaths, nextOptions),
+        async (_context, nextRootFilePaths, nextOptions) => {
+          // Inside the default handler: a plugin replacing the build never
+          // emits this evidence, even if the lazy facade selected Rust.
+          createDebug("hardhat:core:solidity:build-system")(
+            `Running Rust build for ${nextRootFilePaths.length} roots`,
+          );
+          return await build(nextRootFilePaths, nextOptions);
+        },
       );
     },
 
