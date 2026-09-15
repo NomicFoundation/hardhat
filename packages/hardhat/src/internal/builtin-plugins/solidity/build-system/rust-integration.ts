@@ -124,7 +124,7 @@ export function rustIntegrationFor(
   options: SolidityBuildSystemOptions,
 ): HardhatIntegration {
   return {
-    async provisionCompilers(buildProfile) {
+    async provisionCompilers(buildProfile, additionalConfigs = []) {
       const profileName = buildProfile ?? "default";
       const profile = options.solidityConfig.profiles[profileName];
 
@@ -148,6 +148,7 @@ export function rustIntegrationFor(
       const configs = [
         ...profile.compilers,
         ...Object.values(profile.overrides),
+        ...additionalConfigs,
       ];
 
       const provisioned: ProvisionedCompiler[] = [];
