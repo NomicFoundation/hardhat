@@ -83,13 +83,29 @@ describe("config validation", () => {
     );
   });
 
-  it("should throw when the `profiles` wrapper has a non-`default` profile", async () => {
-    const userConfig: HardhatUserConfig = {
+  it("should accept the `profiles` wrapper with non-`default` profiles", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
       test: {
         solidity: {
           profiles: {
             default: { isolate: true },
             ci: { isolate: false },
+          },
+        },
+      },
+    });
+
+    assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
+    assert.equal(hre.config.test.solidity.profiles.ci.isolate, false);
+  });
+
+  it("should throw when a profile name is an inline test configuration key", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: { isolate: true },
+            fuzz: { isolate: false },
           },
         },
       },
@@ -100,7 +116,29 @@ describe("config validation", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
-          "\t* Config error in config.test.solidity.profiles: Only the `default` profile is supported. Other profile names will be supported in a future release.",
+          "\t* Config error in config.test.solidity.profiles.fuzz: `fuzz` can't be used as a profile name, as it's an inline test configuration key",
+      },
+    );
+  });
+
+  it("should throw when a profile name has invalid characters", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: { isolate: true },
+            "my.profile": { isolate: false },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles.my.profile: Invalid profile name. Profile names can only contain letters, numbers, underscores and dashes",
       },
     );
   });
