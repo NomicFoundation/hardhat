@@ -9,6 +9,12 @@ const scenario = process.argv[2];
 
 const ethers = await import("ethers");
 
+if (scenario === "ethers-frozen") {
+  // Simulates an ethers that freezes `SigningKey`, which makes the assignment
+  // that installs the replacement throw.
+  Object.freeze(ethers.SigningKey);
+}
+
 if (scenario === "ethers-drifted") {
   // Simulates a future ethers that computes the compressed public key without
   // going through SigningKey.computePublicKey: the values it returns are still

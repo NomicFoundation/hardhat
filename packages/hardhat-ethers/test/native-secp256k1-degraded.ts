@@ -13,7 +13,7 @@ const CHILD_PATH = fileURLToPath(
 const ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 // Each scenario needs a new process: the installation only runs once, and the
-// drift it simulates has to be in place before it runs.
+// drift or freeze it simulates has to be in place before it runs.
 async function deriveUnder(
   scenario: string,
 ): Promise<{ address: string; native: boolean }> {
@@ -30,6 +30,13 @@ async function deriveUnder(
 }
 
 describe("native secp256k1 installation when it can't be used", () => {
+  it("should leave ethers working when SigningKey is frozen", async () => {
+    assert.deepEqual(await deriveUnder("ethers-frozen"), {
+      address: ADDRESS,
+      native: false,
+    });
+  });
+
   it("should restore ethers' implementation when it stops using the replaced method", async () => {
     assert.deepEqual(await deriveUnder("ethers-drifted"), {
       address: ADDRESS,

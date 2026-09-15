@@ -6,6 +6,7 @@ import {
   bytesToHexString,
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
+import { secp256k1 as jsSecp256k1 } from "ethereum-cryptography/secp256k1";
 
 import { secp256k1PublicKeyFromSecretKey } from "../../../src/internal/edr/exports.js";
 
@@ -65,6 +66,26 @@ describe("EDR's native secp256k1 public key derivation", () => {
         () => secp256k1PublicKeyFromSecretKey(new Uint8Array(length).fill(1)),
         undefined,
         `a ${length}-byte input should be rejected`,
+      );
+    }
+  });
+
+  it("should match the JS implementation", () => {
+    for (let seed = 1; seed <= 512; seed++) {
+      const secretKey = new Uint8Array(32);
+      // Deterministic LCG, seeded by the iteration, so that the key varies
+      // across iterations and a failure is reproducible. Every key it produces
+      // is in [1, n): a 256-bit value out of range is a ~2^-128 event.
+      let state = seed;
+      for (let i = 0; i < secretKey.length; i++) {
+        state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+        secretKey[i] = state % 256;
+      }
+
+      assert.equal(
+        bytesToHexString(secp256k1PublicKeyFromSecretKey(secretKey)),
+        bytesToHexString(jsSecp256k1.getPublicKey(secretKey, false)),
+        `public key mismatch for the secret key of seed ${seed}`,
       );
     }
   });
