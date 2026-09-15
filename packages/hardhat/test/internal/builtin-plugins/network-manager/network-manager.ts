@@ -28,6 +28,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertValidationErrors,
+  createEnvChanges,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
@@ -169,16 +170,21 @@ describe("NetworkManagerImplementation", () => {
       "network-manager-analytics-result.json",
     );
 
+    // These have to stay set for the whole describe, so they are restored
+    // manually instead of through createTestEnvManager.
+    const envChanges = createEnvChanges();
+
     before(() => {
-      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "true";
-      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
+      envChanges.setEnvVar("HARDHAT_TEST_INTERACTIVE_ENV", "true");
+      envChanges.setEnvVar("HARDHAT_TEST_TELEMETRY_ENABLED", "true");
+      envChanges.setEnvVar(
+        "HARDHAT_TEST_SUBPROCESS_RESULT_PATH",
+        RESULT_FILE_PATH,
+      );
     });
 
     after(() => {
-      delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
-      delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
-      delete process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
+      envChanges.restoreEnvVars();
     });
 
     beforeEach(async () => {

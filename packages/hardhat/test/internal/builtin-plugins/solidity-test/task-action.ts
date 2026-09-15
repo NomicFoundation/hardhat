@@ -7,6 +7,7 @@ import { before, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createTestEnvManager,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
@@ -216,36 +217,32 @@ describe("solidity-test/task-action", function () {
   });
 
   describe("running the tests", () => {
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
     it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const nodeEnv = process.env.NODE_ENV;
-      const hhTest = process.env.HH_TEST;
-      try {
-        delete process.env.NODE_ENV;
-        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
-        assert.equal(process.env.NODE_ENV, "test");
-        assert.equal(process.env.HH_TEST, "true");
-      } finally {
-        process.env.HH_TEST = hhTest;
-        process.env.NODE_ENV = nodeEnv;
-      }
+      unsetEnvVar("NODE_ENV");
+      // The task sets this one, so track it to have it restored too.
+      unsetEnvVar("HH_TEST");
+
+      await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+
+      assert.equal(process.env.NODE_ENV, "test");
+      assert.equal(process.env.HH_TEST, "true");
     });
 
     it("should not set the NODE_ENV variable if defined before", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const nodeEnv = process.env.NODE_ENV;
-      const hhTest = process.env.HH_TEST;
-      try {
-        process.env.NODE_ENV = "HELLO";
-        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
-        assert.equal(process.env.NODE_ENV, "HELLO");
-        assert.equal(process.env.HH_TEST, "true");
-      } finally {
-        process.env.HH_TEST = hhTest;
-        process.env.NODE_ENV = nodeEnv;
-      }
+      setEnvVar("NODE_ENV", "HELLO");
+      // The task sets this one, so track it to have it restored too.
+      unsetEnvVar("HH_TEST");
+
+      await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+
+      assert.equal(process.env.NODE_ENV, "HELLO");
+      assert.equal(process.env.HH_TEST, "true");
     });
 
     it("should return an error result when any test fails", async () => {
