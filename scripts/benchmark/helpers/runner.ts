@@ -6,6 +6,7 @@ import path from "node:path";
 
 import { logWarning } from "./log.ts";
 import { MemorySampler, procSamplingAvailable } from "./mem-sampler.ts";
+import { mean } from "./stats.ts";
 
 /**
  * The measured-command runner for the benchmark drivers.
@@ -274,7 +275,7 @@ export async function measureShellSpawnOverhead(): Promise<number> {
       walls.push(wallSeconds);
     }
 
-    return walls.reduce((sum, w) => sum + w, 0) / walls.length;
+    return mean(walls);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

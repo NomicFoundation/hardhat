@@ -81,11 +81,7 @@ export function toEntries(
     value: wall.mean,
     range: `± ${wall.stddev}`,
     extra: JSON.stringify({
-      times: wall.times,
-      min: wall.min,
-      max: wall.max,
-      median: wall.median,
-      mean: wall.mean,
+      ...toSampleStats(wall),
       ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
     }),
   };
@@ -102,16 +98,23 @@ export function toEntries(
     value: rss.max,
     range: `± ${rss.stddev}`,
     extra: JSON.stringify({
-      times: rss.times,
-      min: rss.min,
-      max: rss.max,
-      median: rss.median,
-      mean: rss.mean,
+      ...toSampleStats(rss),
       stddev: rss.stddev,
     }),
   };
 
   return [timeEntry, memEntry];
+}
+
+// The per-run samples and their statistics, in the shape the dashboard reads.
+function toSampleStats(stats: TimingStats): Record<string, number | number[]> {
+  return {
+    times: stats.times,
+    min: stats.min,
+    max: stats.max,
+    median: stats.median,
+    mean: stats.mean,
+  };
 }
 
 /**

@@ -4,7 +4,8 @@ import { computeStats } from "./stats.ts";
 import { measuredRunsToEntries, toCpuEntry, toEntries } from "./entries.ts";
 import type { MeasuredRun } from "./runner.ts";
 
-const WALL = computeStats([9.2, 9.4, 9.3]);
+const EXPECTED_TIMES = [9.2, 9.4, 9.3];
+const WALL = computeStats(EXPECTED_TIMES);
 
 // The dashboard's statsOf() renders a chart only when the parsed `extra` has
 // these four numeric fields at the top level.
@@ -24,7 +25,7 @@ describe("toEntries", () => {
     assert.equal(time.range, `± ${WALL.stddev}`);
 
     const extra = JSON.parse(time.extra);
-    assert.deepEqual(extra.times, [9.2, 9.4, 9.3]);
+    assert.deepEqual(extra.times, EXPECTED_TIMES);
     assertChartable(extra);
     assert.equal(extra.peakRssMb, undefined);
   });

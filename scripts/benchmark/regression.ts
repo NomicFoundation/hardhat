@@ -525,7 +525,7 @@ async function runCommandPhase(
 
     const measured = await runSeries(
       cfg.command,
-      path.join(scenarioTmpDir, `${slugify(name)}-cpu.txt`),
+      cpuTimingPath(scenarioTmpDir, name),
       {
         cwd: workingDir,
         env,
@@ -595,7 +595,7 @@ async function runStepsPhase(
     }
   }
 
-  const timingPath = path.join(scenarioTmpDir, `${slugify(seqName)}-cpu.txt`);
+  const timingPath = cpuTimingPath(scenarioTmpDir, seqName);
   const calibration = samples.size > 0 ? await measureShellSpawnOverhead() : 0;
 
   for (let run = 0; run < runs; run++) {
@@ -680,6 +680,11 @@ function formatRun(run: MeasuredRun): string {
     `${run.wallSeconds.toFixed(3)} s` +
     (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
   );
+}
+
+// Where bash's `time` builtin reports for a benchmark name — see runMeasured.
+function cpuTimingPath(scenarioTmpDir: string, name: string): string {
+  return path.join(scenarioTmpDir, `${slugify(name)}-cpu.txt`);
 }
 
 function slugify(name: string): string {
