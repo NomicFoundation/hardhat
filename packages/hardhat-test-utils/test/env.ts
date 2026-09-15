@@ -108,6 +108,22 @@ describe("env", () => {
       assert.equal(process.env[name], "later");
     });
 
+    it("should restore a variable changed through more than one spelling", () => {
+      // On Windows these are the same variable, so tracking them separately
+      // would record the second one as originally unset, and the restore would
+      // put the original value back and then delete it again. On other
+      // platforms they are simply two variables.
+      const name = `${PREFIX}CASE`;
+      process.env[name] = "original";
+      const changes = createEnvChanges();
+
+      changes.unsetEnvVar(name);
+      changes.unsetEnvVar(name.toLowerCase());
+
+      changes.restoreEnvVars();
+      assert.equal(process.env[name], "original");
+    });
+
     it("should ignore variables changed outside the handle", () => {
       const name = `${PREFIX}UNTRACKED`;
       const changes = createEnvChanges();

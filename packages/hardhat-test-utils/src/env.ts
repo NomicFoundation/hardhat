@@ -53,15 +53,26 @@ export interface EnvChanges {
  * ```
  */
 export function createEnvChanges(): EnvChanges {
-  const changes = new Set<string>();
-  const originalValues = new Map<string, string | undefined>();
+  const originalValues = new Map<
+    string,
+    { name: string; value: string | undefined }
+  >();
+
+  // On Windows environment variables are case-insensitive, so `https_proxy` and
+  // `HTTPS_PROXY` are the same one and have to share a tracking entry. Without
+  // this, changing both would record the second one as originally unset, and
+  // the restore would put the original value back and then delete it again.
+  function trackingKey(name: string): string {
+    return process.platform === "win32" ? name.toUpperCase() : name;
+  }
 
   // Saves the original value before the first change, as the restore reads
   // from it.
   function trackChange(name: string) {
-    if (!changes.has(name)) {
-      originalValues.set(name, process.env[name]);
-      changes.add(name);
+    const key = trackingKey(name);
+
+    if (!originalValues.has(key)) {
+      originalValues.set(key, { name, value: process.env[name] });
     }
   }
 
@@ -77,15 +88,13 @@ export function createEnvChanges(): EnvChanges {
     },
 
     restoreEnvVars(): void {
-      changes.forEach((key) => {
-        const originalValue = originalValues.get(key);
-        if (originalValue === undefined) {
-          delete process.env[key];
+      originalValues.forEach(({ name, value }) => {
+        if (value === undefined) {
+          delete process.env[name];
         } else {
-          process.env[key] = originalValue;
+          process.env[name] = value;
         }
       });
-      changes.clear();
       originalValues.clear();
     },
   };

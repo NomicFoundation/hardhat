@@ -1,7 +1,7 @@
 import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -518,9 +518,10 @@ describe("http-provider", () => {
   describe("getHttpDispatcher", () => {
     const { setEnvVar, unsetEnvVar } = createTestEnvManager();
 
-    it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
-      // These are read from the environment, so a proxy configured in the
-      // environment running the tests would otherwise make this fail.
+    // Each case below names the variable it covers and sets only that one, so
+    // a proxy configured in the environment running the tests would otherwise
+    // decide the result through one of the fallbacks instead.
+    beforeEach(() => {
       for (const name of [
         "http_proxy",
         "HTTP_PROXY",
@@ -529,7 +530,9 @@ describe("http-provider", () => {
       ]) {
         unsetEnvVar(name);
       }
+    });
 
+    it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
       const dispatcher = await getHttpDispatcher("http://example.com");
 
       assert.equal(dispatcher.constructor.name, "Pool");
