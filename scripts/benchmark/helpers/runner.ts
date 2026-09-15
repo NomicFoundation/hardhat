@@ -201,11 +201,12 @@ export async function runPrepare(
  * only `time`'s report reaches `timingPath`. The command runs in a subshell:
  * a top-level `exit` must not skip the report. The timed pipeline must stay
  * a brace group — timing the subshell directly reroutes the report to the
- * subshell's redirected stderr. LC_ALL pins bash's locale-dependent decimal
- * separator; LC_NUMERIC would be outranked by an inherited LC_ALL.
+ * subshell's redirected stderr. The command's locale is left untouched, so
+ * it runs under its declared env; {@link parseCpuTiming} absorbs the
+ * locale-dependent decimal separator instead.
  */
 export function wrapWithCpuTiming(command: string, timingPath: string): string {
-  return `{ LC_ALL=C; TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
+  return `{ TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
@@ -214,7 +215,8 @@ export function parseCpuTiming(
   source: string,
 ): { user: number; system: number } {
   const fields = raw.trim().split(/\s+/);
-  const [user, system] = fields.map(Number);
+  // bash prints the report with the inherited locale's decimal separator.
+  const [user, system] = fields.map((field) => Number(field.replace(",", ".")));
 
   if (
     fields.length !== 2 ||

@@ -34,7 +34,7 @@ describe("wrapWithCpuTiming", () => {
   it("wraps the command in bash's time builtin, reporting to the file", () => {
     assert.equal(
       wrapWithCpuTiming("npx hardhat compile", "/tmp/cpu.txt"),
-      "{ LC_ALL=C; TIMEFORMAT='%U %S'; time { ( npx hardhat compile\n) ; } 2>&3 ; } 3>&2 2>/tmp/cpu.txt",
+      "{ TIMEFORMAT='%U %S'; time { ( npx hardhat compile\n) ; } 2>&3 ; } 3>&2 2>/tmp/cpu.txt",
     );
   });
 
@@ -56,6 +56,13 @@ describe("parseCpuTiming", () => {
     assert.deepEqual(parseCpuTiming("1.25 0.75\n", "x"), {
       user: 1.25,
       system: 0.75,
+    });
+  });
+
+  it("parses a comma decimal separator from a non-C locale", () => {
+    assert.deepEqual(parseCpuTiming("0,003 0,001\n", "x"), {
+      user: 0.003,
+      system: 0.001,
     });
   });
 
