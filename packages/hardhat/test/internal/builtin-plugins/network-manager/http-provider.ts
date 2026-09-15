@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
@@ -16,10 +19,7 @@ import {
   LimitExceededError,
 } from "../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../src/internal/constants.js";
-import {
-  createTestEnvManager,
-  initializeTestDispatcher,
-} from "../../../utils.js";
+import { initializeTestDispatcher } from "../../../utils.js";
 
 describe("http-provider", () => {
   describe("HttpProvider.create", () => {
@@ -516,9 +516,20 @@ describe("http-provider", () => {
   });
 
   describe("getHttpDispatcher", () => {
-    const { setEnvVar } = createTestEnvManager();
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
 
     it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
+      // These are read from the environment, so a proxy configured in the
+      // environment running the tests would otherwise make this fail.
+      for (const name of [
+        "http_proxy",
+        "HTTP_PROXY",
+        "https_proxy",
+        "HTTPS_PROXY",
+      ]) {
+        unsetEnvVar(name);
+      }
+
       const dispatcher = await getHttpDispatcher("http://example.com");
 
       assert.equal(dispatcher.constructor.name, "Pool");
