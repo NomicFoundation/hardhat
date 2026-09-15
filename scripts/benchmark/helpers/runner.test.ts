@@ -11,7 +11,7 @@ describe("wrapWithCpuTiming", () => {
   it("wraps the command in bash's time builtin, reporting to the file", () => {
     assert.equal(
       wrapWithCpuTiming("npx hardhat compile", "/tmp/cpu.txt"),
-      "{ LC_NUMERIC=C; TIMEFORMAT='%U %S'; time { ( npx hardhat compile\n) ; } 2>&3 ; } 3>&2 2>/tmp/cpu.txt",
+      "{ LC_ALL=C; TIMEFORMAT='%U %S'; time { ( npx hardhat compile\n) ; } 2>&3 ; } 3>&2 2>/tmp/cpu.txt",
     );
   });
 

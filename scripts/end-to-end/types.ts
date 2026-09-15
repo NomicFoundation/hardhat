@@ -45,8 +45,9 @@ interface ScenarioDefinitionBase {
  * A benchmark entry in a scenario's `benchmark.commands` map. Exactly one of
  * the two variants applies, discriminated by the presence of `steps`:
  *
- * - {@link CommandVariant}: a single command, measured once per run.
- * - {@link StepsVariant}: an ordered sequence of steps, each timed in-process.
+ * - {@link CommandVariant}: a single measured command.
+ * - {@link StepsVariant}: an ordered sequence of steps, each measured
+ *   separately.
  */
 export type CommandConfig = CommandVariant | StepsVariant;
 

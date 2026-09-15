@@ -16,16 +16,19 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
  * command.
  */
 
-const SAMPLE_INTERVAL_MS = 100;
+export const SAMPLE_INTERVAL_MS = 100;
 
 let cachedAvailable: boolean | undefined;
 
-// Whether /proc exposes per-process memory counters (Linux). Memory
-// measurement is best-effort: when unavailable (e.g. macOS) callers skip the
-// memory entries rather than failing the benchmark.
+// Whether /proc exposes memory counters and the child list the tree walk
+// needs (Linux with CONFIG_PROC_CHILDREN). Memory measurement is
+// best-effort: when unavailable (e.g. macOS) callers skip the memory
+// entries rather than failing the benchmark.
 export function procSamplingAvailable(): boolean {
   if (cachedAvailable === undefined) {
-    cachedAvailable = existsSync("/proc/self/status");
+    cachedAvailable =
+      existsSync("/proc/self/status") &&
+      existsSync(`/proc/self/task/${process.pid}/children`);
   }
 
   return cachedAvailable;
