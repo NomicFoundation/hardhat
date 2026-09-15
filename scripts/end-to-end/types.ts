@@ -88,10 +88,11 @@ export interface StepsVariant {
    */
   runs: number;
   /**
-   * The steps to run, in order, once per run. Each step is measured
-   * individually, and the shared state between steps avoids the per-run
-   * reset cost of a single command's `prepare`. The key doubles as the
-   * benchmark name on disk for measured steps.
+   * The steps to run, in order, once per run. Measured steps are timed
+   * individually; a step with `measure: false` runs as an unmeasured setup
+   * or reset. The shared state between steps avoids the per-run reset cost
+   * of a single command's `prepare`. The key doubles as the benchmark name
+   * on disk for measured steps.
    */
   steps: Record<string, StepConfig>;
 }
