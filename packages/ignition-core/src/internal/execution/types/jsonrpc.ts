@@ -3,9 +3,10 @@
  */
 export interface RawStaticCallResult {
   /**
-   * The data returned by the call.
+   * The data returned by the call. Some JSON-RPC servers report a failed
+   * call's error without any usable data, represented here as `null`.
    */
-  returnData: string;
+  returnData: string | null;
 
   /**
    * A boolean indicating whether the call was successful or not.

@@ -120,6 +120,11 @@ export async function* executeOnchainInteractionRequest(
     }
 
     if (decodeSuccessfulSimulationResult !== undefined) {
+      assertIgnitionInvariant(
+        firstResponse.result.returnData !== null,
+        `${assertionPrefix}Expected return data for a successful simulation result`,
+      );
+
       const result = decodeSuccessfulSimulationResult(
         firstResponse.result.returnData,
       );
@@ -184,6 +189,11 @@ export async function* executeStaticCallRequest(
       error,
     };
   }
+
+  assertIgnitionInvariant(
+    result.returnData !== null,
+    "Expected return data for a successful static call result",
+  );
 
   const decodedResult = decodeSuccessfulResult(result.returnData);
 

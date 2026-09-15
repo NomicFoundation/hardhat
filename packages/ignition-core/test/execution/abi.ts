@@ -244,16 +244,22 @@ describe("abi", () => {
         `No fixtures for ${contractName}.${functionName}`,
       );
 
+      const fixtureReturnData =
+        staticCallResultFixtures[contractName][functionName].returnData;
+      assert.isNotNull(
+        fixtureReturnData,
+        `Fixture ${contractName}.${functionName} is expected to have string return data`,
+      );
+
       const decoded = decodeArtifactFunctionCallResult(
         staticCallResultFixturesArtifacts[contractName],
         functionName,
-        staticCallResultFixtures[contractName][functionName].returnData,
+        fixtureReturnData,
       );
 
       return {
         decoded,
-        returnData:
-          staticCallResultFixtures[contractName][functionName].returnData,
+        returnData: fixtureReturnData,
       };
     }
 
@@ -514,11 +520,11 @@ describe("abi", () => {
   describe("decodeArtifactCustomError", () => {
     it("Should successfully decode a custom error", () => {
       const artifact = staticCallResultFixturesArtifacts.C;
+      const returnData =
+        staticCallResultFixtures.C.revertWithCustomError.returnData;
+      assert.isNotNull(returnData);
 
-      const decoded = decodeArtifactCustomError(
-        artifact,
-        staticCallResultFixtures.C.revertWithCustomError.returnData,
-      );
+      const decoded = decodeArtifactCustomError(artifact, returnData);
 
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR,
@@ -534,26 +540,25 @@ describe("abi", () => {
 
     it("Should return invalid data error if the custom error is recognized but can't be decoded", () => {
       const artifact = staticCallResultFixturesArtifacts.C;
+      const returnData =
+        staticCallResultFixtures.C.revertWithInvalidCustomError.returnData;
+      assert.isNotNull(returnData);
 
-      const decoded = decodeArtifactCustomError(
-        artifact,
-        staticCallResultFixtures.C.revertWithInvalidCustomError.returnData,
-      );
+      const decoded = decodeArtifactCustomError(artifact, returnData);
 
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
-        data: staticCallResultFixtures.C.revertWithInvalidCustomError
-          .returnData,
+        data: returnData,
       });
     });
 
     it("Should return undefined if no custom error is recognized", () => {
       const artifact = staticCallResultFixturesArtifacts.C;
+      const returnData =
+        staticCallResultFixtures.C.revertWithUnknownCustomError.returnData;
+      assert.isNotNull(returnData);
 
-      const decoded = decodeArtifactCustomError(
-        artifact,
-        staticCallResultFixtures.C.revertWithUnknownCustomError.returnData,
-      );
+      const decoded = decodeArtifactCustomError(artifact, returnData);
 
       assert.isUndefined(decoded);
     });
@@ -564,8 +569,15 @@ describe("abi", () => {
       contractName: keyof typeof staticCallResultFixtures,
       functionName: keyof (typeof staticCallResultFixtures)[typeof contractName],
     ) {
+      const fixtureReturnData =
+        staticCallResultFixtures[contractName][functionName].returnData;
+      assert.isNotNull(
+        fixtureReturnData,
+        `Fixture ${contractName}.${functionName} is expected to have string return data`,
+      );
+
       const decoded = decodeError(
-        staticCallResultFixtures[contractName][functionName].returnData,
+        fixtureReturnData,
         staticCallResultFixtures[contractName][functionName]
           .customErrorReported,
         (returnData) =>
@@ -577,8 +589,7 @@ describe("abi", () => {
 
       return {
         decoded,
-        returnData:
-          staticCallResultFixtures[contractName][functionName].returnData,
+        returnData: fixtureReturnData,
       };
     }
 
@@ -597,6 +608,16 @@ describe("abi", () => {
         describe("When the function returns something and there's no clash", () => {
           it("should return RevertWithoutReason", async () => {
             const { decoded } = decode("C", "revertWithoutReasonWithoutClash");
+            assert.deepEqual(decoded, {
+              type: EvmExecutionResultTypes.REVERT_WITHOUT_REASON,
+            });
+          });
+        });
+
+        describe("When the JSON-RPC server reports the failure without any usable data", () => {
+          it("should return RevertWithoutReason instead of throwing", () => {
+            const decoded = decodeError(null, false);
+
             assert.deepEqual(decoded, {
               type: EvmExecutionResultTypes.REVERT_WITHOUT_REASON,
             });
