@@ -20,9 +20,10 @@ import { mean } from "./stats.ts";
  *   {@link MemorySampler}.
  */
 
-// Chatty commands (a full hardhat compile) can emit tens of MiB; retain the
-// first 64 MiB instead of failing the run.
-const MAX_CAPTURED_OUTPUT = 64 * 1024 * 1024;
+// Chatty commands (a full hardhat compile) can emit tens of MiB; retain a
+// capped prefix instead of failing the run.
+const MAX_CAPTURED_OUTPUT_MIB = 64;
+const MAX_CAPTURED_OUTPUT = MAX_CAPTURED_OUTPUT_MIB * 1024 * 1024;
 
 const CALIBRATION_RUNS = 20;
 
@@ -376,6 +377,8 @@ class CappedBuffer {
   public toString(): string {
     const text = Buffer.concat(this.chunks).toString("utf-8");
 
-    return this.truncated ? `${text}\n[output truncated at 64 MiB]` : text;
+    return this.truncated
+      ? `${text}\n[output truncated at ${MAX_CAPTURED_OUTPUT_MIB} MiB]`
+      : text;
   }
 }
