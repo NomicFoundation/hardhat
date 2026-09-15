@@ -21,7 +21,7 @@ Fixed the `hardhat node` task so the `--chain-id` option is applied to the netwo
 
 ## Which packages to name
 
-Name every package that has to be released for the change to reach users, by its npm name (`hardhat`, `@nomicfoundation/hardhat-utils`) rather than its directory name. These are private or ignored and can never be named: `@nomicfoundation/config`, `@nomicfoundation/example-project`, `@nomicfoundation/template-package`, `template-*`, `@nomicfoundation/hardhat-test-utils`.
+Name every package that has to be released for the change to reach users, by its npm name (`hardhat`, `@nomicfoundation/hardhat-utils`) rather than its directory name. A package marked `private: true` in its `package.json` is never published and so never needs naming, and neither does anything in the `ignore` array of `.changeset/config.json` — check those two rather than trusting a list. At the time of writing they are `@nomicfoundation/config`, `@nomicfoundation/example-project`, `@nomicfoundation/template-package`, `template-*` and `@nomicfoundation/hardhat-test-utils`.
 
 **One changeset per user-visible change**, naming every package that must be released for the change. One behaviour that spans packages gets one changeset naming them all.
 
