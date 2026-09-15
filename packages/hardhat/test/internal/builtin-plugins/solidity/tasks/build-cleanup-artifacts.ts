@@ -22,6 +22,9 @@ import {
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import { useTestProjectTemplate } from "../build-system/resolver/helpers.js";
 
+// The deprecated cleanup-hook contract runs only on TypeScript.
+const itTS = process.env.HARDHAT_RUST_BUILD_SYSTEM === "true" ? it.skip : it;
+
 describe("build task - cleanupArtifacts", () => {
   describe("cleanupArtifacts uses built root files from results", () => {
     describe("when hook adds extra root files", () => {
@@ -832,63 +835,66 @@ describe("build task - unified mode cleanup", () => {
     );
   });
 
-  it("passes mixed contract and test artifact paths to onCleanUpArtifacts", async () => {
-    await using project = await useTestProjectTemplate(
-      unifiedCleanupProjectTemplate,
-    );
+  itTS(
+    "passes contract and test artifact paths to onCleanUpArtifacts",
+    async () => {
+      await using project = await useTestProjectTemplate(
+        unifiedCleanupProjectTemplate,
+      );
 
-    const receivedArtifactPaths: string[] = [];
+      const receivedArtifactPaths: string[] = [];
 
-    const hookCapturingPlugin: HardhatPlugin = {
-      id: "test-capture-cleanup-hook",
-      hookHandlers: {
-        solidity: async () => ({
-          default: async () => {
-            const handlers: Partial<SolidityHooks> = {
-              onCleanUpArtifacts: async (
-                _context: HookContext,
-                artifactPaths: string[],
-                next: (
-                  nextContext: HookContext,
-                  nextArtifactPaths: string[],
-                ) => Promise<void>,
-              ) => {
-                receivedArtifactPaths.push(...artifactPaths);
-                return await next(_context, artifactPaths);
-              },
-            };
+      const hookCapturingPlugin: HardhatPlugin = {
+        id: "test-capture-cleanup-hook",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                onCleanUpArtifacts: async (
+                  _context: HookContext,
+                  artifactPaths: string[],
+                  next: (
+                    nextContext: HookContext,
+                    nextArtifactPaths: string[],
+                  ) => Promise<void>,
+                ) => {
+                  receivedArtifactPaths.push(...artifactPaths);
+                  return await next(_context, artifactPaths);
+                },
+              };
 
-            return handlers;
-          },
-        }),
-      },
-    };
+              return handlers;
+            },
+          }),
+        },
+      };
 
-    const hre = await createHardhatRuntimeEnvironment(
-      {
-        plugins: [hookCapturingPlugin],
-        ...unifiedTestsCompilationConfig,
-      },
-      {},
-      project.path,
-    );
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          plugins: [hookCapturingPlugin],
+          ...unifiedTestsCompilationConfig,
+        },
+        {},
+        project.path,
+      );
 
-    await hre.tasks.getTask("build").run();
+      await hre.tasks.getTask("build").run();
 
-    // Should include both contract and test artifacts
-    assert.ok(
-      receivedArtifactPaths.some(
-        (p) => p.includes("Foo.sol") && !p.includes(".t.sol"),
-      ),
-      "Expected contract artifact path in onCleanUpArtifacts",
-    );
-    assert.ok(
-      receivedArtifactPaths.some((p) => p.includes("Foo.t.sol")),
-      "Expected test artifact path (Foo.t.sol) in onCleanUpArtifacts",
-    );
-    assert.ok(
-      receivedArtifactPaths.some((p) => p.includes("OtherFooTest.sol")),
-      "Expected test artifact path (OtherFooTest.sol) in onCleanUpArtifacts",
-    );
-  });
+      // Should include both contract and test artifacts
+      assert.ok(
+        receivedArtifactPaths.some(
+          (p) => p.includes("Foo.sol") && !p.includes(".t.sol"),
+        ),
+        "Expected contract artifact path in onCleanUpArtifacts",
+      );
+      assert.ok(
+        receivedArtifactPaths.some((p) => p.includes("Foo.t.sol")),
+        "Expected test artifact path (Foo.t.sol) in onCleanUpArtifacts",
+      );
+      assert.ok(
+        receivedArtifactPaths.some((p) => p.includes("OtherFooTest.sol")),
+        "Expected test artifact path (OtherFooTest.sol) in onCleanUpArtifacts",
+      );
+    },
+  );
 });

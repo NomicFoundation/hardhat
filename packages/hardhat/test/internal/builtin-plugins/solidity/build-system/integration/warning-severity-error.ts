@@ -21,12 +21,16 @@ import { describe, it } from "node:test";
 import { FileBuildResultType } from "../../../../../../src/types/solidity.js";
 import { useTestProjectTemplate } from "../resolver/helpers.js";
 
+// This suite injects output through invokeSolc, which the Rust port intentionally ignores.
+const describeTS =
+  process.env.HARDHAT_RUST_BUILD_SYSTEM === "true" ? describe.skip : describe;
+
 // These tests specify how Hardhat categorizes warnings vs errors for
 // solc compiler outputs.
 // Initially we operated based only on the `severity` field, but there are
 // solc outputs with a type of "Warning" and a severity of "error"
 // (e.g. the 5574 size warning).
-describe("build system - checking warnings and errors", function () {
+describeTS("build system - checking warnings and errors", function () {
   const basicProjectTemplate = {
     name: "warning-severity-error-test",
     version: "1.0.0",

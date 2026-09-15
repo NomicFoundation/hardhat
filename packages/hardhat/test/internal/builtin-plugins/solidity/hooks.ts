@@ -68,8 +68,12 @@ function createTypeRegistrationMockPlugin(types: string[]): HardhatPlugin {
   };
 }
 
+// These hook-contract suites run on TypeScript; the Rust policy tests assert intentional omission.
+const describeTS =
+  process.env.HARDHAT_RUST_BUILD_SYSTEM === "true" ? describe.skip : describe;
+
 describe("solidity - hooks", () => {
-  describe("invokeSolc", () => {
+  describeTS("invokeSolc", () => {
     useFixtureProject("solidity/simple-project");
 
     const expectedSolidityVersion = "0.8.23";
@@ -564,7 +568,7 @@ describe("solidity - hooks", () => {
     );
   });
 
-  describe("getCompiler", () => {
+  describeTS("getCompiler", () => {
     useFixtureProject("solidity/simple-project");
 
     it("should invoke getCompiler hook during build", async () => {
@@ -1110,7 +1114,7 @@ describe("solidity - hooks", () => {
     });
   });
 
-  describe("getCompilationJobErrors", () => {
+  describeTS("getCompilationJobErrors", () => {
     useFixtureProject("solidity/broken-project");
 
     it("should run with the compilation job and compiler output containing errors", async () => {

@@ -2,7 +2,6 @@ import type {
   HardhatRuntimeEnvironmentHooks,
   HookManager,
 } from "../../../../types/hooks.js";
-import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type {
   BuildOptions,
   CompilationJobCreationError,
@@ -203,23 +202,20 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   /**
    * Whether this build runs on the Rust port.
    *
-   * Answered once, because the answer can't change during a run: the flag is a
-   * global option and the plugins are resolved before the environment exists.
-   * A dynamically registered hook handler is the exception, and the one the
-   * decision can't see — see `unhonoredSolidityHooks`.
+   * Answered at first use and retained for this runtime. Querying the hook
+   * manager includes remappings handlers registered dynamically before that
+   * first use. Later registrations do not switch an existing build system.
    */
   async #decideUseRust(): Promise<boolean> {
     const { decideBuildSystemImplementation } =
       await import("@nomicfoundation/hardhat-solidity-build-system");
-    const { unhonoredSolidityHooks } =
-      await import("../build-system/rust-integration.js");
-
     const decision = decideBuildSystemImplementation({
       flagEnabled: this.#rust.flagEnabled,
       coverage: this.#options.coverage,
-      unhonoredHooks: this.#rust.flagEnabled
-        ? await unhonoredSolidityHooks(this.#hooks, this.#rust.plugins)
-        : [],
+      solidityConfig: this.#options.solidityConfig,
+      hasNpmPackageRemappingsHandler:
+        this.#rust.flagEnabled &&
+        (await this.#hooks.hasHandlers("solidity", "readNpmPackageRemappings")),
     });
 
     if (!decision.useRustPort) {
@@ -240,7 +236,6 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
  */
 interface RustBuildSystemContext {
   flagEnabled: boolean;
-  plugins: HardhatPlugin[];
 
   /**
    * Hardhat's version, which a profile that records the tool versions puts in
@@ -267,7 +262,6 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
         },
         {
           flagEnabled: context.globalOptions.rustBuildSystem,
-          plugins: hre.config.plugins,
           hardhatVersion: hre.versions.hardhat,
         },
       );

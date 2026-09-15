@@ -1,20 +1,13 @@
 import type { SolidityBuildSystemOptions } from "./build-system.js";
 import type { HookManager } from "../../../../types/hooks.js";
-import type { HardhatPlugin } from "../../../../types/plugins.js";
 import type {
   HardhatIntegration,
   ProvisionedCompiler,
-  SolidityHookName,
 } from "@nomicfoundation/hardhat-solidity-build-system";
 
 import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import {
-  SOLIDITY_HOOKS,
-  UNHONORED_HOOKS_WITH_BUILTIN_HANDLER,
-  UNHONORED_HOOKS_WITHOUT_BUILTIN_HANDLER,
-} from "@nomicfoundation/hardhat-solidity-build-system";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 
@@ -25,66 +18,6 @@ import {
   printCompilationResult,
   printSolcErrorsAndWarnings,
 } from "./printing.js";
-
-/**
- * The `solidity` hooks a plugin registered that the Rust port doesn't honor.
- *
- * Two questions, because the hook manager answers one of them and the plugin
- * list the other. For a hook no builtin plugin registers, asking the hook
- * manager is exact, and it also sees the handlers a plugin registered
- * dynamically. For a hook a builtin plugin registers for every project — the
- * two coverage instrumentation hooks — it would always say yes, so the plugins
- * are asked instead.
- *
- * The blind spot that leaves is a coverage instrumentation hook registered
- * dynamically at runtime by a plugin: the hook manager can't say who
- * registered it and the plugin list doesn't know about it. Closing it needs the
- * hook manager to keep track of that, which is a change to a public type.
- */
-async function unhonoredSolidityHooks(
-  hooks: HookManager,
-  plugins: HardhatPlugin[],
-): Promise<SolidityHookName[]> {
-  const unhonored = new Set<SolidityHookName>();
-
-  for (const hook of UNHONORED_HOOKS_WITHOUT_BUILTIN_HANDLER) {
-    if (await hooks.hasHandlers("solidity", hook)) {
-      unhonored.add(hook);
-    }
-  }
-
-  for (const plugin of plugins) {
-    const factory = plugin.hookHandlers?.solidity;
-
-    if (factory === undefined || plugin.id.startsWith("builtin:")) {
-      continue;
-    }
-
-    // The hook manager runs this factory too, and it's contractually a plain
-    // async function returning the handlers, so running it here only costs the
-    // dynamic import it does.
-    const category = await (await factory()).default();
-
-    for (const hook of UNHONORED_HOOKS_WITH_BUILTIN_HANDLER) {
-      if (category[hook] !== undefined) {
-        unhonored.add(hook);
-      }
-    }
-  }
-
-  // In the order the table declares them, so that the reason a build fell back
-  // doesn't depend on which plugin was asked first.
-  // In the order the table declares them, so that the reason a build fell back
-  // doesn't depend on which plugin was asked first.
-  return [...unhonored].sort(
-    (one, other) => declarationOrder(one) - declarationOrder(other),
-  );
-}
-
-/** Where a hook appears in the table, which is the order to report them in. */
-function declarationOrder(hook: SolidityHookName): number {
-  return Object.keys(SOLIDITY_HOOKS).indexOf(hook);
-}
 
 /**
  * The command that runs a wasm compiler.
@@ -251,12 +184,9 @@ export function rustIntegrationFor(
     },
 
     async provisionCompilersForBuildInfo(compilerType, version) {
-      // Recompiling a solc Build Info is self-contained: it has to be replayed
-      // with the same solc, so this bypasses both compiler hooks to keep that
-      // path from depending on the project's current configuration. Any other
-      // compiler type is one only a plugin can provide, and a plugin that
-      // provides compilers registers `getCompiler`, which is a hook the port
-      // doesn't honor — so such a build never reaches here.
+      // Replaying solc Build Info uses its recorded compiler directly, just
+      // like TypeScript. Non-solc project configurations fall back before the
+      // Rust facade is constructed; other non-solc replay inputs are unsupported.
       if (compilerType !== "solc") {
         return [];
       }
@@ -297,25 +227,6 @@ export function rustIntegrationFor(
       );
     },
 
-    async hasCompilationJobErrorsHandlers() {
-      return await hooks.hasHandlers("solidity", "getCompilationJobErrors");
-    },
-
-    async runCompilationJobErrorsHook(
-      compilationJob,
-      compilerOutput,
-      remapped,
-    ) {
-      return await hooks.runHandlerChain(
-        "solidity",
-        "getCompilationJobErrors",
-        [compilationJob, compilerOutput],
-        // The default is what the port already produced: the compiler's errors
-        // with their source names rewritten into paths of the project.
-        async () => remapped,
-      );
-    },
-
     async hasProcessArtifactsHandlers() {
       return await hooks.hasHandlers(
         "solidity",
@@ -332,5 +243,3 @@ export function rustIntegrationFor(
     },
   };
 }
-
-export { unhonoredSolidityHooks };
