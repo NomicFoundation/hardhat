@@ -3,14 +3,14 @@ import type { SolidityHooks } from "../../../../src/types/hooks.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { FileBuildResultType } from "../../../../src/types/solidity.js";
 
 describe("Rust hook policy", () => {
   describe("ignored handlers", () => {
-    useFixtureProject("solidity/simple-project");
+    useEphemeralFixtureProject("solidity/simple-project");
 
     it("builds on Rust with every ignored handler registered", async () => {
       const ignored = async (): Promise<never> => {
@@ -97,7 +97,7 @@ describe("Rust hook policy", () => {
   });
 
   describe("default errors", () => {
-    useFixtureProject("solidity/broken-project");
+    useEphemeralFixtureProject("solidity/broken-project");
 
     it("keeps real compiler errors when a plugin attempts to hide them", async () => {
       const hre = await createHardhatRuntimeEnvironment(
