@@ -23,7 +23,11 @@ Fixed the `hardhat node` task so the `--chain-id` option is applied to the netwo
 
 Name every package that has to be released for the change to reach users, by its npm name (`hardhat`, `@nomicfoundation/hardhat-utils`) rather than its directory name. These are private or ignored and can never be named: `@nomicfoundation/config`, `@nomicfoundation/example-project`, `@nomicfoundation/template-package`, `template-*`, `@nomicfoundation/hardhat-test-utils`.
 
-**One changeset per user-visible change**, naming every package that must be released for it. Split into separate changesets when the packages need different sentences, or when the branch does more than one user-visible thing. Do not split merely because several packages are involved, and do not split because the bump levels differ — the frontmatter is a per-package map, so `"hardhat": minor` can sit next to `"@nomicfoundation/hardhat-errors": patch`.
+**One changeset per user-visible change**, naming every package that must be released for the change. One behaviour that spans packages gets one changeset naming them all.
+
+**The same edit applied independently to several packages is several changes, not one.** Upgrading a dependency in two plugins is two changesets even though the sentence is identical, because either plugin could ship without the other. The test is whether you would release one without the other; if you would, they are independent. Split too when the packages need different sentences, or when the branch does more than one user-visible thing. Do not split merely because several packages are involved.
+
+**Give each package the bump level its own change deserves**, not the level of the headline package. The frontmatter is a per-package map, so `"hardhat": minor` can sit next to `"@nomicfoundation/hardhat-errors": patch`. This matters beyond the version number: `updateInternalDependencies` is `minor`, so a package bumped `minor` has its dependency range rewritten in every package released alongside it, while `patch` leaves those ranges untouched. A `minor` that a low-level package like `@nomicfoundation/hardhat-utils` did not earn churns ranges across the whole release.
 
 ## Bump level
 
