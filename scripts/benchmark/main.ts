@@ -4,6 +4,8 @@ import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
 
+const DEFAULT_RUNS = 10;
+
 const USAGE = `
 scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
 
@@ -36,8 +38,8 @@ OPTIONS
   --warmup <n>          Warmup runs before benchmarking (default: 0). Forwarded
                         to hyperfine's --warmup flag. Useful for filling disk
                         caches for I/O-heavy programs
-  --runs <n>            Number of benchmark runs (default: 10). Forwarded to
-                        hyperfine's --runs flag
+  --runs <n>            Number of benchmark runs (default: ${DEFAULT_RUNS}).
+                        Forwarded to hyperfine's --runs flag
   --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
                         Forwarded to hyperfine's --ignore-failure flag
   --show-output         Print stdout and stderr of the benchmarked command.
@@ -77,7 +79,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   }
 
   const benchCommand = command ?? scenario.definition.defaultCommand;
-  const runs = benchArgs.runs ?? 10;
+  const runs = benchArgs.runs ?? DEFAULT_RUNS;
 
   if (init) {
     logStep("Initializing scenario");
