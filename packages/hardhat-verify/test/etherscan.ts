@@ -11,6 +11,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
+  createTestEnvManager,
 } from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
@@ -57,6 +58,18 @@ describe("etherscan", () => {
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
 
     describe("constructor", () => {
+      const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+      // The proxy is read from the environment, so one configured in the
+      // environment running the tests would otherwise decide the results below.
+      beforeEach(() => {
+        unsetEnvVar("https_proxy");
+        unsetEnvVar("HTTPS_PROXY");
+        unsetEnvVar("http_proxy");
+        unsetEnvVar("HTTP_PROXY");
+        unsetEnvVar("NO_PROXY");
+      });
+
       it("should create an instance with the correct properties", () => {
         const etherscan = new Etherscan(etherscanConfig);
 
@@ -100,7 +113,7 @@ describe("etherscan", () => {
       });
 
       it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
 
         const etherscan = new Etherscan({
           ...etherscanConfig,
@@ -110,24 +123,19 @@ describe("etherscan", () => {
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {
           proxy: "http://test-proxy:8080",
         });
-
-        delete process.env.https_proxy;
       });
 
       it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
+        setEnvVar("NO_PROXY", "*");
 
         const etherscan = new Etherscan(etherscanConfig);
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
       });
 
       it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
         const dispatcher = await getDispatcher(etherscanApiUrl);
 
         const etherscan = new Etherscan({
@@ -136,8 +144,6 @@ describe("etherscan", () => {
         });
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
       it("should configure no proxy when no environment variables are set", () => {

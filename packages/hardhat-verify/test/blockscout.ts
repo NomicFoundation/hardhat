@@ -11,6 +11,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
+  createTestEnvManager,
 } from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
@@ -56,6 +57,18 @@ describe("blockscout", () => {
     const apiKey = "someApiKey";
 
     describe("constructor", () => {
+      const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+      // The proxy is read from the environment, so one configured in the
+      // environment running the tests would otherwise decide the results below.
+      beforeEach(() => {
+        unsetEnvVar("https_proxy");
+        unsetEnvVar("HTTPS_PROXY");
+        unsetEnvVar("http_proxy");
+        unsetEnvVar("HTTP_PROXY");
+        unsetEnvVar("NO_PROXY");
+      });
+
       it("should create an instance with the correct properties", () => {
         const blockscout = new Blockscout(blockscoutConfig);
 
@@ -98,31 +111,26 @@ describe("blockscout", () => {
       });
 
       it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
 
         const blockscout = new Blockscout(blockscoutConfig);
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {
           proxy: "http://test-proxy:8080",
         });
-
-        delete process.env.https_proxy;
       });
 
       it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
+        setEnvVar("NO_PROXY", "*");
 
         const blockscout = new Blockscout(blockscoutConfig);
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
       });
 
       it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+        setEnvVar("https_proxy", "http://test-proxy:8080");
         const dispatcher = await getDispatcher(blockscoutApiUrl);
 
         const blockscout = new Blockscout({
@@ -131,8 +139,6 @@ describe("blockscout", () => {
         });
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
       it("should configure no proxy when no environment variables are set", () => {

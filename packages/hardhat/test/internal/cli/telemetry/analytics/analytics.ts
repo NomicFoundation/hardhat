@@ -4,6 +4,10 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 
+import {
+  createEnvChanges,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -31,12 +35,10 @@ const RESULT_FILE_PATH = path.join(
 );
 
 describe("analytics", () => {
-  beforeEach(async () => {
-    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
-  });
+  const { setEnvVar, unsetEnvVar } = createTestEnvManager();
 
-  afterEach(async () => {
-    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
+  beforeEach(() => {
+    unsetEnvVar("HARDHAT_TEST_TELEMETRY_ENABLED");
   });
 
   describe("running in non interactive environment", () => {
@@ -52,13 +54,20 @@ describe("analytics", () => {
   });
 
   describe("running in an interactive environment (simulated with ENV variables)", () => {
+    // These have to stay set for the whole describe, so they are restored
+    // manually instead of through createTestEnvManager.
+    const envChanges = createEnvChanges();
+
     before(() => {
-      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
+      envChanges.setEnvVar("HARDHAT_TEST_INTERACTIVE_ENV", "true");
+      envChanges.setEnvVar(
+        "HARDHAT_TEST_SUBPROCESS_RESULT_PATH",
+        RESULT_FILE_PATH,
+      );
     });
 
     after(() => {
-      delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
+      envChanges.restoreEnvVars();
     });
 
     beforeEach(async () => {
@@ -203,7 +212,7 @@ describe("analytics", () => {
     });
 
     it("should not send analytics because the user explicitly opted out of telemetry", async () => {
-      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "false";
+      setEnvVar("HARDHAT_TEST_TELEMETRY_ENABLED", "false");
 
       const wasSent = await sendTaskAnalytics(["task", "subtask"], "hardhat");
       assert.equal(wasSent, false);
