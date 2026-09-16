@@ -41,6 +41,21 @@ const jsonResponseOptions = {
 
 describe("Requests util", () => {
   describe("getDispatcher", () => {
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+    beforeEach(() => {
+      for (const name of [
+        "https_proxy",
+        "HTTPS_PROXY",
+        "http_proxy",
+        "HTTP_PROXY",
+        "no_proxy",
+        "NO_PROXY",
+      ]) {
+        unsetEnvVar(name);
+      }
+    });
+
     it("Should return a ProxyAgent dispatcher if a proxy url was provided", async () => {
       const dispatcher = await getDispatcher("http://localhost", {
         proxy: "http://proxy",
@@ -83,6 +98,110 @@ describe("Requests util", () => {
       const dispatcher = await getDispatcher("http://localhost");
 
       assert.ok(dispatcher instanceof Agent, "Should return an Agent");
+    });
+
+    describe("Proxy resolved from the environment", () => {
+      const PROXY_URL = "http://proxy.example.com:8080";
+      const URL_TO_PROXY = "https://example.com";
+
+      it("Should return a ProxyAgent if the environment configures a proxy", async () => {
+        setEnvVar("HTTPS_PROXY", PROXY_URL);
+        const dispatcher = await getDispatcher(URL_TO_PROXY);
+
+        assert.ok(
+          dispatcher instanceof ProxyAgent,
+          "Should return a ProxyAgent",
+        );
+      });
+
+      // Both branches build a ProxyAgent, so the environment holds an invalid
+      // url: reaching for it at all would throw, and not throwing is what
+      // shows the explicit option won.
+      it("Should prefer an explicitly passed proxy over the environment", async () => {
+        setEnvVar("HTTPS_PROXY", "not-a-url");
+        const dispatcher = await getDispatcher(URL_TO_PROXY, {
+          proxy: PROXY_URL,
+        });
+
+        assert.ok(
+          dispatcher instanceof ProxyAgent,
+          "Should return a ProxyAgent",
+        );
+      });
+
+      it("Should return an Agent if NO_PROXY excludes the url", async () => {
+        setEnvVar("HTTPS_PROXY", PROXY_URL);
+        setEnvVar("NO_PROXY", "example.com");
+        const dispatcher = await getDispatcher(URL_TO_PROXY);
+
+        assert.ok(dispatcher instanceof Agent, "Should return an Agent");
+      });
+
+      it("Should return an Agent for a loopback url", async () => {
+        setEnvVar("HTTP_PROXY", PROXY_URL);
+        const dispatcher = await getDispatcher("http://127.0.0.1:8545");
+
+        assert.ok(dispatcher instanceof Agent, "Should return an Agent");
+      });
+
+      it("Should return an Agent for a url whose protocol can't be proxied", async () => {
+        setEnvVar("HTTPS_PROXY", PROXY_URL);
+        const dispatcher = await getDispatcher("ws://example.com");
+
+        assert.ok(dispatcher instanceof Agent, "Should return an Agent");
+      });
+
+      // A Pool is bound to a single origin and can't tunnel, so the proxy wins.
+      it("Should let a proxy from the environment override pool", async () => {
+        setEnvVar("HTTPS_PROXY", PROXY_URL);
+        const dispatcher = await getDispatcher(URL_TO_PROXY, { pool: true });
+
+        assert.ok(
+          dispatcher instanceof ProxyAgent,
+          "Should return a ProxyAgent",
+        );
+      });
+
+      it("Should return a Pool if the environment configures no proxy", async () => {
+        const dispatcher = await getDispatcher(URL_TO_PROXY, { pool: true });
+
+        assert.ok(dispatcher instanceof Pool, "Should return a Pool");
+      });
+
+      // Only a caller asking for both at once is a mistake, and `pool: false`
+      // isn't asking for a pool.
+      it("Should not throw if a proxy is passed with pool set to false", async () => {
+        const dispatcher = await getDispatcher(URL_TO_PROXY, {
+          pool: false,
+          proxy: PROXY_URL,
+        });
+
+        assert.ok(
+          dispatcher instanceof ProxyAgent,
+          "Should return a ProxyAgent",
+        );
+      });
+
+      it("Should throw if the environment's proxy url is invalid", async () => {
+        setEnvVar("HTTPS_PROXY", "127.0.0.1:8080");
+
+        await assert.rejects(getDispatcher(URL_TO_PROXY), (error) => {
+          ensureError(error);
+          assert.equal(error.name, "DispatcherError");
+          ensureError(error.cause);
+          assert.equal(error.cause.name, "InvalidProxyUrlError");
+          assert.ok(
+            error.cause.message.includes("HTTPS_PROXY"),
+            "Should name the offending environment variable",
+          );
+          assert.ok(
+            !error.cause.message.includes("127.0.0.1:8080"),
+            "Should not echo the value, as it can carry credentials",
+          );
+
+          return true;
+        });
+      });
     });
 
     describe("getBaseDispatcherOptions", () => {

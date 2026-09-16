@@ -14,8 +14,11 @@ import {
   DEFAULT_TIMEOUT_IN_MILLISECONDS,
   DEFAULT_USER_AGENT,
   getDispatcher,
+  InvalidProxyUrlError,
+  isValidUrl,
   RequestTimeoutError,
   ResponseStatusCodeError,
+  shouldUseProxy,
 } from "../request.js";
 
 export interface ProxyEnvVar {
@@ -215,6 +218,34 @@ export function findProxyEnvVar(requestUrl: string): ProxyEnvVar | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Resolves the proxy to use for a given url from the environment.
+ *
+ * @param requestUrl The url the proxy would be used for.
+ * @returns The proxy url, or `undefined` if the environment configures none,
+ * `NO_PROXY` excludes the url, or the url can't be proxied.
+ * @throws InvalidProxyUrlError If the configured proxy isn't a valid url.
+ */
+export function resolveProxyFromEnv(requestUrl: string): string | undefined {
+  // `shouldUseProxy` and `findProxyEnvVar` both parse the url. Requests to an
+  // invalid one fail later with a better error than anything we'd raise here.
+  if (!isValidUrl(requestUrl) || !shouldUseProxy(requestUrl)) {
+    return undefined;
+  }
+
+  const proxyEnvVar = findProxyEnvVar(requestUrl);
+
+  if (proxyEnvVar === undefined) {
+    return undefined;
+  }
+
+  if (!isValidUrl(proxyEnvVar.value)) {
+    throw new InvalidProxyUrlError(proxyEnvVar.name);
+  }
+
+  return proxyEnvVar.value;
 }
 
 export async function getProxyDispatcher(

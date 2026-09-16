@@ -25,6 +25,7 @@ import {
   handleError,
   isExcludedByNoProxy,
   isLoopbackUrl,
+  resolveProxyFromEnv,
 } from "./internal/request.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with undici
@@ -44,7 +45,9 @@ let undici: typeof Undici | undefined;
  * Options to configure the dispatcher.
  *
  * @param timeout The timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT_IN_MILLISECONDS}.
- * @param proxy The proxy to use. If not provided, no proxy is used.
+ * @param proxy The proxy to use. If not provided, it's resolved from the
+ * `https_proxy`/`HTTPS_PROXY` and `http_proxy`/`HTTP_PROXY` environment
+ * variables, unless `NO_PROXY` excludes the url or it points at loopback.
  * @param pool Whether to use a pool dispatcher. Defaults to `false`.
  * @param maxConnections The maximum number of connections to use in the pool. Defaults to {@link DEFAULT_POOL_MAX_CONNECTIONS}.
  * @param isTestDispatcher Whether to use a test dispatcher. Defaults to `false`. It's highly recommended to use a test dispatcher in tests to avoid hanging tests.
@@ -287,14 +290,21 @@ export async function download(
 
 /**
  * Creates a dispatcher based on the provided options.
- * If the `proxy` option is set, it creates a {@link Undici.ProxyAgent} dispatcher.
+ * If the `proxy` option is set, or a proxy is configured in the environment for
+ * the given url, it creates a {@link Undici.ProxyAgent} dispatcher.
  * If the `pool` option is set to `true`, it creates a {@link Undici.Pool} dispatcher.
  * Otherwise, it creates a basic {@link Undici.Agent} dispatcher.
+ *
+ * A proxy resolved from the environment takes precedence over `pool`, as a
+ * {@link Undici.Pool} is bound to a single origin and can't tunnel. Set
+ * `NO_PROXY` to opt a host out, or pass a {@link Undici.Dispatcher} to the
+ * request helpers to bypass this entirely.
  *
  * @param url The url to make requests to.
  * @param options The options to configure the dispatcher. See {@link DispatcherOptions}.
  * @returns The configured dispatcher instance.
- * @throws DispatcherError If the dispatcher can't be created.
+ * @throws DispatcherError If the dispatcher can't be created, including when the
+ * proxy configured in the environment isn't a valid url.
  */
 export async function getDispatcher(
   url: string,
@@ -307,15 +317,17 @@ export async function getDispatcher(
   }: DispatcherOptions = {},
 ): Promise<Dispatcher> {
   try {
-    if (pool !== undefined && proxy !== undefined) {
+    if (pool === true && proxy !== undefined) {
       throw new Error(
         "The pool and proxy options can't be used at the same time",
       );
     }
     const baseOptions = getBaseDispatcherOptions(timeout, isTestDispatcher);
 
-    if (proxy !== undefined) {
-      return await getProxyDispatcher(proxy, baseOptions);
+    const resolvedProxy = proxy ?? resolveProxyFromEnv(url);
+
+    if (resolvedProxy !== undefined) {
+      return await getProxyDispatcher(resolvedProxy, baseOptions);
     }
 
     if (pool === true) {
@@ -397,6 +409,7 @@ export {
   ConnectionRefusedError,
   DispatcherError,
   DownloadError,
+  InvalidProxyUrlError,
   RequestError,
   RequestTimeoutError,
   ResponseStatusCodeError,
