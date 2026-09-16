@@ -59,16 +59,17 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 
 AVAILABLE SUBTASKS:
 
-  constants zero-address      Print the zero address
-  convert pad                 Pad a hex string to a given byte length
-  fetch block-number          Print the latest block number
+  constants zero-address           Print the zero address
+  convert pad                      Pad a hex string to a given byte length
+  convert to-checksum-address      Convert an address to its EIP-55 checksummed representation
+  fetch block-number               Print the latest block number
 
 GLOBAL OPTIONS:
 
-  --help, -h                  Show this message, or a task's help if its name is provided
-  --network                   The network to connect to
-  --show-stack-traces         Show stack traces (always enabled on CI servers)
-  --version                   Show the version of hhu
+  --help, -h                       Show this message, or a task's help if its name is provided
+  --network                        The network to connect to
+  --show-stack-traces              Show stack traces (always enabled on CI servers)
+  --version                        Show the version of hhu
 
 To get help for a specific task run: npx hhu <TASK> [SUBTASK] --help`;
 
