@@ -9,6 +9,9 @@ const log = createDebug("hardhat:ethers:native-secp256k1");
 /**
  * A known secret key and the values ethers must derive from it, used to
  * validate the replacement before keeping it.
+ * Needed because the secp256k1 derivation is overridden directly rather than
+ * registered through ethers' hooks, as is possible for hash functions like
+ * keccak256.
  */
 const SELF_CHECK_SECRET_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
