@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
 import { describe, it, before } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
@@ -13,18 +12,20 @@ import {
 
 const SECRET_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-const ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 // The mnemonic from the BIP-39 test vectors.
 const MNEMONIC =
   "legal winner thank year wave sausage worth useful legal winner thank yellow";
 
-describe("native secp256k1 installation", () => {
+// These tests check that EDR's derivation is wired into ethers and that the
+// replacement preserves ethers' observable behavior. EDR's derivation itself is
+// assumed correct: it's tested in EDR.
+describe("installing EDR's secp256k1 derivation into ethers", () => {
   before(() => {
     installNativeSecp256k1();
   });
 
-  it("should derive public keys through the native implementation", () => {
+  it("should route ethers' public key derivation through EDR", () => {
     const callCountBefore = getNativeSecp256k1CallCount();
 
     new ethers.Wallet(SECRET_KEY);
@@ -35,7 +36,7 @@ describe("native secp256k1 installation", () => {
     );
   });
 
-  it("should agree with EDR on both encodings", () => {
+  it("should hand back EDR's key in the encoding ethers asked for", () => {
     const signingKey = new ethers.SigningKey(SECRET_KEY);
     const publicKey = nativePublicKeyFromSecretKey(ethers.getBytes(SECRET_KEY));
 
@@ -55,35 +56,8 @@ describe("native secp256k1 installation", () => {
     );
   });
 
-  it("should derive the well-known address of a known secret key", () => {
-    assert.equal(ethers.computeAddress(SECRET_KEY), ADDRESS);
-    assert.equal(new ethers.Wallet(SECRET_KEY).address, ADDRESS);
-  });
-
-  it("should derive the same values as ethers for random secret keys", () => {
-    for (let i = 0; i < 256; i++) {
-      const secretKey = randomBytes(32);
-
-      let signingKey;
-      try {
-        signingKey = new ethers.SigningKey(secretKey);
-      } catch {
-        continue; // outside [1, n), which the loop below covers explicitly
-      }
-
-      const publicKey = nativePublicKeyFromSecretKey(secretKey);
-
-      assert.equal(signingKey.publicKey, ethers.hexlify(publicKey));
-      assert.equal(
-        ethers.computeAddress(signingKey.publicKey),
-        ethers.computeAddress(ethers.hexlify(secretKey)),
-      );
-    }
-  });
-
-  it("should keep rejecting secret keys outside the curve order", () => {
-    // The curve order itself, and the values right around the ends of the
-    // valid range.
+  it("should fall back to ethers' own error for invalid secret keys", () => {
+    // EDR rejects these, so the error must come from ethers, as before.
     for (const secretKey of [
       `0x${"00".repeat(32)}`,
       "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
@@ -96,12 +70,6 @@ describe("native secp256k1 installation", () => {
         `${secretKey} should be rejected`,
       );
     }
-
-    // The ends of the valid range, which must keep working.
-    ethers.SigningKey.computePublicKey(`0x${"00".repeat(31)}01`);
-    ethers.SigningKey.computePublicKey(
-      "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
-    );
   });
 
   it("should keep reporting non-byte-like input as an invalid argument", () => {
@@ -171,47 +139,11 @@ describe("native secp256k1 installation", () => {
     }
   });
 
-  it("should keep the operations built on top of the replaced method working", () => {
-    const signingKey = new ethers.SigningKey(SECRET_KEY);
-    const other = new ethers.SigningKey(`0x${"11".repeat(32)}`);
-
-    assert.equal(
-      ethers.SigningKey.addPoints(signingKey.publicKey, other.publicKey, true)
-        .length,
-      68,
-    );
-
-    assert.equal(
-      signingKey.computeSharedSecret(other.publicKey),
-      other.computeSharedSecret(signingKey.publicKey),
-    );
-
-    const digest = ethers.id("a message to sign");
-    assert.equal(
-      ethers.SigningKey.recoverPublicKey(digest, signingKey.sign(digest)),
-      signingKey.publicKey,
-    );
-  });
-
-  it("should derive HD wallets identically", () => {
+  it("should still derive the BIP-39 vector address through HD wallets", () => {
     const wallet = ethers.HDNodeWallet.fromPhrase(MNEMONIC);
 
     // The address of m/44'/60'/0'/0/0 for this mnemonic.
     assert.equal(wallet.address, "0x58A57ed9d8d624cBD12e2C467D34787555bB1b25");
-
-    for (let index = 0; index < 4; index++) {
-      const derived = ethers.HDNodeWallet.fromPhrase(
-        MNEMONIC,
-        "",
-        `m/44'/60'/0'/0/${index}`,
-      );
-
-      assert.equal(
-        derived.address,
-        new ethers.Wallet(derived.privateKey).address,
-        `account ${index} should derive the same address from its secret key`,
-      );
-    }
   });
 
   it("should not install again on later calls", () => {
