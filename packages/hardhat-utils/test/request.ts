@@ -679,31 +679,13 @@ describe("Requests util", () => {
     // A NO_PROXY configured in the environment running the tests would
     // otherwise decide the result of the cases below.
     beforeEach(() => {
+      unsetEnvVar("no_proxy");
       unsetEnvVar("NO_PROXY");
-    });
-
-    it("Should return false for localhost", () => {
-      assert.equal(shouldUseProxy("http://localhost"), false);
-    });
-
-    it("Should return false for 127.0.0.1", () => {
-      assert.equal(shouldUseProxy("http://127.0.0.1"), false);
     });
 
     it("Should return false if NO_PROXY is '*'", () => {
       setEnvVar("NO_PROXY", "*");
       assert.equal(shouldUseProxy("http://example.com"), false);
-    });
-
-    it("Should return false if hostname is in NO_PROXY list", () => {
-      setEnvVar("NO_PROXY", "example.com,other.com");
-      assert.equal(shouldUseProxy("http://example.com"), false);
-      assert.equal(shouldUseProxy("http://other.com"), false);
-    });
-
-    it("Should return true if hostname is not in NO_PROXY list", () => {
-      setEnvVar("NO_PROXY", "other.com,different.com");
-      assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
     it("Should handle a mix of proxied and non-proxied URLs in NO_PROXY", () => {
@@ -714,7 +696,6 @@ describe("Requests util", () => {
     });
 
     it("Should return true if NO_PROXY is not defined", () => {
-      unsetEnvVar("NO_PROXY");
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
@@ -723,6 +704,128 @@ describe("Requests util", () => {
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("https://example.com"), false);
       assert.equal(shouldUseProxy("ftp://example.com"), false);
+    });
+
+    it("Should read no_proxy as well as NO_PROXY", () => {
+      setEnvVar("no_proxy", "example.com");
+      assert.equal(shouldUseProxy("http://example.com"), false);
+    });
+
+    it("Should treat an empty or whitespace-only NO_PROXY as unset", () => {
+      setEnvVar("NO_PROXY", "");
+      assert.equal(shouldUseProxy("http://example.com"), true);
+
+      setEnvVar("NO_PROXY", "   ");
+      assert.equal(shouldUseProxy("http://example.com"), true);
+    });
+
+    describe("Loopback addresses", () => {
+      // These are never proxied, so that a local node stays reachable when a
+      // proxy is configured for everything else.
+      it("Should return false for every loopback form", () => {
+        assert.equal(shouldUseProxy("http://localhost:8545"), false);
+        assert.equal(shouldUseProxy("http://api.localhost"), false);
+        assert.equal(shouldUseProxy("http://127.0.0.1:8545"), false);
+        assert.equal(shouldUseProxy("http://127.1.2.3"), false);
+        assert.equal(shouldUseProxy("http://[::1]:8545"), false);
+        assert.equal(shouldUseProxy("http://0.0.0.0:8545"), false);
+      });
+
+      it("Should not mistake a lookalike hostname for loopback", () => {
+        assert.equal(shouldUseProxy("http://notlocalhost"), true);
+        assert.equal(shouldUseProxy("http://localhost.example.com"), true);
+        assert.equal(shouldUseProxy("http://127.0.0.1.example.com"), true);
+      });
+    });
+
+    describe("NO_PROXY entry forms", () => {
+      it("Should accept whitespace as a separator, and trim entries", () => {
+        setEnvVar("NO_PROXY", " example.com ,\tother.com different.com ");
+        assert.equal(shouldUseProxy("http://example.com"), false);
+        assert.equal(shouldUseProxy("http://other.com"), false);
+        assert.equal(shouldUseProxy("http://different.com"), false);
+        assert.equal(shouldUseProxy("http://unlisted.com"), true);
+      });
+
+      it("Should match subdomains of a bare entry", () => {
+        setEnvVar("NO_PROXY", "example.com");
+        assert.equal(shouldUseProxy("http://sub.example.com"), false);
+        assert.equal(shouldUseProxy("http://deep.sub.example.com"), false);
+      });
+
+      it("Should match the suffix forms '.example.com' and '*.example.com'", () => {
+        setEnvVar("NO_PROXY", ".example.com");
+        assert.equal(shouldUseProxy("http://example.com"), false);
+        assert.equal(shouldUseProxy("http://sub.example.com"), false);
+
+        setEnvVar("NO_PROXY", "*.other.com");
+        assert.equal(shouldUseProxy("http://other.com"), false);
+        assert.equal(shouldUseProxy("http://sub.other.com"), false);
+      });
+
+      it("Should not match a hostname that merely ends with the entry", () => {
+        setEnvVar("NO_PROXY", "example.com");
+        assert.equal(shouldUseProxy("http://notexample.com"), true);
+      });
+
+      it("Should match case-insensitively", () => {
+        setEnvVar("NO_PROXY", "EXAMPLE.com");
+        assert.equal(shouldUseProxy("http://Example.COM"), false);
+      });
+
+      it("Should restrict an entry with a port to that port", () => {
+        setEnvVar("NO_PROXY", "example.com:8080");
+        assert.equal(shouldUseProxy("http://example.com:8080"), false);
+        assert.equal(shouldUseProxy("http://example.com:9999"), true);
+      });
+
+      it("Should compare a ported entry against the protocol's default port", () => {
+        setEnvVar("NO_PROXY", "example.com:443,other.com:80");
+        assert.equal(shouldUseProxy("https://example.com"), false);
+        assert.equal(shouldUseProxy("http://example.com"), true);
+        assert.equal(shouldUseProxy("http://other.com"), false);
+      });
+
+      it("Should let a portless entry match every port", () => {
+        setEnvVar("NO_PROXY", "example.com");
+        assert.equal(shouldUseProxy("http://example.com"), false);
+        assert.equal(shouldUseProxy("http://example.com:9999"), false);
+      });
+
+      it("Should not support CIDR ranges", () => {
+        setEnvVar("NO_PROXY", "10.0.0.0/8");
+        assert.equal(shouldUseProxy("http://10.1.2.3"), true);
+      });
+
+      // A malformed entry should read as a hostname that matches nothing, not
+      // bring down every request the process makes.
+      it("Should ignore malformed entries without throwing", () => {
+        const malformed = [
+          ":",
+          "::",
+          ".",
+          "*.",
+          ":8080",
+          "example.com:",
+          "example.com:-1",
+          "[",
+          "[::1",
+          "%zz",
+          "a:b",
+          "-",
+          ",,,,",
+        ];
+
+        for (const entry of malformed) {
+          setEnvVar("NO_PROXY", entry);
+
+          assert.equal(
+            shouldUseProxy("https://example.com"),
+            true,
+            `Expected NO_PROXY=${JSON.stringify(entry)} not to exclude example.com`,
+          );
+        }
+      });
     });
   });
 
@@ -780,25 +883,6 @@ describe("Requests util", () => {
         );
       });
 
-      it("Should prefer https_proxy over HTTPS_PROXY for HTTPS URLs", () => {
-        // Test that https_proxy is used when both are set
-        // Note: On Windows, env vars are case-insensitive, so we test priority
-        // by setting one, checking, then setting the other
-        setEnvVar("https_proxy", "http://https-proxy:8080");
-        assert.equal(
-          getProxyUrl("https://example.com"),
-          "http://https-proxy:8080",
-        );
-
-        // Test that HTTPS_PROXY is used when https_proxy is not set
-        unsetEnvVar("https_proxy");
-        setEnvVar("HTTPS_PROXY", "http://HTTPS-proxy:8080");
-        assert.equal(
-          getProxyUrl("https://example.com"),
-          "http://HTTPS-proxy:8080",
-        );
-      });
-
       it("Should fallback to http_proxy for HTTPS URLs if https proxies are not set", () => {
         setEnvVar("http_proxy", "http://http-proxy:8080");
         assert.equal(
@@ -826,25 +910,6 @@ describe("Requests util", () => {
       });
 
       it("Should return HTTP_PROXY for HTTP URLs if http_proxy is not set", () => {
-        setEnvVar("HTTP_PROXY", "http://HTTP-proxy:8080");
-        assert.equal(
-          getProxyUrl("http://example.com"),
-          "http://HTTP-proxy:8080",
-        );
-      });
-
-      it("Should prefer http_proxy over HTTP_PROXY for HTTP URLs", () => {
-        // Test that http_proxy is used when both are set
-        // Note: On Windows, env vars are case-insensitive, so we test priority
-        // by setting one, checking, then setting the other
-        setEnvVar("http_proxy", "http://http-proxy:8080");
-        assert.equal(
-          getProxyUrl("http://example.com"),
-          "http://http-proxy:8080",
-        );
-
-        // Test that HTTP_PROXY is used when http_proxy is not set
-        unsetEnvVar("http_proxy");
         setEnvVar("HTTP_PROXY", "http://HTTP-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
@@ -893,6 +958,35 @@ describe("Requests util", () => {
       it("Should return undefined when no proxy environment variables are set", () => {
         assert.equal(getProxyUrl("https://example.com"), undefined);
         assert.equal(getProxyUrl("http://example.com"), undefined);
+      });
+    });
+
+    describe("Empty and padded values", () => {
+      // Setting a variable to an empty string is how a proxy inherited from a
+      // parent environment is disabled, so it has to read as unset. Otherwise
+      // it would reach `new ProxyAgent({ uri: "" })`.
+      it("Should treat an empty value as unset", () => {
+        setEnvVar("https_proxy", "");
+        assert.equal(getProxyUrl("https://example.com"), undefined);
+      });
+
+      it("Should treat a whitespace-only value as unset", () => {
+        setEnvVar("https_proxy", "   ");
+        assert.equal(getProxyUrl("https://example.com"), undefined);
+      });
+
+      it("Should fall through an empty value to the next variable", () => {
+        setEnvVar("http_proxy", "http://fallback:8080");
+        setEnvVar("https_proxy", "");
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://fallback:8080",
+        );
+      });
+
+      it("Should trim the returned value", () => {
+        setEnvVar("https_proxy", "  http://proxy:8080  ");
+        assert.equal(getProxyUrl("https://example.com"), "http://proxy:8080");
       });
     });
 

@@ -15,6 +15,7 @@ import {
 } from "./errors/request.js";
 import { move, remove } from "./fs.js";
 import {
+  findProxyEnvVar,
   generateTempFilePath,
   getBaseDispatcherOptions,
   getBaseRequestOptions,
@@ -22,6 +23,8 @@ import {
   getPoolDispatcher,
   getProxyDispatcher,
   handleError,
+  isExcludedByNoProxy,
+  isLoopbackUrl,
 } from "./internal/request.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with undici
@@ -345,26 +348,18 @@ export async function getTestDispatcher(
 /**
  * Determines whether a proxy should be used for a given url.
  *
+ * Loopback addresses are never proxied, so that a local node stays reachable
+ * when a proxy is configured for everything else. Beyond those, `NO_PROXY` (or
+ * `no_proxy`) is the opt-out: `*` disables proxying entirely, and every other
+ * entry is matched as described in {@link isExcludedByNoProxy}.
+ *
  * @param url The url to check.
  * @returns `true` if a proxy should be used for the url, `false` otherwise.
  */
 export function shouldUseProxy(url: string): boolean {
-  const { hostname } = new URL(url);
-  const noProxy = process.env.NO_PROXY;
+  const parsedUrl = new URL(url);
 
-  if (hostname === "localhost" || hostname === "127.0.0.1" || noProxy === "*") {
-    return false;
-  }
-
-  if (noProxy !== undefined && noProxy !== "") {
-    const noProxySet = new Set(noProxy.split(","));
-
-    if (noProxySet.has(hostname)) {
-      return false;
-    }
-  }
-
-  return true;
+  return !isLoopbackUrl(parsedUrl) && !isExcludedByNoProxy(parsedUrl);
 }
 
 /**
@@ -383,34 +378,19 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Returns the proxy URL from environment variables based on the target URL.
- * For HTTPS URLs, checks `https_proxy` then `HTTPS_PROXY`.
- * For HTTP URLs, checks `http_proxy` then `HTTP_PROXY`.
+ * Returns the proxy url from environment variables based on the target url.
+ * For HTTPS urls, checks `https_proxy` then `HTTPS_PROXY`.
+ * For HTTP urls, checks `http_proxy` then `HTTP_PROXY`.
  * Falls back to the other protocol's proxy if none found.
  *
- * @param url The target URL to determine proxy for.
- * @returns The proxy URL, or `undefined` if none are set.
+ * Empty and whitespace-only values are treated as unset, and the returned value
+ * is trimmed. It isn't validated: use {@link isValidUrl} if you need that.
+ *
+ * @param url The target url to determine proxy for.
+ * @returns The proxy url, or `undefined` if none are set.
  */
 export function getProxyUrl(url: string): string | undefined {
-  const { protocol } = new URL(url);
-
-  if (protocol === "https:") {
-    return (
-      process.env.https_proxy ??
-      process.env.HTTPS_PROXY ??
-      process.env.http_proxy ??
-      process.env.HTTP_PROXY
-    );
-  } else if (protocol === "http:") {
-    return (
-      process.env.http_proxy ??
-      process.env.HTTP_PROXY ??
-      process.env.https_proxy ??
-      process.env.HTTPS_PROXY
-    );
-  }
-
-  return undefined;
+  return findProxyEnvVar(url)?.value;
 }
 
 export {
