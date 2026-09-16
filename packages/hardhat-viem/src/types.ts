@@ -13,21 +13,24 @@ import type {
   createTestClient as ViemCreateTestClient,
   GetContractReturnType as ViemGetContractReturnType,
   GetTransactionReturnType as ViemGetTransactionReturnType,
+  PublicActions as ViemPublicActions,
   PublicClient as ViemPublicClient,
   PublicClientConfig as ViemPublicClientConfig,
+  ResolvedToken as ViemResolvedToken,
   RpcSchema as ViemRpcSchema,
   TestClient as ViemTestClient,
   TestClientConfig as ViemTestClientConfig,
+  Tokens as ViemTokens,
   Transport as ViemTransport,
+  WalletActions as ViemWalletActions,
   WalletClient as ViemWalletClient,
   WalletClientConfig as ViemWalletClientConfig,
-  PublicActions as ViemPublicActions,
-  WalletActions as ViemWalletActions,
 } from "viem";
 import type {
   PublicActionsL2 as ViemOpStackPublicActionsL2,
   WalletActionsL2 as ViemOpStackWalletActionsL2,
 } from "viem/op-stack";
+import type { defineToken, Token as ViemToken } from "viem/tokens";
 
 export interface HardhatViemHelpers<
   ChainTypeT extends ChainType | string = DefaultChainType,
@@ -286,3 +289,11 @@ export type ContractReturnType<ContractName> =
   ContractName extends keyof ContractAbis
     ? GetContractReturnType<ContractAbis[ContractName]>
     : GetContractReturnType;
+
+export type Token<
+  TokenParameters extends defineToken.Parameters = defineToken.Parameters,
+> = ViemToken<TokenParameters>;
+
+export type Tokens = ViemTokens;
+
+export type ResolvedToken = ViemResolvedToken;

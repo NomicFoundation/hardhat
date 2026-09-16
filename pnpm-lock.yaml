@@ -162,7 +162,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat:
@@ -549,7 +549,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-ignition-ethers:
@@ -671,7 +671,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-keystore:
@@ -1210,7 +1210,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-typechain:
@@ -1460,7 +1460,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-viem-assertions:
@@ -1509,7 +1509,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       viem:
-        specifier: ^2.47.6
+        specifier: ^2.54.0
         version: 2.55.19(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-zod-utils:
