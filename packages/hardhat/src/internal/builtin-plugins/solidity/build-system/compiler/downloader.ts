@@ -18,6 +18,7 @@ import {
   createFile,
   ensureDir,
   exists,
+  move,
   readBinaryFile,
   readJsonFile,
   remove,
@@ -430,10 +431,11 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     log(`Downloading compiler ${build.version} from ${url}`);
 
     const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
+    const tmpDownloadPath = `${downloadPath}.tmp`;
 
-    await this.#downloadFunction(url, downloadPath);
+    await this.#downloadFunction(url, tmpDownloadPath);
 
-    return downloadPath;
+    return tmpDownloadPath;
   }
 
   async #verifyCompilerDownload(
@@ -457,7 +459,10 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<boolean> {
+    const finalDownloadPath = this.#getCompilerDownloadPathFromBuild(build);
+
     if (this.#platform === CompilerPlatform.WASM) {
+      await move(downloadPath, finalDownloadPath);
       return true;
     }
 
@@ -467,6 +472,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       this.#platform === CompilerPlatform.MACOS
     ) {
       await chmod(downloadPath, 0o755);
+      await move(downloadPath, finalDownloadPath);
     } else if (
       this.#platform === CompilerPlatform.WINDOWS &&
       downloadPath.endsWith(".zip")
@@ -477,6 +483,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       const zip = new AdmZip(downloadPath);
       zip.extractAllTo(solcFolder);
+      await remove(downloadPath);
+    } else {
+      await move(downloadPath, finalDownloadPath);
     }
 
     log("Checking native solc binary");
