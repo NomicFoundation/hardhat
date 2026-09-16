@@ -14,5 +14,10 @@ export function constants(prefix: string[]): UtilsTaskDefinition[] {
     async () => await import("./zero-address.js"),
   );
 
-  return [constantsTask, zeroAddressTask];
+  const zeroHashTask = buildUtilsTask(
+    task([...prefix, "constants", "zero-hash"], "Print the zero hash"),
+    async () => await import("./zero-hash.js"),
+  );
+
+  return [constantsTask, zeroAddressTask, zeroHashTask];
 }
