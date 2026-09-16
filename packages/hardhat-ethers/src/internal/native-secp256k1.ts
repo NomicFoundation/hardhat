@@ -94,8 +94,8 @@ export function installNativeSecp256k1(): void {
 
       nativeCallCount++;
 
-      // ethers defaults this path to the uncompressed encoding.
-      if (compressed !== true) {
+      // ethers coerces this with `!!compressed`, so any truthy value compresses.
+      if (compressed === undefined || !compressed) {
         return hexlify(publicKey);
       }
 

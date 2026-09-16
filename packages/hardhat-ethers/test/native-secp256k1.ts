@@ -142,6 +142,35 @@ describe("native secp256k1 installation", () => {
     );
   });
 
+  it("should coerce the compressed argument the way ethers does", () => {
+    const { publicKey, compressedPublicKey } = new ethers.SigningKey(
+      SECRET_KEY,
+    );
+
+    // ethers derives secret keys with `getPublicKey(bytes, !!compressed)`, so
+    // it answers these values, which its type forbids but JS callers do pass.
+    const derive = (compressed: unknown) =>
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      passing what the type forbids is the point of this test */
+      ethers.SigningKey.computePublicKey(SECRET_KEY, compressed as boolean);
+
+    for (const compressed of [true, 1, -1, "yes", "false", {}, [], BigInt(2)]) {
+      assert.equal(
+        derive(compressed),
+        compressedPublicKey,
+        `${String(compressed)} should compress`,
+      );
+    }
+
+    for (const compressed of [false, undefined, null, 0, "", NaN, BigInt(0)]) {
+      assert.equal(
+        derive(compressed),
+        publicKey,
+        `${String(compressed)} should not compress`,
+      );
+    }
+  });
+
   it("should keep the operations built on top of the replaced method working", () => {
     const signingKey = new ethers.SigningKey(SECRET_KEY);
     const other = new ethers.SigningKey(`0x${"11".repeat(32)}`);
