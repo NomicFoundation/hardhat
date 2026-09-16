@@ -59,6 +59,8 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 
 AVAILABLE SUBTASKS:
 
+  constants max-value              Print the maximum value of an integer type
+  constants min-value              Print the minimum value of an integer type
   constants zero-address           Print the zero address
   constants zero-hash              Print the zero hash
   convert pad                      Pad a hex string to a given byte length
@@ -88,6 +90,8 @@ Usage: hhu [GLOBAL OPTIONS] constants <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK 
 
 AVAILABLE SUBTASKS:
 
+  constants max-value         Print the maximum value of an integer type
+  constants min-value         Print the minimum value of an integer type
   constants zero-address      Print the zero address
   constants zero-hash         Print the zero hash
 
