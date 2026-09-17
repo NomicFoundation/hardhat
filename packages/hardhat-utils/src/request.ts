@@ -15,6 +15,7 @@ import {
 } from "./errors/request.js";
 import { move, remove } from "./fs.js";
 import {
+  findProxyEnvVar,
   generateTempFilePath,
   getBaseDispatcherOptions,
   getBaseRequestOptions,
@@ -22,6 +23,9 @@ import {
   getPoolDispatcher,
   getProxyDispatcher,
   handleError,
+  isExcludedByNoProxy,
+  isLoopbackUrl,
+  resolveProxyFromEnv,
 } from "./internal/request.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with undici
@@ -41,7 +45,9 @@ let undici: typeof Undici | undefined;
  * Options to configure the dispatcher.
  *
  * @param timeout The timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT_IN_MILLISECONDS}.
- * @param proxy The proxy to use. If not provided, no proxy is used.
+ * @param proxy The proxy to use. If not provided, it's resolved from the
+ * `https_proxy`/`HTTPS_PROXY` and `http_proxy`/`HTTP_PROXY` environment
+ * variables, unless `NO_PROXY` excludes the url or it points at loopback.
  * @param pool Whether to use a pool dispatcher. Defaults to `false`.
  * @param maxConnections The maximum number of connections to use in the pool. Defaults to {@link DEFAULT_POOL_MAX_CONNECTIONS}.
  * @param isTestDispatcher Whether to use a test dispatcher. Defaults to `false`. It's highly recommended to use a test dispatcher in tests to avoid hanging tests.
@@ -284,14 +290,21 @@ export async function download(
 
 /**
  * Creates a dispatcher based on the provided options.
- * If the `proxy` option is set, it creates a {@link Undici.ProxyAgent} dispatcher.
+ * If the `proxy` option is set, or a proxy is configured in the environment for
+ * the given url, it creates a {@link Undici.ProxyAgent} dispatcher.
  * If the `pool` option is set to `true`, it creates a {@link Undici.Pool} dispatcher.
  * Otherwise, it creates a basic {@link Undici.Agent} dispatcher.
+ *
+ * A proxy resolved from the environment takes precedence over `pool`, as a
+ * {@link Undici.Pool} is bound to a single origin and can't tunnel. Set
+ * `NO_PROXY` to opt a host out, or pass a {@link Undici.Dispatcher} to the
+ * request helpers to bypass this entirely.
  *
  * @param url The url to make requests to.
  * @param options The options to configure the dispatcher. See {@link DispatcherOptions}.
  * @returns The configured dispatcher instance.
- * @throws DispatcherError If the dispatcher can't be created.
+ * @throws DispatcherError If the dispatcher can't be created, including when the
+ * proxy configured in the environment isn't a valid url.
  */
 export async function getDispatcher(
   url: string,
@@ -304,15 +317,17 @@ export async function getDispatcher(
   }: DispatcherOptions = {},
 ): Promise<Dispatcher> {
   try {
-    if (pool !== undefined && proxy !== undefined) {
+    if (pool === true && proxy !== undefined) {
       throw new Error(
         "The pool and proxy options can't be used at the same time",
       );
     }
     const baseOptions = getBaseDispatcherOptions(timeout, isTestDispatcher);
 
-    if (proxy !== undefined) {
-      return await getProxyDispatcher(proxy, baseOptions);
+    const resolvedProxy = proxy ?? resolveProxyFromEnv(url);
+
+    if (resolvedProxy !== undefined) {
+      return await getProxyDispatcher(resolvedProxy, baseOptions);
     }
 
     if (pool === true) {
@@ -345,26 +360,18 @@ export async function getTestDispatcher(
 /**
  * Determines whether a proxy should be used for a given url.
  *
+ * Loopback addresses are never proxied, so that a local node stays reachable
+ * when a proxy is configured for everything else. Beyond those, `NO_PROXY` (or
+ * `no_proxy`) is the opt-out: `*` disables proxying entirely, and every other
+ * entry is matched as described in {@link isExcludedByNoProxy}.
+ *
  * @param url The url to check.
  * @returns `true` if a proxy should be used for the url, `false` otherwise.
  */
 export function shouldUseProxy(url: string): boolean {
-  const { hostname } = new URL(url);
-  const noProxy = process.env.NO_PROXY;
+  const parsedUrl = new URL(url);
 
-  if (hostname === "localhost" || hostname === "127.0.0.1" || noProxy === "*") {
-    return false;
-  }
-
-  if (noProxy !== undefined && noProxy !== "") {
-    const noProxySet = new Set(noProxy.split(","));
-
-    if (noProxySet.has(hostname)) {
-      return false;
-    }
-  }
-
-  return true;
+  return !isLoopbackUrl(parsedUrl) && !isExcludedByNoProxy(parsedUrl);
 }
 
 /**
@@ -383,40 +390,26 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Returns the proxy URL from environment variables based on the target URL.
- * For HTTPS URLs, checks `https_proxy` then `HTTPS_PROXY`.
- * For HTTP URLs, checks `http_proxy` then `HTTP_PROXY`.
+ * Returns the proxy url from environment variables based on the target url.
+ * For HTTPS urls, checks `https_proxy` then `HTTPS_PROXY`.
+ * For HTTP urls, checks `http_proxy` then `HTTP_PROXY`.
  * Falls back to the other protocol's proxy if none found.
  *
- * @param url The target URL to determine proxy for.
- * @returns The proxy URL, or `undefined` if none are set.
+ * Empty and whitespace-only values are treated as unset, and the returned value
+ * is trimmed. It isn't validated: use {@link isValidUrl} if you need that.
+ *
+ * @param url The target url to determine proxy for.
+ * @returns The proxy url, or `undefined` if none are set.
  */
 export function getProxyUrl(url: string): string | undefined {
-  const { protocol } = new URL(url);
-
-  if (protocol === "https:") {
-    return (
-      process.env.https_proxy ??
-      process.env.HTTPS_PROXY ??
-      process.env.http_proxy ??
-      process.env.HTTP_PROXY
-    );
-  } else if (protocol === "http:") {
-    return (
-      process.env.http_proxy ??
-      process.env.HTTP_PROXY ??
-      process.env.https_proxy ??
-      process.env.HTTPS_PROXY
-    );
-  }
-
-  return undefined;
+  return findProxyEnvVar(url)?.value;
 }
 
 export {
   ConnectionRefusedError,
   DispatcherError,
   DownloadError,
+  InvalidProxyUrlError,
   RequestError,
   RequestTimeoutError,
   ResponseStatusCodeError,
