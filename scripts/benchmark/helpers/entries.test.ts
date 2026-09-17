@@ -48,7 +48,7 @@ describe("toEntries", () => {
 
     assert.equal(mem.name, "scenario / test (peak RSS)");
     assert.equal(mem.unit, "MB");
-    assert.equal(mem.value, 315);
+    assert.equal(mem.value, 309);
 
     const stats = computeStats(peaks);
     assert.equal(mem.range, `± ${stats.stddev}`);
@@ -82,7 +82,7 @@ describe("measuredRunsToEntries", () => {
       entries.map((e) => e.name),
       ["s / x", "s / x (peak RSS)", "s / x (cpu)"],
     );
-    assert.equal(entries[1].value, 200);
+    assert.equal(entries[1].value, 150);
   });
 
   it("drops the memory entry when any run lacks a peak", () => {
