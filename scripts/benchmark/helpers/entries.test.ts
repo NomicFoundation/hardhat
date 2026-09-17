@@ -32,7 +32,6 @@ describe("toEntries", () => {
     const extra = JSON.parse(time.extra);
     assert.deepEqual(extra.times, EXPECTED_TIMES);
     assertChartable(extra, WALL);
-    assert.equal(extra.peakRssMb, undefined);
   });
 
   it("emits no memory entry without peaks", () => {
@@ -42,9 +41,7 @@ describe("toEntries", () => {
 
   it("emits a memory entry tracking the mean per-run peak", () => {
     const peaks = [301, 315, 311];
-    const [time, mem] = toEntries("scenario", "test", WALL, peaks);
-
-    assert.equal(JSON.parse(time.extra).peakRssMb, 315);
+    const [, mem] = toEntries("scenario", "test", WALL, peaks);
 
     assert.equal(mem.name, "scenario / test (peak RSS)");
     assert.equal(mem.unit, "MB");
@@ -96,7 +93,6 @@ describe("measuredRunsToEntries", () => {
         entries.map((e) => e.name),
         ["s / x", "s / x (cpu)"],
       );
-      assert.equal(JSON.parse(entries[0].extra).peakRssMb, undefined);
     }
   });
 });

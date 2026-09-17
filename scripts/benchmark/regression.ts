@@ -98,9 +98,8 @@ DESCRIPTION
   "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
   mean of the per-run peaks, with the peaks themselves and their
   statistics (mean/stddev/min/max/median) in the entry's extra.
-  The highest peak is also embedded as "peakRssMb" in the time entry's
-  extra. Memory entries are skipped, with a warning, when peak-RSS
-  sampling is unavailable (e.g. macOS) or a run yielded no reading.
+  Memory entries are skipped, with a warning, when peak-RSS sampling is
+  unavailable (e.g. macOS) or a run yielded no reading.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination

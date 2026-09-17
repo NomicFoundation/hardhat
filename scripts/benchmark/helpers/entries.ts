@@ -69,8 +69,7 @@ export function measuredRunsToEntries(
  * separate memory entry (its own MB series, independently charted + alerted).
  * `peakRssMb` holds one peak per run. The tracked value is their mean, which
  * varies less across runs than the max. The per-run distribution goes in the
- * entry's `extra`, and the timing entry's `extra` embeds the highest peak as
- * `peakRssMb`.
+ * entry's `extra`.
  */
 export function toEntries(
   scenarioId: string,
@@ -88,10 +87,7 @@ export function toEntries(
     unit: "s",
     value: wall.mean,
     range: `± ${wall.stddev}`,
-    extra: JSON.stringify({
-      ...toSampleStats(wall),
-      ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
-    }),
+    extra: JSON.stringify(toSampleStats(wall)),
   };
 
   if (rss === undefined) {
