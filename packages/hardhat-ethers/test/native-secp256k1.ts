@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it, before } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import * as ethers from "ethers";
 import { secp256k1PublicKeyFromSecretKey as nativePublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
@@ -63,10 +64,14 @@ describe("installing EDR's secp256k1 derivation into ethers", () => {
       "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364142",
       `0x${"ff".repeat(32)}`,
     ]) {
+      const expectedError = errorFromEthers(secretKey);
+
       assertThrows(
         () => ethers.SigningKey.computePublicKey(secretKey),
-        undefined,
-        `${secretKey} should be rejected`,
+        (error) =>
+          error.constructor === expectedError.constructor &&
+          error.message === expectedError.message,
+        `${secretKey} should be rejected with ethers' own error`,
       );
     }
   });
@@ -157,3 +162,19 @@ describe("installing EDR's secp256k1 derivation into ethers", () => {
     );
   });
 });
+
+/**
+ * Returns the error ethers' own implementation throws for a secret key, so
+ * that the installed replacement can be checked to surface exactly it.
+ */
+function errorFromEthers(secretKey: string): Error {
+  try {
+    jsComputePublicKey(secretKey);
+  } catch (error) {
+    ensureError(error);
+
+    return error;
+  }
+
+  assert.fail(`ethers' own implementation should reject ${secretKey}`);
+}
