@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.0.13
 
 ### Patch Changes
