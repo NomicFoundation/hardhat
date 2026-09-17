@@ -5,10 +5,12 @@ import * as ethers from "ethers";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatEthersPlugin from "../src/index.js";
-import { getNativeSecp256k1CallCount } from "../src/internal/native-secp256k1.js";
 
-const SECRET_KEY =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+// Captured before the connection installs the replacement. The installation
+// restores this method whenever it can't use the native derivation, so the
+// method having changed is what tells a working installation from a silent
+// fallback.
+const jsComputePublicKey = ethers.SigningKey.computePublicKey;
 
 describe("native secp256k1 installation from a network connection", () => {
   before(async () => {
@@ -20,12 +22,9 @@ describe("native secp256k1 installation from a network connection", () => {
   });
 
   it("should have replaced ethers' implementation", () => {
-    const callCountBefore = getNativeSecp256k1CallCount();
-
-    new ethers.Wallet(SECRET_KEY);
-
-    assert.ok(
-      getNativeSecp256k1CallCount() > callCountBefore,
+    assert.notEqual(
+      ethers.SigningKey.computePublicKey,
+      jsComputePublicKey,
       "creating a connection should have installed the native derivation",
     );
   });

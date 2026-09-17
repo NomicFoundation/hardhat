@@ -27,17 +27,19 @@ if (scenario === "ethers-drifted") {
 }
 
 // The `.ts` path is used so the test doesn't need the package to be built.
-const { installNativeSecp256k1, getNativeSecp256k1CallCount } =
+const { installNativeSecp256k1 } =
   await import("../../src/internal/native-secp256k1.ts");
+
+// The installation restores this method whenever it can't use the native
+// derivation, so the method having changed is what tells a working installation
+// from a silent fallback.
+const jsComputePublicKey = ethers.SigningKey.computePublicKey;
 
 installNativeSecp256k1();
 
-const callCountBefore = getNativeSecp256k1CallCount();
-const address = new ethers.Wallet(SECRET_KEY).address;
-
 console.log(
   JSON.stringify({
-    address,
-    native: getNativeSecp256k1CallCount() > callCountBefore,
+    address: new ethers.Wallet(SECRET_KEY).address,
+    native: ethers.SigningKey.computePublicKey !== jsComputePublicKey,
   }),
 );

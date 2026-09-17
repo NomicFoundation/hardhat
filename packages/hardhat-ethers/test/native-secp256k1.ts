@@ -5,10 +5,7 @@ import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
 import * as ethers from "ethers";
 import { secp256k1PublicKeyFromSecretKey as nativePublicKeyFromSecretKey } from "hardhat/internal/native-crypto";
 
-import {
-  getNativeSecp256k1CallCount,
-  installNativeSecp256k1,
-} from "../src/internal/native-secp256k1.js";
+import { installNativeSecp256k1 } from "../src/internal/native-secp256k1.js";
 
 const SECRET_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -16,6 +13,11 @@ const SECRET_KEY =
 // The mnemonic from the BIP-39 test vectors.
 const MNEMONIC =
   "legal winner thank year wave sausage worth useful legal winner thank yellow";
+
+// Captured before anything installs the replacement. The installation restores
+// this method whenever it can't use the native derivation, so the method having
+// changed is what tells a working installation from a silent fallback.
+const jsComputePublicKey = ethers.SigningKey.computePublicKey;
 
 // These tests check that EDR's derivation is wired into ethers and that the
 // replacement preserves ethers' observable behavior. EDR's derivation itself is
@@ -25,14 +27,11 @@ describe("installing EDR's secp256k1 derivation into ethers", () => {
     installNativeSecp256k1();
   });
 
-  it("should route ethers' public key derivation through EDR", () => {
-    const callCountBefore = getNativeSecp256k1CallCount();
-
-    new ethers.Wallet(SECRET_KEY);
-
-    assert.ok(
-      getNativeSecp256k1CallCount() > callCountBefore,
-      "ethers should route public key derivation through the native implementation",
+  it("should replace ethers' public key derivation with EDR's", () => {
+    assert.notEqual(
+      ethers.SigningKey.computePublicKey,
+      jsComputePublicKey,
+      "ethers' own implementation should have been replaced",
     );
   });
 

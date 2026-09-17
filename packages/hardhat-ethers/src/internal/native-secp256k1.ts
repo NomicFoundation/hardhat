@@ -23,42 +23,24 @@ const SECRET_KEY_LENGTH = 32;
 const UNCOMPRESSED_PUBLIC_KEY_LENGTH = 65;
 
 let installed = false;
+// How many times the native derivation has been used. The self-check compares
+// it before and after asking ethers to derive a key, because a version of ethers
+// that stopped calling the replaced method would still return correct values.
 let nativeCallCount = 0;
 
 /**
- * How many times the native derivation has been used. Only meant for tests
- * asserting that ethers still routes through it.
- */
-export function getNativeSecp256k1CallCount(): number {
-  return nativeCallCount;
-}
-
-/**
  * Replaces ethers' pure-JS secp256k1 public key derivation with EDR's native
- * one, which is several times faster. Every derivation ethers performs routes
- * through `SigningKey.computePublicKey`, so this covers `new Wallet(secretKey)`,
- * `Wallet.createRandom()`, HD wallet derivation and `computeAddress`.
+ * one, which is several times faster. All of ethers' derivations go through
+ * `SigningKey.computePublicKey`, so overwriting that static method covers
+ * wallets, HD derivation and `computeAddress`.
  *
- * ethers has hooks to register alternative implementations of its hash
- * functions, but none for this, so the static method is overwritten instead.
- * That isn't part of ethers' public API: a future version could stop routing
- * through it, which wouldn't produce wrong results but would silently undo this
- * optimization. To detect that, the replacement is validated against a known
- * secret key before being kept, checking both that the derived values are
- * correct and that ethers actually called it. If either fails, ethers' own
- * implementation is restored.
+ * ethers has no hook for this, and the method isn't public API, so the
+ * replacement is validated against a known secret key: the results must be
+ * correct and ethers must actually have called it. Otherwise, or if installing
+ * fails, ethers' own implementation stays, and this only logs under DEBUG.
  *
- * The replacement is per-module-instance, so this only affects the ethers
- * instance that this plugin resolves; code that resolves another one keeps
- * using the JS implementation. It only installs on its first call, so later
- * connections don't overwrite an implementation installed in between.
- *
- * Both ethers and EDR are imported statically: this module is only loaded on
- * the first network connection, by which point both are already loaded, so
- * there's nothing to defer.
- *
- * If the replacement can't be installed, this leaves ethers as it is, reporting
- * it only under DEBUG.
+ * Only the ethers instance this plugin resolves is affected. Installs once, on
+ * the first call.
  */
 export function installNativeSecp256k1(): void {
   if (installed) {
@@ -92,6 +74,7 @@ export function installNativeSecp256k1(): void {
         // Anything else that could go wrong is also better served by falling
         // back than by failing.
         log("EDR's native secp256k1 derivation failed: %O", error);
+
         return jsComputePublicKey(key, compressed);
       }
 
@@ -144,6 +127,7 @@ function selfCheckPasses(): boolean {
 
   let address;
   let compressedPublicKey;
+
   try {
     // Exercises the uncompressed encoding, which `computeAddress` hashes, and
     // the compressed one, through the getter that HD wallets use.
@@ -152,6 +136,7 @@ function selfCheckPasses(): boolean {
       .compressedPublicKey;
   } catch (error) {
     log("Self-check of the native secp256k1 derivation threw: %O", error);
+
     return false;
   }
 
@@ -162,6 +147,7 @@ function selfCheckPasses(): boolean {
     log(
       "The native secp256k1 derivation returned unexpected values; restoring ethers' JS one",
     );
+
     return false;
   }
 
@@ -172,6 +158,7 @@ function selfCheckPasses(): boolean {
     log(
       "This version of ethers doesn't derive public keys through SigningKey.computePublicKey; restoring its JS one",
     );
+
     return false;
   }
 
