@@ -1464,6 +1464,29 @@ describe("NetworkManagerImplementation", () => {
           },
         ]);
 
+        // EDR cannot execute pre-Byzantium L1 hardforks, so their activations
+        // are banned in a chain descriptor.
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            1: {
+              name: "Ethereum",
+              hardforkHistory: {
+                chainstart: { blockNumber: 0 },
+                byzantium: { blockNumber: 4_370_000 },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "1", "hardforkHistory", "chainstart"],
+            message: `Invalid hardfork name chainstart found in chain descriptor for chain 1. Expected ${getHardforks(
+              L1_CHAIN_TYPE,
+            ).join(" | ")}.`,
+          },
+        ]);
+
         validationErrors = await validateNetworkUserConfig({
           chainDescriptors: {
             1: {
@@ -3024,6 +3047,21 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message: `Invalid hardfork name anything else for chainType generic. Expected ${getHardforks(
+                L1_CHAIN_TYPE,
+              ).join(" | ")}.`,
+            },
+          ]);
+
+          // Pre-Byzantium hardforks are rejected here rather than by EDR when
+          // the provider is created.
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ hardfork: "chainstart" }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "hardfork"],
+              message: `Invalid hardfork name chainstart for chainType generic. Expected ${getHardforks(
                 L1_CHAIN_TYPE,
               ).join(" | ")}.`,
             },
