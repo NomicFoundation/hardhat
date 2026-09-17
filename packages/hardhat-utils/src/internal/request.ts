@@ -37,6 +37,7 @@ let undici: typeof UndiciT | undefined;
 
 const HTTPS_PROXY_ENV_VARS: string[] = ["https_proxy", "HTTPS_PROXY"];
 const HTTP_PROXY_ENV_VARS: string[] = ["http_proxy", "HTTP_PROXY"];
+const NO_PROXY_ENV_VARS: string[] = ["no_proxy", "NO_PROXY"];
 
 // `URL` normalizes IPv6 loopback to `[::1]` and alternate IPv4 forms to
 // dotted decimal. Only IPv6 hostnames include brackets.
@@ -151,9 +152,13 @@ export function isLoopbackUrl(parsedUrl: URL): boolean {
  * described in {@link parseNoProxy}.
  */
 export function isExcludedByNoProxy(parsedUrl: URL): boolean {
-  const noProxy = (process.env.no_proxy ?? process.env.NO_PROXY)?.trim();
+  // An empty or whitespace-only value means unset, so it falls through to the
+  // other casing instead of shadowing it.
+  const noProxy = NO_PROXY_ENV_VARS.map((name) =>
+    process.env[name]?.trim(),
+  ).find((value) => value !== undefined && value !== "");
 
-  if (noProxy === undefined || noProxy === "") {
+  if (noProxy === undefined) {
     return false;
   }
 

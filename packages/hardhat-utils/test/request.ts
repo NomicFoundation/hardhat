@@ -838,6 +838,15 @@ describe("Requests util", () => {
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
+    it("Should fall through an empty no_proxy to NO_PROXY", () => {
+      setEnvVar("NO_PROXY", "example.com");
+      setEnvVar("no_proxy", "");
+      assert.equal(shouldUseProxy("http://example.com"), false);
+
+      setEnvVar("no_proxy", "   ");
+      assert.equal(shouldUseProxy("http://example.com"), false);
+    });
+
     describe("Loopback addresses", () => {
       // These are never proxied, so that a local node stays reachable when a
       // proxy is configured for everything else.
