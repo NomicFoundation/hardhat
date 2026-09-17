@@ -59,7 +59,7 @@ export function installNativeSecp256k1(): void {
       const bytes = getBytes(key, "key");
 
       if (bytes.length !== SECRET_KEY_LENGTH) {
-        return jsComputePublicKey(key, compressed);
+        return jsComputePublicKey(bytes, compressed);
       }
 
       let publicKey;
@@ -68,7 +68,7 @@ export function installNativeSecp256k1(): void {
       } catch (error) {
         log("EDR's native secp256k1 derivation failed: %O", error);
 
-        return jsComputePublicKey(key, compressed);
+        return jsComputePublicKey(bytes, compressed);
       }
 
       nativeCallCount++;
