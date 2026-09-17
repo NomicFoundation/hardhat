@@ -190,8 +190,10 @@ describe("Requests util", () => {
           assert.equal(error.name, "DispatcherError");
           ensureError(error.cause);
           assert.equal(error.cause.name, "InvalidProxyUrlError");
+          // Case-insensitive: on Windows the two casings are the same
+          // variable, so the lookup can report either one.
           assert.ok(
-            error.cause.message.includes("HTTPS_PROXY"),
+            /https_proxy/i.test(error.cause.message),
             "Should name the offending environment variable",
           );
           assert.ok(
@@ -838,14 +840,19 @@ describe("Requests util", () => {
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
-    it("Should fall through an empty no_proxy to NO_PROXY", () => {
-      setEnvVar("NO_PROXY", "example.com");
-      setEnvVar("no_proxy", "");
-      assert.equal(shouldUseProxy("http://example.com"), false);
+    // Skipped on Windows, where the two casings are the same variable.
+    it(
+      "Should fall through an empty no_proxy to NO_PROXY",
+      { skip: process.platform === "win32" },
+      () => {
+        setEnvVar("NO_PROXY", "example.com");
+        setEnvVar("no_proxy", "");
+        assert.equal(shouldUseProxy("http://example.com"), false);
 
-      setEnvVar("no_proxy", "   ");
-      assert.equal(shouldUseProxy("http://example.com"), false);
-    });
+        setEnvVar("no_proxy", "   ");
+        assert.equal(shouldUseProxy("http://example.com"), false);
+      },
+    );
 
     describe("Loopback addresses", () => {
       // These are never proxied, so that a local node stays reachable when a
