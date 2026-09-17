@@ -916,6 +916,32 @@ describe("Requests util", () => {
         assert.equal(shouldUseProxy("http://10.1.2.3"), true);
       });
 
+      // A url carries an IPv6 literal in brackets, but an entry is commonly
+      // written without them, so both spellings have to match.
+      it("Should match an IPv6 host written with or without brackets", () => {
+        const url = "http://[2001:db8::1]:8080";
+
+        setEnvVar("NO_PROXY", "[2001:db8::1]");
+        assert.equal(shouldUseProxy(url), false);
+
+        setEnvVar("NO_PROXY", "2001:db8::1");
+        assert.equal(shouldUseProxy(url), false);
+      });
+
+      it("Should not read the tail of a bare IPv6 entry as a port", () => {
+        // `2001:db8::1` ends in `:1`, which must not restrict the entry to
+        // port 1 and leave `2001:db8:` as the host.
+        setEnvVar("NO_PROXY", "2001:db8::1");
+        assert.equal(shouldUseProxy("http://[2001:db8::1]"), false);
+        assert.equal(shouldUseProxy("http://[2001:db8::2]"), true);
+      });
+
+      it("Should restrict a bracketed IPv6 entry with a port to that port", () => {
+        setEnvVar("NO_PROXY", "[2001:db8::1]:8080");
+        assert.equal(shouldUseProxy("http://[2001:db8::1]:8080"), false);
+        assert.equal(shouldUseProxy("http://[2001:db8::1]:9999"), true);
+      });
+
       // A malformed entry should read as a hostname that matches nothing, not
       // bring down every request the process makes.
       it("Should ignore malformed entries without throwing", () => {

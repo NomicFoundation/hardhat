@@ -161,7 +161,7 @@ export function isExcludedByNoProxy(parsedUrl: URL): boolean {
     return true;
   }
 
-  const hostname = parsedUrl.hostname.toLowerCase();
+  const hostname = normalizeHostname(parsedUrl.hostname);
   const parsedPort = Number.parseInt(parsedUrl.port, 10);
   const port = Number.isNaN(parsedPort)
     ? DEFAULT_PORTS.get(parsedUrl.protocol)
@@ -360,6 +360,15 @@ function describeResponseError(e: Error): void {
 }
 
 /**
+ * Strips the brackets an IPv6 literal carries in a url, so that an entry can be
+ * written either way. `URL` keeps them on `hostname`, while `NO_PROXY` entries
+ * are commonly written without them.
+ */
+function normalizeHostname(hostname: string): string {
+  return hostname.replace(/^\[|\]$/g, "").toLowerCase();
+}
+
+/**
  * Parses a `NO_PROXY` value into its entries.
  *
  * Entries are separated by commas or whitespace. A leading `.` or `*.` marks
@@ -378,12 +387,14 @@ function parseNoProxy(noProxy: string): NoProxyEntry[] {
       continue;
     }
 
-    const withPort = entry.match(/^(.+):(\d+)$/);
+    // Only a bracketed literal or a colon-free host can carry a port, so that
+    // the trailing group of a bare IPv6 entry isn't read as one.
+    const withPort = entry.match(/^(\[[^\]]+\]|[^:]+):(\d+)$/);
 
     entries.push({
-      hostname: (withPort !== null ? withPort[1] : entry)
-        .replace(/^\*?\./, "")
-        .toLowerCase(),
+      hostname: normalizeHostname(
+        (withPort !== null ? withPort[1] : entry).replace(/^\*?\./, ""),
+      ),
       port: withPort !== null ? Number.parseInt(withPort[2], 10) : 0,
     });
   }
