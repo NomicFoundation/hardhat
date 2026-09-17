@@ -100,9 +100,7 @@ export function toEntries(
   const memEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
     unit: "MB",
-    // Peak RSS is a max within each run; across runs we track the highest peak
-    // and expose the spread (mean/stddev/…) in `extra`.
-    value: rss.max,
+    value: rss.mean,
     range: `± ${rss.stddev}`,
     extra: JSON.stringify({
       ...toSampleStats(rss),
