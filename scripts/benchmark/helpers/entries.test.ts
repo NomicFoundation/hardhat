@@ -40,7 +40,7 @@ describe("toEntries", () => {
     assert.equal(toEntries("s", "x", WALL, []).length, 1);
   });
 
-  it("emits a memory entry tracking the highest per-run peak", () => {
+  it("emits a memory entry tracking the mean per-run peak", () => {
     const peaks = [301, 315, 311];
     const [time, mem] = toEntries("scenario", "test", WALL, peaks);
 

@@ -67,9 +67,10 @@ export function measuredRunsToEntries(
 /**
  * One benchmark produces a timing entry and, when peak RSS was captured, a
  * separate memory entry (its own MB series, independently charted + alerted).
- * `peakRssMb` holds one peak per run; the tracked value is the highest peak.
- * The per-run distribution goes in the entry's `extra`, and the timing
- * entry's `extra` embeds the peak as `peakRssMb`.
+ * `peakRssMb` holds one peak per run. The tracked value is their mean, which
+ * varies less across runs than the max. The per-run distribution goes in the
+ * entry's `extra`, and the timing entry's `extra` embeds the highest peak as
+ * `peakRssMb`.
  */
 export function toEntries(
   scenarioId: string,
