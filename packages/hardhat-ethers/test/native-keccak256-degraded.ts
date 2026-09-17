@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 const CHILD_PATH = fileURLToPath(
-  new URL("./helpers/native-keccak256-child.mjs", import.meta.url),
+  new URL("./helpers/native-keccak256-child.ts", import.meta.url),
 );
 
 const EMPTY_DIGEST =

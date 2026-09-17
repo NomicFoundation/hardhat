@@ -58,9 +58,6 @@ export function installNativeSecp256k1(): void {
     ): string {
       const bytes = getBytes(key, "key");
 
-      // Only secret keys are derived natively. The other inputs ethers accepts
-      // are public keys being converted between encodings, which is cheap and
-      // has more involved semantics, so they are left to ethers.
       if (bytes.length !== SECRET_KEY_LENGTH) {
         return jsComputePublicKey(key, compressed);
       }
@@ -69,10 +66,6 @@ export function installNativeSecp256k1(): void {
       try {
         publicKey = nativePublicKeyFromSecretKey(bytes);
       } catch (error) {
-        // Invalid secret keys end up here, and ethers' implementation is the
-        // reference for how they must be reported, so it produces the error.
-        // Anything else that could go wrong is also better served by falling
-        // back than by failing.
         log("EDR's native secp256k1 derivation failed: %O", error);
 
         return jsComputePublicKey(key, compressed);
@@ -80,7 +73,6 @@ export function installNativeSecp256k1(): void {
 
       nativeCallCount++;
 
-      // ethers coerces this with `!!compressed`, so any truthy value compresses.
       if (compressed === undefined || !compressed) {
         return hexlify(publicKey);
       }
@@ -118,7 +110,7 @@ function compressPublicKey(publicKey: Uint8Array): Uint8Array {
 
 /**
  * Asks ethers to derive a known secret key and returns whether the results are
- * correct *and* were produced by the native implementation. A future version of
+ * correct and were produced by the native implementation. A future version of
  * ethers that stops calling `SigningKey.computePublicKey` internally would
  * still return the right values, so correctness alone isn't enough.
  */
@@ -129,8 +121,6 @@ function selfCheckPasses(): boolean {
   let compressedPublicKey;
 
   try {
-    // Exercises the uncompressed encoding, which `computeAddress` hashes, and
-    // the compressed one, through the getter that HD wallets use.
     address = computeAddress(SELF_CHECK_SECRET_KEY);
     compressedPublicKey = new SigningKey(SELF_CHECK_SECRET_KEY)
       .compressedPublicKey;
@@ -151,9 +141,6 @@ function selfCheckPasses(): boolean {
     return false;
   }
 
-  // One derivation each, so a version of ethers that computes either of them
-  // some other way is caught, not just one that stops calling the method
-  // altogether.
   if (nativeCallCount - callCountBefore < 2) {
     log(
       "This version of ethers doesn't derive public keys through SigningKey.computePublicKey; restoring its JS one",

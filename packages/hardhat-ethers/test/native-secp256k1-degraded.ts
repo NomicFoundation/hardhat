@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 const CHILD_PATH = fileURLToPath(
-  new URL("./helpers/native-secp256k1-child.mjs", import.meta.url),
+  new URL("./helpers/native-secp256k1-child.ts", import.meta.url),
 );
 
 const ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -24,9 +24,7 @@ async function deriveUnder(
     scenario,
   ]);
 
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-  the child prints exactly this shape */
-  return JSON.parse(stdout.trim()) as { address: string; native: boolean };
+  return JSON.parse(stdout.trim());
 }
 
 describe("native secp256k1 installation when it can't be used", () => {

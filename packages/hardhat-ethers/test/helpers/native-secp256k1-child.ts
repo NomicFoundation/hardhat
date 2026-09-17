@@ -2,12 +2,14 @@
 // then prints the address ethers derives for a known secret key and whether the
 // native implementation ended up being used, so the parent can check that
 // ethers keeps working either way.
+import * as ethers from "ethers";
+
+import { installNativeSecp256k1 } from "../../src/internal/native-secp256k1.js";
+
 const SECRET_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 const scenario = process.argv[2];
-
-const ethers = await import("ethers");
 
 if (scenario === "ethers-frozen") {
   // Simulates an ethers that freezes `SigningKey`, which makes the assignment
@@ -26,10 +28,6 @@ if (scenario === "ethers-drifted") {
   });
 }
 
-// The `.ts` path is used so the test doesn't need the package to be built.
-const { installNativeSecp256k1 } =
-  await import("../../src/internal/native-secp256k1.ts");
-
 // The installation restores this method whenever it can't use the native
 // derivation, so the method having changed is what tells a working installation
 // from a silent fallback.
@@ -37,6 +35,8 @@ const jsComputePublicKey = ethers.SigningKey.computePublicKey;
 
 installNativeSecp256k1();
 
+// Reports the result to the parent test, which captures this process's stdout
+// via execFile and parses it. Nothing is printed to the terminal.
 console.log(
   JSON.stringify({
     address: new ethers.Wallet(SECRET_KEY).address,
