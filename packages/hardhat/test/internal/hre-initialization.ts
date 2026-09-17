@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { afterEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createTestEnvManager,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
@@ -121,22 +122,25 @@ describe("HRE initialization", () => {
   });
 
   describe("config loading", () => {
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+    // Config loading reads this, so a HARDHAT_CONFIG set in the environment
+    // running the tests would otherwise point them at the wrong config.
+    beforeEach(() => {
+      unsetEnvVar("HARDHAT_CONFIG");
+    });
+
     describe("resolveConfigPath", async () => {
       describe("With custom config path", () => {
         useFixtureProject("config-custom-path");
 
         it("should return the HARDHAT_CONFIG env variable if it is set", async () => {
-          try {
-            // We set the env var to a hardhat config and then clean it up
-            process.env.HARDHAT_CONFIG = "other.config.js";
+          setEnvVar("HARDHAT_CONFIG", "other.config.js");
 
-            assert.equal(
-              await resolveHardhatConfigPath(),
-              await getRealPath("other.config.js"),
-            );
-          } finally {
-            delete process.env.HARDHAT_CONFIG;
-          }
+          assert.equal(
+            await resolveHardhatConfigPath(),
+            await getRealPath("other.config.js"),
+          );
         });
 
         it("should normalize and return the provided path", async () => {

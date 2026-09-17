@@ -9,6 +9,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { getAddress } from "viem";
 
 import hardhatViemAssertions from "../../../src/index.js";
 import { isExpectedError } from "../../helpers/is-expected-error.js";
@@ -57,6 +58,29 @@ describe("balancesHaveChanged", () => {
         {
           address: aliceWalletClient.account.address,
           amount: 3333333333333333n,
+        },
+      ],
+    );
+  });
+
+  it("should account for the gas fee when the sender address is checksummed", async () => {
+    const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
+
+    // `walletClient.account.address` is lowercased, but other common sources of
+    // addresses, like `walletClient.getAddresses()` or hardcoded literals, are
+    // checksummed. Both must be recognized as the sender, otherwise the gas fee
+    // is not added back and the assertion fails.
+    const checksummedBobAddress = getAddress(bobWalletClient.account.address);
+
+    await viem.assertions.balancesHaveChanged(
+      bobWalletClient.sendTransaction({
+        to: aliceWalletClient.account.address,
+        value: 3333333333333333n,
+      }),
+      [
+        {
+          address: checksummedBobAddress,
+          amount: -3333333333333333n,
         },
       ],
     );

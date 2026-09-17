@@ -3,6 +3,7 @@ import { after, before, describe, it } from "node:test";
 
 import {
   captureConsole,
+  createEnvChanges,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -24,6 +25,10 @@ describe("hhu --network routing", () => {
 
   const capture = captureConsole();
 
+  // These have to stay set for the whole describe, so they are restored
+  // manually instead of through createTestEnvManager.
+  const envChanges = createEnvChanges();
+
   let server: JsonRpcServerImplementation;
 
   before(async () => {
@@ -41,16 +46,17 @@ describe("hhu --network routing", () => {
 
     const { address, port } = await server.listen();
     // The fixture's `mockRpc` http network reads this to know where to connect.
-    process.env.HHU_TEST_RPC_URL = `http://${address}:${port}`;
+    envChanges.setEnvVar("HHU_TEST_RPC_URL", `http://${address}:${port}`);
+    // `--network` sets this one, so track it to have it restored too.
+    envChanges.unsetEnvVar("HARDHAT_NETWORK");
   });
 
   after(async () => {
     await server.close();
-    // `network.create` creates the global HRE and `--network` sets the env var;
-    // reset both so they don't leak into other tests.
+    // `network.create` creates the global HRE; reset it so it doesn't leak
+    // into other tests.
     resetGlobalHardhatRuntimeEnvironment();
-    delete process.env.HHU_TEST_RPC_URL;
-    delete process.env.HARDHAT_NETWORK;
+    envChanges.restoreEnvVars();
   });
 
   it("routes to the network named by --network", async () => {

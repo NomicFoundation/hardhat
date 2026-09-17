@@ -3,7 +3,7 @@ import type UndiciT from "undici";
 import assert from "node:assert/strict";
 import path from "node:path";
 import querystring from "node:querystring";
-import { afterEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 import { ProxyAgent, Pool, Agent, Client } from "undici";
@@ -29,6 +29,7 @@ import {
   getProxyUrl,
 } from "../src/request.js";
 
+import { createTestEnvManager } from "./helpers/env.js";
 import { createTmpDir } from "./helpers/fs.js";
 import { initializeTestDispatcher } from "./helpers/request.js";
 
@@ -673,8 +674,12 @@ describe("Requests util", () => {
   });
 
   describe("shouldUseProxy", () => {
-    afterEach(() => {
-      delete process.env.NO_PROXY;
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+    // A NO_PROXY configured in the environment running the tests would
+    // otherwise decide the result of the cases below.
+    beforeEach(() => {
+      unsetEnvVar("NO_PROXY");
     });
 
     it("Should return false for localhost", () => {
@@ -686,34 +691,35 @@ describe("Requests util", () => {
     });
 
     it("Should return false if NO_PROXY is '*'", () => {
-      process.env.NO_PROXY = "*";
+      setEnvVar("NO_PROXY", "*");
       assert.equal(shouldUseProxy("http://example.com"), false);
     });
 
     it("Should return false if hostname is in NO_PROXY list", () => {
-      process.env.NO_PROXY = "example.com,other.com";
+      setEnvVar("NO_PROXY", "example.com,other.com");
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("http://other.com"), false);
     });
 
     it("Should return true if hostname is not in NO_PROXY list", () => {
-      process.env.NO_PROXY = "other.com,different.com";
+      setEnvVar("NO_PROXY", "other.com,different.com");
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
     it("Should handle a mix of proxied and non-proxied URLs in NO_PROXY", () => {
-      process.env.NO_PROXY = "example.com,other.com";
+      setEnvVar("NO_PROXY", "example.com,other.com");
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("http://other.com"), false);
       assert.equal(shouldUseProxy("http://different.com"), true);
     });
 
     it("Should return true if NO_PROXY is not defined", () => {
+      unsetEnvVar("NO_PROXY");
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
     it("Should ignore the protocol part of the URL", () => {
-      process.env.NO_PROXY = "example.com";
+      setEnvVar("NO_PROXY", "example.com");
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("https://example.com"), false);
       assert.equal(shouldUseProxy("ftp://example.com"), false);
@@ -741,16 +747,25 @@ describe("Requests util", () => {
   });
 
   describe("getProxyUrl", () => {
-    afterEach(() => {
-      delete process.env.https_proxy;
-      delete process.env.HTTPS_PROXY;
-      delete process.env.http_proxy;
-      delete process.env.HTTP_PROXY;
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
+    // These tests are about which variable wins, and most of them set only
+    // some of the four. A proxy configured in the environment running the
+    // tests would otherwise fill in the rest.
+    beforeEach(() => {
+      for (const name of [
+        "https_proxy",
+        "HTTPS_PROXY",
+        "http_proxy",
+        "HTTP_PROXY",
+      ]) {
+        unsetEnvVar(name);
+      }
     });
 
     describe("HTTPS URLs", () => {
       it("Should return https_proxy for HTTPS URLs", () => {
-        process.env.https_proxy = "http://https-proxy:8080";
+        setEnvVar("https_proxy", "http://https-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://https-proxy:8080",
@@ -758,7 +773,7 @@ describe("Requests util", () => {
       });
 
       it("Should return HTTPS_PROXY for HTTPS URLs if https_proxy is not set", () => {
-        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        setEnvVar("HTTPS_PROXY", "http://HTTPS-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://HTTPS-proxy:8080",
@@ -769,15 +784,15 @@ describe("Requests util", () => {
         // Test that https_proxy is used when both are set
         // Note: On Windows, env vars are case-insensitive, so we test priority
         // by setting one, checking, then setting the other
-        process.env.https_proxy = "http://https-proxy:8080";
+        setEnvVar("https_proxy", "http://https-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://https-proxy:8080",
         );
 
         // Test that HTTPS_PROXY is used when https_proxy is not set
-        delete process.env.https_proxy;
-        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        unsetEnvVar("https_proxy");
+        setEnvVar("HTTPS_PROXY", "http://HTTPS-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://HTTPS-proxy:8080",
@@ -785,7 +800,7 @@ describe("Requests util", () => {
       });
 
       it("Should fallback to http_proxy for HTTPS URLs if https proxies are not set", () => {
-        process.env.http_proxy = "http://http-proxy:8080";
+        setEnvVar("http_proxy", "http://http-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://http-proxy:8080",
@@ -793,7 +808,7 @@ describe("Requests util", () => {
       });
 
       it("Should fallback to HTTP_PROXY for HTTPS URLs if other proxies are not set", () => {
-        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        setEnvVar("HTTP_PROXY", "http://HTTP-proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com"),
           "http://HTTP-proxy:8080",
@@ -803,7 +818,7 @@ describe("Requests util", () => {
 
     describe("HTTP URLs", () => {
       it("Should return http_proxy for HTTP URLs", () => {
-        process.env.http_proxy = "http://http-proxy:8080";
+        setEnvVar("http_proxy", "http://http-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://http-proxy:8080",
@@ -811,7 +826,7 @@ describe("Requests util", () => {
       });
 
       it("Should return HTTP_PROXY for HTTP URLs if http_proxy is not set", () => {
-        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        setEnvVar("HTTP_PROXY", "http://HTTP-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://HTTP-proxy:8080",
@@ -822,15 +837,15 @@ describe("Requests util", () => {
         // Test that http_proxy is used when both are set
         // Note: On Windows, env vars are case-insensitive, so we test priority
         // by setting one, checking, then setting the other
-        process.env.http_proxy = "http://http-proxy:8080";
+        setEnvVar("http_proxy", "http://http-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://http-proxy:8080",
         );
 
         // Test that HTTP_PROXY is used when http_proxy is not set
-        delete process.env.http_proxy;
-        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        unsetEnvVar("http_proxy");
+        setEnvVar("HTTP_PROXY", "http://HTTP-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://HTTP-proxy:8080",
@@ -838,7 +853,7 @@ describe("Requests util", () => {
       });
 
       it("Should fallback to https_proxy for HTTP URLs if http proxies are not set", () => {
-        process.env.https_proxy = "http://https-proxy:8080";
+        setEnvVar("https_proxy", "http://https-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://https-proxy:8080",
@@ -846,7 +861,7 @@ describe("Requests util", () => {
       });
 
       it("Should fallback to HTTPS_PROXY for HTTP URLs if other proxies are not set", () => {
-        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        setEnvVar("HTTPS_PROXY", "http://HTTPS-proxy:8080");
         assert.equal(
           getProxyUrl("http://example.com"),
           "http://HTTPS-proxy:8080",
@@ -856,20 +871,20 @@ describe("Requests util", () => {
 
     describe("Other protocols", () => {
       it("Should return undefined for FTP URLs", () => {
-        process.env.http_proxy = "http://proxy:8080";
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("http_proxy", "http://proxy:8080");
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(getProxyUrl("ftp://example.com"), undefined);
       });
 
       it("Should return undefined for file URLs", () => {
-        process.env.http_proxy = "http://proxy:8080";
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("http_proxy", "http://proxy:8080");
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(getProxyUrl("file:///path/to/file"), undefined);
       });
 
       it("Should return undefined for custom protocols", () => {
-        process.env.http_proxy = "http://proxy:8080";
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("http_proxy", "http://proxy:8080");
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(getProxyUrl("custom://example.com"), undefined);
       });
     });
@@ -884,44 +899,44 @@ describe("Requests util", () => {
     describe("Priority order", () => {
       it("Should follow correct priority for HTTPS: https_proxy > HTTPS_PROXY > http_proxy > HTTP_PROXY", () => {
         // Set fallback variables first (lowest priority)
-        process.env.HTTP_PROXY = "http://4th:8080";
+        setEnvVar("HTTP_PROXY", "http://4th:8080");
 
         // On Windows, setting uppercase variables after lowercase variables
         // might overwrite them due to case-insensitivity. So we test the
         // priority order by adding variables in reverse order and testing at each step
         assert.equal(getProxyUrl("https://example.com"), "http://4th:8080");
 
-        process.env.http_proxy = "http://3rd:8080";
+        setEnvVar("http_proxy", "http://3rd:8080");
 
         assert.equal(getProxyUrl("https://example.com"), "http://3rd:8080");
 
-        process.env.HTTPS_PROXY = "http://2nd:8080";
+        setEnvVar("HTTPS_PROXY", "http://2nd:8080");
 
         assert.equal(getProxyUrl("https://example.com"), "http://2nd:8080");
 
-        process.env.https_proxy = "http://1st:8080";
+        setEnvVar("https_proxy", "http://1st:8080");
 
         assert.equal(getProxyUrl("https://example.com"), "http://1st:8080");
       });
 
       it("Should follow correct priority for HTTP: http_proxy > HTTP_PROXY > https_proxy > HTTPS_PROXY", () => {
         // Set fallback variables first (lowest priority)
-        process.env.HTTPS_PROXY = "http://4th:8080";
+        setEnvVar("HTTPS_PROXY", "http://4th:8080");
 
         // On Windows, setting uppercase variables after lowercase variables
         // might overwrite them due to case-insensitivity. So we test the
         // priority order by adding variables in reverse order and testing at each step
         assert.equal(getProxyUrl("http://example.com"), "http://4th:8080");
 
-        process.env.https_proxy = "http://3rd:8080";
+        setEnvVar("https_proxy", "http://3rd:8080");
 
         assert.equal(getProxyUrl("http://example.com"), "http://3rd:8080");
 
-        process.env.HTTP_PROXY = "http://2nd:8080";
+        setEnvVar("HTTP_PROXY", "http://2nd:8080");
 
         assert.equal(getProxyUrl("http://example.com"), "http://2nd:8080");
 
-        process.env.http_proxy = "http://1st:8080";
+        setEnvVar("http_proxy", "http://1st:8080");
 
         assert.equal(getProxyUrl("http://example.com"), "http://1st:8080");
       });
@@ -929,7 +944,7 @@ describe("Requests util", () => {
 
     describe("URL parsing", () => {
       it("Should handle URLs with ports", () => {
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com:9000"),
           "http://proxy:8080",
@@ -937,7 +952,7 @@ describe("Requests util", () => {
       });
 
       it("Should handle URLs with paths", () => {
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com/path/to/resource"),
           "http://proxy:8080",
@@ -945,7 +960,7 @@ describe("Requests util", () => {
       });
 
       it("Should handle URLs with query parameters", () => {
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com?param=value"),
           "http://proxy:8080",
@@ -953,7 +968,7 @@ describe("Requests util", () => {
       });
 
       it("Should handle URLs with fragments", () => {
-        process.env.https_proxy = "http://proxy:8080";
+        setEnvVar("https_proxy", "http://proxy:8080");
         assert.equal(
           getProxyUrl("https://example.com#fragment"),
           "http://proxy:8080",

@@ -10,6 +10,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
+  createTestEnvManager,
   createTmpDir,
   disableConsole,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -799,8 +800,7 @@ describe("installProjectDependencies", async () => {
           : false,
     },
     () => {
-      let originalPath: string | undefined;
-      let originalUserAgent: string | undefined;
+      const { setEnvVar, unsetEnvVar } = createTestEnvManager();
 
       beforeEach(async () => {
         // Put a fake `npm` that always exits non-zero first in PATH so the
@@ -812,23 +812,13 @@ describe("installProjectDependencies", async () => {
         await writeUtf8File(fakeNpmPath, "#!/bin/sh\nexit 1\n");
         await fsPromises.chmod(fakeNpmPath, 0o755);
 
-        originalPath = process.env.PATH;
-        originalUserAgent = process.env.npm_config_user_agent;
-        process.env.PATH = `${fakeBinDir}${path.delimiter}${originalPath ?? ""}`;
+        setEnvVar(
+          "PATH",
+          `${fakeBinDir}${path.delimiter}${process.env.PATH ?? ""}`,
+        );
         // Force the package manager detection to fall back to npm so the spawn
         // resolves to our stub.
-        delete process.env.npm_config_user_agent;
-      });
-
-      afterEach(() => {
-        if (originalPath === undefined) {
-          delete process.env.PATH;
-        } else {
-          process.env.PATH = originalPath;
-        }
-        if (originalUserAgent !== undefined) {
-          process.env.npm_config_user_agent = originalUserAgent;
-        }
+        unsetEnvVar("npm_config_user_agent");
       });
 
       it("should wrap installation failures in a HardhatError", async () => {
