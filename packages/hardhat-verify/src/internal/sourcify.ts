@@ -26,11 +26,9 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject, sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
-  getProxyUrl,
   getRequest,
   postJsonRequest,
   ResponseStatusCodeError,
-  shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
 export const SOURCIFY_PROVIDER_NAME: keyof VerificationProvidersConfig =
@@ -93,12 +91,7 @@ export class Sourcify implements VerificationProvider {
     this.apiUrl = sourcifyConfig.apiUrl ?? SOURCIFY_API_URL;
     this.url = `${this.apiUrl}/repo-ui`;
 
-    const proxyUrl = shouldUseProxy(this.apiUrl)
-      ? getProxyUrl(this.apiUrl)
-      : undefined;
-    this.dispatcherOrDispatcherOptions =
-      sourcifyConfig.dispatcher ??
-      (proxyUrl !== undefined ? { proxy: proxyUrl } : {});
+    this.dispatcherOrDispatcherOptions = sourcifyConfig.dispatcher ?? {};
 
     this.pollingIntervalMs =
       sourcifyConfig.dispatcher !== undefined

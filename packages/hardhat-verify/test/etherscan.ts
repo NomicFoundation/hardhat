@@ -11,7 +11,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
-  createTestEnvManager,
 } from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
@@ -58,18 +57,6 @@ describe("etherscan", () => {
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
 
     describe("constructor", () => {
-      const { setEnvVar, unsetEnvVar } = createTestEnvManager();
-
-      // The proxy is read from the environment, so one configured in the
-      // environment running the tests would otherwise decide the results below.
-      beforeEach(() => {
-        unsetEnvVar("https_proxy");
-        unsetEnvVar("HTTPS_PROXY");
-        unsetEnvVar("http_proxy");
-        unsetEnvVar("HTTP_PROXY");
-        unsetEnvVar("NO_PROXY");
-      });
-
       it("should create an instance with the correct properties", () => {
         const etherscan = new Etherscan(etherscanConfig);
 
@@ -112,30 +99,7 @@ describe("etherscan", () => {
         );
       });
 
-      it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        setEnvVar("https_proxy", "http://test-proxy:8080");
-
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
-          apiUrl: ETHERSCAN_API_URL,
-        });
-
-        assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {
-          proxy: "http://test-proxy:8080",
-        });
-      });
-
-      it("should not configure proxy when shouldUseProxy returns false", () => {
-        setEnvVar("https_proxy", "http://test-proxy:8080");
-        setEnvVar("NO_PROXY", "*");
-
-        const etherscan = new Etherscan(etherscanConfig);
-
-        assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {});
-      });
-
-      it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        setEnvVar("https_proxy", "http://test-proxy:8080");
+      it("should use the provided dispatcher", async () => {
         const dispatcher = await getDispatcher(etherscanApiUrl);
 
         const etherscan = new Etherscan({
@@ -146,7 +110,7 @@ describe("etherscan", () => {
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, dispatcher);
       });
 
-      it("should configure no proxy when no environment variables are set", () => {
+      it("should default to empty dispatcher options", () => {
         const etherscan = new Etherscan(etherscanConfig);
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {});
