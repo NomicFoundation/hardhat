@@ -12,10 +12,8 @@ export interface TimingStats {
 
 /**
  * Statistical summary of a benchmark command, in seconds — the shared shape
- * feeding `toEntry`, produced by both regression.ts paths: the hyperfine export
- * and the in-process steps path. `user`/`system` are mean CPU times: hyperfine
- * exports only the means, so the steps path aggregates its per-run samples to
- * match.
+ * feeding `toEntry`. `user`/`system` are mean CPU times, aggregated from the
+ * per-run samples.
  */
 export interface BenchmarkStats extends TimingStats {
   user: number;
