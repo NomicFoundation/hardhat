@@ -57,12 +57,14 @@ import { ConsoleLogger } from "./utils/console-logger.js";
 import {
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
-  hardhatHardforkToEdrSpecId,
   hardhatForkingConfigToEdrForkConfig,
   hardhatGasEstimationModeToEdrGasEstimationMode,
   resolveDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
-import { warnIfExperimentalHardfork } from "./utils/hardfork.js";
+import {
+  getHardforkName,
+  warnIfExperimentalHardfork,
+} from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = createDebug("hardhat:core:network-manager:edr:provider");
@@ -504,7 +506,7 @@ export async function getProviderConfig(
   chainDescriptors: ChainDescriptorsConfig,
   includeCallTraces?: IncludeTraces,
 ): Promise<ProviderConfig> {
-  const specId = hardhatHardforkToEdrSpecId(
+  const hardforkName = getHardforkName(
     networkConfig.hardfork,
     networkConfig.chainType,
   );
@@ -522,7 +524,7 @@ export async function getProviderConfig(
     networkConfig.accounts,
     networkConfig.forking,
     networkConfig.chainType,
-    specId,
+    hardforkName,
   );
 
   const forkConfig = await hardhatForkingConfigToEdrForkConfig(
@@ -559,7 +561,7 @@ export async function getProviderConfig(
       networkConfig.gasEstimationMode,
     ),
     genesisState: Array.from(genesisState.values()),
-    hardfork: specId,
+    hardfork: hardforkName,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
     minGasPrice: networkConfig.minGasPrice,
     mining: {

@@ -16,10 +16,8 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getDispatcher,
-  getProxyUrl,
   isValidUrl,
   postJsonRequest,
-  shouldUseProxy,
   ConnectionRefusedError,
   RequestTimeoutError,
   ResponseStatusCodeError,
@@ -80,7 +78,7 @@ export class HttpProvider extends BaseProvider {
     }
 
     const dispatcher =
-      testDispatcher ?? (await getHttpDispatcher(url, timeout));
+      testDispatcher ?? (await getDispatcher(url, { pool: true, timeout }));
 
     const httpProvider = new HttpProvider(
       url,
@@ -275,29 +273,4 @@ export class HttpProvider extends BaseProvider {
     await sleep(retryAfterSeconds);
     return await this.#fetchJsonRpcResponse(request, retryCount + 1);
   }
-}
-
-/**
- * Gets either a pool or proxy dispatcher depending on the URL and the
- * proxy configuration. This function is used internally by
- * `HttpProvider.create` and should not be used directly.
- */
-export async function getHttpDispatcher(
-  url: string,
-  timeout?: number,
-): Promise<Dispatcher> {
-  let dispatcher: Dispatcher;
-
-  const proxyUrl = shouldUseProxy(url) ? getProxyUrl(url) : undefined;
-
-  if (proxyUrl !== undefined) {
-    dispatcher = await getDispatcher(url, {
-      proxy: proxyUrl,
-      timeout,
-    });
-  } else {
-    dispatcher = await getDispatcher(url, { pool: true, timeout });
-  }
-
-  return dispatcher;
 }

@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.22
+
+### Patch Changes
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`0acd737`](https://github.com/NomicFoundation/hardhat/commit/0acd737df2e04781d6f035c79bfdac480e67b703) Thanks [@schaable](https://github.com/schaable)! - Fixed configuration variables to stop printing of values in error messages.
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`78f613c`](https://github.com/NomicFoundation/hardhat/commit/78f613c1f390cd0d39ef239a387505bc5d5dfdad) Thanks [@schaable](https://github.com/schaable)! - Fixed error shown when an HD key cannot be derived, to only include the derivation path.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.0.21
 
 ### Patch Changes

@@ -1,5 +1,26 @@
 # hardhat
 
+## 3.17.0
+
+### Minor Changes
+
+- [#8501](https://github.com/NomicFoundation/hardhat/pull/8501) [`5faee42`](https://github.com/NomicFoundation/hardhat/commit/5faee42584ec0a27454914aadf08fee6057dfd23) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add `gasEstimationMode` config option to EDR networks, featuring a `"noInternalOutOfGas"` mode to prevent misleading `eth_estimateGas` results when internal calls run out of gas.
+
+- [#8580](https://github.com/NomicFoundation/hardhat/pull/8580) [`8583e24`](https://github.com/NomicFoundation/hardhat/commit/8583e24c13e5fecd238734f8698867c945541f5d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers use EDR's native Keccak-256 instead of its pure-JS one.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
+### Patch Changes
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`0acd737`](https://github.com/NomicFoundation/hardhat/commit/0acd737df2e04781d6f035c79bfdac480e67b703) Thanks [@schaable](https://github.com/schaable)! - Fixed configuration variables to stop printing of values in error messages.
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`78f613c`](https://github.com/NomicFoundation/hardhat/commit/78f613c1f390cd0d39ef239a387505bc5d5dfdad) Thanks [@schaable](https://github.com/schaable)! - Fixed error shown when an HD key cannot be derived, to only include the derivation path.
+
+- [#8594](https://github.com/NomicFoundation/hardhat/pull/8594) [`0fc2dca`](https://github.com/NomicFoundation/hardhat/commit/0fc2dca0e12b3ed1a7491ea9e7ac934b861b31c6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Upgrade to EDR v0.20.0.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.16.0
 
 ### Minor Changes

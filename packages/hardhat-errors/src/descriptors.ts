@@ -1461,7 +1461,9 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
         websiteTitle: "`solc` download failed",
         websiteDescription: `Couldn't download \`solc\`.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       VERSION_LIST_DOWNLOAD_FAILED: {
         number: 905,
@@ -1470,7 +1472,9 @@ Please check your internet connection and try again.`,
         websiteTitle: "Couldn't obtain `solc` version list",
         websiteDescription: `Couldn't download \`solc\`'s version list.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 906,
@@ -3411,7 +3415,9 @@ solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
         websiteTitle: "solx download failed",
         websiteDescription: `The solx compiler binary could not be downloaded from the solx releases mirror used by Hardhat.
 
-Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.`,
+Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       BINARY_NOT_FOUND: {
         number: 110002,
@@ -3427,7 +3433,9 @@ Verify that the path in your Hardhat config points to a valid solx binary.`,
         websiteTitle: "Couldn't obtain the solx checksum",
         websiteDescription: `Every solx binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
 
-Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment. If you are behind a proxy that intercepts HTTPS traffic, it may be blocking or rewriting the request.`,
+Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 110004,

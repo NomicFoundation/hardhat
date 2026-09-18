@@ -22,6 +22,15 @@ export class DispatcherError extends CustomError {
   }
 }
 
+export class InvalidProxyUrlError extends CustomError {
+  constructor(envVarName: string, cause?: Error) {
+    super(
+      `The proxy url configured in the ${envVarName} environment variable is not a valid url`,
+      cause,
+    );
+  }
+}
+
 export class RequestTimeoutError extends CustomError {
   constructor(url: string, cause?: Error) {
     super(`Request to ${sanitizeUrl(url)} timed out`, cause);

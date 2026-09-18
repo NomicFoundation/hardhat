@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.2.0
+
+### Minor Changes
+
+- [#8583](https://github.com/NomicFoundation/hardhat/pull/8583) [`2c98fa5`](https://github.com/NomicFoundation/hardhat/commit/2c98fa5b05c3f2b8d06b44aae4ebea88b82ae132) Thanks [@schaable](https://github.com/schaable)! - Updated undici to v7.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
 ## 4.1.9
 
 ### Patch Changes

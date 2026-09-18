@@ -6,11 +6,5 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-ethers",
-      "peer": "hardhat",
-      "reason": "The plugin imports `hardhat/internal/native-crypto` to install EDR's native Keccak-256 and secp256k1 implementations into ethers, and that export subpath is new in the next version of Hardhat."
-    }
-  ]
+  "bumps": []
 }

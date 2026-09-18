@@ -45,8 +45,9 @@ interface ScenarioDefinitionBase {
  * A benchmark entry in a scenario's `benchmark.commands` map. Exactly one of
  * the two variants applies, discriminated by the presence of `steps`:
  *
- * - {@link CommandVariant}: a single command benchmarked with hyperfine.
- * - {@link StepsVariant}: an ordered sequence of steps, each timed in-process.
+ * - {@link CommandVariant}: a single measured command.
+ * - {@link StepsVariant}: an ordered sequence of steps, each measured
+ *   separately.
  */
 export type CommandConfig = CommandVariant | StepsVariant;
 
@@ -87,10 +88,11 @@ export interface StepsVariant {
    */
   runs: number;
   /**
-   * The steps to run, in order, once per run. Each step is timed individually
-   * in-process (not via hyperfine), so the shared state between steps avoids
-   * the per-run reset cost of a hyperfine `prepare`. The key doubles as the
-   * benchmark name on disk for measured steps.
+   * The steps to run, in order, once per run. Measured steps are timed
+   * individually; a step with `measure: false` runs as an unmeasured setup
+   * or reset. The shared state between steps avoids the per-run reset cost
+   * of a single command's `prepare`. The key doubles as the benchmark name
+   * on disk for measured steps.
    */
   steps: Record<string, StepConfig>;
 }
