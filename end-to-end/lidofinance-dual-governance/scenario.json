@@ -1,13 +1,14 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Lido Dual Governance Smart contracts fork to Hardhat 3.",
+  "description": "Lido Dual Governance Smart contracts fork to Hardhat 3. MAINNET_FORK_BLOCK_NUMBER pins the mainnet fork so EDR's fork-db cache is reusable across runs.",
   "tags": ["external-repo"],
   "repo": "popescuoctavian/dual-governance",
-  "commit": "ef72db01b9b69fddc7fefae9da160e465921ec42",
+  "commit": "5e6e0ce14eb34ffa2e0674d0ce147b18868256b2",
   "packageManager": "npm",
   "submodules": true,
   "env": {
-    "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}"
+    "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}",
+    "MAINNET_FORK_BLOCK_NUMBER": "26002900"
   },
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
