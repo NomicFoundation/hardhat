@@ -22,7 +22,7 @@ pnpm regenerate-deployment-example
 
 Contributions are always welcome! Feel free to open any issue or send a pull request.
 
-Go to [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat-ignition/blob/main/CONTRIBUTING.md) to learn about how to set up Hardhat Ignition's development environment.
+Go to [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat/blob/main/CONTRIBUTING.md) to learn about how to set up Hardhat's development environment.
 
 ## Feedback, help and news
 
