@@ -36,6 +36,12 @@ function mockRunner(name: string, action: (...args: any[]) => unknown) {
       type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
     })
+    .addOption({
+      name: "testProfile",
+      description: "The test profile to use",
+      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+      defaultValue: undefined,
+    })
     .addFlag({ name: "noCompile" })
     .setInlineAction(action)
     .build();
@@ -457,6 +463,21 @@ describe("test/task-action", function () {
       assert.equal(received.length, 1);
       assert.equal(received[0].grep, "unit_");
       assert.equal(received[0].grepExclude, "sub");
+    });
+
+    it("forwards testProfile to a subtask that declares it", async () => {
+      const received: Array<Record<string, unknown>> = [];
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityNoOp, capturingRunner("runner-a", received)],
+      });
+
+      await hre.tasks.getTask("test").run({
+        noCompile: true,
+        testProfile: "ci",
+      });
+
+      assert.equal(received.length, 1);
+      assert.equal(received[0].testProfile, "ci");
     });
   });
 });
