@@ -193,6 +193,12 @@ describe("Requests util", () => {
           // Case-insensitive: on Windows the two casings are the same
           // variable, so the lookup can report either one.
           assert.ok(
+            "envVarName" in error.cause &&
+              typeof error.cause.envVarName === "string" &&
+              /https_proxy/i.test(error.cause.envVarName),
+            "Should expose the offending environment variable name",
+          );
+          assert.ok(
             /https_proxy/i.test(error.cause.message),
             "Should name the offending environment variable",
           );

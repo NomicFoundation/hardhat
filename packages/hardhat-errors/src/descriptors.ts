@@ -609,6 +609,18 @@ The value is not shown, as configuration variables are meant to hold secrets.`,
 
 The value is not shown, as configuration variables are meant to hold secrets.`,
       },
+      INVALID_PROXY_URL: {
+        number: 31,
+        messageTemplate: `The proxy URL configured in the {envVarName} environment variable is not a valid URL.
+
+Expected format: http://host:port (or https://host:port).`,
+        websiteTitle: "Invalid proxy URL",
+        websiteDescription: `The HTTP or HTTPS proxy set in the environment is not a valid URL.
+
+Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must include a scheme, for example \`http://host:port\` or \`https://host:port\`.
+
+The configured value is not shown, as proxy URLs may contain credentials.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {

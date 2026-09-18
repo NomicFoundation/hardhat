@@ -6,6 +6,10 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
+import {
+  DispatcherError,
+  InvalidProxyUrlError,
+} from "@nomicfoundation/hardhat-utils/request";
 
 import { printErrorMessages } from "../../../../src/internal/cli/error-handling/error-handler.js";
 import {
@@ -340,6 +344,121 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines[2], error);
+      });
+    });
+
+    describe("with an invalid proxy URL from the environment", () => {
+      function dispatcherErrorFromInvalidProxy(
+        envVarName: string = "HTTPS_PROXY",
+      ): DispatcherError {
+        const cause = new InvalidProxyUrlError(envVarName);
+        return new DispatcherError(cause.message, cause);
+      }
+
+      it("is categorized as a Hardhat error naming the env var and expected format, without echoing the proxy value", async () => {
+        const error = dispatcherErrorFromInvalidProxy("HTTPS_PROXY");
+        const expected = new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
+          {
+            envVarName: "HTTPS_PROXY",
+          },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        const printed = lines.map(String).join("\n");
+
+        assert.equal(lines.length, 3);
+        assert.equal(
+          lines[0],
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
+        assert.match(printed, /HTTPS_PROXY/);
+        assert.match(printed, /http:\/\/host:port/);
+        assert.equal(printed.includes("127.0.0.1:8888"), false);
+        assert.equal(printed.includes("report-bug"), false);
+        assert.equal(
+          printed.includes("An unexpected error occurred"),
+          false,
+          "should not use the unexpected-error banner",
+        );
+        assert.equal(
+          lines.includes(error),
+          false,
+          "should not print the stack by default",
+        );
+      });
+
+      it("still prints the original (uncategorized) error for the stack trace", async () => {
+        const error = dispatcherErrorFromInvalidProxy();
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines[2], error);
+      });
+
+      it("converts a download HardhatError wrapping the same cause to the proxy error", async () => {
+        const dispatcherError = dispatcherErrorFromInvalidProxy("HTTPS_PROXY");
+        const error = new HardhatError(
+          HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL
+            .CHECKSUM_DOWNLOAD_FAILED,
+          {
+            version: "0.1.8",
+            url: "https://example.test/solx.sha256",
+            reason: dispatcherError.message,
+          },
+          dispatcherError,
+        );
+        const expected = new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
+          {
+            envVarName: "HTTPS_PROXY",
+          },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        const header = String(lines[0]);
+        assert.equal(
+          header,
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(header.includes("hardhat-slang-solx"), false);
+        assert.equal(header.includes("Couldn't download"), false);
+        assert.match(header, /HTTPS_PROXY/);
+        assert.match(header, /http:\/\/host:port/);
+      });
+
+      it("does not recategorize an unrelated DispatcherError", async () => {
+        const error = new DispatcherError("connection reset");
+        const lines: Array<string | Error> = [];
+
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(
+          lines[0],
+          styleText(["red", "bold"], `An unexpected error occurred:`),
+        );
+        assert.equal(
+          String(lines[4] ?? ""),
+          `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
+        );
       });
     });
   });
