@@ -55,7 +55,11 @@ const REGISTRY_ENV = {
   NPM_CONFIG_USERCONFIG: VERDACCIO_NPMRC,
 };
 
-export function publish(changes: boolean, noGitChecks: boolean): void {
+export function publish(
+  changes: boolean,
+  noGitChecks: boolean,
+  force: boolean = false,
+): void {
   if (!noGitChecks && !changes) {
     ensureCleanWorkingTree();
   }
@@ -75,7 +79,7 @@ export function publish(changes: boolean, noGitChecks: boolean): void {
     unpublishChanged(filterDirs);
   }
 
-  publishPackages(filterDirs);
+  publishPackages(filterDirs, force);
 
   reportPublished(readPublishSummary());
 }
@@ -202,7 +206,7 @@ function unpublishChanged(packageDirs: string[]): void {
   }
 }
 
-function publishPackages(filterDirs?: string[]): void {
+function publishPackages(filterDirs?: string[], force: boolean = false): void {
   if (filterDirs !== undefined) {
     logStep("Publishing changed packages to Verdaccio");
   } else {
@@ -225,6 +229,11 @@ function publishPackages(filterDirs?: string[]): void {
       "--report-summary",
       "--registry",
       VERDACCIO_URL,
+      // pnpm decides what to skip by asking npm, not the registry it is
+      // publishing to, so against an overriding Verdaccio it would skip
+      // everything it considers already released. --force is what makes the
+      // local build win.
+      ...(force ? ["--force"] : []),
     ],
     "inherit",
     REGISTRY_ENV,

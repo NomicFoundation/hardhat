@@ -29,6 +29,7 @@ export async function run(
   acceptanceDirectory: string,
   scenario: string | undefined,
   noGitChecks: boolean,
+  forcePublishAll: boolean,
 ): Promise<void> {
   const scenarioPaths = selectScenarioPaths(
     discoverScenarioPaths(SCENARIOS_DIR),
@@ -41,16 +42,19 @@ export async function run(
     loadScenario(scenarioPath),
   );
 
-  const alreadyRunning = isVerdaccioRunning();
+  // Force-publishing needs a registry started in overriding mode, so it never
+  // adopts one that is already running - that instance would be proxying npm
+  // and the publish would be refused for versions npm already has.
+  const reuseRunning = isVerdaccioRunning() && !forcePublishAll;
 
-  if (!alreadyRunning) {
-    await verdaccioStart(true);
+  if (!reuseRunning) {
+    await verdaccioStart(true, forcePublishAll);
   }
 
   const failures: string[] = [];
 
   try {
-    if (alreadyRunning) {
+    if (reuseRunning) {
       logWarning(
         "A Verdaccio instance is already running, so its contents are used as they are.\n" +
           "  Nothing is published and nothing is checked; the scenarios may be testing\n" +
@@ -59,6 +63,13 @@ export async function run(
       );
     } else {
       logStep("Publishing packages to Verdaccio");
+
+      if (forcePublishAll) {
+        log(
+          "--force-publish-all: this registry serves the packages built here and nothing\n" +
+            "  else, so every one of them is published regardless of what npm holds.",
+        );
+      }
 
       if (noGitChecks) {
         logWarning(
@@ -70,7 +81,7 @@ export async function run(
       // Unlike end-to-end, which always skips it, the clean working tree check
       // is on by default here: it is what makes "the committed code" true
       // rather than assumed. --no-git-checks is the deliberate way out.
-      verdaccioPublish(false, noGitChecks);
+      verdaccioPublish(false, noGitChecks, forcePublishAll);
 
       assertPackagesPublished();
     }
@@ -81,7 +92,7 @@ export async function run(
       }
     }
   } finally {
-    if (!alreadyRunning) {
+    if (!reuseRunning) {
       verdaccioStop();
     }
   }

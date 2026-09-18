@@ -9,6 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createHash } from "node:crypto";
+import { listPublishablePackageNames } from "./helpers/packages.ts";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
   ROOT_DIR,
@@ -25,10 +26,13 @@ import {
   VERDACCIO_URL,
 } from "./helpers/shell.ts";
 
-export async function start(background: boolean): Promise<void> {
+export async function start(
+  background: boolean,
+  allowNpmVersionOverriding: boolean = false,
+): Promise<void> {
   killExistingInstance();
   prepareVerdaccioDir();
-  writeVerdaccioConfig(background);
+  writeVerdaccioConfig(background, allowNpmVersionOverriding);
   writeAuthFiles();
   startVerdaccio(background);
 
@@ -69,7 +73,10 @@ function prepareVerdaccioDir(): void {
   mkdirSync(VERDACCIO_STORAGE, { recursive: true });
 }
 
-function writeVerdaccioConfig(background: boolean): void {
+function writeVerdaccioConfig(
+  background: boolean,
+  allowNpmVersionOverriding: boolean,
+): void {
   const logConfig = background
     ? `  type: file\n  path: ${VERDACCIO_LOG}\n  level: warn`
     : `  type: stdout\n  format: pretty\n  level: http`;
@@ -83,27 +90,57 @@ uplinks:
   npmjs:
     url: https://registry.npmjs.org/
 packages:
-  "@nomicfoundation/*":
-    access: $all
-    publish: $authenticated
-    unpublish: $authenticated
-    proxy: npmjs
-  "hardhat":
-    access: $all
-    publish: $authenticated
-    unpublish: $authenticated
-    proxy: npmjs
-  "**":
-    access: $all
-    publish: $authenticated
-    unpublish: $authenticated
-    proxy: npmjs
-max_body_size: 100mb
+${packageRules(allowNpmVersionOverriding)}max_body_size: 100mb
 log:
 ${logConfig}
 `;
 
   writeFileSync(VERDACCIO_CONFIG, config);
+}
+
+/**
+ * The `packages:` section of the config.
+ *
+ * Verdaccio matches these blocks in order, so the exact package names written
+ * first take precedence over the patterns below them.
+ *
+ * Normally every block proxies to npm, which means a package whose version
+ * already exists there cannot be published locally: npm's copy is part of what
+ * the registry serves.
+ *
+ * With `allowNpmVersionOverriding`, the packages this monorepo publishes each
+ * get a block of their own with no `proxy`, so they are served from local
+ * storage alone. The local build then wins whatever its version number, and
+ * publishing over a version npm already has succeeds. Everything else -
+ * including `@nomicfoundation/edr` and `@nomicfoundation/solidity-analyzer`,
+ * which are built in other repos - still proxies to npm.
+ *
+ * The cost is that a package left unpublished 404s rather than quietly
+ * resolving to its released version, which is the failure we want.
+ */
+function packageRules(allowNpmVersionOverriding: boolean): string {
+  const block = (pattern: string, proxy: boolean) =>
+    `  "${pattern}":
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+${proxy ? "    proxy: npmjs\n" : ""}`;
+
+  const authoritative = allowNpmVersionOverriding
+    ? listPublishablePackageNames()
+    : [];
+
+  // `hardhat` has a proxied block of its own, and becomes an authoritative one
+  // when overriding. Emitting both would repeat the key, which Verdaccio
+  // rejects as an invalid config rather than resolving one way or the other.
+  const proxied = ["@nomicfoundation/*", "hardhat", "**"].filter(
+    (pattern) => !authoritative.includes(pattern),
+  );
+
+  return [
+    ...authoritative.map((name) => block(name, false)),
+    ...proxied.map((pattern) => block(pattern, true)),
+  ].join("");
 }
 
 function writeAuthFiles(): void {

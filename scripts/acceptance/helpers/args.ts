@@ -8,6 +8,7 @@ export interface AcceptanceArgs {
   acceptanceDirectory: string;
   scenario: string | undefined;
   noGitChecks: boolean;
+  forcePublishAll: boolean;
 }
 
 /**
@@ -23,7 +24,11 @@ export function resolveAndValidateArgs(args: string[]): AcceptanceArgs {
 
   const scenario = getArgValue(args, "--scenario");
 
-  const noGitChecks = args.includes("--no-git-checks");
+  const forcePublishAll = args.includes("--force-publish-all");
+
+  // Force-publishing exists for a working tree with edits in it, so requiring
+  // a clean one would defeat it.
+  const noGitChecks = args.includes("--no-git-checks") || forcePublishAll;
 
   let acceptanceDirectory =
     getArgValue(args, "--acceptance-dir") ?? process.env.ACCEPTANCE_DIR;
@@ -49,6 +54,7 @@ export function resolveAndValidateArgs(args: string[]): AcceptanceArgs {
     acceptanceDirectory,
     scenario,
     noGitChecks,
+    forcePublishAll,
   };
 }
 

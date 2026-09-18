@@ -54,12 +54,23 @@ COMMANDS
 
 OPTIONS
   --background         Run Verdaccio in the background (use with start)
+  --allow-npm-version-overriding
+                       Serve the packages this monorepo publishes from local
+                       storage alone, with no npm proxy (use with start). The
+                       local build then wins whatever its version number, so a
+                       version npm already has can be published over. Every
+                       other package, including @nomicfoundation/edr, still
+                       proxies to npm. A package left unpublished 404s.
   --no-git-checks      Skip the clean working tree check (use with publish)
   --changes            Re-publish only packages with uncommitted changes (use with publish)
                        Implies --no-git-checks
   --since-release      Detect packages changed since their last release, raise their
                        minor version above npm's latest, and publish (use with
                        publish). Requires network access to registry.npmjs.org.
+  --force              Publish even when the version is already released (use with
+                       publish). Needed with --allow-npm-version-overriding: pnpm
+                       decides what to skip by asking npm, not the registry it is
+                       publishing to.
 
 EXAMPLES
   pnpm verdaccio start
@@ -71,6 +82,7 @@ EXAMPLES
   # Typical workflow
   pnpm verdaccio start                     # foreground
   pnpm verdaccio start --background        # background
+  pnpm verdaccio start --allow-npm-version-overriding
   pnpm verdaccio publish
   # ... make changes, rebuild ...
   pnpm verdaccio publish --no-git-checks --changes
@@ -93,6 +105,8 @@ async function main(): Promise<void> {
       "no-git-checks": { type: "boolean" },
       changes: { type: "boolean" },
       "since-release": { type: "boolean" },
+      "allow-npm-version-overriding": { type: "boolean" },
+      force: { type: "boolean" },
     },
     allowPositionals: true,
   } as const;
@@ -111,6 +125,9 @@ async function main(): Promise<void> {
     const background = values.background === true;
     const changes = values.changes === true;
     const sinceRelease = values["since-release"] === true;
+    const allowNpmVersionOverriding =
+      values["allow-npm-version-overriding"] === true;
+    const force = values.force === true;
 
     if (command === undefined) {
       throw cliError(cli, "missing command (expected: start, publish or stop)");
@@ -121,12 +138,12 @@ async function main(): Promise<void> {
     }
 
     if (command === "start") {
-      await start(background);
+      await start(background, allowNpmVersionOverriding);
     } else if (command === "publish") {
       if (sinceRelease) {
         await sinceReleasePublish();
       } else {
-        publish(changes, noGitChecks);
+        publish(changes, noGitChecks, force);
       }
     } else if (command === "stop") {
       stop();

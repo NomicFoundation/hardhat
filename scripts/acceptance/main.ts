@@ -28,6 +28,13 @@ OPTIONS
   --no-git-checks              Publish even with uncommitted changes (use with run).
                                The scenarios then test the working tree rather
                                than the committed code.
+  --force-publish-all          Start Verdaccio serving the packages built here and
+                               nothing else, and publish all of them whatever
+                               their version (use with run). Implies
+                               --no-git-checks. For local development: edit a
+                               package, run, without bumping a version or
+                               committing. CI runs without it, on a release
+                               branch, where the real bumped versions publish.
 
 VERDACCIO
   If Verdaccio is already running it is used as-is, and nothing is published.
@@ -43,16 +50,23 @@ EXAMPLES
   pnpm acceptance run
   pnpm acceptance run --scenario minimal
   pnpm acceptance run --no-git-checks
+  pnpm acceptance run --force-publish-all
   ACCEPTANCE_DIR=/tmp/scratch pnpm acceptance run
 `;
 
 async function main(): Promise<void> {
-  const { runFlag, validateFlag, acceptanceDirectory, scenario, noGitChecks } =
-    resolveAndValidateArgs(process.argv.slice(2));
+  const {
+    runFlag,
+    validateFlag,
+    acceptanceDirectory,
+    scenario,
+    noGitChecks,
+    forcePublishAll,
+  } = resolveAndValidateArgs(process.argv.slice(2));
 
   try {
     if (runFlag) {
-      await run(acceptanceDirectory, scenario, noGitChecks);
+      await run(acceptanceDirectory, scenario, noGitChecks, forcePublishAll);
     } else if (validateFlag) {
       validate(scenario);
     } else {

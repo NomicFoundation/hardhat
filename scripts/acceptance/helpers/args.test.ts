@@ -68,3 +68,16 @@ describe("resolveAndValidateArgs --no-git-checks", () => {
     );
   });
 });
+
+describe("resolveAndValidateArgs --force-publish-all", () => {
+  it("is off unless asked for", () => {
+    assert.equal(resolveAndValidateArgs(["run"]).forcePublishAll, false);
+  });
+
+  it("implies --no-git-checks, since it exists for an edited working tree", () => {
+    const args = resolveAndValidateArgs(["run", "--force-publish-all"]);
+
+    assert.equal(args.forcePublishAll, true);
+    assert.equal(args.noGitChecks, true);
+  });
+});
