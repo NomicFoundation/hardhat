@@ -44,18 +44,19 @@
       },
       "test solidity": {
         "runs": 2,
+        "warmup": 1,
         "command": "npx hardhat test solidity --no-compile",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvv": {
         "runs": 2,
         "command": "npx hardhat test solidity --no-compile -vvv",
-        "dependsOn": ["cold compile"]
+        "dependsOn": ["cold compile", "test solidity"]
       },
       "test solidity -vvvv": {
         "runs": 2,
         "command": "npx hardhat test solidity --no-compile -vvvv",
-        "dependsOn": ["cold compile"]
+        "dependsOn": ["cold compile", "test solidity"]
       }
     }
   }
