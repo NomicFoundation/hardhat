@@ -7,6 +7,7 @@ export interface AcceptanceArgs {
   validateFlag: boolean;
   acceptanceDirectory: string;
   scenario: string | undefined;
+  noGitChecks: boolean;
 }
 
 /**
@@ -21,6 +22,8 @@ export function resolveAndValidateArgs(args: string[]): AcceptanceArgs {
   const validateFlag = args.includes("validate");
 
   const scenario = getArgValue(args, "--scenario");
+
+  const noGitChecks = args.includes("--no-git-checks");
 
   let acceptanceDirectory =
     getArgValue(args, "--acceptance-dir") ?? process.env.ACCEPTANCE_DIR;
@@ -45,6 +48,7 @@ export function resolveAndValidateArgs(args: string[]): AcceptanceArgs {
     validateFlag,
     acceptanceDirectory,
     scenario,
+    noGitChecks,
   };
 }
 

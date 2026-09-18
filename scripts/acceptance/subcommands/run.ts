@@ -28,6 +28,7 @@ import { prepareWorkspace, scenarioEnv } from "../helpers/workspace.ts";
 export async function run(
   acceptanceDirectory: string,
   scenario: string | undefined,
+  noGitChecks: boolean,
 ): Promise<void> {
   const scenarioPaths = selectScenarioPaths(
     discoverScenarioPaths(SCENARIOS_DIR),
@@ -59,9 +60,17 @@ export async function run(
     } else {
       logStep("Publishing packages to Verdaccio");
 
-      // `false` for noGitChecks, unlike end-to-end: the clean working tree
-      // check is what makes "the committed code" true rather than assumed.
-      verdaccioPublish(false, false);
+      if (noGitChecks) {
+        logWarning(
+          "--no-git-checks: publishing the working tree, uncommitted changes and all.\n" +
+            "  The scenarios then test what is on disk rather than what is committed.",
+        );
+      }
+
+      // Unlike end-to-end, which always skips it, the clean working tree check
+      // is on by default here: it is what makes "the committed code" true
+      // rather than assumed. --no-git-checks is the deliberate way out.
+      verdaccioPublish(false, noGitChecks);
 
       assertPackagesPublished();
     }

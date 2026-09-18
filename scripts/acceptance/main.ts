@@ -25,6 +25,9 @@ OPTIONS
   --scenario <slug>            Only this scenario (default: all)
   --acceptance-dir <path>      Where scenarios run
                                (default: $ACCEPTANCE_DIR or "/tmp/acceptance")
+  --no-git-checks              Publish even with uncommitted changes (use with run).
+                               The scenarios then test the working tree rather
+                               than the committed code.
 
 VERDACCIO
   If Verdaccio is already running it is used as-is, and nothing is published.
@@ -39,16 +42,17 @@ EXAMPLES
   pnpm acceptance validate
   pnpm acceptance run
   pnpm acceptance run --scenario minimal
+  pnpm acceptance run --no-git-checks
   ACCEPTANCE_DIR=/tmp/scratch pnpm acceptance run
 `;
 
 async function main(): Promise<void> {
-  const { runFlag, validateFlag, acceptanceDirectory, scenario } =
+  const { runFlag, validateFlag, acceptanceDirectory, scenario, noGitChecks } =
     resolveAndValidateArgs(process.argv.slice(2));
 
   try {
     if (runFlag) {
-      await run(acceptanceDirectory, scenario);
+      await run(acceptanceDirectory, scenario, noGitChecks);
     } else if (validateFlag) {
       validate(scenario);
     } else {

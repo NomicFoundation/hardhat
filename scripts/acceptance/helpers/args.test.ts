@@ -55,3 +55,16 @@ describe("resolveAndValidateArgs", () => {
     assert.equal(scenario, "minimal");
   });
 });
+
+describe("resolveAndValidateArgs --no-git-checks", () => {
+  it("is off unless asked for", () => {
+    assert.equal(resolveAndValidateArgs(["run"]).noGitChecks, false);
+  });
+
+  it("is on when passed", () => {
+    assert.equal(
+      resolveAndValidateArgs(["run", "--no-git-checks"]).noGitChecks,
+      true,
+    );
+  });
+});
