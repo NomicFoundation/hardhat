@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.23
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
 ## 3.0.22
 
 ### Patch Changes

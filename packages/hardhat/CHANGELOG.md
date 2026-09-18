@@ -1,5 +1,17 @@
 # hardhat
 
+## 3.18.0
+
+### Minor Changes
+
+- [#8574](https://github.com/NomicFoundation/hardhat/pull/8574) [`e28e4f5`](https://github.com/NomicFoundation/hardhat/commit/e28e4f5ccb952913046ac4c14b09fb0db45f5b25) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Removed the pre-Byzantium hardforks (`chainstart`, `homestead`, `dao`, `tangerineWhistle`, `spuriousDragon`) from the accepted `hardfork` and `hardforkHistory` values, as EDR cannot execute them.
+
+- [#8595](https://github.com/NomicFoundation/hardhat/pull/8595) [`562cc0b`](https://github.com/NomicFoundation/hardhat/commit/562cc0b0bed2eb98822f5e302a940f9d20cccb53) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers derive secp256k1 public keys with EDR's native implementation instead of its pure-JS one, speeding up `new Wallet(secretKey)`, `Wallet.createRandom()`, HD wallet derivation and `computeAddress`.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
 ## 3.17.0
 
 ### Minor Changes
