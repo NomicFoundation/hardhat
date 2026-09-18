@@ -57,6 +57,12 @@ export interface CommandVariant {
    */
   runs: number;
   /**
+   * The number of unmeasured runs to execute before the measured ones in the
+   * regression harness (default 0). Use it to keep one-off startup costs, such
+   * as filling an on-disk RPC cache, out of the measurement.
+   */
+  warmup?: number;
+  /**
    * An optional preparatory command to run each time before this command
    * in the regression harness.
    */

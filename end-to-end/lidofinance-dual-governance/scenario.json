@@ -45,6 +45,7 @@
       },
       "test solidity": {
         "runs": 15,
+        "warmup": 1,
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\"",
         "dependsOn": ["cold compile"]
       },

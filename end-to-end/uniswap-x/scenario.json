@@ -44,6 +44,7 @@
       },
       "test solidity": {
         "runs": 2,
+        "warmup": 1,
         "command": "npx hardhat test solidity --no-compile",
         "dependsOn": ["cold compile"]
       },

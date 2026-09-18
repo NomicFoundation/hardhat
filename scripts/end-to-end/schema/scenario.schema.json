@@ -97,6 +97,11 @@
                     "minimum": 1,
                     "description": "Number of measured runs for this command"
                   },
+                  "warmup": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Optional number of unmeasured runs before the measured ones (default 0), e.g. to fill an on-disk RPC cache"
+                  },
                   "prepare": {
                     "type": "string",
                     "minLength": 1,
