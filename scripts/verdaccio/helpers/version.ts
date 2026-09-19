@@ -8,6 +8,7 @@ export type SemverCore = [number, number, number];
 const NPM_REGISTRY_URL = "https://registry.npmjs.org";
 
 const HTTP_NOT_FOUND = 404;
+const HTTP_REQUEST_TIMEOUT = 408;
 const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_SERVER_ERROR = 500;
 
@@ -152,6 +153,7 @@ async function getJson(
         await response.body?.cancel();
 
         transient =
+          response.status === HTTP_REQUEST_TIMEOUT ||
           response.status === HTTP_TOO_MANY_REQUESTS ||
           response.status >= HTTP_SERVER_ERROR;
 

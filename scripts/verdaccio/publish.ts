@@ -288,13 +288,15 @@ export async function sinceReleasePublish(): Promise<void> {
     return;
   }
 
+  const written: PublishTarget[] = [];
+
   try {
-    writeVersions(toPublish);
+    writeVersions(toPublish, written);
     unpublish(toPublish);
     publishPackages(toPublish.map((target) => target.packageDir));
     ensurePublishedLocally(toPublish);
   } catch (error) {
-    throw withRestoreHint(error, toPublish);
+    throw withRestoreHint(error, written);
   }
 
   reportPublished(readPublishSummary());
@@ -304,9 +306,8 @@ function wasRewritten(target: PublishTarget): boolean {
   return target.version !== target.currentVersion;
 }
 
-function withRestoreHint(error: unknown, targets: PublishTarget[]): Error {
+function withRestoreHint(error: unknown, written: PublishTarget[]): Error {
   const failure = error instanceof Error ? error : new Error(String(error));
-  const written = targets.filter(wasRewritten);
 
   if (written.length === 0) {
     return failure;
@@ -580,7 +581,17 @@ export function resolvePublishVersion(
   return minorBump(npmLatest);
 }
 
-function writeVersions(targets: PublishTarget[]): void {
+/**
+ * Write each raised version into its manifest, recording progress in
+ * `written`.
+ *
+ * A failure part-way leaves the manifests already rewritten, and only those
+ * may be restored: the rest can hold edits this run never made.
+ */
+function writeVersions(
+  targets: PublishTarget[],
+  written: PublishTarget[],
+): void {
   const toWrite = targets.filter(wasRewritten);
 
   if (toWrite.length === 0) {
@@ -589,7 +600,8 @@ function writeVersions(targets: PublishTarget[]): void {
 
   logStep("Writing publish versions");
 
-  for (const { packageDir, currentVersion, version } of toWrite) {
+  for (const target of toWrite) {
+    const { packageDir, currentVersion, version } = target;
     const pkgJson = readManifest(packageDir);
 
     pkgJson.version = version;
@@ -597,6 +609,8 @@ function writeVersions(targets: PublishTarget[]): void {
       packageJsonPath(packageDir),
       JSON.stringify(pkgJson, null, 2) + "\n",
     );
+
+    written.push(target);
 
     log(
       `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(currentVersion)} → ${fmt.version(version)}`,

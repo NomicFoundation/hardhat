@@ -196,6 +196,18 @@ describe("npmLatestVersion", () => {
     assert.equal(stub.urls.length, ATTEMPTS);
   });
 
+  it("retries a status that reports a timeout rather than a refusal", async () => {
+    const stub = stubFetch(json(408, {}), json(200, { version: "3.17.0" }));
+
+    const version = await npmLatestVersion("hardhat", {
+      fetch: stub.fetch,
+      retryDelayMs: 0,
+    });
+
+    assert.equal(version, "3.17.0");
+    assert.equal(stub.urls.length, 2);
+  });
+
   it("does not retry a rejected request", async () => {
     const stub = stubFetch(json(403, {}));
 
