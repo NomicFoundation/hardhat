@@ -11,8 +11,17 @@ import {
   VERDACCIO_PID_FILE,
   VERDACCIO_URL,
 } from "./helpers/shell.ts";
+import {
+  compareVersions,
+  isRelease,
+  minorBump,
+  npmLatestVersion,
+  patchBump,
+} from "./helpers/version.ts";
 
 const PUBLISH_SUMMARY = resolve(ROOT_DIR, "pnpm-publish-summary.json");
+
+const PACKAGES_DIR = "packages";
 
 const REGISTRY_ENV = {
   ...process.env,
@@ -40,7 +49,8 @@ export function publish(changes: boolean, noGitChecks: boolean): void {
   }
 
   publishPackages(filterDirs);
-  reportPublished();
+
+  reportPublished(readPublishSummary());
 }
 
 function ensureCleanWorkingTree(): void {
@@ -109,12 +119,6 @@ function detectChangedPackages(): string[] {
   return packageDirs;
 }
 
-/** A package and the version it is available under. */
-interface PackageVersion {
-  name: string;
-  version: string;
-}
-
 function packageJsonPath(packageDir: string): string {
   return resolve(ROOT_DIR, packageDir, "package.json");
 }
@@ -126,7 +130,14 @@ function readManifest(packageDir: string) {
 function readPackageInfo(packageDir: string): PackageVersion & {
   private: boolean;
 } {
+  const pkgJsonPath = packageJsonPath(packageDir);
   const pkgJson = readManifest(packageDir);
+
+  for (const field of ["name", "version"]) {
+    if (typeof pkgJson[field] !== "string" || pkgJson[field] === "") {
+      throw new Error(`${pkgJsonPath} has no ${field}`);
+    }
+  }
 
   return {
     name: pkgJson.name,
@@ -186,19 +197,34 @@ function publishPackages(filterDirs?: string[]): void {
   );
 }
 
-function reportPublished(): void {
+/** `undefined` when pnpm wrote no summary at all. */
+function readPublishSummary(): PackageVersion[] | undefined {
+  if (!existsSync(PUBLISH_SUMMARY)) {
+    return undefined;
+  }
+
+  const summary = JSON.parse(readFileSync(PUBLISH_SUMMARY, "utf-8")) as {
+    publishedPackages?: PackageVersion[];
+  };
+
+  if (summary === null || !Array.isArray(summary.publishedPackages)) {
+    return [];
+  }
+
+  return summary.publishedPackages;
+}
+
+function reportPublished(
+  publishedPackages: PackageVersion[] | undefined,
+): void {
   logStep("Published packages");
 
-  if (!existsSync(PUBLISH_SUMMARY)) {
+  if (publishedPackages === undefined) {
     log(fmt.deemphasize("No pnpm-publish-summary.json found"));
     return;
   }
 
-  const summary = JSON.parse(readFileSync(PUBLISH_SUMMARY, "utf-8")) as {
-    publishedPackages: Array<{ name: string; version: string }>;
-  };
-
-  if (summary.publishedPackages.length === 0) {
+  if (publishedPackages.length === 0) {
     log(
       "No new packages were published. Package versions are compared against\n" +
         "  npm — if the same version already exists, it is skipped.\n\n" +
@@ -211,50 +237,68 @@ function reportPublished(): void {
     return;
   }
 
-  for (const pkg of summary.publishedPackages) {
+  for (const pkg of publishedPackages) {
     log(`  ${fmt.pkg(pkg.name)} ${fmt.version(pkg.version)}`);
   }
 
   log(
     fmt.success(
-      `\n  ${summary.publishedPackages.length} package(s) published to ${VERDACCIO_URL}`,
+      `\n  ${publishedPackages.length} package(s) published to ${VERDACCIO_URL}`,
     ),
   );
 }
-
-const PACKAGES_DIR = "packages";
+/** A package and the version it is available under. */
+interface PackageVersion {
+  name: string;
+  version: string;
+}
 
 /**
- * Detect packages that changed since their last release tag, bump their
- * patch version, and publish them to Verdaccio. This avoids the npm proxy
- * problem where pnpm publish skips versions that already exist on npm.
+ * Whether a package is republished, or left at the version already released.
  */
-export function sinceReleasePublish(): void {
+type PublishAction = "publish" | "skip";
+
+interface PublishTarget {
+  packageDir: string;
+  name: string;
+  currentVersion: string;
+  /** The version scenarios must install, republished or not. */
+  version: string;
+  action: PublishAction;
+  reason: string;
+}
+
+/**
+ * Publish the packages that changed since their last release, each published
+ * a minor above npm's release of it.
+ *
+ * That raise is what makes the local build win. pnpm skips a version that npm
+ * already has, and Verdaccio serves the uplink's `dist-tags.latest` whenever
+ * the local version doesn't exceed it.
+ */
+export async function sinceReleasePublish(): Promise<void> {
   ensureVerdaccioRunning();
 
-  const { toBump, toPublishOnly } = detectChangedSinceRelease();
+  const targets = await detectChangedSinceRelease();
+  const toPublish = targets.filter((target) => target.action === "publish");
 
-  if (toBump.length === 0 && toPublishOnly.length === 0) {
+  if (toPublish.length === 0) {
     log("No packages changed since their last release.");
     return;
   }
 
-  bumpPatchVersions(toBump);
-  publishPackages([...toBump, ...toPublishOnly]);
-  reportPublished();
+  writeVersions(toPublish);
+  publishPackages(toPublish.map((target) => target.packageDir));
+
+  reportPublished(readPublishSummary());
 }
 
-function detectChangedSinceRelease(): {
-  toBump: string[];
-  toPublishOnly: string[];
-} {
+async function detectChangedSinceRelease(): Promise<PublishTarget[]> {
   logStep("Detecting packages changed since release");
 
   const packagesDir = resolve(ROOT_DIR, PACKAGES_DIR);
-  const toBump: string[] = [];
-  const toPublishOnly: string[] = [];
+  const packageDirs: string[] = [];
 
-  // readdirSync returns filesystem order, which differs between machines.
   const entries = readdirSync(packagesDir, { withFileTypes: true }).sort(
     (a, b) => a.name.localeCompare(b.name),
   );
@@ -262,74 +306,92 @@ function detectChangedSinceRelease(): {
   for (const entry of entries) {
     const packageDir = `${PACKAGES_DIR}/${entry.name}`;
 
-    if (!entry.isDirectory() || !existsSync(packageJsonPath(packageDir))) {
+    if (
+      !entry.isDirectory() ||
+      !existsSync(resolve(ROOT_DIR, packageDir, "package.json"))
+    ) {
       continue;
     }
 
     // pnpm never publishes a private package, so a version written for one
     // would name a tarball no scenario can install.
-    if (readPackageInfo(packageDir).private) {
-      continue;
+    if (!readPackageInfo(packageDir).private) {
+      packageDirs.push(packageDir);
     }
+  }
 
-    const { name, version } = readPackageInfo(packageDir);
+  const targets = await Promise.all(packageDirs.map(resolveTarget));
 
-    // Find the latest existing release tag for this package
-    const releaseTag = findLatestReleaseTag(name);
-
-    const tagVersion =
-      releaseTag !== undefined
-        ? releaseTag.slice(name.length + 1) // "hardhat@3.3.0" → "3.3.0"
-        : undefined;
-
-    const excludePatterns = [
-      `:!${packageDir}/package.json`,
-      `:!${packageDir}/CHANGELOG.md`,
-    ];
-
-    const hasCodeChangesSinceRelease =
-      releaseTag !== undefined &&
-      git([
-        "diff",
-        "--name-only",
-        releaseTag,
-        "--",
-        packageDir,
-        ...excludePatterns,
-      ]) !== "";
-
-    const action = decidePublishAction(
-      tagVersion,
-      version,
-      hasCodeChangesSinceRelease,
+  // Logged after the fan-out, so the listing keeps directory order instead of
+  // the order the npm lookups happened to finish in.
+  for (const { name, version, reason } of targets) {
+    log(
+      `  ${fmt.pkg(name)} ${fmt.version(version)} ${fmt.deemphasize(reason)}`,
     );
-
-    if (action === "skip") {
-      continue;
-    }
-
-    if (action === "bump") {
-      const reason =
-        tagVersion === undefined
-          ? "(no release tag)"
-          : `(changed since ${releaseTag})`;
-      log(`  ${fmt.pkg(name)} ${fmt.deemphasize(reason)}`);
-      toBump.push(packageDir);
-    } else {
-      log(
-        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(already bumped to ${version})`)}`,
-      );
-      toPublishOnly.push(packageDir);
-    }
   }
 
-  const total = toBump.length + toPublishOnly.length;
+  return targets;
+}
 
-  if (total > 0) {
-    log(fmt.success(`\n  ${total} package(s) changed since release`));
+async function resolveTarget(packageDir: string): Promise<PublishTarget> {
+  const { name, version: currentVersion } = readPackageInfo(packageDir);
+
+  const releaseTag = findLatestReleaseTag(name);
+
+  const tagVersion =
+    releaseTag !== undefined
+      ? releaseTag.slice(name.length + 1) // "hardhat@3.3.0" → "3.3.0"
+      : undefined;
+
+  const excludePatterns = [
+    `:!${packageDir}/package.json`,
+    `:!${packageDir}/CHANGELOG.md`,
+  ];
+
+  const hasCodeChangesSinceRelease =
+    releaseTag !== undefined &&
+    git([
+      "diff",
+      "--name-only",
+      releaseTag,
+      "--",
+      packageDir,
+      ...excludePatterns,
+    ]) !== "";
+
+  const npmLatest = await npmLatestVersion(name);
+
+  const resolved = resolvePublishVersion(
+    currentVersion,
+    tagVersion,
+    npmLatest,
+    hasCodeChangesSinceRelease,
+  );
+
+  if (resolved === undefined) {
+    return {
+      packageDir,
+      name,
+      currentVersion,
+      version: currentVersion,
+      action: "skip",
+      reason: `(unchanged since ${releaseTag})`,
+    };
   }
 
-  return { toBump, toPublishOnly };
+  return {
+    packageDir,
+    name,
+    currentVersion,
+    version: resolved,
+    action: "publish",
+    reason:
+      npmLatest === undefined
+        ? "(not released on npm)"
+        : resolved === currentVersion
+          ? `(already ahead of npm ${npmLatest})`
+          : `(raised above npm ${npmLatest})`,
+  };
 }
 
 /**
@@ -359,52 +421,79 @@ function findLatestReleaseTag(packageName: string): string | undefined {
 }
 
 /**
- * Pure decision function for --use-local / --since-release: what action
- * should be taken for a given package?
+ * The version to publish a package under, or `undefined` when npm's release
+ * already is this code.
  *
- * - No release tag → bump (new package)
- * - Already bumped (version differs from tag) → publish current version
- *   without bumping (Verdaccio storage is wiped per run, so we always
- *   need to (re)publish, but the on-disk version was already bumped on a
- *   prior run and shouldn't compound)
- * - Not bumped + code changed since release → bump
- * - Not bumped + no code changes → skip
+ * The result has to exceed npm's release, which a checkout can lag by a whole
+ * version. Only npm sets the floor, which exists to outrank Verdaccio's
+ * uplink. A release tag only says whether the code changed.
+ *
+ * Raising by a minor rather than a patch keeps the local build ahead of a
+ * release that lands on npm during the run, which would otherwise take back
+ * `dist-tags.latest`. The floor is read once, so a second release in the same
+ * run would still take it back.
+ *
+ * Keep `currentVersion` out of that floor, so a version already ahead is
+ * published as-is. Such a version keeps only the lead it already had, which
+ * may be narrower than a raise.
  */
-export function decidePublishAction(
-  releaseTagVersion: string | undefined,
+export function resolvePublishVersion(
   currentVersion: string,
+  releaseTagVersion: string | undefined,
+  npmLatest: string | undefined,
   hasCodeChangesSinceRelease: boolean,
-): "bump" | "publish" | "skip" {
-  if (releaseTagVersion === undefined) {
-    return "bump";
+): string | undefined {
+  // Nothing on npm to outrank, or already past it. Raising here would walk
+  // the version up on every run, because the raise is written back to disk.
+  if (
+    npmLatest === undefined ||
+    compareVersions(currentVersion, npmLatest) > 0
+  ) {
+    // Scenarios resolve plugin peer ranges against whatever is pinned, and
+    // node-semver excludes prereleases from those.
+    return isRelease(currentVersion)
+      ? currentVersion
+      : patchBump(currentVersion);
   }
 
-  if (currentVersion !== releaseTagVersion) {
-    return "publish";
+  // Skipping pins the version without publishing it, so npm has to be serving
+  // that exact release. `hasCodeChangesSinceRelease` is a diff against the tag,
+  // so without one it reads `false` for "unknown" rather than "unchanged".
+  const releaseIsThisCode =
+    currentVersion === releaseTagVersion &&
+    currentVersion === npmLatest &&
+    isRelease(currentVersion) &&
+    !hasCodeChangesSinceRelease;
+
+  if (releaseIsThisCode) {
+    return undefined;
   }
 
-  return hasCodeChangesSinceRelease ? "bump" : "skip";
+  return minorBump(npmLatest);
 }
 
-function bumpPatchVersions(packageDirs: string[]): void {
-  logStep("Bumping patch versions");
+function writeVersions(targets: PublishTarget[]): void {
+  const toWrite = targets.filter(
+    (target) => target.version !== target.currentVersion,
+  );
 
-  for (const dir of packageDirs) {
-    const pkgJson = readManifest(dir);
-    const oldVersion: string = pkgJson.version;
+  if (toWrite.length === 0) {
+    return;
+  }
 
-    const parts = oldVersion.split(".");
-    parts[parts.length - 1] = String(Number(parts[parts.length - 1]) + 1);
-    const newVersion = parts.join(".");
+  logStep("Writing publish versions");
 
-    pkgJson.version = newVersion;
+  for (const { packageDir, currentVersion, version } of toWrite) {
+    const pkgJson = readManifest(packageDir);
+
+    pkgJson.version = version;
     writeFileSync(
-      packageJsonPath(dir),
+      packageJsonPath(packageDir),
       JSON.stringify(pkgJson, null, 2) + "\n",
     );
 
     log(
-      `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(oldVersion)} → ${fmt.version(newVersion)}`,
+      `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(currentVersion)} → ${fmt.version(version)}`,
     );
   }
 }
