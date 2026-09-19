@@ -109,15 +109,30 @@ function detectChangedPackages(): string[] {
   return packageDirs;
 }
 
-function readPackageInfo(packageDir: string): {
+/** A package and the version it is available under. */
+interface PackageVersion {
   name: string;
   version: string;
-} {
-  const pkgJson = JSON.parse(
-    readFileSync(resolve(ROOT_DIR, packageDir, "package.json"), "utf-8"),
-  );
+}
 
-  return { name: pkgJson.name, version: pkgJson.version };
+function packageJsonPath(packageDir: string): string {
+  return resolve(ROOT_DIR, packageDir, "package.json");
+}
+
+function readManifest(packageDir: string) {
+  return JSON.parse(readFileSync(packageJsonPath(packageDir), "utf-8"));
+}
+
+function readPackageInfo(packageDir: string): PackageVersion & {
+  private: boolean;
+} {
+  const pkgJson = readManifest(packageDir);
+
+  return {
+    name: pkgJson.name,
+    version: pkgJson.version,
+    private: pkgJson.private === true,
+  };
 }
 
 function unpublishChanged(packageDirs: string[]): void {
@@ -207,12 +222,7 @@ function reportPublished(): void {
   );
 }
 
-const EXCLUDED_PACKAGES = [
-  "config",
-  "example-project",
-  "template-package",
-  "hardhat-test-utils",
-];
+const PACKAGES_DIR = "packages";
 
 /**
  * Detect packages that changed since their last release tag, bump their
@@ -240,19 +250,25 @@ function detectChangedSinceRelease(): {
 } {
   logStep("Detecting packages changed since release");
 
-  const packagesDir = resolve(ROOT_DIR, "packages");
+  const packagesDir = resolve(ROOT_DIR, PACKAGES_DIR);
   const toBump: string[] = [];
   const toPublishOnly: string[] = [];
 
-  for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || EXCLUDED_PACKAGES.includes(entry.name)) {
+  // readdirSync returns filesystem order, which differs between machines.
+  const entries = readdirSync(packagesDir, { withFileTypes: true }).sort(
+    (a, b) => a.name.localeCompare(b.name),
+  );
+
+  for (const entry of entries) {
+    const packageDir = `${PACKAGES_DIR}/${entry.name}`;
+
+    if (!entry.isDirectory() || !existsSync(packageJsonPath(packageDir))) {
       continue;
     }
 
-    const packageDir = `packages/${entry.name}`;
-    const pkgJsonPath = resolve(ROOT_DIR, packageDir, "package.json");
-
-    if (!existsSync(pkgJsonPath)) {
+    // pnpm never publishes a private package, so a version written for one
+    // would name a tarball no scenario can install.
+    if (readPackageInfo(packageDir).private) {
       continue;
     }
 
@@ -323,6 +339,8 @@ function detectChangedSinceRelease(): {
 function findLatestReleaseTag(packageName: string): string | undefined {
   try {
     const tags = git([
+      "-c",
+      "versionsort.suffix=-",
       "tag",
       "--list",
       `${packageName}@*`,
@@ -372,8 +390,7 @@ function bumpPatchVersions(packageDirs: string[]): void {
   logStep("Bumping patch versions");
 
   for (const dir of packageDirs) {
-    const pkgJsonPath = resolve(ROOT_DIR, dir, "package.json");
-    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
+    const pkgJson = readManifest(dir);
     const oldVersion: string = pkgJson.version;
 
     const parts = oldVersion.split(".");
@@ -381,7 +398,10 @@ function bumpPatchVersions(packageDirs: string[]): void {
     const newVersion = parts.join(".");
 
     pkgJson.version = newVersion;
-    writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
+    writeFileSync(
+      packageJsonPath(dir),
+      JSON.stringify(pkgJson, null, 2) + "\n",
+    );
 
     log(
       `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(oldVersion)} → ${fmt.version(newVersion)}`,
