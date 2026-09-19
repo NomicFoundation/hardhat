@@ -9,6 +9,7 @@ import {
   ROOT_DIR,
   VERDACCIO_NPMRC,
   VERDACCIO_PID_FILE,
+  VERDACCIO_STORAGE,
   VERDACCIO_URL,
 } from "./helpers/shell.ts";
 import {
@@ -287,10 +288,117 @@ export async function sinceReleasePublish(): Promise<void> {
     return;
   }
 
-  writeVersions(toPublish);
-  publishPackages(toPublish.map((target) => target.packageDir));
+  try {
+    writeVersions(toPublish);
+    unpublish(toPublish);
+    publishPackages(toPublish.map((target) => target.packageDir));
+    ensurePublishedLocally(toPublish);
+  } catch (error) {
+    throw withRestoreHint(error, toPublish);
+  }
 
   reportPublished(readPublishSummary());
+}
+
+function wasRewritten(target: PublishTarget): boolean {
+  return target.version !== target.currentVersion;
+}
+
+function withRestoreHint(error: unknown, targets: PublishTarget[]): Error {
+  const failure = error instanceof Error ? error : new Error(String(error));
+  const written = targets.filter(wasRewritten);
+
+  if (written.length === 0) {
+    return failure;
+  }
+
+  const paths = written
+    .map((target) => `${target.packageDir}/package.json`)
+    .join(" ");
+
+  return new Error(
+    `${failure.message}\n\n` +
+      `  ${written.length} package.json file(s) still carry the version this run wrote.\n` +
+      "  To restore them:\n" +
+      `    git checkout -- ${paths}`,
+    { cause: failure },
+  );
+}
+
+/**
+ * Drop each target from the registry before republishing it.
+ *
+ * Verdaccio keeps a tarball until it is unpublished, and pnpm skips a version
+ * the registry already answers for. Without this, a second publish into a
+ * running registry would leave the earlier build in place and pass every check.
+ */
+function unpublish(targets: PublishTarget[]): void {
+  for (const { name, version } of targets) {
+    try {
+      npm(
+        ["unpublish", `${name}@${version}`, "--registry", VERDACCIO_URL],
+        "pipe",
+        REGISTRY_ENV,
+      );
+    } catch {
+      // Usually just "not published yet", but a real failure would leave the
+      // earlier tarball for `ensurePublishedLocally` to accept.
+      if (existsSync(storedTarball(VERDACCIO_STORAGE, name, version))) {
+        throw new Error(
+          `Could not drop ${name}@${version} from ${VERDACCIO_URL}, ` +
+            "so a stale build would be republished under it.",
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Fail on any target whose tarball is not in the registry's own storage.
+ *
+ * pnpm exits 0 on a version it believes is already published, which it settles
+ * by resolving through the publish registry. Verdaccio answers for its npm
+ * uplink, and pnpm's metadata cache answers for registries that no longer
+ * exist. A silent skip therefore does not mean the local build is there.
+ *
+ * Every target is dropped from the registry first, so a tarball on disk can
+ * only be the one this run wrote.
+ */
+export function ensurePublishedLocally(
+  targets: PackageVersion[],
+  storageDir: string = VERDACCIO_STORAGE,
+): void {
+  const missing = targets.filter(
+    (target) =>
+      !existsSync(storedTarball(storageDir, target.name, target.version)),
+  );
+
+  if (missing.length === 0) {
+    return;
+  }
+
+  const specs = missing
+    .map((target) => `${target.name}@${target.version}`)
+    .join("\n    ");
+
+  throw new Error(
+    `pnpm did not publish these to ${VERDACCIO_URL}:\n    ${specs}\n\n` +
+      "  Scenarios would install npm's build instead of this one. pnpm skips a\n" +
+      "  version it believes is published, so either npm already serves it, or\n" +
+      "  a stale metadata cache does. Clear the cache and retry:\n" +
+      "    rm -rf ~/.cache/pnpm",
+  );
+}
+
+/** Where Verdaccio writes a package's tarball once it is published to it. */
+function storedTarball(
+  storageDir: string,
+  name: string,
+  version: string,
+): string {
+  const unscoped = name.slice(name.indexOf("/") + 1);
+
+  return resolve(storageDir, name, `${unscoped}-${version}.tgz`);
 }
 
 async function detectChangedSinceRelease(): Promise<PublishTarget[]> {
@@ -473,9 +581,7 @@ export function resolvePublishVersion(
 }
 
 function writeVersions(targets: PublishTarget[]): void {
-  const toWrite = targets.filter(
-    (target) => target.version !== target.currentVersion,
-  );
+  const toWrite = targets.filter(wasRewritten);
 
   if (toWrite.length === 0) {
     return;

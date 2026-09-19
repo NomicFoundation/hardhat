@@ -1,6 +1,9 @@
-import { describe, it } from "node:test";
+import { describe, it, type TestContext } from "node:test";
 import assert from "node:assert/strict";
-import { resolvePublishVersion } from "./publish.ts";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { ensurePublishedLocally, resolvePublishVersion } from "./publish.ts";
 
 /**
  * npm's latest is the only ceiling, since it is what Verdaccio's uplink serves.
@@ -140,6 +143,68 @@ describe("resolvePublishVersion", () => {
     assert.equal(
       resolvePublishVersion("3.17.0", "3.17.0", undefined, false),
       "3.17.0",
+    );
+  });
+});
+
+/**
+ * pnpm exits 0 on a version it believes is already published, so a silent skip
+ * has to be told apart from a real local publish.
+ */
+describe("ensurePublishedLocally", () => {
+  const HARDHAT = { name: "hardhat", version: "3.18.0" };
+  const MOCHA = { name: "@nomicfoundation/hardhat-mocha", version: "3.2.0" };
+
+  function storageWith(t: TestContext, ...tarballs: string[]): string {
+    const dir = mkdtempSync(join(tmpdir(), "verdaccio-storage-"));
+
+    t.after(() => rmSync(dir, { recursive: true, force: true }));
+
+    for (const tarball of tarballs) {
+      const path = join(dir, tarball);
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, "");
+    }
+
+    return dir;
+  }
+
+  it("accepts a target whose tarball Verdaccio stored", (t) => {
+    ensurePublishedLocally(
+      [HARDHAT],
+      storageWith(t, "hardhat/hardhat-3.18.0.tgz"),
+    );
+  });
+
+  it("accepts a scoped target, whose tarball name drops the scope", (t) => {
+    ensurePublishedLocally(
+      [MOCHA],
+      storageWith(t, "@nomicfoundation/hardhat-mocha/hardhat-mocha-3.2.0.tgz"),
+    );
+  });
+
+  it("rejects a target Verdaccio never stored", (t) => {
+    assert.throws(
+      () => ensurePublishedLocally([HARDHAT], storageWith(t)),
+      /pnpm did not publish these/,
+    );
+  });
+
+  it("rejects a target stored only at another version", (t) => {
+    assert.throws(
+      () =>
+        ensurePublishedLocally(
+          [HARDHAT],
+          storageWith(t, "hardhat/hardhat-3.17.0.tgz"),
+        ),
+      /hardhat@3\.18\.0/,
+    );
+  });
+
+  it("names every missing target", (t) => {
+    assert.throws(
+      () => ensurePublishedLocally([HARDHAT, MOCHA], storageWith(t)),
+      /hardhat@3\.18\.0[\s\S]*hardhat-mocha@3\.2\.0/,
     );
   });
 });
