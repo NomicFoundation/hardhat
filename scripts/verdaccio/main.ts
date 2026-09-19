@@ -21,9 +21,20 @@ DESCRIPTION
     2. Reports what was published
 
   Packages are published if their version differs from what is already in
-  the full npm registry. Use --changes to re-publish packages in verdaccio 
+  the full npm registry. Use --changes to re-publish packages in verdaccio
   with local edits (Note: only works for packages with versions higher than
   npm).
+
+  --since-release lifts that restriction. It publishes each package a minor
+  above npm's latest, so the local build outranks what the uplink serves and
+  stays ahead of a release landing during the run. A release already above
+  npm is published as it stands, while a prerelease is rounded up to the
+  next patch.
+
+  The raised version is written into each package.json and left there.
+  Restore them with: git checkout -- packages/*/package.json. Because the
+  raise has to know what npm released, it needs network access to
+  registry.npmjs.org and fails without it.
 
   The registry stays alive after start completes, so external repos can
   install packages from http://127.0.0.1:4873.
@@ -39,13 +50,15 @@ OPTIONS
   --no-git-checks      Skip the clean working tree check (use with publish)
   --changes            Re-publish only packages with uncommitted changes (use with publish)
                        Implies --no-git-checks
-  --since-release      Detect packages changed since their release tag, bump their
-                       patch version, and publish (use with publish)
+  --since-release      Detect packages changed since their last release, raise their
+                       minor version above npm's latest, and publish (use with
+                       publish). Requires network access to registry.npmjs.org.
 
 EXAMPLES
   pnpm verdaccio start
   pnpm verdaccio publish
   pnpm verdaccio publish --changes
+  pnpm verdaccio publish --since-release
   pnpm verdaccio stop
 
   # Typical workflow
@@ -78,7 +91,7 @@ async function main(): Promise<void> {
       await start(background);
     } else if (command === "publish") {
       if (sinceRelease) {
-        sinceReleasePublish();
+        await sinceReleasePublish();
       } else {
         publish(changes, noGitChecks);
       }
