@@ -356,7 +356,8 @@ describe("error-handler", () => {
       }
 
       it("is categorized as a Hardhat error naming the env var and expected format, without echoing the proxy value", async () => {
-        const error = dispatcherErrorFromInvalidProxy("HTTPS_PROXY");
+        const cause = new InvalidProxyUrlError("HTTPS_PROXY");
+        const error = new DispatcherError("http://127.0.0.1:8888", cause);
         const expected = new HardhatError(
           HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
           {

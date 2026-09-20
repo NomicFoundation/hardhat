@@ -1,5 +1,4 @@
-const INVALID_PROXY_URL_MESSAGE =
-  /^The proxy url configured in the (\S+) environment variable is not a valid url$/i;
+import { getErrorChain } from "../telemetry/error-classification/helpers.js";
 
 export interface InvalidProxyUrlFailure {
   /** The environment variable that holds the invalid proxy URL. */
@@ -17,39 +16,15 @@ export interface InvalidProxyUrlFailure {
 export function detectInvalidProxyUrl(
   error: Error,
 ): InvalidProxyUrlFailure | undefined {
-  for (const chainedError of errorChain(error)) {
-    if (chainedError.name !== "InvalidProxyUrlError") {
-      continue;
-    }
-
-    const envVarName = extractEnvVarName(chainedError);
-    if (envVarName !== undefined) {
-      return { envVarName };
+  for (const chainedError of getErrorChain(error)) {
+    if (
+      chainedError.name === "InvalidProxyUrlError" &&
+      "envVarName" in chainedError &&
+      typeof chainedError.envVarName === "string"
+    ) {
+      return { envVarName: chainedError.envVarName };
     }
   }
 
   return undefined;
-}
-
-function extractEnvVarName(error: Error): string | undefined {
-  if ("envVarName" in error && typeof error.envVarName === "string") {
-    return error.envVarName;
-  }
-
-  const match = error.message.match(INVALID_PROXY_URL_MESSAGE);
-  return match?.[1];
-}
-
-function errorChain(error: Error): Error[] {
-  const chain: Error[] = [];
-  const seen = new Set<unknown>();
-  let current: unknown = error;
-
-  while (current instanceof Error && !seen.has(current)) {
-    seen.add(current);
-    chain.push(current);
-    current = current.cause;
-  }
-
-  return chain;
 }

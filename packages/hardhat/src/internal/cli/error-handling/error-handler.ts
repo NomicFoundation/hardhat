@@ -147,18 +147,6 @@ export async function printErrorMessages(
 }
 
 async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
-  if (
-    HardhatError.isHardhatError(
-      error,
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
-    )
-  ) {
-    return {
-      category: ErrorCategory.HARDHAT,
-      categorizedError: error,
-    };
-  }
-
   // Checked before other HardhatErrors so a download wrapper (e.g. HHE110003)
   // still surfaces as the proxy configuration error rather than a fetch failure.
   const invalidProxyUrl = detectInvalidProxyUrl(error);

@@ -1,6 +1,6 @@
 ---
 "@nomicfoundation/hardhat-errors": patch
-"@nomicfoundation/hardhat-utils": patch
+"@nomicfoundation/hardhat-utils": minor
 "hardhat": patch
 ---
 
