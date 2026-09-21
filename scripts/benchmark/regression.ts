@@ -32,13 +32,16 @@ import {
   runPlain,
   runPrepare,
   runSeries,
-  shellQuote,
+  reportPathsIn,
   type MeasuredRun,
+  type ReportPaths,
 } from "./helpers/runner.ts";
+import { shellQuote } from "./helpers/shell.ts";
 import {
-  procSamplingAvailable,
-  SAMPLE_INTERVAL_MS,
-} from "./helpers/mem-sampler.ts";
+  GNU_TIME_PATH,
+  PeakRssMethod,
+  resolvePeakRssMethod,
+} from "./helpers/peak-rss.ts";
 import {
   measuredRunsToEntries,
   type BenchmarkEntry,
@@ -92,15 +95,14 @@ DESCRIPTION
   their per-run samples in the "extra" field; "(cpu)" entries carry their
   mean user/system there instead.
 
-  On Linux, the process tree of every measured run is additionally sampled
-  every ${SAMPLE_INTERVAL_MS} ms via /proc, tracking each process's peak RSS. A process
-  shorter than the sampling interval can be missed, as can a spike in the
-  final interval. This is emitted as a separate
-  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
-  mean of the per-run peaks, with the peaks themselves and their
-  statistics (mean/stddev/min/max/median) in the entry's extra.
-  Memory entries are skipped, with a warning, when peak-RSS sampling is
-  unavailable (e.g. macOS) or a run yielded no reading.
+  Every measured run is additionally wrapped in GNU time, whose %M reports
+  the exact peak RSS of the largest single process among the descendants
+  the wrapper waits for. This is emitted as a separate
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the mean
+  of the per-run peaks, with the peaks themselves and their statistics
+  (mean/stddev/min/max/median) in the entry's extra.
+  GNU time is required, so this benchmark is Linux-only: without
+  ${GNU_TIME_PATH} (Debian/Ubuntu package "time") it fails at startup.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -190,10 +192,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (!procSamplingAvailable()) {
-    logWarning(
-      "Peak-RSS sampling is unavailable (needs Linux /proc with per-task children listings) — memory entries will be skipped (timing is unaffected)",
-    );
+  // Fail before anything is cloned or published: the tracked (peak RSS)
+  // series must not silently degrade to the sampler's approximation.
+  let peakRssMethod: PeakRssMethod;
+
+  try {
+    peakRssMethod = resolvePeakRssMethod(PeakRssMethod.GnuTime);
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return;
   }
 
   const results: BenchmarkEntry[] = [];
@@ -242,7 +250,7 @@ async function main(): Promise<void> {
       logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
 
       try {
-        const entries = await runScenario(scenario, args);
+        const entries = await runScenario(scenario, args, peakRssMethod);
         results.push(...entries);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -434,6 +442,7 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] | undefined {
 async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
+  peakRssMethod: PeakRssMethod,
 ): Promise<BenchmarkEntry[]> {
   const commands = scenario.definition.benchmark?.commands;
 
@@ -489,6 +498,7 @@ async function runScenario(
           new Set(planned.run),
           new Set(planned.once),
           new Set(planned.emit),
+          peakRssMethod,
         )),
       );
     } else {
@@ -501,6 +511,7 @@ async function runScenario(
           planned.name,
           planned.cfg,
           planned.emit,
+          peakRssMethod,
         )),
       );
     }
@@ -522,6 +533,7 @@ async function runCommandPhase(
   name: string,
   cfg: CommandVariant,
   emit: boolean,
+  peakRssMethod: PeakRssMethod,
 ): Promise<BenchmarkEntry[]> {
   const runs = emit ? cfg.runs : 1;
 
@@ -544,13 +556,14 @@ async function runCommandPhase(
 
     const measured = await runSeries(
       cfg.command,
-      cpuTimingPath(scenarioTmpDir, name),
+      reportPaths(scenarioTmpDir, name),
       {
         cwd: workingDir,
         env,
         runs,
         warmup: cfg.warmup,
         prepare: cfg.prepare,
+        peakRssMethod,
         onWarmupCompleted: (i, total) =>
           log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
         onRunCompleted: (run, i, total) =>
@@ -558,7 +571,7 @@ async function runCommandPhase(
       },
     );
 
-    return measuredRunsToEntries(scenarioId, name, measured);
+    return measuredRunsToEntries(scenarioId, name, measured, peakRssMethod);
   } catch (error) {
     throw benchmarkError(
       `${scenarioId} / ${name} failed`,
@@ -593,6 +606,7 @@ async function runStepsPhase(
   runSteps: Set<string>,
   onceSteps: Set<string>,
   emit: Set<string>,
+  peakRssMethod: PeakRssMethod,
 ): Promise<BenchmarkEntry[]> {
   const totalSteps = Object.keys(cfg.steps).length;
   const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
@@ -617,8 +631,9 @@ async function runStepsPhase(
     }
   }
 
-  const timingPath = cpuTimingPath(scenarioTmpDir, seqName);
-  const calibration = samples.size > 0 ? await measureShellSpawnOverhead() : 0;
+  const reports = reportPaths(scenarioTmpDir, seqName);
+  const calibration =
+    samples.size > 0 ? await measureShellSpawnOverhead(peakRssMethod) : 0;
 
   for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
@@ -635,11 +650,12 @@ async function runStepsPhase(
         if (stepRuns !== undefined) {
           const measured = await runMeasured(
             step.command,
-            timingPath,
+            reports,
             calibration,
             {
               cwd: workingDir,
               env,
+              peakRssMethod,
             },
           );
           stepRuns.push(measured);
@@ -663,7 +679,7 @@ async function runStepsPhase(
   }
 
   return [...samples].flatMap(([stepName, stepRuns]) =>
-    measuredRunsToEntries(scenarioId, stepName, stepRuns),
+    measuredRunsToEntries(scenarioId, stepName, stepRuns, peakRssMethod),
   );
 }
 
@@ -717,10 +733,10 @@ function runCounter(index: number, total: number): string {
   return `${String(index + 1).padStart(String(total).length)}/${total}`;
 }
 
-// One report file per command or step sequence, overwritten by each run;
-// it survives a crash for diagnosis.
-function cpuTimingPath(scenarioTmpDir: string, name: string): string {
-  return path.join(scenarioTmpDir, `${slugify(name)}-cpu.txt`);
+// One report file set per command or step sequence, overwritten by each
+// run.
+function reportPaths(scenarioTmpDir: string, name: string): ReportPaths {
+  return reportPathsIn(scenarioTmpDir, slugify(name));
 }
 
 function slugify(name: string): string {

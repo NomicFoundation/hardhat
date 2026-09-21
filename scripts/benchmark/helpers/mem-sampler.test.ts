@@ -1,7 +1,7 @@
 // cSpell:ignore tkthreadd <-- the \t escape glues onto kthreadd when tokenized
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseKbField } from "./mem-sampler.ts";
+import { kbToMb, parseKbField } from "./mem-sampler.ts";
 
 const STATUS = `Name:\tnode
 Umask:\t0022
@@ -28,5 +28,12 @@ describe("parseKbField", () => {
   it("does not match a field name as a substring of another", () => {
     assert.equal(parseKbField(STATUS, "Vm"), undefined);
     assert.equal(parseKbField(STATUS, "HWM"), undefined);
+  });
+});
+
+describe("kbToMb", () => {
+  it("rounds to the nearest whole MB", () => {
+    assert.equal(kbToMb(1536), 2);
+    assert.equal(kbToMb(1535), 1);
   });
 });

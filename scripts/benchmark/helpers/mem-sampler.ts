@@ -21,6 +21,16 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 export const SAMPLE_INTERVAL_MS = 10;
 
+const KB_PER_MB = 1024;
+
+/**
+ * Every peak-RSS source must round through here, or the tracked "(peak RSS)"
+ * series jumps when the runner switches between GNU time and the sampler.
+ */
+export function kbToMb(kb: number): number {
+  return Math.round(kb / KB_PER_MB);
+}
+
 let cachedAvailable: boolean | undefined;
 
 // Whether /proc exposes memory counters and the child list the tree walk
@@ -65,7 +75,7 @@ export class MemorySampler {
       this.timer = undefined;
     }
 
-    return this.sawProcess ? Math.round(this.peakRssKb / 1024) : undefined;
+    return this.sawProcess ? kbToMb(this.peakRssKb) : undefined;
   }
 
   private sample(rootPid: number): void {

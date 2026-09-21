@@ -1,34 +1,61 @@
 import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
-  BASH,
   CommandFailedError,
   formatOutput,
   parseCpuTiming,
+  reportPathsIn,
   runMeasured,
   runSeries,
-  shellQuote,
   wrapWithCpuTiming,
+  type MeasuredRun,
+  type ReportPaths,
 } from "./runner.ts";
+import { gnuTimeAvailable, PeakRssMethod } from "./peak-rss.ts";
 import { procSamplingAvailable, SAMPLE_INTERVAL_MS } from "./mem-sampler.ts";
+import { BASH, shellQuote } from "./shell.ts";
 
 // These suites drive the runner end to end, so they need the shell it spawns.
 const HAS_BASH = existsSync(BASH);
 
+// The sampler only sees the allocation while the process is alive, so the
+// child holds it for several sampling intervals.
+const ALLOC_MB = 64;
+const ALLOC_HOLD_MS = SAMPLE_INTERVAL_MS * 3;
+const ALLOC_COMMAND = `${shellQuote(process.execPath)} -e "Buffer.alloc(${ALLOC_MB} << 20, 1); setTimeout(() => {}, ${ALLOC_HOLD_MS})"`;
+
+// Both methods read the same kernel counter, so they differ only by the
+// child's run-to-run heap noise and the whole-MB rounding.
+const METHOD_AGREEMENT_MB = 8;
+
+function assertPeakCoversAllocation(run: MeasuredRun): void {
+  assert.ok((run.peakRssMb ?? 0) >= ALLOC_MB, `peakRssMb=${run.peakRssMb}`);
+}
+
+// bash's `time` report as written by wrapWithCpuTiming: "<user> <system>".
+const CPU_REPORT_PATTERN = /^\d+\.\d{3} \d+\.\d{3}$/;
+
 // Call at module scope: a file-root after() still runs when the suites are
 // skipped or filtered out, so the directory never leaks.
-function tempTimingPath(prefix: string): { dir: string; timingPath: string } {
+function tempReports(prefix: string): { dir: string; reports: ReportPaths } {
   const dir = mkdtempSync(path.join(tmpdir(), prefix));
   after(() => rmSync(dir, { recursive: true, force: true }));
 
-  return { dir, timingPath: path.join(dir, "cpu.txt") };
+  return { dir, reports: reportPathsIn(dir, "run") };
 }
 
-const measuredTmp = tempTimingPath("runner-test-");
-const seriesTmp = tempTimingPath("runner-series-test-");
+const measuredTmp = tempReports("runner-test-");
+const gnuTimeTmp = tempReports("runner-gnu-time-test-");
+const seriesTmp = tempReports("runner-series-test-");
 
 describe("wrapWithCpuTiming", () => {
   it("wraps the command in bash's time builtin, reporting to the file", () => {
@@ -81,20 +108,6 @@ describe("parseCpuTiming", () => {
   });
 });
 
-describe("shellQuote", () => {
-  it("leaves plain words unquoted", () => {
-    assert.equal(shellQuote("/tmp/file-1.txt"), "/tmp/file-1.txt");
-  });
-
-  it("quotes values with spaces and shell operators", () => {
-    assert.equal(shellQuote("a b && c"), "'a b && c'");
-  });
-
-  it("escapes embedded single quotes", () => {
-    assert.equal(shellQuote("it's"), `'it'\\''s'`);
-  });
-});
-
 describe("formatOutput", () => {
   it("renders only non-empty streams", () => {
     assert.equal(
@@ -116,32 +129,36 @@ describe("formatOutput", () => {
 });
 
 describe("runMeasured (subprocess)", { skip: !HAS_BASH }, () => {
-  const { dir, timingPath } = measuredTmp;
+  const { dir, reports } = measuredTmp;
+  const options = { cwd: dir, peakRssMethod: undefined };
 
   it("measures a command and keeps its stderr out of the report", async () => {
-    const run = await runMeasured("echo out; echo err >&2", timingPath, 0, {
-      cwd: dir,
-    });
+    const run = await runMeasured(
+      "echo out; echo err >&2",
+      reports,
+      0,
+      options,
+    );
 
     assert.ok(run.wallSeconds > 0);
     assert.match(
-      readFileSync(timingPath, "utf-8").trim(),
-      /^\d+\.\d{3} \d+\.\d{3}$/,
+      readFileSync(reports.cpuTimingPath, "utf-8").trim(),
+      CPU_REPORT_PATTERN,
     );
   });
 
   it("still reports CPU time when the command exits at the top level", async () => {
-    await runMeasured("echo ok; exit 0", timingPath, 0, { cwd: dir });
+    await runMeasured("echo ok; exit 0", reports, 0, options);
 
     assert.match(
-      readFileSync(timingPath, "utf-8").trim(),
-      /^\d+\.\d{3} \d+\.\d{3}$/,
+      readFileSync(reports.cpuTimingPath, "utf-8").trim(),
+      CPU_REPORT_PATTERN,
     );
   });
 
   it("spawns the shell even when the scenario env drops it from PATH", async () => {
-    const run = await runMeasured(":", timingPath, 0, {
-      cwd: dir,
+    const run = await runMeasured(":", reports, 0, {
+      ...options,
       env: { PATH: "/nonexistent-bin" },
     });
 
@@ -150,7 +167,7 @@ describe("runMeasured (subprocess)", { skip: !HAS_BASH }, () => {
 
   it("rejects a failing command with its captured output", async () => {
     await assert.rejects(
-      runMeasured("echo boom >&2; exit 3", timingPath, 0, { cwd: dir }),
+      runMeasured("echo boom >&2; exit 3", reports, 0, options),
       (error: unknown) => {
         assert.ok(error instanceof CommandFailedError);
         assert.match(error.message, /exited with code 3/);
@@ -161,40 +178,115 @@ describe("runMeasured (subprocess)", { skip: !HAS_BASH }, () => {
   });
 
   it("tolerates a non-zero exit under ignoreFailure", async () => {
-    await runMeasured("exit 3", timingPath, 0, {
-      cwd: dir,
+    await runMeasured("exit 3", reports, 0, {
+      ...options,
       ignoreFailure: true,
     });
 
     assert.match(
-      readFileSync(timingPath, "utf-8").trim(),
-      /^\d+\.\d{3} \d+\.\d{3}$/,
+      readFileSync(reports.cpuTimingPath, "utf-8").trim(),
+      CPU_REPORT_PATTERN,
     );
+  });
+
+  it("measures no peak RSS without a method", async () => {
+    const run = await runMeasured(ALLOC_COMMAND, reports, 0, options);
+
+    assert.equal(run.peakRssMb, undefined);
+  });
+
+  it("discards the previous run's reports before measuring", async () => {
+    const staleCpuSeconds = 9;
+    writeFileSync(reports.peakRssPath, "999999\n");
+    writeFileSync(
+      reports.cpuTimingPath,
+      `${staleCpuSeconds}.000 ${staleCpuSeconds}.000\n`,
+    );
+
+    const run = await runMeasured(":", reports, 0, options);
+
+    assert.equal(run.peakRssMb, undefined);
+    assert.ok(!existsSync(reports.peakRssPath));
+    assert.ok(run.user < staleCpuSeconds);
   });
 
   it(
     "reports the peak RSS of the largest process in the tree",
     { skip: !procSamplingAvailable() },
     async () => {
-      const allocMib = 64;
-      const holdMs = SAMPLE_INTERVAL_MS * 3;
-      const run = await runMeasured(
-        `${shellQuote(process.execPath)} -e "Buffer.alloc(${allocMib} << 20, 1); setTimeout(() => {}, ${holdMs})"`,
-        timingPath,
-        0,
-        { cwd: dir },
-      );
+      const run = await runMeasured(ALLOC_COMMAND, reports, 0, {
+        ...options,
+        peakRssMethod: PeakRssMethod.Sampler,
+      });
 
-      assert.ok((run.peakRssMb ?? 0) >= allocMib, `peakRssMb=${run.peakRssMb}`);
+      assertPeakCoversAllocation(run);
     },
   );
 });
 
+describe(
+  "runMeasured with GNU time (subprocess)",
+  { skip: !HAS_BASH || !gnuTimeAvailable() },
+  () => {
+    const { dir, reports } = gnuTimeTmp;
+    const options = { cwd: dir, peakRssMethod: PeakRssMethod.GnuTime };
+
+    it("reports the peak RSS of the largest process alongside the CPU report", async () => {
+      const run = await runMeasured(ALLOC_COMMAND, reports, 0, options);
+
+      assertPeakCoversAllocation(run);
+      assert.match(
+        readFileSync(reports.cpuTimingPath, "utf-8").trim(),
+        CPU_REPORT_PATTERN,
+      );
+    });
+
+    it("reports the peak RSS of a child that exited non-zero", async () => {
+      const run = await runMeasured(`${ALLOC_COMMAND}; exit 3`, reports, 0, {
+        ...options,
+        ignoreFailure: true,
+      });
+
+      assertPeakCoversAllocation(run);
+    });
+
+    it("rejects a failing command with the command's own exit code", async () => {
+      await assert.rejects(
+        runMeasured("exit 3", reports, 0, options),
+        (error: unknown) => {
+          assert.ok(error instanceof CommandFailedError);
+          assert.match(error.message, /exited with code 3/);
+          return true;
+        },
+      );
+    });
+
+    it(
+      "agrees with the sampler on the same allocation",
+      { skip: !procSamplingAvailable() },
+      async () => {
+        const gnuTime = await runMeasured(ALLOC_COMMAND, reports, 0, options);
+        const sampler = await runMeasured(ALLOC_COMMAND, reports, 0, {
+          ...options,
+          peakRssMethod: PeakRssMethod.Sampler,
+        });
+
+        assert.ok(
+          Math.abs((gnuTime.peakRssMb ?? 0) - (sampler.peakRssMb ?? 0)) <=
+            METHOD_AGREEMENT_MB,
+          `gnuTime=${gnuTime.peakRssMb} sampler=${sampler.peakRssMb}`,
+        );
+      },
+    );
+  },
+);
+
 describe("runSeries (subprocess)", { skip: !HAS_BASH }, () => {
-  const { dir, timingPath } = seriesTmp;
+  const { dir, reports } = seriesTmp;
+  const options = { cwd: dir, peakRssMethod: undefined };
 
   it("returns one measurement per configured run", async () => {
-    const runs = await runSeries("true", timingPath, { cwd: dir, runs: 2 });
+    const runs = await runSeries("true", reports, { ...options, runs: 2 });
 
     assert.equal(runs.length, 2);
   });
@@ -202,8 +294,8 @@ describe("runSeries (subprocess)", { skip: !HAS_BASH }, () => {
   it("runs warmups before measured runs and reports both", async () => {
     const events: string[] = [];
 
-    await runSeries("true", timingPath, {
-      cwd: dir,
+    await runSeries("true", reports, {
+      ...options,
       runs: 2,
       warmup: 1,
       onWarmupCompleted: (i, total) => events.push(`warmup ${i + 1}/${total}`),
@@ -217,7 +309,7 @@ describe("runSeries (subprocess)", { skip: !HAS_BASH }, () => {
     const prepare = "echo prep-err >&2; exit 7";
 
     await assert.rejects(
-      runSeries("true", timingPath, { cwd: dir, runs: 1, prepare }),
+      runSeries("true", reports, { ...options, runs: 1, prepare }),
       (error: unknown) => {
         assert.ok(error instanceof CommandFailedError);
         assert.match(error.message, /^Prepare command failed/);
@@ -230,8 +322,8 @@ describe("runSeries (subprocess)", { skip: !HAS_BASH }, () => {
 
   it("does not let ignoreFailure suppress a prepare failure", async () => {
     await assert.rejects(
-      runSeries("true", timingPath, {
-        cwd: dir,
+      runSeries("true", reports, {
+        ...options,
         runs: 1,
         prepare: "exit 7",
         ignoreFailure: true,
