@@ -231,7 +231,7 @@ export function findProxyEnvVar(requestUrl: string): ProxyEnvVar | undefined {
  * @param requestUrl The url the proxy would be used for.
  * @returns The proxy url, or `undefined` if the environment configures none,
  * `NO_PROXY` excludes the url, or the url can't be proxied.
- * @throws InvalidProxyUrlError If the configured proxy isn't a valid url.
+ * @throws InvalidProxyUrlError If the configured proxy isn't a valid http(s) url.
  */
 export function resolveProxyFromEnv(requestUrl: string): string | undefined {
   // `shouldUseProxy` and `findProxyEnvVar` both parse the url. Requests to an
@@ -246,11 +246,30 @@ export function resolveProxyFromEnv(requestUrl: string): string | undefined {
     return undefined;
   }
 
-  if (!isValidUrl(proxyEnvVar.value)) {
+  if (!isValidProxyUrl(proxyEnvVar.value)) {
     throw new InvalidProxyUrlError(proxyEnvVar.name);
   }
 
   return proxyEnvVar.value;
+}
+
+/**
+ * Determines whether a value can be used as a proxy url.
+ *
+ * undici's `ProxyAgent` only speaks http(s). Checking the protocol here, rather
+ * than leaving it to undici, catches two cases that would otherwise surface as
+ * opaque errors: a scheme-less `host:port`, which parses as a url whose
+ * protocol is the host and so never looks like a missing scheme, and `socks5:`,
+ * which undici accepts before failing at request time.
+ */
+function isValidProxyUrl(value: string): boolean {
+  if (!isValidUrl(value)) {
+    return false;
+  }
+
+  const { protocol } = new URL(value);
+
+  return protocol === "http:" || protocol === "https:";
 }
 
 export async function getProxyDispatcher(

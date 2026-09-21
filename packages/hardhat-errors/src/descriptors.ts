@@ -617,7 +617,7 @@ Expected format: http://host:port (or https://host:port).`,
         websiteTitle: "Invalid proxy URL",
         websiteDescription: `The HTTP or HTTPS proxy set in the environment is not a valid URL.
 
-Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must include a scheme, for example \`http://host:port\` or \`https://host:port\`.
+Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must be an HTTP or HTTPS URL, for example \`http://host:port\` or \`https://host:port\`.
 
 The configured value is not shown, as proxy URLs may contain credentials.`,
       },

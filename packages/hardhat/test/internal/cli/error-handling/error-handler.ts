@@ -382,19 +382,10 @@ describe("error-handler", () => {
           lines[2],
           `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
         );
-        assert.match(printed, /HTTPS_PROXY/);
-        assert.match(printed, /http:\/\/host:port/);
-        assert.equal(printed.includes("127.0.0.1:8888"), false);
-        assert.equal(printed.includes("report-bug"), false);
         assert.equal(
-          printed.includes("An unexpected error occurred"),
+          printed.includes("127.0.0.1:8888"),
           false,
-          "should not use the unexpected-error banner",
-        );
-        assert.equal(
-          lines.includes(error),
-          false,
-          "should not print the stack by default",
+          "should not echo the wrapped message, as a proxy url can carry credentials",
         );
       });
 
@@ -442,6 +433,35 @@ describe("error-handler", () => {
         assert.equal(header.includes("Couldn't download"), false);
         assert.match(header, /HTTPS_PROXY/);
         assert.match(header, /http:\/\/host:port/);
+      });
+
+      // The proxy comes from the user's environment rather than from the
+      // plugin, so the configuration error is more useful than the plugin's
+      // own message, even though the plugin attribution is lost.
+      it("takes precedence over a community plugin error wrapping the same cause", async () => {
+        const error = new HardhatPluginError(
+          "community-plugin",
+          "Verification request failed",
+          dispatcherErrorFromInvalidProxy("HTTPS_PROXY"),
+        );
+        const expected = new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
+          {
+            envVarName: "HTTPS_PROXY",
+          },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        const header = String(lines[0]);
+        assert.equal(
+          header,
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(header.includes("community-plugin"), false);
       });
 
       it("does not recategorize an unrelated DispatcherError", async () => {

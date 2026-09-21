@@ -16,6 +16,8 @@ export interface InvalidProxyUrlFailure {
 export function detectInvalidProxyUrl(
   error: Error,
 ): InvalidProxyUrlFailure | undefined {
+  // Compared by name rather than with `hasErrorClassName`, as importing the
+  // class as a value would load `hardhat-utils/request` at CLI startup.
   for (const chainedError of getErrorChain(error)) {
     if (
       chainedError.name === "InvalidProxyUrlError" &&

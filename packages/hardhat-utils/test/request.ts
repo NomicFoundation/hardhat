@@ -210,6 +210,33 @@ describe("Requests util", () => {
           return true;
         });
       });
+
+      it("Should throw if the environment's proxy url has no http(s) scheme", async () => {
+        for (const value of [
+          "proxy.example.com:8080",
+          "localhost:3128",
+          "socks5://proxy.example.com:1080",
+        ]) {
+          setEnvVar("HTTPS_PROXY", value);
+
+          await assert.rejects(getDispatcher(URL_TO_PROXY), (error) => {
+            ensureError(error);
+            assert.equal(error.name, "DispatcherError");
+            ensureError(error.cause);
+            assert.equal(error.cause.name, "InvalidProxyUrlError");
+            assert.ok(
+              /https_proxy/i.test(error.cause.message),
+              `Should name the offending environment variable for ${value}`,
+            );
+            assert.ok(
+              !error.cause.message.includes(value),
+              "Should not echo the value, as it can carry credentials",
+            );
+
+            return true;
+          });
+        }
+      });
     });
 
     describe("getBaseDispatcherOptions", () => {

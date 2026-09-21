@@ -147,8 +147,8 @@ export async function printErrorMessages(
 }
 
 async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
-  // Checked before other HardhatErrors so a download wrapper (e.g. HHE110003)
-  // still surfaces as the proxy configuration error rather than a fetch failure.
+  // The proxy comes from the environment, so we handle it once here
+  // instead of at every call site. Validate first so a wrapper can't hide it.
   const invalidProxyUrl = detectInvalidProxyUrl(error);
   if (invalidProxyUrl !== undefined) {
     return {
