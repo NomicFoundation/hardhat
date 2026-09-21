@@ -99,35 +99,7 @@ describe("etherscan", () => {
         );
       });
 
-      it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
-          apiUrl: ETHERSCAN_API_URL,
-        });
-
-        assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {
-          proxy: "http://test-proxy:8080",
-        });
-
-        delete process.env.https_proxy;
-      });
-
-      it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
-
-        const etherscan = new Etherscan(etherscanConfig);
-
-        assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
-      });
-
-      it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+      it("should use the provided dispatcher", async () => {
         const dispatcher = await getDispatcher(etherscanApiUrl);
 
         const etherscan = new Etherscan({
@@ -136,11 +108,9 @@ describe("etherscan", () => {
         });
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
-      it("should configure no proxy when no environment variables are set", () => {
+      it("should default to empty dispatcher options", () => {
         const etherscan = new Etherscan(etherscanConfig);
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {});

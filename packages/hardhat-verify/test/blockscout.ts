@@ -97,32 +97,7 @@ describe("blockscout", () => {
         assert.equal(blockscout.name, "Blockscout");
       });
 
-      it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-
-        const blockscout = new Blockscout(blockscoutConfig);
-
-        assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {
-          proxy: "http://test-proxy:8080",
-        });
-
-        delete process.env.https_proxy;
-      });
-
-      it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
-
-        const blockscout = new Blockscout(blockscoutConfig);
-
-        assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
-      });
-
-      it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+      it("should use the provided dispatcher", async () => {
         const dispatcher = await getDispatcher(blockscoutApiUrl);
 
         const blockscout = new Blockscout({
@@ -131,11 +106,9 @@ describe("blockscout", () => {
         });
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
-      it("should configure no proxy when no environment variables are set", () => {
+      it("should default to empty dispatcher options", () => {
         const blockscout = new Blockscout(blockscoutConfig);
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {});

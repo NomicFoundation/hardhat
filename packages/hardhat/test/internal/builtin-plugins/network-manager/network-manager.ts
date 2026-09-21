@@ -28,6 +28,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertValidationErrors,
+  createEnvChanges,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
@@ -169,16 +170,21 @@ describe("NetworkManagerImplementation", () => {
       "network-manager-analytics-result.json",
     );
 
+    // These have to stay set for the whole describe, so they are restored
+    // manually instead of through createTestEnvManager.
+    const envChanges = createEnvChanges();
+
     before(() => {
-      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "true";
-      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
+      envChanges.setEnvVar("HARDHAT_TEST_INTERACTIVE_ENV", "true");
+      envChanges.setEnvVar("HARDHAT_TEST_TELEMETRY_ENABLED", "true");
+      envChanges.setEnvVar(
+        "HARDHAT_TEST_SUBPROCESS_RESULT_PATH",
+        RESULT_FILE_PATH,
+      );
     });
 
     after(() => {
-      delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
-      delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
-      delete process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
+      envChanges.restoreEnvVars();
     });
 
     beforeEach(async () => {
@@ -1453,6 +1459,29 @@ describe("NetworkManagerImplementation", () => {
           {
             path: ["chainDescriptors", "2", "hardforkHistory", "random string"],
             message: `Invalid hardfork name random string found in chain descriptor for chain 2. Expected ${getHardforks(
+              L1_CHAIN_TYPE,
+            ).join(" | ")}.`,
+          },
+        ]);
+
+        // EDR cannot execute pre-Byzantium L1 hardforks, so their activations
+        // are banned in a chain descriptor.
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            1: {
+              name: "Ethereum",
+              hardforkHistory: {
+                chainstart: { blockNumber: 0 },
+                byzantium: { blockNumber: 4_370_000 },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "1", "hardforkHistory", "chainstart"],
+            message: `Invalid hardfork name chainstart found in chain descriptor for chain 1. Expected ${getHardforks(
               L1_CHAIN_TYPE,
             ).join(" | ")}.`,
           },
@@ -3018,6 +3047,21 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message: `Invalid hardfork name anything else for chainType generic. Expected ${getHardforks(
+                L1_CHAIN_TYPE,
+              ).join(" | ")}.`,
+            },
+          ]);
+
+          // Pre-Byzantium hardforks are rejected here rather than by EDR when
+          // the provider is created.
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ hardfork: "chainstart" }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "hardfork"],
+              message: `Invalid hardfork name chainstart for chainType generic. Expected ${getHardforks(
                 L1_CHAIN_TYPE,
               ).join(" | ")}.`,
             },
