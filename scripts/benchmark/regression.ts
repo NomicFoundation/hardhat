@@ -63,6 +63,7 @@ DESCRIPTION
     // single command
     {
       "runs":    <positive integer>,    // measured runs (required)
+      "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
     }
@@ -548,7 +549,10 @@ async function runCommandPhase(
         cwd: workingDir,
         env,
         runs,
+        warmup: cfg.warmup,
         prepare: cfg.prepare,
+        onWarmupCompleted: (i, total) =>
+          log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
         onRunCompleted: (run, i, total) =>
           log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
       },

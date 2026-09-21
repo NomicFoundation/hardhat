@@ -418,6 +418,28 @@ describe("isCommandConfig", () => {
     );
   });
 
+  it("accepts an optional warmup count, including zero", () => {
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 1, command: "npx hardhat test" }),
+      true,
+    );
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 0, command: "npx hardhat test" }),
+      true,
+    );
+  });
+
+  it("rejects a negative or fractional warmup", () => {
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: -1, command: "npx hardhat test" }),
+      false,
+    );
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 1.5, command: "npx hardhat test" }),
+      false,
+    );
+  });
+
   it("rejects when runs is missing", () => {
     assert.equal(isCommandConfig({ command: "npx hardhat compile" }), false);
   });
@@ -463,7 +485,7 @@ describe("isCommandConfig", () => {
       isCommandConfig({
         runs: 3,
         command: "npx hardhat compile",
-        warmup: 1,
+        timeout: 60,
       }),
       false,
     );
