@@ -9,7 +9,10 @@ description: Manually validate a feature branch through Hardhat commands in pack
 
 Require the **feature description**, **test branch**, and **base branch** from the user; ask for missing inputs. The description defines intent: never reconstruct it from code or commits.
 
-- Check out the test branch. Run `git fetch origin <base>`; if `git rev-parse <base>` and `git rev-parse origin/<base>` differ, stop and report that the local base branch is not aligned with its remote. Use `git merge-base origin/<base> HEAD` for all comparisons and pre-change artifacts. If it equals `HEAD`, report that there is nothing to validate.
+- Check out the test branch. `<base>` is the given base branch name with any `origin/` prefix removed; run `git fetch origin <base>`. Both branches must already carry the latest base changes, so stop and report unless both checks pass:
+  - **Base is aligned with its remote:** only when the user gave a local branch name, `git rev-parse <base>` equals `git rev-parse origin/<base>`. Skip this check when they gave `origin/<base>`.
+  - **Test branch is aligned with the base:** `git merge-base origin/<base> HEAD` equals `git rev-parse origin/<base>`. Otherwise the test branch is missing base commits and must be updated first.
+- Use `git merge-base origin/<base> HEAD` for all comparisons and pre-change artifacts. If it equals `HEAD`, report that there is nothing to validate.
 - If `packages/example-project/scenarios/` already exists, tell the user that the previous log and assets will be overwritten and continue only after they confirm; then remove the directory so the run starts empty.
 - Without isolated planner contexts, do the spec-only pass in step 3 **before reading implementation, diff or commits**; disclose the lack of independent planning.
 - Read `git diff <merge-base>...HEAD` and `git log --format=%B <merge-base>..HEAD`. Summarize affected CLI flags, config, tasks, output, and errors for the code-aware planners.
