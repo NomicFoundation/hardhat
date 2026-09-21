@@ -14,8 +14,6 @@ import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/
 
 const UINT256_MAX =
   "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-const INT256_MAX =
-  "57896044618658097711785492504343953926634992332820282019728792003956564819967";
 
 // The hhu plugin is unreleased and de-registered from the builtin plugins, so
 // it's injected explicitly to test the integrated (`hardhat utils ...`) path.
@@ -54,37 +52,18 @@ describe("hhu utils constants tasks", () => {
       ]);
     });
 
-    it("accepts uint and int as aliases of the 256-bit types", async () => {
-      await runMaxValue({ type: "uint" });
-      await runMaxValue({ type: "int" });
-
-      assert.deepEqual(capture.lines, [UINT256_MAX, INT256_MAX]);
-    });
-
-    // The type parsing is shared with min-value, so the full list of invalid
-    // types is only covered here.
+    // Which type names are valid is covered by the parseIntType tests in
+    // hardhat-utils; this only checks that max-value rejects the invalid ones.
     it("throws when the type is not a valid Solidity integer type", async () => {
-      for (const type of [
-        "address",
-        "bytes32",
-        "",
-        "UINT256", // Type names are lowercase
-        "uint0",
-        "uint008", // The bit count can't have leading zeros
-        "uint7", // The bit count must be a multiple of 8
-        "uint264", // The bit count can't exceed 256
-      ]) {
-        await assertRejectsWithHardhatError(
-          runMaxValue({ type }),
-          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
-          {
-            value: type,
-            name: "type",
-            reason:
-              "it must be a Solidity integer type, like uint256 or int128",
-          },
-        );
-      }
+      await assertRejectsWithHardhatError(
+        runMaxValue({ type: "address" }),
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
+        {
+          value: "address",
+          name: "type",
+          reason: "it must be a Solidity integer type, like uint256 or int128",
+        },
+      );
     });
   });
 });
