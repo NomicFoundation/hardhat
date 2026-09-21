@@ -279,10 +279,10 @@ describe("resolveMochaGrepFilter", () => {
     });
   });
 
-  // Mocha 11 parses `/(.*)/([gimy]{0,4})` as a regex literal, so each of these
-  // is a literal with flags — not literal text. They must be rejected.
+  // Mocha parses `/(.*)/([a-z]*)` as a regex literal, so each of these is a
+  // literal with flags — not literal text. They must be rejected.
   for (const literal of ["/x/gi", "/x/m", "/x/y", "/x/gm", "/x/gimy"]) {
-    it(`rejects the regex literal ${literal} (flag in Mocha's [gimy] set)`, () => {
+    it(`rejects the regex literal ${literal} (flag in Mocha's [a-z] set)`, () => {
       assertThrowsHardhatError(
         () => resolveMochaGrepFilter(literal, "sub", {}),
         HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
@@ -296,12 +296,32 @@ describe("resolveMochaGrepFilter", () => {
     });
   }
 
-  it("does not treat /x/s as a regex literal (s is outside Mocha's flag set)", () => {
-    // Mocha does not parse `s` as a flag, so /x/s is literal text in both Mocha
-    // and the merge — no divergence, so it must merge normally.
-    assert.deepEqual(resolveMochaGrepFilter("/x/s", "sub", {}), {
-      grep: "^(?=[\\s\\S]*(?:/x/s))(?![\\s\\S]*(?:sub))",
-      invert: false,
+  it("rejects a path-like --grep with no --grep-exclude", () => {
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter("/contracts/token", undefined, {}),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      {
+        name: "--grep",
+        pattern: "/contracts/token",
+        body: "contracts",
+        flags: "token",
+      },
+    );
+  });
+
+  it("rejects a path-like string grep in the Mocha config", () => {
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter(undefined, undefined, { grep: "/a/bcd" }),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      { name: "mocha config grep", pattern: "/a/bcd", body: "a", flags: "bcd" },
+    );
+  });
+
+  it("leaves a config RegExp grep alone, literal-looking or not", () => {
+    const grep = /\/a\/bcd/;
+
+    assert.deepEqual(resolveMochaGrepFilter(undefined, undefined, { grep }), {
+      grep,
     });
   });
 
@@ -569,20 +589,36 @@ describe("resolveMochaGrepFilter", () => {
 
 describe("regex-literal detection contract with the installed Mocha", () => {
   // The resolver mirrors how `Mocha.prototype.grep` decides whether a pattern
-  // is a `/pattern/flags` regex literal (flag set `[gimy]{0,4}`). Mocha is a
-  // caret-ranged peer dependency, so if a Mocha release widens that flag set,
+  // is a `/pattern/flags` regex literal (flag set `[a-z]*`). Mocha is a
+  // caret-ranged peer dependency, so if a Mocha release changes that flag set,
   // the mirror must be updated in lockstep. This suite compares the resolver's
   // accept/reject behavior against the real installed Mocha, so any drift
   // fails here instead of silently mis-merging a user's pattern.
-  function mochaParsesAsRegexLiteral(pattern: string): boolean {
-    const parsed = new Mocha().grep(pattern).options.grep;
-    // When Mocha does NOT treat the string as a regex literal, it compiles the
-    // whole string verbatim, i.e. equivalently to `new RegExp(pattern)`.
-    return String(parsed) !== String(new RegExp(pattern));
+
+  type MochaReading = "literal" | "invalid flags" | "plain text";
+
+  function mochaReadingOf(pattern: string): MochaReading {
+    const verbatim = String(new RegExp(pattern));
+
+    let parsed;
+
+    try {
+      parsed = new Mocha().grep(pattern).options.grep;
+    } catch (error) {
+      assert.ok(
+        error instanceof SyntaxError && error.message.includes("Invalid flags"),
+        `expected an invalid-flags SyntaxError for ${JSON.stringify(pattern)}, got ${String(error)}`,
+      );
+
+      return "invalid flags";
+    }
+
+    return String(parsed) === verbatim ? "plain text" : "literal";
   }
 
   const candidates = [
-    // Every lowercase letter as a single flag: /x/a ... /x/z.
+    // Every lowercase letter as a single flag: /x/a ... /x/z — the valid
+    // RegExp flags read as literals, the rest Mocha cannot compile.
     ...Array.from(
       { length: 26 },
       (_, i) => `/x/${String.fromCharCode(97 + i)}`,
@@ -591,27 +627,66 @@ describe("regex-literal detection contract with the installed Mocha", () => {
     "/x/gi",
     "/x/gimy",
     "/x/gimyx",
+    "/x/G",
+    "/x/1",
+    "/x/g-",
+    "/x/ ",
+    // Path-like values: the everyday way a user hits the flag parsing.
+    "/contracts/token",
+    "/foo/bar",
+    // Empty-pattern shapes
+    "//i",
+    "//g",
     "a/b",
     "x",
   ];
 
   for (const pattern of candidates) {
-    it(`agrees with Mocha on whether ${JSON.stringify(pattern)} is a regex literal`, () => {
-      if (mochaParsesAsRegexLiteral(pattern)) {
-        assertThrowsHardhatError(
-          () => resolveMochaGrepFilter(pattern, "zzz", {}),
-          HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
-            .GREP_EXCLUDE_UNSUPPORTED_PATTERN,
-          {
-            name: "--grep",
-            pattern,
-            feature: "a /pattern/flags regex literal",
-          },
-        );
-      } else {
-        // Literal text in both Mocha and the merge — it must merge, not throw.
-        const { grep } = resolveMochaGrepFilter(pattern, "zzz", {});
-        assert.ok(typeof grep === "string", "expected a merged pattern");
+    it(`agrees with Mocha on how ${JSON.stringify(pattern)} is read`, () => {
+      switch (mochaReadingOf(pattern)) {
+        case "invalid flags": {
+          const [, body, flags] = /^\/(.*)\/([a-z]*)$/.exec(pattern) ?? [];
+
+          for (const exclude of ["zzz", undefined]) {
+            assertThrowsHardhatError(
+              () => resolveMochaGrepFilter(pattern, exclude, {}),
+              HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
+                .INVALID_GREP_REGEX_LITERAL,
+              { name: "--grep", pattern, body, flags },
+            );
+          }
+
+          break;
+        }
+
+        case "literal": {
+          assertThrowsHardhatError(
+            () => resolveMochaGrepFilter(pattern, "zzz", {}),
+            HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
+              .GREP_EXCLUDE_UNSUPPORTED_PATTERN,
+            {
+              name: "--grep",
+              pattern,
+              feature: "a /pattern/flags regex literal",
+            },
+          );
+
+          assert.deepEqual(resolveMochaGrepFilter(pattern, undefined, {}), {
+            grep: pattern,
+          });
+
+          break;
+        }
+
+        case "plain text": {
+          // Literal text in both Mocha and the merge — it must merge, not throw.
+          assert.deepEqual(resolveMochaGrepFilter(pattern, "zzz", {}), {
+            grep: `^(?=[\\s\\S]*(?:${pattern}))(?![\\s\\S]*(?:zzz))`,
+            invert: false,
+          });
+
+          break;
+        }
       }
     });
   }

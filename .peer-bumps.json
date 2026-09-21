@@ -6,5 +6,11 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "peer": "@nomicfoundation/hardhat-mocha",
+      "reason": "hardhat-mocha drops Mocha 11 and requires Mocha 12 in a breaking major release. The toolbox re-exports hardhat-mocha and peer-depends on it, so its peer range has to move to the new major."
+    }
+  ]
 }

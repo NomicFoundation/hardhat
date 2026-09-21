@@ -2510,6 +2510,13 @@ Please try again later.`,
         websiteDescription:
           "--grep and the `fgrep` Mocha config option are competing name filters, and Mocha applies only one of them; its own CLI rejects the pair as mutually exclusive. Remove `fgrep` from your config, or run without --grep.",
       },
+      INVALID_GREP_REGEX_LITERAL: {
+        number: 30005,
+        messageTemplate: `The {name} pattern "{pattern}" cannot be used: Mocha reads it as the regular-expression literal /{body}/{flags}, and "{flags}" is not a valid set of regular-expression flags.`,
+        websiteTitle: "Invalid regex literal in a Mocha name filter",
+        websiteDescription:
+          "Mocha reads a name filter of the form `/pattern/flags` as a regular-expression literal: it strips the outer slashes and compiles the rest with the trailing letters as flags. When those letters are not valid regular-expression flags, Mocha cannot compile the pattern at all. This most often happens with a path-like value such as `/contracts/token`, where `token` is read as the flags. Escape the leading slash (`\\/contracts/token`) to match it as plain text, or drop the surrounding slashes.",
+      },
     },
   },
   HARDHAT_VIEM: {
