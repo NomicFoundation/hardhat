@@ -736,10 +736,10 @@ importers:
         version: 6.37.0
       '@ledgerhq/evm-tools':
         specifier: ^1.7.7
-        version: 1.14.0(debug@4.4.3(supports-color@8.1.1))
+        version: 1.14.3(debug@4.4.3(supports-color@8.1.1))
       '@ledgerhq/hw-app-eth':
         specifier: ^7.0.0
-        version: 7.8.15(debug@4.4.3(supports-color@8.1.1))
+        version: 7.8.18(debug@4.4.3(supports-color@8.1.1))
       '@ledgerhq/hw-transport':
         specifier: ^6.35.7
         version: 6.35.7
@@ -748,7 +748,7 @@ importers:
         version: 6.33.5
       '@ledgerhq/types-live':
         specifier: ^6.85.0
-        version: 6.120.0
+        version: 6.123.0
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.15
         version: link:../hardhat-errors
@@ -2667,8 +2667,8 @@ packages:
   '@ledgerhq/devices@8.17.0':
     resolution: {integrity: sha512-l+rrVQEjR1hSWOLD00LFX4zbS8yB1M/Mb6UYPmSHGO7TmE1CFbZ4CmDJC/kZSl3hdrXCJ+YUNpvaLCcSWDwA+Q==}
 
-  '@ledgerhq/domain-service@1.8.15':
-    resolution: {integrity: sha512-27MknOfgI3FAkvyj8N4tgAIhMS/m9VpFUfEc/bUjb5g0MPcACJNusDleTpK3LvRqcUTJRr98w8eSR6ZmOtSLgA==}
+  '@ledgerhq/domain-service@1.8.18':
+    resolution: {integrity: sha512-lJ+r7+hjH1C9uRq5Fkr7lMKY+z4o1kl2Huv4Su6iCasCmoWM0VDiyxhHV8Wm/4+qtlJbQkJw2gTjp0fTC8ekvA==}
 
   '@ledgerhq/errors@6.37.0':
     resolution: {integrity: sha512-T5yiKI5UX7ugeocdTF3TUsCIN2BH41Bio4ZeN410YFjFOf3es08n/5JyMzzKwzRgP0blG3HfBf7s7vJKqCSAeg==}
@@ -2676,11 +2676,11 @@ packages:
   '@ledgerhq/errors@7.0.0':
     resolution: {integrity: sha512-+Q/vykUlNeIxiM+I3cu1B660WLkzlmIsHLTV9QNV5D2/Ocplx3QMg52NYq2X7OAfGQnfH1rQvhn/NrjT+t9wBA==}
 
-  '@ledgerhq/evm-tools@1.14.0':
-    resolution: {integrity: sha512-VL+Ymt0g/hkm98JKFPMYk/cVP+A81Ho9nvJY93j1Cl9u75tHYJDNJLjbzYUnLf45Ix6589kQTGx/+uW9cAFv0Q==}
+  '@ledgerhq/evm-tools@1.14.3':
+    resolution: {integrity: sha512-pA18WpvtpM/MESCz4Tyg/8MD8kybZJyvYxtqK8lxvUcq6CHY+nxVb/D85URWGFmKkXQ3xmzRsR2bRdPsiwzEsg==}
 
-  '@ledgerhq/hw-app-eth@7.8.15':
-    resolution: {integrity: sha512-PZTRTYCH0IRSpbotc+4OJ73brSL3S4OBKGdqgQAOUHZBpbaZaeaP+9IGPArWOw7rGL5ziiApWdzy0YxwvGvOBw==}
+  '@ledgerhq/hw-app-eth@7.8.18':
+    resolution: {integrity: sha512-wHjio1y/VRYqQDTscbGwQXRWqfk+GAbwGH4vM5Aerjq2UqXAt3+TG/k0BYjmdcyJ1mp+/EL1DecxhAkxKeKsfA==}
 
   '@ledgerhq/hw-transport-mocker@6.34.7':
     resolution: {integrity: sha512-AyaO4unEHhZbyyo9y16z36uOi9pqY6kqVtWhTAp1PLZuQhXR/Y0m+Yd3yJrjUvlNpIOrrVN1rA+gHlmewl43Og==}
@@ -2697,14 +2697,17 @@ packages:
   '@ledgerhq/hw-transport@6.35.7':
     resolution: {integrity: sha512-vVhAVQ56+7A5FY5Mr09HY+bmf3H6TXpwsj+/xbadNkjl//e/YzTWfpXk4eBnj3hwk1PQ9Mn6pKFH0BHjS2BKlg==}
 
-  '@ledgerhq/live-env@3.0.0':
-    resolution: {integrity: sha512-z15hY6+YFHxEpLew/rgKyJNCETC3d2olXc7bzPDLsv3gqbg49zE/ufAcCIfLX0tT8dr7PGIG1KBQbiBNPcVZ6g==}
+  '@ledgerhq/live-env@4.0.0':
+    resolution: {integrity: sha512-H4U9UcaKp1+rg1CqQfzy430pxhSGlRE6B+kj4oMd0YYepvqTzOzb1eT+Nr9TLN3o4ZIK6yTy9baco6O6McJAiQ==}
 
   '@ledgerhq/logs@6.17.0':
     resolution: {integrity: sha512-yra33g5q/AU7+PwAws+GaVpQGUuxnDREjVBnviJjcaJLVKuLzI4pnj8Bd3nY3fypM5k1yZEYKEXfUuGFUjP2+w==}
 
-  '@ledgerhq/types-live@6.120.0':
-    resolution: {integrity: sha512-9aub/pkbiJxIMJa3nxJi2ofqIudNP4JfhDxy4t/FhFUOFfI1GM+UqdsehKlkzlfLAEl7H24L9vuNBd7EXX8LCg==}
+  '@ledgerhq/logs@6.19.0':
+    resolution: {integrity: sha512-kmWj18C7eTtuytdaWygzVrQm9EoD4YWuYnd/kY8stVBBAzRdJzrGlm013ijQF6I/kGLKlGY7JKmll6j32KGpfQ==}
+
+  '@ledgerhq/types-live@6.123.0':
+    resolution: {integrity: sha512-XPP0t2ZZLbnA6PPP8+e97hPEZ0cxE0F7G2VqgRJD9ezrwBl1uovCrbysMg5o3RjFQqqQSQ/+l/sBZaxg6/DdZA==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -8167,10 +8170,10 @@ snapshots:
     dependencies:
       semver: 7.7.3
 
-  '@ledgerhq/domain-service@1.8.15(debug@4.4.3(supports-color@8.1.1))':
+  '@ledgerhq/domain-service@1.8.18(debug@4.4.3(supports-color@8.1.1))':
     dependencies:
-      '@ledgerhq/logs': 6.17.0
-      '@ledgerhq/types-live': 6.120.0
+      '@ledgerhq/logs': 6.19.0
+      '@ledgerhq/types-live': 6.123.0
       axios: 1.13.5(debug@4.4.3(supports-color@8.1.1))
       eip55: 2.1.1
       react: 19.1.4
@@ -8182,27 +8185,27 @@ snapshots:
 
   '@ledgerhq/errors@7.0.0': {}
 
-  '@ledgerhq/evm-tools@1.14.0(debug@4.4.3(supports-color@8.1.1))':
+  '@ledgerhq/evm-tools@1.14.3(debug@4.4.3(supports-color@8.1.1))':
     dependencies:
       '@ethersproject/constants': 5.8.0
       '@ethersproject/hash': 5.8.0
-      '@ledgerhq/live-env': 3.0.0
+      '@ledgerhq/live-env': 4.0.0
       axios: 1.13.5(debug@4.4.3(supports-color@8.1.1))
       crypto-js: 4.2.0
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/hw-app-eth@7.8.15(debug@4.4.3(supports-color@8.1.1))':
+  '@ledgerhq/hw-app-eth@7.8.18(debug@4.4.3(supports-color@8.1.1))':
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@ethersproject/rlp': 5.8.0
       '@ethersproject/transactions': 5.8.0
-      '@ledgerhq/domain-service': 1.8.15(debug@4.4.3(supports-color@8.1.1))
-      '@ledgerhq/evm-tools': 1.14.0(debug@4.4.3(supports-color@8.1.1))
+      '@ledgerhq/domain-service': 1.8.18(debug@4.4.3(supports-color@8.1.1))
+      '@ledgerhq/evm-tools': 1.14.3(debug@4.4.3(supports-color@8.1.1))
       '@ledgerhq/hw-transport': 6.35.7
       '@ledgerhq/hw-transport-mocker': 6.34.7
-      '@ledgerhq/logs': 6.17.0
-      '@ledgerhq/types-live': 6.120.0
+      '@ledgerhq/logs': 6.19.0
+      '@ledgerhq/types-live': 6.123.0
       axios: 1.13.5(debug@4.4.3(supports-color@8.1.1))
       bignumber.js: 9.3.1
       semver: 7.7.3
@@ -8212,7 +8215,7 @@ snapshots:
   '@ledgerhq/hw-transport-mocker@6.34.7':
     dependencies:
       '@ledgerhq/hw-transport': 6.35.7
-      '@ledgerhq/logs': 6.17.0
+      '@ledgerhq/logs': 6.19.0
       rxjs: 7.8.2
 
   '@ledgerhq/hw-transport-node-hid-noevents@6.36.0':
@@ -8248,11 +8251,13 @@ snapshots:
       '@ledgerhq/logs': 6.17.0
       events: 3.3.0
 
-  '@ledgerhq/live-env@3.0.0': {}
+  '@ledgerhq/live-env@4.0.0': {}
 
   '@ledgerhq/logs@6.17.0': {}
 
-  '@ledgerhq/types-live@6.120.0':
+  '@ledgerhq/logs@6.19.0': {}
+
+  '@ledgerhq/types-live@6.123.0':
     dependencies:
       bignumber.js: 9.3.1
       rxjs: 7.8.2
