@@ -20,6 +20,7 @@ export const RESERVED_TEST_PROFILE_NAMES: readonly string[] = [
 /**
  * Profile names are used as prefixes in inline config directives, where the
  * grammar is dot-separated, and on the command line, so we keep them to a
- * conservative character set.
+ * conservative character set, and require the first character to be
+ * alphanumeric so a name can't read as a flag.
  */
-export const TEST_PROFILE_NAME_PATTERN: RegExp = /^[A-Za-z0-9_-]+$/;
+export const TEST_PROFILE_NAME_PATTERN: RegExp = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;

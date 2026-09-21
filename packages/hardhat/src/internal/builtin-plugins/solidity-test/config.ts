@@ -147,7 +147,7 @@ const solidityTestProfilesUserConfigType = z.object({
             code: z.ZodIssueCode.custom,
             path: [profileName],
             message:
-              "Invalid profile name. Profile names can only contain letters, numbers, underscores and dashes",
+              "Invalid profile name. Profile names must start with a letter or a number, and can only contain letters, numbers, underscores and dashes",
           });
           continue;
         }
