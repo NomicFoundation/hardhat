@@ -5,7 +5,7 @@
 # The benchmark pins the mainnet fork via MAINNET_FORK_BLOCK_NUMBER (see
 # scenario.json) so EDR's fork-db cache is reusable across runs. At the pinned
 # commit, `_setupFork` forks at the chain head and only then rolls to the 
-# pinned block. Those head RPC calls can neverbe cache hits and add network
+# pinned block. Those head RPC calls can never be cache hits and add network
 # latency to every test.
 #
 # The patch makes `_setupFork` fork at the pinned block directly, leaving
