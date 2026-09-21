@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  createEnvChanges,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test-inline-config/hardhat.config.js";
@@ -33,21 +36,20 @@ const hardhatConfigProfileTests = {
 };
 
 describe("solidity-test/inline-config", () => {
-  let ambientTestProfile: string | undefined;
+  // These runs read `HARDHAT_TEST_PROFILE`, and the configs here declare only
+  // the profiles they need, so an ambient value would fail them. The shield has
+  // to last the whole file, so it's restored in `after` rather than after each
+  // test.
+  const envChanges = createEnvChanges();
 
   useFixtureProject("solidity-test-inline-config");
 
   before(() => {
-    // These runs read `HARDHAT_TEST_PROFILE`, and the configs here declare only
-    // the profiles they need, so an ambient value would fail them.
-    ambientTestProfile = process.env.HARDHAT_TEST_PROFILE;
-    delete process.env.HARDHAT_TEST_PROFILE;
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
   });
 
   after(() => {
-    if (ambientTestProfile !== undefined) {
-      process.env.HARDHAT_TEST_PROFILE = ambientTestProfile;
-    }
+    envChanges.restoreEnvVars();
   });
 
   it("should apply inline config directives found in the test sources", async () => {

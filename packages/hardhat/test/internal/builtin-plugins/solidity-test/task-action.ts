@@ -7,6 +7,7 @@ import { after, before, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createEnvChanges,
   createTestEnvManager,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -14,7 +15,6 @@ import {
 import { overrideTask } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test/hardhat.config.js";
-import { createTestEnvManager } from "../../../utils.js";
 
 /**
  * The fixture project for this test has two folders:
@@ -127,16 +127,17 @@ const hardhatConfigBlockGasLimitLow = {
 
 describe("solidity-test/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
-  let ambientTestProfile: string | undefined;
+
+  // Every run in this file reads `HARDHAT_TEST_PROFILE`, and the configs below
+  // only declare `default`, so an ambient value fails all of them. The shield
+  // has to last the whole file, so it's restored in `after` rather than after
+  // each test.
+  const envChanges = createEnvChanges();
 
   useFixtureProject("solidity-test");
 
   before(async function () {
-    // Every run in this file reads `HARDHAT_TEST_PROFILE`, and the configs
-    // below only declare `default`, so an ambient value fails all of them.
-    // `createTestEnvManager` can only set variables, not unset them.
-    ambientTestProfile = process.env.HARDHAT_TEST_PROFILE;
-    delete process.env.HARDHAT_TEST_PROFILE;
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
 
     // Build with a config that covers all test subdirectories so that
     // noCompile: true tests find pre-compiled artifacts on disk.
@@ -149,9 +150,7 @@ describe("solidity-test/task-action", function () {
   });
 
   after(function () {
-    if (ambientTestProfile !== undefined) {
-      process.env.HARDHAT_TEST_PROFILE = ambientTestProfile;
-    }
+    envChanges.restoreEnvVars();
   });
 
   describe("when the solidity task test runner is specified", () => {
