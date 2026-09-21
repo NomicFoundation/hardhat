@@ -231,7 +231,7 @@ async function main(): Promise<void> {
   try {
     if (startedVerdaccio || args.forcePublish === ForcePublish.Yes) {
       if (args.useLocal === UseLocal.Yes) {
-        sinceReleasePublish();
+        await sinceReleasePublish();
       } else {
         verdaccioPublish(false, true);
       }
