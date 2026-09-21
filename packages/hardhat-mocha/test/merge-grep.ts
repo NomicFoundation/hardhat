@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertThrows,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import Mocha from "mocha";
 
 import { resolveMochaGrepFilter } from "../src/internal/merge-grep.js";
@@ -314,6 +317,48 @@ describe("resolveMochaGrepFilter", () => {
       () => resolveMochaGrepFilter(undefined, undefined, { grep: "/a/bcd" }),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
       { name: "mocha config grep", pattern: "/a/bcd", body: "a", flags: "bcd" },
+    );
+  });
+
+  for (const pattern of ["/\\a/u", "/\\a/v"]) {
+    for (const exclude of [undefined, "sub"]) {
+      it(`reports an invalid CLI regex body in ${pattern} with exclude ${exclude}`, () => {
+        assertThrows(
+          () => new Mocha().grep(pattern),
+          (error) => error instanceof SyntaxError,
+        );
+
+        assertThrowsHardhatError(
+          () => resolveMochaGrepFilter(pattern, exclude, {}),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: pattern, name: "--grep", type: "regexp" },
+        );
+      });
+
+      it(`reports an invalid config regex body in ${pattern} with exclude ${exclude}`, () => {
+        assertThrowsHardhatError(
+          () => resolveMochaGrepFilter(undefined, exclude, { grep: pattern }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: pattern, name: "mocha config grep", type: "regexp" },
+        );
+      });
+    }
+  }
+
+  it("blames the flags when both the body and the flags are invalid", () => {
+    // `\a` is only invalid because of `u`, and `z` is not a flag at all. The
+    // flags are checked first, so they are reported rather than the body.
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter("/\\a/uz", undefined, {}),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      { name: "--grep", pattern: "/\\a/uz", body: "\\a", flags: "uz" },
+    );
+  });
+
+  it("lets CLI grep override a config literal with an invalid body", () => {
+    assert.deepEqual(
+      resolveMochaGrepFilter("cli", undefined, { grep: "/\\a/u" }),
+      { grep: "cli" },
     );
   });
 
@@ -627,6 +672,8 @@ describe("regex-literal detection contract with the installed Mocha", () => {
     "/x/gi",
     "/x/gimy",
     "/x/gimyx",
+    "/x/ii",
+    "/x/uv",
     "/x/G",
     "/x/1",
     "/x/g-",

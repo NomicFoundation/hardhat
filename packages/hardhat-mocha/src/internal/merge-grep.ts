@@ -3,6 +3,7 @@
 import type { MochaOptions } from "mocha";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 type MochaGrepFilter = Pick<MochaOptions, "grep" | "fgrep" | "invert">;
 
@@ -51,7 +52,7 @@ export function resolveMochaGrepFilter(
     typeof config.grep === "string" ? config.grep : undefined;
 
   // Mocha parses a STRING name filter itself, and throws a raw SyntaxError
-  // from inside its constructor when the flag part is invalid — long after
+  // from inside its constructor when the body or flags are invalid — long after
   // this resolver returned. Reject it here instead, with a Hardhat error.
   assertMochaCanCompilePattern(includeName, include ?? configGrepString);
 
@@ -325,7 +326,7 @@ function assertMergeableGrepPattern(
  * Rejects a string name filter that Mocha itself cannot compile.
  *
  * Mocha runs `new RegExp(body || whole, flags)` on a `/pattern/flags` string.
- * An invalid flag part throws a raw SyntaxError from inside Mocha, and only
+ * Invalid flags or an invalid body throw a raw SyntaxError from Mocha, and only
  * once it builds the runner — i.e. unwrapped, after the project compiled. A
  * path-like `/contracts/token` hits exactly this (`token` read as the flags).
  *
@@ -348,14 +349,30 @@ function assertMochaCanCompilePattern(
 
   const [, body, flags] = literal;
 
+  // An empty body can't fail to compile, so only the flags can: checking them
+  // on their own first keeps each failure attributable. A body can be invalid
+  // under otherwise valid flags (e.g. /\a/u), so the two aren't interchangeable.
+  try {
+    new RegExp("", flags);
+  } catch (error) {
+    ensureError(error);
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      { name, pattern, body, flags },
+      error,
+    );
+  }
+
   try {
     // Exactly what Mocha does with `new RegExp(arg[1] || arg[0], arg[2])`: an
     // empty body falls back to the whole matched string.
     new RegExp(body === "" ? pattern : body, flags);
-  } catch {
+  } catch (error) {
+    ensureError(error);
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
-      { name, pattern, body, flags },
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      { value: pattern, name, type: "regexp" },
+      error,
     );
   }
 }
