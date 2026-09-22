@@ -1,10 +1,13 @@
-import type { JsonFragment } from "@ethersproject/abi";
+import type { AbiFragment } from "@nomicfoundation/hardhat-utils/abi";
 
-import { Interface } from "@ethersproject/abi";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  encodeAbiParameters,
+  getAbiConstructorParameters,
+  isAbiEncodingError,
+} from "@nomicfoundation/hardhat-utils/abi";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
  * Encodes constructor arguments for a contract using its ABI.
@@ -19,154 +22,58 @@ import { isObject } from "@nomicfoundation/hardhat-utils/lang";
  * - Overflow errors in numeric arguments
  */
 export async function encodeConstructorArgs(
-  abi: JsonFragment[],
+  abi: AbiFragment[],
   constructorArgs: unknown[],
   contract: string,
 ): Promise<string> {
-  // TODO: consider replacing with @metamask/abi-utils or micro-eth-signer
-  const contractInterface = new Interface(abi);
+  const constructorParameters = getAbiConstructorParameters(abi);
 
   try {
-    // encodeDeploy doesn't catch subtle type mismatches, such as a number
-    // being passed when a string is expected, so we have to validate the
-    // scenario manually. This can happen when the verify plugin is used
-    // programmatically or the constructor arguments are passed
-    // through a module (via --constructor-args-path).
-    const expectedConstructorArgs = contractInterface.deploy.inputs;
-    if (expectedConstructorArgs.length === constructorArgs.length) {
-      constructorArgs.forEach((arg, i) => {
-        const expectedArg = expectedConstructorArgs[i];
-        if (expectedArg.type === "string" && typeof arg !== "string") {
-          throw new HardhatError(
-            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
-              .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
-            {
-              value: String(arg),
-              reason: "invalid string value",
-            },
-          );
-        }
-      });
-    }
-
-    return getUnprefixedHexString(
-      contractInterface.encodeDeploy(constructorArgs),
+    const encodedArgs = await encodeAbiParameters(
+      constructorParameters,
+      constructorArgs,
     );
+
+    return getUnprefixedHexString(encodedArgs);
   } catch (error) {
     ensureError(error);
 
-    if (isInvalidConstructorArgsLengthError(error)) {
+    if (isAbiEncodingError(error, "parameters-length-mismatch")) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
           .INVALID_CONSTRUCTOR_ARGUMENTS_LENGTH,
         {
           contract,
-          requiredArgs: error.count.types,
-          providedArgs: error.count.values,
+          requiredArgs: error.expectedLength,
+          providedArgs: error.providedLength,
         },
+        error,
       );
     }
 
-    if (isInvalidConstructorArgTypeError(error)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
-          .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
-        {
-          value: String(error.value),
-          reason: error.reason,
-        },
-      );
-    }
-
-    if (isConstructorArgOverflowError(error)) {
+    if (isAbiEncodingError(error, "value-out-of-bounds")) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
           .CONSTRUCTOR_ARGUMENT_OVERFLOW,
-        {
-          value: String(error.value),
-        },
+        { value: String(error.value) },
+        error,
       );
     }
 
-    if (HardhatError.isHardhatError(error)) {
-      throw error;
+    if (isAbiEncodingError(error, "invalid-value")) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
+        { value: String(error.value), reason: error.reason },
+        error,
+      );
     }
 
-    const reason =
-      "reason" in error && typeof error.reason === "string"
-        ? error.reason
-        : (error.message ?? "Unknown error");
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
         .CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED,
-      {
-        contract,
-        reason,
-      },
+      { contract, reason: error.message },
+      error,
     );
   }
-}
-
-interface InvalidConstructorArgsLengthErrorType extends Error {
-  code: "INVALID_ARGUMENT";
-  count: {
-    types: number;
-    values: number;
-  };
-}
-
-function isInvalidConstructorArgsLengthError(
-  error: Error,
-): error is InvalidConstructorArgsLengthErrorType {
-  return (
-    "code" in error &&
-    error.code === "INVALID_ARGUMENT" &&
-    "count" in error &&
-    isObject(error.count) &&
-    typeof error.count.types === "number" &&
-    typeof error.count.values === "number"
-  );
-}
-
-interface InvalidConstructorArgErrorType extends Error {
-  code: "INVALID_ARGUMENT";
-  argument: string;
-  value: unknown;
-  reason: string;
-}
-
-function isInvalidConstructorArgTypeError(
-  error: Error,
-): error is InvalidConstructorArgErrorType {
-  return (
-    "code" in error &&
-    error.code === "INVALID_ARGUMENT" &&
-    "argument" in error &&
-    typeof error.argument === "string" &&
-    "value" in error &&
-    "reason" in error &&
-    typeof error.reason === "string" &&
-    error.reason !== "value out-of-bounds"
-  );
-}
-
-interface ConstructorArgOverflowErrorType extends Error {
-  code: "INVALID_ARGUMENT";
-  argument: string;
-  value: unknown;
-  reason: "value out-of-bounds";
-}
-
-function isConstructorArgOverflowError(
-  error: Error,
-): error is ConstructorArgOverflowErrorType {
-  return (
-    "code" in error &&
-    error.code === "INVALID_ARGUMENT" &&
-    "argument" in error &&
-    typeof error.argument === "string" &&
-    "value" in error &&
-    "reason" in error &&
-    error.reason === "value out-of-bounds"
-  );
 }
