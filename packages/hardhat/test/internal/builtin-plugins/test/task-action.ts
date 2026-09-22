@@ -4,7 +4,11 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -469,6 +473,7 @@ describe("test/task-action", function () {
       const received: Array<Record<string, unknown>> = [];
       const hre = await createHardhatRuntimeEnvironment({
         tasks: [solidityNoOp, capturingRunner("runner-a", received)],
+        test: { solidity: { profiles: { default: {}, ci: {} } } },
       });
 
       await hre.tasks.getTask("test").run({
@@ -478,6 +483,22 @@ describe("test/task-action", function () {
 
       assert.equal(received.length, 1);
       assert.equal(received[0].testProfile, "ci");
+    });
+
+    it("rejects an undeclared testProfile before building", async () => {
+      const received: Array<Record<string, unknown>> = [];
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityNoOp, capturingRunner("runner-a", received)],
+      });
+
+      await assertRejectsWithHardhatError(
+        hre.tasks.getTask("test").run({ noCompile: true, testProfile: "nope" }),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_PROFILE_NOT_FOUND,
+        { testProfile: "nope", declaredProfiles: '"default"' },
+      );
+
+      // The subtasks never ran, so nothing was built.
+      assert.equal(received.length, 0);
     });
   });
 });

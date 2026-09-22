@@ -17,7 +17,6 @@ import type {
 } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { getEnvVariableNameFromGlobalOption } from "@nomicfoundation/hardhat-utils/env";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
@@ -43,7 +42,10 @@ import {
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
-import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+import {
+  getTestProfile,
+  resolveTestProfileName,
+} from "./select-test-profile.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -74,28 +76,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
-  // Only global options get an environment variable fallback for free, so we
-  // apply the same naming convention by hand for this task option.
-  const testProfileName =
-    testProfile ??
-    process.env[getEnvVariableNameFromGlobalOption("testProfile")] ??
-    DEFAULT_TEST_PROFILE;
-
-  const testProfiles = hre.config.test.solidity.profiles;
-  const selectedTestProfile = testProfiles[testProfileName];
-
-  if (selectedTestProfile === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_PROFILE_NOT_FOUND,
-      {
-        testProfile: testProfileName,
-        declaredProfiles: Object.keys(testProfiles)
-          .sort() // to match EDR
-          .map((name) => `"${name}"`)
-          .join(", "),
-      },
-    );
-  }
+  const testProfileName = resolveTestProfileName(testProfile);
+  const selectedTestProfile = getTestProfile(hre.config, testProfileName);
 
   const verbosity = hre.globalOptions.verbosity;
 
@@ -298,7 +280,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       eip712CanonicalTypes,
       testSourcePaths,
       testProfile: testProfileName,
-      declaredTestProfiles: Object.keys(testProfiles),
+      declaredTestProfiles: Object.keys(hre.config.test.solidity.profiles),
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({

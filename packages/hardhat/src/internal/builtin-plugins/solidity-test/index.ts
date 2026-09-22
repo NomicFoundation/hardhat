@@ -64,13 +64,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
-      .setAction(async () => ({
-        default: async (args, _hre, runSuper) => {
-          // We don't need to do anything here, as the test task will forward
-          // the arguments to its subtasks.
-          return await runSuper(args);
-        },
-      }))
+      .setAction(async () => await import("./test-task-action.js"))
       .build(),
   ],
   dependencies: () => [
