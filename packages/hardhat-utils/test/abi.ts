@@ -159,6 +159,7 @@ describe("abi", () => {
         );
         assert.equal(
           await encode([{ name: "a", type: "int256" }], [-5]),
+          /* cspell:disable-next-line */
           "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb",
         );
         assert.equal(
@@ -417,6 +418,7 @@ describe("abi", () => {
       it("Should accept negative integers in every numeric form", async () => {
         const parameters = [{ name: "a", type: "int256" }];
         const expected =
+          /* cspell:disable-next-line */
           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffce";
 
         for (const value of [-50, -50n, "-50", "-0x32"]) {
