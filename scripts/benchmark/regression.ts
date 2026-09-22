@@ -28,6 +28,7 @@ import {
   CommandFailedError,
   formatOutput,
   measureShellSpawnOverhead,
+  NO_SPAWN_OVERHEAD,
   runMeasured,
   runPlain,
   runPrepare,
@@ -632,8 +633,10 @@ async function runStepsPhase(
   }
 
   const reports = reportPaths(scenarioTmpDir, seqName);
-  const calibration =
-    samples.size > 0 ? await measureShellSpawnOverhead(peakRssMethod) : 0;
+  const overhead =
+    samples.size > 0
+      ? await measureShellSpawnOverhead(peakRssMethod)
+      : NO_SPAWN_OVERHEAD;
 
   for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
@@ -648,16 +651,11 @@ async function runStepsPhase(
 
       try {
         if (stepRuns !== undefined) {
-          const measured = await runMeasured(
-            step.command,
-            reports,
-            calibration,
-            {
-              cwd: workingDir,
-              env,
-              peakRssMethod,
-            },
-          );
+          const measured = await runMeasured(step.command, reports, overhead, {
+            cwd: workingDir,
+            env,
+            peakRssMethod,
+          });
           stepRuns.push(measured);
           log(
             `  ${stepName} run ${runCounter(run, runs)}: ${formatRun(measured)}`,
