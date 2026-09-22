@@ -1367,9 +1367,6 @@ importers:
 
   packages/hardhat-verify:
     dependencies:
-      '@ethersproject/abi':
-        specifier: ^5.8.0
-        version: 5.8.0
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.16
         version: link:../hardhat-errors

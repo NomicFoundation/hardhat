@@ -10,246 +10,43 @@ describe("constructor-args", () => {
   describe("encodeConstructorArgs", () => {
     const contract = "contracts/TheContract.sol:TheContract";
 
-    it("should encode constructor arguments with static types", async () => {
+    it("should encode the arguments of the constructor declared in the abi", async () => {
       const abi = [
-        {
-          inputs: [{ name: "arg1", type: "uint256" }],
-          type: "constructor",
-        },
-      ];
-      const constructorArgs = [50];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      const expectedEncodedConstructorArgs = [
-        // uint256 (50)
-        "0000000000000000000000000000000000000000000000000000000000000032",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
-    });
-
-    it("should encode constructor arguments with dynamic types", async () => {
-      const abi = [
-        {
-          inputs: [{ name: "arg1", type: "string" }],
-          type: "constructor",
-        },
-      ];
-      const constructorArgs = ["initializer"];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      const expectedEncodedConstructorArgs = [
-        // string offset (32 bytes): after the first slot
-        "0000000000000000000000000000000000000000000000000000000000000020",
-        // string length (11)
-        "000000000000000000000000000000000000000000000000000000000000000b",
-        // string ("initializer")
-        "696e697469616c697a6572000000000000000000000000000000000000000000",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
-    });
-
-    it("should encode constructor arguments with mixed static and dynamic types", async () => {
-      const abi = [
+        { inputs: [], name: "inc", type: "function" },
         {
           inputs: [
             { name: "arg1", type: "uint256" },
-            { name: "arg2", type: "string" },
-            { name: "arg3", type: "address" },
+            { name: "arg2", type: "bool" },
           ],
           type: "constructor",
         },
-      ];
-      const constructorArgs = [
-        50,
-        "initializer",
-        "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+        { inputs: [], name: "Incremented", type: "event" },
       ];
 
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
+      // The result is unprefixed, as it gets appended to the creation bytecode.
+      assert.equal(
+        await encodeConstructorArgs(abi, [50, true], contract),
+        [
+          // arg1: uint256 (50)
+          "0000000000000000000000000000000000000000000000000000000000000032",
+          // arg2: bool (true)
+          "0000000000000000000000000000000000000000000000000000000000000001",
+        ].join(""),
       );
-
-      const expectedEncodedConstructorArgs = [
-        // uint256 (50)
-        "0000000000000000000000000000000000000000000000000000000000000032",
-        // string offset (96 bytes): after the third slot
-        "0000000000000000000000000000000000000000000000000000000000000060",
-        // address (0x752c8191e6b1db38b41a8c8921f7a703f2969d18)
-        "000000000000000000000000752c8191e6b1db38b41a8c8921f7a703f2969d18",
-        // string length (11)
-        "000000000000000000000000000000000000000000000000000000000000000b",
-        // string ("initializer")
-        "696e697469616c697a6572000000000000000000000000000000000000000000",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
     });
 
-    it("should encode constructor arguments with nested tuples", async () => {
-      const abi = [
-        {
-          inputs: [
-            {
-              name: "arg1",
-              type: "tuple",
-              components: [
-                {
-                  name: "x",
-                  type: "uint256",
-                },
-                {
-                  name: "y",
-                  type: "uint256",
-                },
-                {
-                  name: "nestedProperty",
-                  type: "tuple",
-                  components: [
-                    {
-                      name: "x",
-                      type: "uint256",
-                    },
-                    {
-                      name: "y",
-                      type: "uint256",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-          type: "constructor",
-        },
-      ];
-      const constructorArgs = [
-        {
-          x: 8,
-          y: 16,
-          nestedProperty: {
-            x: 32,
-            y: 64,
-          },
-        },
-      ];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
+    it("should encode nothing when the contract takes no constructor arguments", async () => {
+      assert.equal(
+        await encodeConstructorArgs(
+          [{ inputs: [], type: "constructor" }],
+          [],
+          contract,
+        ),
+        "",
       );
 
-      const expectedArguments = [
-        // tuple x (8)
-        "0000000000000000000000000000000000000000000000000000000000000008",
-        // tuple y (16)
-        "0000000000000000000000000000000000000000000000000000000000000010",
-        // nested tuple x (32)
-        "0000000000000000000000000000000000000000000000000000000000000020",
-        // nested tuple y (64)
-        "0000000000000000000000000000000000000000000000000000000000000040",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedArguments);
-    });
-
-    it("should encode constructor arguments with arrays", async () => {
-      const abi = [
-        {
-          inputs: [{ name: "arg1", type: "uint256[]" }],
-          type: "constructor",
-        },
-      ];
-      const constructorArgs = [[1, 2, 3]];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      const expectedEncodedConstructorArgs = [
-        // array offset (32 bytes): after the first slot
-        "0000000000000000000000000000000000000000000000000000000000000020",
-        // array length (3)
-        "0000000000000000000000000000000000000000000000000000000000000003",
-        // first element (1)
-        "0000000000000000000000000000000000000000000000000000000000000001",
-        // second element (2)
-        "0000000000000000000000000000000000000000000000000000000000000002",
-        // third element (3)
-        "0000000000000000000000000000000000000000000000000000000000000003",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
-    });
-
-    it("should encode an empty string", async () => {
-      const abi = [
-        { inputs: [{ name: "arg1", type: "string" }], type: "constructor" },
-      ];
-      const constructorArgs = [""];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      const expectedEncodedConstructorArgs = [
-        // string offset (32 bytes): after the first slot
-        "0000000000000000000000000000000000000000000000000000000000000020",
-        // string length (0)
-        "0000000000000000000000000000000000000000000000000000000000000000",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
-    });
-
-    it("should encode an empty array", async () => {
-      const abi = [
-        { inputs: [{ name: "arg1", type: "uint256[]" }], type: "constructor" },
-      ];
-      const constructorArgs = [[]];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      const expectedEncodedConstructorArgs = [
-        // array offset (32 bytes): after the first slot
-        "0000000000000000000000000000000000000000000000000000000000000020",
-        // array length (0)
-        "0000000000000000000000000000000000000000000000000000000000000000",
-      ].join("");
-      assert.equal(encodedConstructorArgs, expectedEncodedConstructorArgs);
-    });
-
-    it("should encode an empty constructor", async () => {
-      const abi = [
-        {
-          inputs: [],
-          type: "constructor",
-        },
-      ];
-      const constructorArgs: unknown[] = [];
-
-      const encodedConstructorArgs = await encodeConstructorArgs(
-        abi,
-        constructorArgs,
-        contract,
-      );
-
-      assert.equal(encodedConstructorArgs, "");
+      // An ABI with no constructor means an implicit parameterless one.
+      assert.equal(await encodeConstructorArgs([], [], contract), "");
     });
 
     it("should throw if the constructor arguments type is invalid", async () => {
@@ -272,7 +69,7 @@ describe("constructor-args", () => {
           .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
         {
           value: String(constructorArgs[0]),
-          reason: "invalid BigNumber string",
+          reason: "invalid numeric value",
         },
       );
 
@@ -349,6 +146,26 @@ describe("constructor-args", () => {
           .CONSTRUCTOR_ARGUMENT_OVERFLOW,
         {
           value: String(constructorArgs[0]),
+        },
+      );
+    });
+
+    it("should throw if the constructor has a type that can't be encoded", async () => {
+      const abi = [
+        {
+          inputs: [{ name: "arg1", type: "fixed128x18" }],
+          type: "constructor",
+        },
+      ];
+
+      await assertRejectsWithHardhatError(
+        encodeConstructorArgs(abi, [1], contract),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED,
+        {
+          contract,
+          reason:
+            'The type "fixed128x18" of the parameter "arg1" is not supported.',
         },
       );
     });
