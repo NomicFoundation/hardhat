@@ -1,0 +1,50 @@
+diff --git a/test/utils/integration-tests.sol b/test/utils/integration-tests.sol
+index 0a5d4df..e4d8650 100644
+--- a/test/utils/integration-tests.sol
++++ b/test/utils/integration-tests.sol
+@@ -75,16 +75,16 @@ abstract contract ForkTestSetup is Test {
+ 
+     function _setupFork(uint256 chainId, uint256 blockNumber) internal {
+         if (chainId == MAINNET_CHAIN_ID) {
+-            vm.createSelectFork(vm.envString("MAINNET_RPC_URL"));
++            _selectFork("MAINNET_RPC_URL", blockNumber);
+             _lido = LidoUtils.mainnet();
+         } else if (chainId == HOLESKY_CHAIN_ID) {
+-            vm.createSelectFork(vm.envString("HOLESKY_RPC_URL"));
++            _selectFork("HOLESKY_RPC_URL", blockNumber);
+             _lido = LidoUtils.holesky();
+         } else if (chainId == HOODI_CHAIN_ID) {
+-            vm.createSelectFork(vm.envString("HOODI_RPC_URL"));
++            _selectFork("HOODI_RPC_URL", blockNumber);
+             _lido = LidoUtils.hoodi();
+         } else {
+-            vm.createSelectFork(vm.envString("MAINNET_RPC_URL"));
++            _selectFork("MAINNET_RPC_URL", blockNumber);
+             _lido = LidoUtils.devnetDeployment(
+                 LidoUtils.DevnetDeploymentParams({
+                     stEth: vm.envAddress("DG_TESTS_LIDO_ST_ETH"),
+@@ -107,12 +107,21 @@ abstract contract ForkTestSetup is Test {
+             );
+         }
+ 
+-        if (blockNumber != LATEST_FORK_BLOCK_NUMBER) {
+-            vm.rollFork(blockNumber);
+-        }
+         _targetMock = new TargetMock();
+     }
+ 
++    /// Creates and selects the fork directly at `blockNumber` when one is pinned.
++    /// Forking at the head first and rolling afterwards would cost an extra,
++    /// uncacheable set of RPC round trips for the head block.
++    function _selectFork(string memory rpcUrlEnvVariable, uint256 blockNumber) private {
++        string memory rpcUrl = vm.envString(rpcUrlEnvVariable);
++        if (blockNumber == LATEST_FORK_BLOCK_NUMBER) {
++            vm.createSelectFork(rpcUrl);
++        } else {
++            vm.createSelectFork(rpcUrl, blockNumber);
++        }
++    }
++
+     function _getEnvForkBlockNumberOrDefault(uint256 chainId) internal view returns (uint256) {
+         if (chainId == MAINNET_CHAIN_ID) {
+             return _readBlockNumberFromEnvOrDefault("MAINNET_FORK_BLOCK_NUMBER", DEFAULT_MAINNET_FORK_BLOCK_NUMBER);

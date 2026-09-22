@@ -23,11 +23,14 @@ export class DispatcherError extends CustomError {
 }
 
 export class InvalidProxyUrlError extends CustomError {
+  public readonly envVarName: string;
+
   constructor(envVarName: string, cause?: Error) {
     super(
       `The proxy url configured in the ${envVarName} environment variable is not a valid url`,
       cause,
     );
+    this.envVarName = envVarName;
   }
 }
 
