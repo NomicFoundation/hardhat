@@ -138,7 +138,7 @@ const solidityTestProfilesUserConfigType = z.object({
     .record(z.string(), solidityTestProfileUserConfigType)
     .refine(
       (profiles) => DEFAULT_TEST_PROFILE in profiles,
-      "A `default` profile is required when using `profiles`",
+      "The 'default' profile is required when using Solidity test profiles",
     )
     .superRefine((profiles, ctx) => {
       for (const profileName of Object.keys(profiles)) {

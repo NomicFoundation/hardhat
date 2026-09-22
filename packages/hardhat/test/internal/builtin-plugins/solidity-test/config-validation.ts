@@ -78,7 +78,7 @@ describe("config validation", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
-          "\t* Config error in config.test.solidity.profiles: A `default` profile is required when using `profiles`",
+          "\t* Config error in config.test.solidity.profiles: The 'default' profile is required when using Solidity test profiles",
       },
     );
   });
