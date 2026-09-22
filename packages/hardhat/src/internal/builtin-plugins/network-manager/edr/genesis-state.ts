@@ -158,7 +158,7 @@ async function createGenesisStateAndOwnedAccounts(
   );
 
   const chainGenesisState =
-    forkingConfig !== undefined
+    forkingConfig !== undefined && forkingConfig.enabled === true
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
       : getChainGenesisState(hardforkName, chainType);
 
