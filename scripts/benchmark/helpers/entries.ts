@@ -1,6 +1,6 @@
 import { computeStats, mean, type TimingStats } from "./stats.ts";
 import { logWarning } from "./log.ts";
-import { procSamplingAvailable } from "./mem-sampler.ts";
+import type { PeakRssMethod } from "./peak-rss.ts";
 import type { MeasuredRun } from "./runner.ts";
 
 /**
@@ -20,11 +20,15 @@ export interface BenchmarkEntry {
 /**
  * Aggregate the measured runs of one benchmark name into its report entries:
  * wall-clock, "(cpu)" and, when every run has a peak reading, "(peak RSS)".
+ *
+ * `peakRssMethod` is the method the runs were measured with. With none in
+ * use, missing peaks are expected and the startup warning suffices.
  */
 export function measuredRunsToEntries(
   scenarioId: string,
   label: string,
   runs: MeasuredRun[],
+  peakRssMethod: PeakRssMethod | undefined,
 ): BenchmarkEntry[] {
   const peaks: number[] = [];
 
@@ -34,13 +38,9 @@ export function measuredRunsToEntries(
     }
   }
 
-  // A benchmark that missed every reading must warn, or its series
-  // vanishes from the dashboard silently. Without /proc, the startup
-  // warning suffices.
-  if (
-    peaks.length !== runs.length &&
-    (peaks.length > 0 || procSamplingAvailable())
-  ) {
+  // A benchmark that missed a reading must warn, or its series vanishes
+  // from the dashboard silently.
+  if (peakRssMethod !== undefined && peaks.length !== runs.length) {
     logWarning(
       `${scenarioId} / ${label}: peak RSS missing for ` +
         `${runs.length - peaks.length} of ${runs.length} runs — ` +

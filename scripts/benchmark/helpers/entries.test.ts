@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { computeStats, type TimingStats } from "./stats.ts";
 import { measuredRunsToEntries, toCpuEntry, toEntries } from "./entries.ts";
+import { PeakRssMethod } from "./peak-rss.ts";
 import type { MeasuredRun } from "./runner.ts";
 
 // The fixture's mean and median must differ, or a confusion of the two
@@ -73,7 +74,12 @@ describe("measuredRunsToEntries", () => {
   });
 
   it("emits time, memory and cpu entries when every run has a peak", () => {
-    const entries = measuredRunsToEntries("s", "x", [run(1, 100), run(2, 200)]);
+    const entries = measuredRunsToEntries(
+      "s",
+      "x",
+      [run(1, 100), run(2, 200)],
+      PeakRssMethod.GnuTime,
+    );
 
     assert.deepEqual(
       entries.map((e) => e.name),
@@ -82,12 +88,31 @@ describe("measuredRunsToEntries", () => {
     assert.equal(entries[1].value, 150);
   });
 
+  it("emits only time and cpu entries when no method measured memory", () => {
+    const entries = measuredRunsToEntries(
+      "s",
+      "x",
+      [run(1), run(2)],
+      undefined,
+    );
+
+    assert.deepEqual(
+      entries.map((e) => e.name),
+      ["s / x", "s / x (cpu)"],
+    );
+  });
+
   it("drops the memory entry when any run lacks a peak", () => {
     for (const runs of [
       [run(1), run(2)],
       [run(1, 100), run(2)],
     ]) {
-      const entries = measuredRunsToEntries("s", "x", runs);
+      const entries = measuredRunsToEntries(
+        "s",
+        "x",
+        runs,
+        PeakRssMethod.Sampler,
+      );
 
       assert.deepEqual(
         entries.map((e) => e.name),
