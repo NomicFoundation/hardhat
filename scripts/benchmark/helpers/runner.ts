@@ -342,12 +342,16 @@ export class CommandFailedError extends Error {
 }
 
 /**
- * Mean wall-clock and CPU cost of everything a measured run pays besides the
- * command itself: Node's spawn, bash startup and the measurement wrappers.
- * Times the wrapped no-op command `:` {@link CALIBRATION_RUNS} times, costing
- * ~100 ms. Hyperfine applies the same shell-spawn calibration. Callers
- * measure once per benchmark and pass the overhead to every
- * {@link runMeasured}.
+ * What a measured run pays besides the command itself. Wall time covers
+ * everything from Node's spawn to the child's exit: bash startup, the
+ * measurement wrappers, and time spent blocked. CPU time covers only what
+ * runs inside the bash `time` group, which is the subshell and the peak-RSS
+ * wrapper, because the keyword cannot see the bash that runs it. Each figure
+ * is the mean over the wrapped no-op `:` run {@link CALIBRATION_RUNS} times,
+ * costing ~100 ms, and each is subtracted from the reading taken the same
+ * way, so the two need not agree. Hyperfine applies the same shell-spawn
+ * calibration. Callers measure once per benchmark and pass the overhead to
+ * every {@link runMeasured}.
  *
  * `peakRssMethod` must be the one the measured runs use, or the overhead
  * misses the processes that method adds.
