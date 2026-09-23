@@ -162,9 +162,9 @@ export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
   return kbToMb(kb);
 }
 
-// GNU time creates the report on start-up and fills it at exit, so a report
-// that is missing or still empty means the wrapper died before measuring.
-function readGnuTimeReport(memPath: string): string | undefined {
+// GNU time writes the report even when the command fails or dies by signal,
+// so a missing or empty report means the wrapper itself broke.
+function readGnuTimeReport(memPath: string): string {
   let raw: string;
 
   try {
@@ -174,10 +174,14 @@ function readGnuTimeReport(memPath: string): string | undefined {
       throw error;
     }
 
-    return undefined;
+    throw new Error(`GNU time wrote no report at ${memPath}`);
   }
 
-  return raw.trim() === "" ? undefined : raw;
+  if (raw.trim() === "") {
+    throw new Error(`GNU time left an empty report at ${memPath}`);
+  }
+
+  return raw;
 }
 
 /**
@@ -191,8 +195,9 @@ export interface PeakRssRecorder {
   wrapCommand(command: string): string;
   observe(pid: number): void;
   /**
-   * The run's peak RSS in MB, undefined when nothing was measured. Throws
-   * when a measurement was taken but cannot be read.
+   * The run's peak RSS in MB; undefined when the method could observe no
+   * process. Throws when a report the method must produce is missing or
+   * unreadable.
    */
   finish(): number | undefined;
   /** Release the recorder's resources, discarding any measurement. */
@@ -213,13 +218,7 @@ export function createPeakRssRecorder(
     return {
       ...NO_PEAK_RSS_RECORDER,
       wrapCommand: (command) => wrapWithGnuTime(command, memPath),
-      finish: () => {
-        const raw = readGnuTimeReport(memPath);
-
-        return raw === undefined
-          ? undefined
-          : parseGnuTimeMaxRssMb(raw, memPath);
-      },
+      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath), memPath),
     };
   }
 

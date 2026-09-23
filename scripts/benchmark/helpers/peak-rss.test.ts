@@ -166,19 +166,19 @@ describe("createPeakRssRecorder", () => {
     assert.equal(recorder.finish(), undefined);
   });
 
-  it("reports nothing measured when GNU time never wrote its report", () => {
+  it("throws, naming the report, when GNU time never wrote it", () => {
     rmSync(memPath, { force: true });
 
-    assert.equal(
-      createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      undefined,
+    assert.throws(
+      () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
+      new RegExp(memPath),
     );
 
     writeFileSync(memPath, "");
 
-    assert.equal(
-      createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      undefined,
+    assert.throws(
+      () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
+      new RegExp(memPath),
     );
   });
 
