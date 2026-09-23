@@ -61,6 +61,14 @@ describe("resolveMochaGrepFilter", () => {
     );
   });
 
+  it("reports an uncompilable --grep before the config's fgrep conflict", () => {
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter("/x/zz", undefined, { fgrep: "fix" }),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      { name: "--grep", pattern: "/x/zz", body: "x", flags: "zz" },
+    );
+  });
+
   it("keeps the config's invert when a CLI --grep replaces its grep", () => {
     // `invert` is a modifier on whatever the name filter is, not a competing
     // pattern source, so it isn't mutually exclusive with a CLI --grep.
