@@ -17,12 +17,14 @@ import { mean } from "./stats.ts";
  * The measured-command runner for the benchmark drivers.
  *
  * Each measured execution spawns bash once and captures, in a single pass:
- * - wall-clock time (`performance.now()` around the child, minus the
- *   caller-measured calibration offset — see {@link measureShellSpawnOverhead}),
+ * - wall-clock time (`performance.now()` around the child),
  * - CPU time via bash's `time` builtin — it reports the child rusage from
  *   wait(), which Node does not expose,
  * - the peak RSS of the tree's largest single process, through the
  *   caller-selected {@link PeakRssMethod}.
+ *
+ * Wall-clock and CPU times are reported net of the caller-measured spawn
+ * overhead — see {@link measureShellSpawnOverhead}.
  */
 
 // Chatty commands (a full hardhat compile) can emit tens of MiB; cap the
@@ -77,11 +79,11 @@ export interface MeasuredRun {
   /** Calibrated wall-clock seconds (shell-spawn overhead subtracted). */
   wallSeconds: number;
   /**
-   * CPU seconds spent in user mode, whole process tree. Uncalibrated: the
-   * measurement wrappers' own ~2 ms of CPU is included.
+   * Calibrated CPU seconds spent in user mode, whole process tree
+   * (shell-spawn overhead subtracted).
    */
   user: number;
-  /** CPU seconds spent in kernel mode, whole process tree; see `user`. */
+  /** Calibrated CPU seconds spent in kernel mode, whole process tree. */
   system: number;
   /**
    * Peak RSS of the largest single process in MB; undefined when no
@@ -89,6 +91,24 @@ export interface MeasuredRun {
    */
   peakRssMb: number | undefined;
 }
+
+/**
+ * What a measured run costs besides the command itself, in seconds. Each
+ * field is subtracted from its counterpart in {@link MeasuredRun} — see
+ * {@link measureShellSpawnOverhead}.
+ */
+export interface SpawnOverhead {
+  wallSeconds: number;
+  user: number;
+  system: number;
+}
+
+/** The overhead of a run that was not calibrated. */
+export const NO_SPAWN_OVERHEAD: SpawnOverhead = {
+  wallSeconds: 0,
+  user: 0,
+  system: 0,
+};
 
 /**
  * Run a command without measuring it (prerequisite steps, prepare hooks).
@@ -103,18 +123,16 @@ export async function runPlain(
 /**
  * Run a command once and measure wall-clock, CPU and peak RSS.
  *
- * `calibrationSeconds` is the caller-measured shell-spawn overhead to
- * subtract — see {@link measureShellSpawnOverhead}, which must be calibrated
- * with the same `peakRssMethod` as this run.
+ * `overhead` is the caller-measured shell-spawn overhead to subtract — see
+ * {@link measureShellSpawnOverhead}, which must be calibrated with the same
+ * `peakRssMethod` as this run.
  */
 export async function runMeasured(
   command: string,
   reports: ReportPaths,
-  calibrationSeconds: number,
+  overhead: SpawnOverhead,
   options: MeasuredOptions,
 ): Promise<MeasuredRun> {
-  const { cpuTimingPath } = reports;
-
   // A wrapper that dies before its redirect must not leave a previous run's
   // reports to be read as this run's.
   for (const report of Object.values(reports)) {
@@ -133,15 +151,12 @@ export async function runMeasured(
       recorder,
     );
 
-    const cpu = parseCpuTiming(
-      readFileSync(cpuTimingPath, "utf-8"),
-      cpuTimingPath,
-    );
+    const cpu = readCpuTiming(reports.cpuTimingPath);
 
     return {
-      wallSeconds: Math.max(0, wallSeconds - calibrationSeconds),
-      user: cpu.user,
-      system: cpu.system,
+      wallSeconds: netOfOverhead(wallSeconds, overhead.wallSeconds),
+      user: netOfOverhead(cpu.user, overhead.user),
+      system: netOfOverhead(cpu.system, overhead.system),
       peakRssMb: recorder.finish(),
     };
   } catch (error) {
@@ -195,7 +210,7 @@ export async function runSeries(
     ...runOptions
   } = options;
   const prepareOptions = { ...runOptions, ignoreFailure: false };
-  const calibration = await measureShellSpawnOverhead(runOptions.peakRssMethod);
+  const overhead = await measureShellSpawnOverhead(runOptions.peakRssMethod);
 
   for (let i = 0; i < warmup; i++) {
     if (prepare !== undefined) {
@@ -213,7 +228,7 @@ export async function runSeries(
       await runPrepare(prepare, prepareOptions);
     }
 
-    const result = await runMeasured(command, reports, calibration, runOptions);
+    const result = await runMeasured(command, reports, overhead, runOptions);
     results.push(result);
     onRunCompleted?.(result, i, runs);
   }
@@ -256,6 +271,16 @@ export async function runPrepare(
  */
 export function wrapWithCpuTiming(command: string, timingPath: string): string {
   return `{ TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
+}
+
+// Clamped at 0: a command can cost less than the calibration's spread.
+function netOfOverhead(measured: number, overhead: number): number {
+  return Math.max(0, measured - overhead);
+}
+
+/** Read the CPU report a wrapped run wrote to `timingPath`. */
+function readCpuTiming(timingPath: string): { user: number; system: number } {
+  return parseCpuTiming(readFileSync(timingPath, "utf-8"), timingPath);
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
@@ -317,23 +342,30 @@ export class CommandFailedError extends Error {
 }
 
 /**
- * Mean wall-clock cost of everything a measured run pays besides the command
- * itself: Node's spawn, bash startup and the measurement wrappers. Times the
- * wrapped no-op command `:` {@link CALIBRATION_RUNS} times, costing ~100 ms.
- * Hyperfine applies the same shell-spawn calibration. Callers measure once
- * per benchmark and pass the offset to every {@link runMeasured}.
+ * What a measured run pays besides the command itself. Wall time covers
+ * everything from Node's spawn to the child's exit: bash startup, the
+ * measurement wrappers, and time spent blocked. CPU time covers only what
+ * runs inside the bash `time` group, which is the subshell and the peak-RSS
+ * wrapper, because the keyword cannot see the bash that runs it. Each figure
+ * is the mean over the wrapped no-op `:` run {@link CALIBRATION_RUNS} times,
+ * costing ~100 ms, and each is subtracted from the reading taken the same
+ * way, so the two need not agree. Hyperfine applies the same shell-spawn
+ * calibration. Callers measure once per benchmark and pass the overhead to
+ * every {@link runMeasured}.
  *
- * `peakRssMethod` must be the one the measured runs use, or the offset
+ * `peakRssMethod` must be the one the measured runs use, or the overhead
  * misses the processes that method adds.
  */
 export async function measureShellSpawnOverhead(
   peakRssMethod: PeakRssMethod | undefined,
-): Promise<number> {
+): Promise<SpawnOverhead> {
   const dir = mkdtempSync(path.join(tmpdir(), "bench-calibration-"));
   const reports = reportPathsIn(dir, "noop");
 
   try {
     const walls: number[] = [];
+    const users: number[] = [];
+    const systems: number[] = [];
 
     for (let i = 0; i < CALIBRATION_RUNS; i++) {
       const recorder = createPeakRssRecorder(
@@ -347,13 +379,21 @@ export async function measureShellSpawnOverhead(
           { cwd: dir },
           recorder,
         );
+        const cpu = readCpuTiming(reports.cpuTimingPath);
+
         walls.push(wallSeconds);
+        users.push(cpu.user);
+        systems.push(cpu.system);
       } finally {
         recorder.cancel();
       }
     }
 
-    return mean(walls);
+    return {
+      wallSeconds: mean(walls),
+      user: mean(users),
+      system: mean(systems),
+    };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
