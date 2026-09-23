@@ -9,6 +9,7 @@ import {
   ForcePublish,
   UseLocal,
 } from "../../end-to-end/subcommands/init.ts";
+import { parsePeakRssMethod, type PeakRssMethod } from "./peak-rss.ts";
 
 export interface BenchArgs {
   scenarioPath: string;
@@ -21,6 +22,11 @@ export interface BenchArgs {
   prepare: string | undefined;
   ignoreFailure: boolean;
   showOutput: boolean;
+  /**
+   * Explicit `--peak-rss` choice; undefined lets `resolvePeakRssMethod`
+   * auto-select.
+   */
+  peakRssMethod: PeakRssMethod | undefined;
   warmup: number;
   runs: number | undefined;
   exportJson: string | undefined;
@@ -52,6 +58,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
   const prepare = getArgValue(args, "--prepare");
   const ignoreFailure = args.includes("--ignore-failure");
   const showOutput = args.includes("--show-output");
+  const peakRssMethod = parsePeakRssMethod(args);
 
   const warmupRaw = getArgValue(args, "--warmup");
   const warmup = warmupRaw !== undefined ? parseInt(warmupRaw, 10) : 0;
@@ -95,6 +102,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     prepare,
     ignoreFailure,
     showOutput,
+    peakRssMethod,
     warmup,
     runs,
     exportJson,
