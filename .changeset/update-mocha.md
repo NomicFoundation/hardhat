@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat-errors": patch
+"@nomicfoundation/hardhat-errors": minor
 "@nomicfoundation/hardhat-mocha": major
 "@nomicfoundation/hardhat-toolbox-mocha-ethers": major
 ---
