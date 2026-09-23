@@ -307,7 +307,7 @@ describe("resolveMochaGrepFilter", () => {
     });
   }
 
-  it("rejects a path-like --grep with no --grep-exclude", () => {
+  it("rejects a pattern Mocha cannot compile (a path-like) even with no --grep-exclude", () => {
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter("/contracts/token", undefined, {}),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
@@ -320,7 +320,7 @@ describe("resolveMochaGrepFilter", () => {
     );
   });
 
-  it("rejects a path-like string grep in the Mocha config", () => {
+  it("rejects an uncompilable pattern from config", () => {
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter(undefined, undefined, { grep: "/a/bcd" }),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
