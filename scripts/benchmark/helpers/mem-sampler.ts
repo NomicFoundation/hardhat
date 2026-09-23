@@ -11,12 +11,15 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
  * visible only to the process's parent (the spawned bash), not to this
  * driver, so a process that lives and dies between samples is missed
  * entirely. The reported peak is the max over any single process, matching
- * GNU time's semantics (not a sum). One walk costs ~50–200 µs and runs in
- * the otherwise-idle driver process, so it doesn't perturb the measured
- * command.
+ * GNU time's semantics (not a sum). A process can reach its peak in the
+ * last few tens of milliseconds before it exits, so the interval has to
+ * stay well below that ramp: at 100 ms, sub-second commands came out up to
+ * 47% too low. One walk costs ~150 µs over a four-process tree and ~1 ms
+ * over a thirty-process one, so even at this interval the otherwise-idle
+ * driver stays well under one core.
  */
 
-export const SAMPLE_INTERVAL_MS = 100;
+export const SAMPLE_INTERVAL_MS = 10;
 
 let cachedAvailable: boolean | undefined;
 
