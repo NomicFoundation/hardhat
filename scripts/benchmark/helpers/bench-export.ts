@@ -1,3 +1,5 @@
+import { closeSync, openSync } from "node:fs";
+
 import { computeStats, type TimingStats } from "./stats.ts";
 import type { MeasuredRun } from "./runner.ts";
 import { PEAK_RSS_METHOD_NAMES, type PeakRssMethod } from "./peak-rss.ts";
@@ -7,6 +9,15 @@ interface PeakRssSummary {
   perRun: (number | undefined)[];
   /** Undefined when any run lacks a peak. */
   stats: TimingStats | undefined;
+}
+
+/**
+ * Fail on an export path that cannot be written before the benchmark runs
+ * for minutes. An existing report stays intact until the final write
+ * replaces it.
+ */
+export function ensureExportPathWritable(exportPath: string): void {
+  closeSync(openSync(exportPath, "a"));
 }
 
 /** The statistics of every measure, shared by the report and the export. */
