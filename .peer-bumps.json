@@ -8,6 +8,11 @@
   ],
   "bumps": [
     {
+      "package": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "peer": "@nomicfoundation/hardhat-mocha",
+      "reason": "hardhat-mocha drops Mocha 11 and requires Mocha 12 in a breaking major release. The toolbox re-exports hardhat-mocha and peer-depends on it, so its peer range has to move to the new major."
+    },
+    {
       "package": "@nomicfoundation/hardhat-ethers",
       "peer": "hardhat",
       "reason": "The plugin imports `secp256k1PublicKeyFromSecretKey` from `hardhat/internal/native-crypto` to install EDR's native secp256k1 implementation into ethers, and that export is new in the next version of Hardhat."
