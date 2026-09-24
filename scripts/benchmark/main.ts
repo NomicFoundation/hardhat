@@ -200,14 +200,16 @@ function megabytes(mb: number): string {
 
 function report(
   measured: MeasuredRun[],
-  { wall, userMean, systemMean }: RunSummary,
+  { wall, user, system }: RunSummary,
   peakRssMethod: PeakRssMethod | undefined,
 ): void {
   log(`  Time (mean ± σ):     ${seconds(wall.mean)} ± ${seconds(wall.stddev)}`);
   log(
     `  Range (min … max):   ${seconds(wall.min)} … ${seconds(wall.max)}  (${measured.length} runs)`,
   );
-  log(`  CPU (user, system):  ${seconds(userMean)}, ${seconds(systemMean)}`);
+  log(
+    `  CPU (user, system):  ${seconds(user.mean)} ± ${seconds(user.stddev)}, ${seconds(system.mean)} ± ${seconds(system.stddev)}`,
+  );
 
   const peaks = measured
     .map((r) => r.peakRssMb)
