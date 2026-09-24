@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -160,8 +160,11 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     `Warm-up runs: ${warmup}, measured runs: ${runs}, peak RSS: ${peakRssName}`,
   );
 
-  const scenarioTmpDir = path.join(tmpdir(), "hardhat-bench", scenario.id);
-  mkdirSync(scenarioTmpDir, { recursive: true });
+  // A private directory per invocation, so concurrent benchmarks of one
+  // scenario cannot delete or read each other's reports.
+  const scenarioTmpDir = mkdtempSync(
+    path.join(tmpdir(), `hardhat-bench-${scenario.id}-`),
+  );
 
   const measured = await runSeries(
     benchCommand,
@@ -180,7 +183,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
       onRunCompleted: (run, i, total) =>
         log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
     },
-  );
+  ).finally(() => rmSync(scenarioTmpDir, { recursive: true, force: true }));
 
   const summary = summarize(measured);
 
