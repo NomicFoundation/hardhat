@@ -7,23 +7,17 @@ import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { ensureScenarioInitialized } from "../end-to-end/helpers/scenario-setup.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
-import { computeStats } from "./helpers/stats.ts";
-import {
-  buildExport,
-  summarize,
-  type RunSummary,
-} from "./helpers/bench-export.ts";
+import { buildExport, summarize } from "./helpers/bench-export.ts";
+import { formatRun, runCounter, summaryTable } from "./helpers/report.ts";
 import {
   CommandFailedError,
   formatOutput,
   reportPathsIn,
   runSeries,
-  type MeasuredRun,
 } from "./helpers/runner.ts";
 import {
   PEAK_RSS_METHOD_NAMES,
   resolvePeakRssMethod,
-  type PeakRssMethod,
 } from "./helpers/peak-rss.ts";
 
 const DEFAULT_RUNS = 10;
@@ -61,21 +55,26 @@ OPTIONS
   --precompile          Run "npx hardhat compile" in the scenario before
                         benchmarking (useful for warming up compilation caches)
   --prepare <cmd>       Execute CMD unmeasured before each benchmark run
-                        (warmup runs included). Useful for clearing disk
+                        (warm-up runs included). Useful for clearing disk
                         caches or resetting state between runs
-  --warmup <n>          Unmeasured warmup runs before benchmarking (default: 0).
-                        Useful for filling disk caches for I/O-heavy programs
-  --runs <n>            Number of benchmark runs (default: ${DEFAULT_RUNS})
+  --warmup <n>          Unmeasured warm-up runs before benchmarking
+                        (default: 0). Useful for filling disk caches for
+                        I/O-heavy programs
+  --runs <n>            Number of measured runs (default: ${DEFAULT_RUNS})
   --ignore-failure      Ignore non-zero exit codes of the benchmarked command
   --show-output         Print stdout and stderr of the benchmarked command
   --peak-rss <method>   Peak-memory method: "gnu-time" or "sampler" (default:
                         GNU time when available, else the sampler). An
                         explicit choice this machine cannot provide fails at
                         startup
-  --export-json <path>  Write a JSON report to PATH (resolved against the
-                        invoking directory): per-run times with their
-                        statistics, mean user/system CPU time, and each run's
-                        peak RSS (null when unmeasured)
+  --export-json <path>  Write a JSON report to PATH, resolved against the
+                        invoking directory. It holds command, warmupRuns and
+                        measuredRuns. wallSeconds, cpuSeconds (with user and
+                        system nested) and peakRssMb each hold per-run values
+                        in run order with their statistics. peakRssMb is null
+                        without a peak-RSS method. Its statistics are null
+                        when a run lacks a reading. stddev is null for a
+                        single run
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
 
 EXAMPLES
@@ -151,11 +150,13 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
 
   logStep("Running benchmark");
   log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
-  log(`Warmup: ${warmup}, Runs: ${runs}`);
-
-  if (peakRssMethod !== undefined) {
-    log(`Peak RSS method: ${PEAK_RSS_METHOD_NAMES[peakRssMethod]}`);
-  }
+  const peakRssName =
+    peakRssMethod !== undefined
+      ? PEAK_RSS_METHOD_NAMES[peakRssMethod]
+      : "unmeasured";
+  log(
+    `Warm-up runs: ${warmup}, measured runs: ${runs}, peak RSS: ${peakRssName}`,
+  );
 
   const scenarioTmpDir = path.join(tmpdir(), "hardhat-bench", scenario.id);
   mkdirSync(scenarioTmpDir, { recursive: true });
@@ -172,59 +173,40 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
       prepare,
       ignoreFailure,
       showOutput,
-      onWarmupCompleted: (i) => log(`  warmup ${i + 1}/${warmup}`),
-      onRunCompleted: (run, i) =>
-        log(`  run ${i + 1}/${runs}: ${seconds(run.wallSeconds)}`),
+      onWarmupCompleted: (i, total) =>
+        log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
+      onRunCompleted: (run, i, total) =>
+        log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
     },
   );
 
   const summary = summarize(measured);
 
-  report(measured, summary, peakRssMethod);
+  for (const line of summaryTable(summary, warmup, peakRssMethod)) {
+    log(line);
+  }
+
+  const missingPeaks = measured.filter((r) => r.peakRssMb === undefined);
+
+  if (peakRssMethod !== undefined && missingPeaks.length > 0) {
+    logWarning(
+      `peak RSS missing for ${missingPeaks.length} of ${measured.length} ` +
+        "runs, so the summary omits its row" +
+        (exportPath !== undefined
+          ? ", and the export holds only the per-run readings"
+          : ""),
+    );
+  }
 
   if (exportPath !== undefined) {
-    writeFileSync(exportPath, buildExport(benchCommand, measured, summary));
+    writeFileSync(
+      exportPath,
+      buildExport(benchCommand, warmup, summary, peakRssMethod),
+    );
     log(`Report written to ${exportPath}`);
   }
 
   log(fmt.success("Benchmark complete"));
-}
-
-function seconds(s: number): string {
-  return `${s.toFixed(3)} s`;
-}
-
-function megabytes(mb: number): string {
-  return `${mb.toFixed(1)} MB`;
-}
-
-function report(
-  measured: MeasuredRun[],
-  { wall, user, system }: RunSummary,
-  peakRssMethod: PeakRssMethod | undefined,
-): void {
-  log(`  Time (mean ± σ):     ${seconds(wall.mean)} ± ${seconds(wall.stddev)}`);
-  log(
-    `  Range (min … max):   ${seconds(wall.min)} … ${seconds(wall.max)}  (${measured.length} runs)`,
-  );
-  log(
-    `  CPU (user, system):  ${seconds(user.mean)} ± ${seconds(user.stddev)}, ${seconds(system.mean)} ± ${seconds(system.stddev)}`,
-  );
-
-  const peaks = measured
-    .map((r) => r.peakRssMb)
-    .filter((peak) => peak !== undefined);
-
-  if (peaks.length === measured.length) {
-    const rss = computeStats(peaks);
-    log(
-      `  Peak RSS (mean ± σ): ${megabytes(rss.mean)} ± ${megabytes(rss.stddev)}`,
-    );
-  } else if (peakRssMethod !== undefined) {
-    logWarning(
-      `peak RSS missing for ${measured.length - peaks.length} of ${measured.length} runs`,
-    );
-  }
 }
 
 async function cliMain(): Promise<void> {
