@@ -126,8 +126,12 @@ describe("formatInlineConfigErrors", () => {
         `missing "=" in "fuzz.runs 7"`,
       ],
       [
-        { kind: "InlineConfigUnsupportedProfile", profile: "ci" },
-        `unsupported profile "ci". Only the "default" profile is supported`,
+        {
+          kind: "InlineConfigUndeclaredProfile",
+          profile: "ci",
+          declaredProfiles: ["default", "lite"],
+        },
+        `undeclared profile "ci". Declared profiles: "default", "lite"`,
       ],
       [
         { kind: "InlineConfigInvalidKey", key: "default.nope" },

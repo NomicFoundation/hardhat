@@ -5,19 +5,26 @@ import { performance } from "node:perf_hooks";
 import path from "node:path";
 
 import { logWarning } from "./log.ts";
-import { MemorySampler, procSamplingAvailable } from "./mem-sampler.ts";
+import {
+  createPeakRssRecorder,
+  type PeakRssMethod,
+  type PeakRssRecorder,
+} from "./peak-rss.ts";
+import { BASH, shellQuote } from "./shell.ts";
 import { mean } from "./stats.ts";
 
 /**
  * The measured-command runner for the benchmark drivers.
  *
  * Each measured execution spawns bash once and captures, in a single pass:
- * - wall-clock time (`performance.now()` around the child, minus the
- *   caller-measured calibration offset — see {@link measureShellSpawnOverhead}),
+ * - wall-clock time (`performance.now()` around the child),
  * - CPU time via bash's `time` builtin — it reports the child rusage from
  *   wait(), which Node does not expose,
- * - the peak RSS of the tree's largest single process via
- *   {@link MemorySampler}.
+ * - the peak RSS of the tree's largest single process, through the
+ *   caller-selected {@link PeakRssMethod}.
+ *
+ * Wall-clock and CPU times are reported net of the caller-measured spawn
+ * overhead — see {@link measureShellSpawnOverhead}.
  */
 
 // Chatty commands (a full hardhat compile) can emit tens of MiB; cap the
@@ -29,8 +36,27 @@ const CALIBRATION_RUNS = 20;
 
 const STREAM_DRAIN_GRACE_MS = 5_000;
 
-// Absolute path: a scenario env may replace PATH with one that has no bash.
-export const BASH = "/bin/bash";
+/**
+ * Where a measured run's wrappers write their reports. Callers pass paths in
+ * their own temp dir, so a crashed run leaves diagnosable state behind.
+ */
+export interface ReportPaths {
+  /** bash's `time` builtin report, "<user> <system>" in seconds. */
+  cpuTimingPath: string;
+  /** GNU time's peak-RSS report, %M in kB; unused by the sampler. */
+  peakRssPath: string;
+}
+
+/**
+ * One benchmark's report files: `<stem>-cpu.txt` and `<stem>-mem.txt` in
+ * `dir`.
+ */
+export function reportPathsIn(dir: string, stem: string): ReportPaths {
+  return {
+    cpuTimingPath: path.join(dir, `${stem}-cpu.txt`),
+    peakRssPath: path.join(dir, `${stem}-mem.txt`),
+  };
+}
 
 export interface RunOptions {
   cwd: string;
@@ -41,19 +67,48 @@ export interface RunOptions {
   ignoreFailure?: boolean;
 }
 
+export interface MeasuredOptions extends RunOptions {
+  /**
+   * The peak-RSS method to measure with, already resolved by
+   * `resolvePeakRssMethod`; undefined leaves memory unmeasured.
+   */
+  peakRssMethod: PeakRssMethod | undefined;
+}
+
 export interface MeasuredRun {
   /** Calibrated wall-clock seconds (shell-spawn overhead subtracted). */
   wallSeconds: number;
-  /** CPU seconds spent in user mode, whole process tree. */
+  /**
+   * Calibrated CPU seconds spent in user mode, whole process tree
+   * (shell-spawn overhead subtracted).
+   */
   user: number;
-  /** CPU seconds spent in kernel mode, whole process tree. */
+  /** Calibrated CPU seconds spent in kernel mode, whole process tree. */
   system: number;
   /**
-   * Peak RSS of the largest single process in MB; undefined when /proc is
-   * unavailable or no process was sampled.
+   * Peak RSS of the largest single process in MB; undefined when no
+   * peak-RSS method was in use or no process was sampled.
    */
   peakRssMb: number | undefined;
 }
+
+/**
+ * What a measured run costs besides the command itself, in seconds. Each
+ * field is subtracted from its counterpart in {@link MeasuredRun} — see
+ * {@link measureShellSpawnOverhead}.
+ */
+export interface SpawnOverhead {
+  wallSeconds: number;
+  user: number;
+  system: number;
+}
+
+/** The overhead of a run that was not calibrated. */
+export const NO_SPAWN_OVERHEAD: SpawnOverhead = {
+  wallSeconds: 0,
+  user: 0,
+  system: 0,
+};
 
 /**
  * Run a command without measuring it (prerequisite steps, prepare hooks).
@@ -68,46 +123,60 @@ export async function runPlain(
 /**
  * Run a command once and measure wall-clock, CPU and peak RSS.
  *
- * `calibrationSeconds` is the caller-measured shell-spawn overhead to
- * subtract — see {@link measureShellSpawnOverhead}. `timingPath` is where
- * bash's `time` builtin writes its report; callers pass a path in their temp
- * dir so a crashed run leaves diagnosable state behind.
+ * `overhead` is the caller-measured shell-spawn overhead to subtract — see
+ * {@link measureShellSpawnOverhead}, which must be calibrated with the same
+ * `peakRssMethod` as this run.
  */
 export async function runMeasured(
   command: string,
-  timingPath: string,
-  calibrationSeconds: number,
-  options: RunOptions,
+  reports: ReportPaths,
+  overhead: SpawnOverhead,
+  options: MeasuredOptions,
 ): Promise<MeasuredRun> {
   // A wrapper that dies before its redirect must not leave a previous run's
-  // report to be read as this run's.
-  rmSync(timingPath, { force: true });
+  // reports to be read as this run's.
+  for (const report of Object.values(reports)) {
+    rmSync(report, { force: true });
+  }
 
-  const sampler = procSamplingAvailable() ? new MemorySampler() : undefined;
+  const recorder = createPeakRssRecorder(
+    options.peakRssMethod,
+    reports.peakRssPath,
+  );
 
   try {
     const { wallSeconds } = await execute(
-      wrapWithCpuTiming(command, timingPath),
+      wrapForMeasurement(command, reports, recorder),
       options,
-      sampler,
+      recorder,
     );
 
-    const cpu = parseCpuTiming(readFileSync(timingPath, "utf-8"), timingPath);
+    const cpu = readCpuTiming(reports.cpuTimingPath);
 
     return {
-      wallSeconds: Math.max(0, wallSeconds - calibrationSeconds),
-      user: cpu.user,
-      system: cpu.system,
-      peakRssMb: sampler?.stop(),
+      wallSeconds: netOfOverhead(wallSeconds, overhead.wallSeconds),
+      user: netOfOverhead(cpu.user, overhead.user),
+      system: netOfOverhead(cpu.system, overhead.system),
+      peakRssMb: recorder.finish(),
     };
   } catch (error) {
-    // A failed run must still clear the sampler's interval.
-    sampler?.stop();
+    recorder.cancel();
     throw error;
   }
 }
 
-export interface SeriesOptions extends RunOptions {
+function wrapForMeasurement(
+  command: string,
+  reports: ReportPaths,
+  recorder: PeakRssRecorder,
+): string {
+  return wrapWithCpuTiming(
+    recorder.wrapCommand(command),
+    reports.cpuTimingPath,
+  );
+}
+
+export interface SeriesOptions extends MeasuredOptions {
   /** Number of measured runs. */
   runs: number;
   /** Unmeasured warm-up runs before the measured ones (default 0). */
@@ -129,7 +198,7 @@ export interface SeriesOptions extends RunOptions {
  */
 export async function runSeries(
   command: string,
-  timingPath: string,
+  reports: ReportPaths,
   options: SeriesOptions,
 ): Promise<MeasuredRun[]> {
   const {
@@ -141,7 +210,7 @@ export async function runSeries(
     ...runOptions
   } = options;
   const prepareOptions = { ...runOptions, ignoreFailure: false };
-  const calibration = await measureShellSpawnOverhead();
+  const overhead = await measureShellSpawnOverhead(runOptions.peakRssMethod);
 
   for (let i = 0; i < warmup; i++) {
     if (prepare !== undefined) {
@@ -159,12 +228,7 @@ export async function runSeries(
       await runPrepare(prepare, prepareOptions);
     }
 
-    const result = await runMeasured(
-      command,
-      timingPath,
-      calibration,
-      runOptions,
-    );
+    const result = await runMeasured(command, reports, overhead, runOptions);
     results.push(result);
     onRunCompleted?.(result, i, runs);
   }
@@ -209,6 +273,16 @@ export function wrapWithCpuTiming(command: string, timingPath: string): string {
   return `{ TIMEFORMAT='%U %S'; time { ( ${command}\n) ; } 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`;
 }
 
+// Clamped at 0: a command can cost less than the calibration's spread.
+function netOfOverhead(measured: number, overhead: number): number {
+  return Math.max(0, measured - overhead);
+}
+
+/** Read the CPU report a wrapped run wrote to `timingPath`. */
+function readCpuTiming(timingPath: string): { user: number; system: number } {
+  return parseCpuTiming(readFileSync(timingPath, "utf-8"), timingPath);
+}
+
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
 export function parseCpuTiming(
   raw: string,
@@ -229,14 +303,6 @@ export function parseCpuTiming(
   }
 
   return { user, system };
-}
-
-export function shellQuote(value: string): string {
-  if (/^[\w@./:=-]+$/.test(value)) {
-    return value;
-  }
-
-  return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 /**
@@ -276,28 +342,58 @@ export class CommandFailedError extends Error {
 }
 
 /**
- * Mean wall-clock cost of everything a measured run pays besides the command
- * itself: Node's spawn, bash startup and the `time` wrapper. Times the
- * wrapped no-op command `:` {@link CALIBRATION_RUNS} times, costing ~100 ms.
- * Hyperfine applies the same shell-spawn calibration. Callers measure once
- * per benchmark and pass the offset to every {@link runMeasured}.
+ * What a measured run pays besides the command itself. Wall time covers
+ * everything from Node's spawn to the child's exit: bash startup, the
+ * measurement wrappers, and time spent blocked. CPU time covers only what
+ * runs inside the bash `time` group, which is the subshell and the peak-RSS
+ * wrapper, because the keyword cannot see the bash that runs it. Each figure
+ * is the mean over the wrapped no-op `:` run {@link CALIBRATION_RUNS} times,
+ * costing ~100 ms, and each is subtracted from the reading taken the same
+ * way, so the two need not agree. Hyperfine applies the same shell-spawn
+ * calibration. Callers measure once per benchmark and pass the overhead to
+ * every {@link runMeasured}.
+ *
+ * `peakRssMethod` must be the one the measured runs use, or the overhead
+ * misses the processes that method adds.
  */
-export async function measureShellSpawnOverhead(): Promise<number> {
+export async function measureShellSpawnOverhead(
+  peakRssMethod: PeakRssMethod | undefined,
+): Promise<SpawnOverhead> {
   const dir = mkdtempSync(path.join(tmpdir(), "bench-calibration-"));
-  const timingPath = path.join(dir, "noop-cpu.txt");
+  const reports = reportPathsIn(dir, "noop");
 
   try {
     const walls: number[] = [];
+    const users: number[] = [];
+    const systems: number[] = [];
 
     for (let i = 0; i < CALIBRATION_RUNS; i++) {
-      const { wallSeconds } = await execute(
-        wrapWithCpuTiming(":", timingPath),
-        { cwd: dir },
+      const recorder = createPeakRssRecorder(
+        peakRssMethod,
+        reports.peakRssPath,
       );
-      walls.push(wallSeconds);
+
+      try {
+        const { wallSeconds } = await execute(
+          wrapForMeasurement(":", reports, recorder),
+          { cwd: dir },
+          recorder,
+        );
+        const cpu = readCpuTiming(reports.cpuTimingPath);
+
+        walls.push(wallSeconds);
+        users.push(cpu.user);
+        systems.push(cpu.system);
+      } finally {
+        recorder.cancel();
+      }
     }
 
-    return mean(walls);
+    return {
+      wallSeconds: mean(walls),
+      user: mean(users),
+      system: mean(systems),
+    };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -308,7 +404,7 @@ export async function measureShellSpawnOverhead(): Promise<number> {
 async function execute(
   command: string,
   options: RunOptions,
-  sampler?: MemorySampler,
+  recorder?: PeakRssRecorder,
 ): Promise<{ wallSeconds: number }> {
   return new Promise((resolve, reject) => {
     const start = performance.now();
@@ -336,8 +432,8 @@ async function execute(
       logWarning(`stderr capture failed: ${error.message}`),
     );
 
-    if (sampler !== undefined && child.pid !== undefined) {
-      sampler.start(child.pid);
+    if (recorder !== undefined && child.pid !== undefined) {
+      recorder.observe(child.pid);
     }
 
     child.on("error", (error) => {
