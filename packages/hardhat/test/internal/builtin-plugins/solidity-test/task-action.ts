@@ -3,6 +3,7 @@ import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
+import { stripVTControlCharacters } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -45,6 +46,11 @@ const hardhatConfigPartialTests = {
 const hardhatConfigFailingTests = {
   ...hardhatConfig,
   paths: { tests: { solidity: "test/contracts/failing" } },
+};
+
+const hardhatConfigInvalidInlineConfigTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/invalid-inline-config" } },
 };
 
 const hardhatConfigOpTests = {
@@ -282,6 +288,38 @@ describe("solidity-test/task-action", function () {
       assert.ok(
         Array.isArray(result.value.suiteResults),
         "suiteResults should be an array",
+      );
+    });
+
+    it("should print runner errors the same way the CLI prints errors", async () => {
+      // The invalid inline config directive makes the runner fail.
+      hre = await createHardhatRuntimeEnvironment(
+        hardhatConfigInvalidInlineConfigTests,
+      );
+
+      const printed: unknown[] = [];
+      const originalConsoleError = console.error;
+      console.error = (...args: unknown[]) => {
+        printed.push(...args);
+      };
+
+      let result;
+      try {
+        result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+      } finally {
+        console.error = originalConsoleError;
+      }
+
+      assert.equal(result.success, false);
+
+      const output = stripVTControlCharacters(printed.join("\n"));
+      assert.match(output, /^Error HHE821:/);
+      assert.doesNotMatch(
+        output,
+        /HardhatError:|\n\s+at /,
+        "The raw error and its stack trace shouldn't be printed",
       );
     });
 
