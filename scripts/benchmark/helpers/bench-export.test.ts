@@ -1,7 +1,20 @@
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
-import { buildExport, summarize } from "./bench-export.ts";
+import {
+  buildExport,
+  ensureExportPathWritable,
+  summarize,
+} from "./bench-export.ts";
 import { PeakRssMethod } from "./peak-rss.ts";
 import type { MeasuredRun } from "./runner.ts";
 
@@ -146,6 +159,35 @@ describe("buildExport", () => {
         max: null,
         median: null,
       },
+    );
+  });
+});
+
+describe("ensureExportPathWritable", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "bench-export-test-"));
+  after(() => rmSync(dir, { recursive: true, force: true }));
+
+  it("leaves an existing report intact", () => {
+    const file = path.join(dir, "existing.json");
+    writeFileSync(file, "previous report");
+
+    ensureExportPathWritable(file);
+
+    assert.equal(readFileSync(file, "utf8"), "previous report");
+  });
+
+  it("creates a missing file", () => {
+    const file = path.join(dir, "new.json");
+
+    ensureExportPathWritable(file);
+
+    assert.ok(existsSync(file));
+  });
+
+  it("throws for a path in a missing directory", () => {
+    assert.throws(
+      () => ensureExportPathWritable(path.join(dir, "missing", "x.json")),
+      { code: "ENOENT" },
     );
   });
 });

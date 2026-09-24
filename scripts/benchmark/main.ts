@@ -7,7 +7,11 @@ import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { ensureScenarioInitialized } from "../end-to-end/helpers/scenario-setup.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
-import { buildExport, summarize } from "./helpers/bench-export.ts";
+import {
+  buildExport,
+  ensureExportPathWritable,
+  summarize,
+} from "./helpers/bench-export.ts";
 import { formatRun, runCounter, summaryTable } from "./helpers/report.ts";
 import {
   CommandFailedError,
@@ -122,9 +126,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
       : undefined;
 
   if (exportPath !== undefined) {
-    // Created now so an export path that cannot be written fails before
-    // the benchmark spends minutes running.
-    writeFileSync(exportPath, "");
+    ensureExportPathWritable(exportPath);
   }
 
   await ensureScenarioInitialized(
