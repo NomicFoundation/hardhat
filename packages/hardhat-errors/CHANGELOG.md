@@ -1,5 +1,22 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8624](https://github.com/NomicFoundation/hardhat/pull/8624) [`e50cc73`](https://github.com/NomicFoundation/hardhat/commit/e50cc7336b104311519f6fae1f52f3a359016655) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated `mocha` to `^12.0.0`.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+- [#8590](https://github.com/NomicFoundation/hardhat/pull/8590) [`e2ebf54`](https://github.com/NomicFoundation/hardhat/commit/e2ebf54801eceffdcce61a705dcd2609807b51d8) Thanks [@schaable](https://github.com/schaable)! - Added Solidity test profiles, allowing test settings to vary across environments such as local development and CI.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.3.0
+
 ## 3.0.22
 
 ### Patch Changes

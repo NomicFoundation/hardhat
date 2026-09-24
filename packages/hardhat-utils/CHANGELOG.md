@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.3.0
+
+### Minor Changes
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
 ## 4.2.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-errors",
-  "version": "3.0.22",
+  "version": "3.1.0",
   "description": "The different errors that Hardhat can throw",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-errors",
   "repository": {
@@ -55,6 +55,6 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-utils": "workspace:^4.2.0"
+    "@nomicfoundation/hardhat-utils": "workspace:^4.3.0"
   }
 }
