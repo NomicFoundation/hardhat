@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { ArgumentType } from "hardhat/types/arguments";
 
 import { definePlugin } from "../../../plugins.js";
-import { task } from "../../core/config.js";
+import { overrideTask, task } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
@@ -24,6 +24,12 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         name: "chainType",
         description: "The chain type to use",
         defaultValue: "l1",
+      })
+      .addOption({
+        name: "testProfile",
+        description: "The Solidity test profile to use",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addOption({
         name: "grep",
@@ -50,6 +56,15 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         hidden: true,
       })
       .setAction(async () => await import("./task-action.js"))
+      .build(),
+    overrideTask("test")
+      .addOption({
+        name: "testProfile",
+        description: "The Solidity test profile to use (Solidity tests only)",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
+      .setAction(async () => await import("./test-task-action.js"))
       .build(),
   ],
   dependencies: () => [

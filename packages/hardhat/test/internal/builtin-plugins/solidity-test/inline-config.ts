@@ -1,10 +1,13 @@
 import type { TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  createEnvChanges,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test-inline-config/hardhat.config.js";
@@ -19,8 +22,35 @@ const hardhatConfigInvalidTests = {
   paths: { tests: { solidity: "test/invalid" } },
 };
 
+const hardhatConfigProfileTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/profiles" } },
+  test: {
+    solidity: {
+      profiles: {
+        default: { fuzz: { runs: 11 } },
+        ci: { fuzz: { runs: 11 } },
+      },
+    },
+  },
+};
+
 describe("solidity-test/inline-config", () => {
+  // These runs read `HARDHAT_TEST_PROFILE`, and the configs here declare only
+  // the profiles they need, so an ambient value would fail them. The shield has
+  // to last the whole file, so it's restored in `after` rather than after each
+  // test.
+  const envChanges = createEnvChanges();
+
   useFixtureProject("solidity-test-inline-config");
+
+  before(() => {
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
+  });
+
+  after(() => {
+    envChanges.restoreEnvVars();
+  });
 
   it("should apply inline config directives found in the test sources", async () => {
     const hre = await createHardhatRuntimeEnvironment(hardhatConfigValidTests);
@@ -124,5 +154,66 @@ describe("solidity-test/inline-config", () => {
       /Found invalid inline configuration/,
       "EDR's heading line should be stripped from the message",
     );
+  });
+
+  describe("profile-scoped directives", () => {
+    /**
+     * Runs the profile fixture and returns each test's fuzz run count. Both
+     * declared profiles set `fuzz.runs` to 11, so any other value comes from an
+     * inline directive.
+     */
+    async function runsByTest(
+      testProfile?: string,
+    ): Promise<Record<string, bigint>> {
+      const hre = await createHardhatRuntimeEnvironment(
+        hardhatConfigProfileTests,
+      );
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ testProfile });
+
+      assert.equal(result.success, true);
+
+      const runs: Record<string, bigint> = {};
+      for (const testResult of result.value.suiteResults.flatMap(
+        (suiteResult: { testResults: TestResult[] }) => suiteResult.testResults,
+      )) {
+        assert.ok(
+          "runs" in testResult.kind,
+          `${testResult.name} isn't a fuzz test`,
+        );
+        runs[testResult.name] = testResult.kind.runs;
+      }
+      return runs;
+    }
+
+    it("applies unprefixed directives under every profile", async () => {
+      assert.equal((await runsByTest())["testFuzzUnprefixed(uint256)"], 3n);
+      assert.equal((await runsByTest("ci"))["testFuzzUnprefixed(uint256)"], 3n);
+    });
+
+    it("applies a prefixed directive only under its own profile", async () => {
+      // The file config's 11 runs win when the directive doesn't apply.
+      assert.equal(
+        (await runsByTest())["testFuzzDefaultProfileOnly(uint256)"],
+        4n,
+      );
+      assert.equal(
+        (await runsByTest("ci"))["testFuzzDefaultProfileOnly(uint256)"],
+        11n,
+      );
+    });
+
+    it("prefers the selected profile's directive over an unprefixed one", async () => {
+      assert.equal(
+        (await runsByTest())["testFuzzProfileWinsOverUnprefixed(uint256)"],
+        3n,
+      );
+      assert.equal(
+        (await runsByTest("ci"))["testFuzzProfileWinsOverUnprefixed(uint256)"],
+        8n,
+      );
+    });
   });
 });
