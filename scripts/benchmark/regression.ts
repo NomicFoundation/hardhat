@@ -38,6 +38,7 @@ import {
   type ReportPaths,
 } from "./helpers/runner.ts";
 import { shellQuote } from "./helpers/shell.ts";
+import { formatRun, runCounter } from "./helpers/report.ts";
 import {
   GNU_TIME_PATH,
   parsePeakRssMethod,
@@ -736,17 +737,6 @@ function benchmarkError(
       output,
     { cause: error },
   );
-}
-
-function formatRun(run: MeasuredRun): string {
-  return (
-    `${run.wallSeconds.toFixed(3)} s, cpu ${(run.user + run.system).toFixed(3)} s` +
-    (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
-  );
-}
-
-function runCounter(index: number, total: number): string {
-  return `${String(index + 1).padStart(String(total).length)}/${total}`;
 }
 
 // One report file set per command or step sequence, overwritten by each
