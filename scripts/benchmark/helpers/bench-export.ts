@@ -1,18 +1,18 @@
-import { computeStats, mean, type TimingStats } from "./stats.ts";
+import { computeStats, type TimingStats } from "./stats.ts";
 import type { MeasuredRun } from "./runner.ts";
 
-/** The wall-clock and CPU aggregates shared by the report and the export. */
+/** The wall-clock and CPU statistics shared by the report and the export. */
 export interface RunSummary {
   wall: TimingStats;
-  userMean: number;
-  systemMean: number;
+  user: TimingStats;
+  system: TimingStats;
 }
 
 export function summarize(measured: MeasuredRun[]): RunSummary {
   return {
     wall: computeStats(measured.map((r) => r.wallSeconds)),
-    userMean: mean(measured.map((r) => r.user)),
-    systemMean: mean(measured.map((r) => r.system)),
+    user: computeStats(measured.map((r) => r.user)),
+    system: computeStats(measured.map((r) => r.system)),
   };
 }
 
@@ -27,7 +27,7 @@ export function summarize(measured: MeasuredRun[]): RunSummary {
 export function buildExport(
   command: string,
   measured: MeasuredRun[],
-  { wall, userMean, systemMean }: RunSummary,
+  { wall, user, system }: RunSummary,
 ): string {
   return JSON.stringify(
     {
@@ -37,8 +37,8 @@ export function buildExport(
           mean: wall.mean,
           stddev: measured.length > 1 ? wall.stddev : null,
           median: wall.median,
-          user: userMean,
-          system: systemMean,
+          user: user.mean,
+          system: system.mean,
           min: wall.min,
           max: wall.max,
           times: wall.times,
