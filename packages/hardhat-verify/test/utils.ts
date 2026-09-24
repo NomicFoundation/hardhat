@@ -1,4 +1,4 @@
-import type { JsonFragment } from "@ethersproject/abi";
+import type { AbiFragment } from "@nomicfoundation/hardhat-utils/abi";
 import type {
   Interceptable,
   TestDispatcher,
@@ -164,7 +164,7 @@ export async function deployContract(
 
   const encodeConstructorArgsResult = await encodeConstructorArgs(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
-    artifact.abi as JsonFragment[],
+    artifact.abi as AbiFragment[],
     constructorArgs,
     contractName,
   );
