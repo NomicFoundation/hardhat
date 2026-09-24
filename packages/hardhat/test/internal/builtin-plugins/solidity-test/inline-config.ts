@@ -2,6 +2,7 @@ import type { TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { stripVTControlCharacters } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
@@ -67,12 +68,12 @@ describe("solidity-test/inline-config", () => {
       hardhatConfigInvalidTests,
     );
 
-    // The task doesn't rethrow runner errors: it reports them via
-    // console.error and returns an error result.
-    const reportedErrors: unknown[] = [];
+    // The task doesn't rethrow runner errors: it prints them and returns an
+    // error result.
+    const printed: unknown[] = [];
     const originalConsoleError = console.error;
     console.error = (...args: unknown[]) => {
-      reportedErrors.push(...args);
+      printed.push(...args);
     };
 
     let result;
@@ -84,43 +85,36 @@ describe("solidity-test/inline-config", () => {
 
     assert.equal(result.success, false);
 
-    const hardhatErrors = reportedErrors.filter((e) =>
-      HardhatError.isHardhatError(e),
-    );
+    const output = stripVTControlCharacters(printed.join("\n"));
+    const errorCode = `HHE${HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number}`;
     assert.equal(
-      hardhatErrors.length,
+      output.split(`${errorCode}:`).length - 1,
       1,
-      "Expected exactly one HardhatError to be reported",
-    );
-
-    const [error] = hardhatErrors;
-    assert.equal(
-      error.number,
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number,
+      "Expected the error to be reported exactly once",
     );
     // Both invalid directives should be reported in the single error.
     assert.match(
-      error.message,
+      output,
       /testFuzzWithInvalidInlineConfig.*not-a-number/,
       "The error should report the invalid value directive",
     );
     assert.match(
-      error.message,
+      output,
       /testFuzzWithInvalidInlineConfigKey.*not-a-key/,
       "The error should report the invalid key directive",
     );
     assert.match(
-      error.message,
+      output,
       /test\/invalid\/InvalidInlineConfig\.t\.sol/,
       "The error should point at the offending test source",
     );
     assert.doesNotMatch(
-      error.message,
+      output,
       /project\/test\/invalid/,
       "Internal source names should be replaced with user-facing paths",
     );
     assert.doesNotMatch(
-      error.message,
+      output,
       /Found invalid inline configuration/,
       "EDR's heading line should be stripped from the message",
     );

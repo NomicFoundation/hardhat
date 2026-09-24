@@ -17,12 +17,14 @@ import type {
 } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { errorResult, successfulResult } from "../../../utils/result.js";
+import { printErrorMessages } from "../../cli/error-handling/error-handler.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import { getCoverageManager } from "../coverage/helpers/accessors.js";
@@ -353,7 +355,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   if (testRunError !== undefined) {
-    console.error(testRunError);
+    ensureError(testRunError);
+    await printErrorMessages(testRunError, hre.globalOptions.showStackTraces);
     includesErrors = true;
   }
 
