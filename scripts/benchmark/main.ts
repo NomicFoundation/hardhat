@@ -123,8 +123,8 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
       : undefined;
 
   if (exportPath !== undefined) {
-    // Create the file up front, like hyperfine: an unwritable path must not
-    // cost a full benchmark either.
+    // Created now so an export path that cannot be written fails before
+    // the benchmark spends minutes running.
     writeFileSync(exportPath, "");
   }
 
