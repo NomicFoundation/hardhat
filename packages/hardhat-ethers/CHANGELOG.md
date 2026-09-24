@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.2.0
+
+### Minor Changes
+
+- [#8595](https://github.com/NomicFoundation/hardhat/pull/8595) [`562cc0b`](https://github.com/NomicFoundation/hardhat/commit/562cc0b0bed2eb98822f5e302a940f9d20cccb53) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers derive secp256k1 public keys with EDR's native implementation instead of its pure-JS one, speeding up `new Wallet(secretKey)`, `Wallet.createRandom()`, HD wallet derivation and `computeAddress`.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
 ## 4.1.0
 
 ### Minor Changes

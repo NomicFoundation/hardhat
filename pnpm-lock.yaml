@@ -72,10 +72,10 @@ importers:
   packages/example-project:
     devDependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.1.0
+        specifier: workspace:^4.2.0
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.11
@@ -93,7 +93,7 @@ importers:
         specifier: workspace:^3.1.0
         version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.1.0
+        specifier: workspace:^4.0.0
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.11
@@ -144,7 +144,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.17.0
+        specifier: workspace:^3.18.0
         version: link:../hardhat
       mocha:
         specifier: ^12.0.0
@@ -171,10 +171,10 @@ importers:
         specifier: 0.22.0
         version: 0.22.0
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.2.0
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-vendored':
         specifier: workspace:^3.0.4
@@ -262,7 +262,7 @@ importers:
   packages/hardhat-errors:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.2.0
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
@@ -296,10 +296,10 @@ importers:
   packages/hardhat-ethers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.2.0
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -333,7 +333,7 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       hardhat:
-        specifier: workspace:^3.17.0
+        specifier: workspace:^3.18.0
         version: link:../hardhat
       prettier:
         specifier: 3.9.6
@@ -351,7 +351,7 @@ importers:
   packages/hardhat-ethers-chai-matchers:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@types/chai-as-promised':
         specifier: ^8.0.1
@@ -367,7 +367,7 @@ importers:
         specifier: workspace:^4.0.7
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.21
+        specifier: workspace:^4.0.0
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.1.0
@@ -805,10 +805,10 @@ importers:
   packages/hardhat-mocha:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.15
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.2
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -986,10 +986,10 @@ importers:
   packages/hardhat-slang-solx:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.6
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1084,7 +1084,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^4.0.0
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.0
@@ -1099,7 +1099,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.2
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.0
@@ -1368,10 +1368,10 @@ importers:
         specifier: ^5.8.0
         version: 5.8.0
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.16
+        specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.3.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1595,7 +1595,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.17.0
+        specifier: workspace:^3.18.0
         version: link:../..
       typescript:
         specifier: ~6.0.3
@@ -1616,7 +1616,7 @@ importers:
         specifier: workspace:^3.0.12
         version: link:../../../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.21
+        specifier: workspace:^4.0.0
         version: link:../../../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.11
@@ -1632,13 +1632,13 @@ importers:
         version: link:../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.1.0
+        specifier: workspace:^4.2.0
         version: link:../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.1.8
         version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
-        specifier: workspace:^3.0.7
+        specifier: workspace:^4.0.0
         version: link:../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^5.2.3
@@ -1662,7 +1662,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.16.2
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
       hardhat:
-        specifier: workspace:^3.17.0
+        specifier: workspace:^3.18.0
         version: link:../..
       mocha:
         specifier: ^12.0.0
@@ -1677,7 +1677,7 @@ importers:
         specifier: ^22.8.5
         version: 22.20.1
       hardhat:
-        specifier: workspace:^3.17.0
+        specifier: workspace:^3.18.0
         version: link:../..
       typescript:
         specifier: ~6.0.3

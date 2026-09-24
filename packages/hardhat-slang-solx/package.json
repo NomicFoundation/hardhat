@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-slang-solx",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Hardhat plugin for using solx compiler in test builds",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-slang-solx",
   "repository": {
@@ -57,8 +57,8 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.17",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.1.6",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.1.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.3.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "zod": "^3.23.8"
   },
