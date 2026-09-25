@@ -100,6 +100,11 @@ describe("getGenesisStateAndOwnedAccounts", () => {
       );
 
       it(`should include the ${chainType} predeploys when forking is disabled`, async () => {
+        assert.ok(
+          predeployAddresses.length > 0,
+          `There should be predeploys for ${chainType}`,
+        );
+
         const { genesisState } = await getGenesisStateAndOwnedAccounts(
           accounts,
           createForkingConfig(false),
