@@ -42,7 +42,10 @@ import {
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
-import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+import {
+  getTestProfile,
+  resolveTestProfileName,
+} from "./select-test-profile.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -51,6 +54,7 @@ interface TestActionArguments {
   grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
+  testProfile?: string;
 }
 
 export interface SolidityTestRunResult extends TestRunResult {
@@ -58,11 +62,22 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, grepExclude, noCompile, testSummaryIndex },
+  {
+    testFiles,
+    chainType,
+    grep,
+    grepExclude,
+    noCompile,
+    testSummaryIndex,
+    testProfile,
+  },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
+
+  const testProfileName = resolveTestProfileName(testProfile);
+  const selectedTestProfile = getTestProfile(hre.config, testProfileName);
 
   const verbosity = hre.globalOptions.verbosity;
 
@@ -215,8 +230,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const { eip712Types, ...solidityTestConfig } =
-    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+  const { eip712Types, ...solidityTestConfig } = selectedTestProfile;
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -265,6 +279,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         hre.globalOptions.gasStatsJson !== undefined,
       eip712CanonicalTypes,
       testSourcePaths,
+      testProfile: testProfileName,
+      declaredTestProfiles: Object.keys(hre.config.test.solidity.profiles),
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({

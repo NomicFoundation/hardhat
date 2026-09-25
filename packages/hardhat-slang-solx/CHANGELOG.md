@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-slang-solx
 
+## 3.0.4
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
 ## 3.0.3
 
 ### Patch Changes

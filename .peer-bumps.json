@@ -6,11 +6,5 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-ethers",
-      "peer": "hardhat",
-      "reason": "The plugin imports `secp256k1PublicKeyFromSecretKey` from `hardhat/internal/native-crypto` to install EDR's native secp256k1 implementation into ethers, and that export is new in the next version of Hardhat."
-    }
-  ]
+  "bumps": []
 }

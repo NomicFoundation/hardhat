@@ -40,6 +40,8 @@ interface SolidityTestConfigParams {
   generateGasReport: boolean;
   eip712CanonicalTypes?: string[];
   testSourcePaths?: Record<string, string>;
+  testProfile?: string;
+  declaredTestProfiles?: string[];
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
@@ -54,6 +56,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   generateGasReport,
   eip712CanonicalTypes,
   testSourcePaths,
+  testProfile,
+  declaredTestProfiles,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -162,6 +166,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : CollectStackTraces.OnFailure,
     eip712CanonicalTypes,
     testSourcePaths,
+    testProfile,
+    declaredTestProfiles,
   };
 }
 

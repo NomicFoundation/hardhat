@@ -47,7 +47,7 @@
   ],
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.7",
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.21",
+    "@nomicfoundation/hardhat-mocha": "workspace:^4.0.0",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
@@ -60,14 +60,14 @@
     "ethers": "^6.14.0",
     "expect-type": "^1.4.0",
     "hardhat": "workspace:^3.8.0",
-    "mocha": "^11.0.0",
+    "mocha": "^12.0.0",
     "prettier": "3.9.6",
     "rimraf": "^6.1.3",
     "tsx": "^4.23.1",
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-utils": "workspace:^4.1.4",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.3.0",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0",
     "deep-eql": "^5.0.1"

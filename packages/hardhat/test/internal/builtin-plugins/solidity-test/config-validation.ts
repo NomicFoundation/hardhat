@@ -78,18 +78,34 @@ describe("config validation", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
-          "\t* Config error in config.test.solidity.profiles: A `default` profile is required when using `profiles`",
+          "\t* Config error in config.test.solidity.profiles: The 'default' profile is required when using Solidity test profiles",
       },
     );
   });
 
-  it("should throw when the `profiles` wrapper has a non-`default` profile", async () => {
-    const userConfig: HardhatUserConfig = {
+  it("should accept the `profiles` wrapper with non-`default` profiles", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
       test: {
         solidity: {
           profiles: {
             default: { isolate: true },
             ci: { isolate: false },
+          },
+        },
+      },
+    });
+
+    assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
+    assert.equal(hre.config.test.solidity.profiles.ci.isolate, false);
+  });
+
+  it("should throw when a profile name is an inline test configuration key", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: { isolate: true },
+            fuzz: { isolate: false },
           },
         },
       },
@@ -100,9 +116,54 @@ describe("config validation", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
-          "\t* Config error in config.test.solidity.profiles: Only the `default` profile is supported. Other profile names will be supported in a future release.",
+          "\t* Config error in config.test.solidity.profiles.fuzz: `fuzz` can't be used as a profile name, as it's an inline test configuration key",
       },
     );
+  });
+
+  it("should throw when a profile name has invalid characters", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: { isolate: true },
+            "my.profile": { isolate: false },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles.my.profile: Invalid profile name. Profile names must start with a letter or a number, and can only contain letters, numbers, underscores and dashes",
+      },
+    );
+  });
+
+  it("should throw when a profile name starts with a dash or an underscore", async () => {
+    for (const profileName of ["-ci", "_ci"]) {
+      const userConfig: HardhatUserConfig = {
+        test: {
+          solidity: {
+            profiles: {
+              default: { isolate: true },
+              [profileName]: { isolate: false },
+            },
+          },
+        },
+      };
+
+      await assertRejectsWithHardhatError(
+        createHardhatRuntimeEnvironment(userConfig),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+        {
+          errors: `\t* Config error in config.test.solidity.profiles.${profileName}: Invalid profile name. Profile names must start with a letter or a number, and can only contain letters, numbers, underscores and dashes`,
+        },
+      );
+    }
   });
 
   it("should throw when `profiles` is mixed with flat fields", async () => {
