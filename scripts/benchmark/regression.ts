@@ -38,8 +38,11 @@ import {
   type ReportPaths,
 } from "./helpers/runner.ts";
 import { shellQuote } from "./helpers/shell.ts";
+import { formatRun, runCounter } from "./helpers/report.ts";
 import {
   GNU_TIME_PATH,
+  parsePeakRssMethod,
+  PEAK_RSS_METHOD_NAMES,
   PeakRssMethod,
   resolvePeakRssMethod,
 } from "./helpers/peak-rss.ts";
@@ -96,14 +99,15 @@ DESCRIPTION
   their per-run samples in the "extra" field; "(cpu)" entries carry their
   mean user/system there instead.
 
-  Every measured run is additionally wrapped in GNU time, whose %M reports
-  the exact peak RSS of the largest single process among the descendants
-  the wrapper waits for. This is emitted as a separate
+  Every measured run also records the peak RSS of the largest single
+  process in its tree, emitted as a separate
   "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the mean
   of the per-run peaks, with the peaks themselves and their statistics
   (mean/stddev/min/max/median) in the entry's extra.
-  GNU time is required, so this benchmark is Linux-only: without
-  ${GNU_TIME_PATH} (Debian/Ubuntu package "time") it fails at startup.
+  The default method wraps each run in GNU time, whose %M reading is exact.
+  Without ${GNU_TIME_PATH} (Debian/Ubuntu package "time") the benchmark
+  fails at startup. "--peak-rss sampler" measures via /proc instead, which
+  can miss a short-lived peak. Both methods are Linux-only.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -125,6 +129,7 @@ OPTIONS
                         potentially overwriting its current contents
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
+  --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -165,6 +170,7 @@ interface RegressionArgs {
   forcePublish: ForcePublish;
   e2eCloneDirectory: string;
   failFast: boolean;
+  peakRssMethod: PeakRssMethod;
 }
 
 interface ScenarioEntry {
@@ -174,7 +180,15 @@ interface ScenarioEntry {
 }
 
 async function main(): Promise<void> {
-  const args = resolveArgs(process.argv.slice(2));
+  let args: RegressionArgs | undefined;
+
+  try {
+    args = resolveArgs(process.argv.slice(2));
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return;
+  }
 
   if (args === undefined) {
     console.log(USAGE);
@@ -198,12 +212,14 @@ async function main(): Promise<void> {
   let peakRssMethod: PeakRssMethod;
 
   try {
-    peakRssMethod = resolvePeakRssMethod(PeakRssMethod.GnuTime);
+    peakRssMethod = resolvePeakRssMethod(args.peakRssMethod);
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
     return;
   }
+
+  log(`Peak RSS method: ${PEAK_RSS_METHOD_NAMES[peakRssMethod]}`);
 
   const results: BenchmarkEntry[] = [];
   const failures: string[] = [];
@@ -335,6 +351,8 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
   const failFast = argv.includes("--fail-fast");
 
+  const peakRssMethod = parsePeakRssMethod(argv) ?? PeakRssMethod.GnuTime;
+
   const e2eCloneDirectory =
     getArgValue(argv, "--e2e-clone-dir") ??
     process.env.E2E_CLONE_DIR ??
@@ -350,6 +368,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
     forcePublish,
     e2eCloneDirectory,
     failFast,
+    peakRssMethod,
   };
 }
 
@@ -718,17 +737,6 @@ function benchmarkError(
       output,
     { cause: error },
   );
-}
-
-function formatRun(run: MeasuredRun): string {
-  return (
-    `${run.wallSeconds.toFixed(3)} s, cpu ${(run.user + run.system).toFixed(3)} s` +
-    (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
-  );
-}
-
-function runCounter(index: number, total: number): string {
-  return `${String(index + 1).padStart(String(total).length)}/${total}`;
 }
 
 // One report file set per command or step sequence, overwritten by each

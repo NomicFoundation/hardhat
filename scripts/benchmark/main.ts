@@ -1,16 +1,40 @@
-import { init as e2eInit } from "../end-to-end/subcommands/init.ts";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
+import { ensureScenarioInitialized } from "../end-to-end/helpers/scenario-setup.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
+import {
+  buildExport,
+  ensureExportPathWritable,
+  summarize,
+} from "./helpers/bench-export.ts";
+import { formatRun, runCounter, summaryTable } from "./helpers/report.ts";
+import {
+  CommandFailedError,
+  formatOutput,
+  reportPathsIn,
+  runSeries,
+} from "./helpers/runner.ts";
+import {
+  PEAK_RSS_METHOD_NAMES,
+  resolvePeakRssMethod,
+} from "./helpers/peak-rss.ts";
 
 const DEFAULT_RUNS = 10;
 
 const USAGE = `
-scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
+scripts/benchmark/main.ts — Benchmark Hardhat scenarios
 
 DESCRIPTION
-  Initializes an e2e scenario and benchmarks a command using hyperfine.
+  Initializes an e2e scenario and benchmarks a command, reporting
+  wall-clock time, CPU time and peak memory (RSS) across the runs.
+  Timings exclude the shell's own start-up cost. Peak memory needs GNU
+  time or Linux /proc; without either (e.g. macOS) it is skipped with a
+  warning.
   Use --use-local to detect changed packages, publish them to Verdaccio,
   and pin the scenario to those versions before benchmarking.
 
@@ -18,34 +42,43 @@ OPTIONS
   --scenario <path>     Scenario folder or scenario.json (required)
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
   --init                Force (re-)initialization of the scenario even if it is
-                        already set up. Without this flag, an existing scenario
-                        setup is reused and only (re-)initialized on demand
+                        already set up. Without this flag, an existing setup is
+                        reused; a missing working directory is initialized
+                        automatically
   --use-local           Detect packages changed since their release tag, bump
                         versions, publish to Verdaccio, and pin scenario deps to
                         the published versions. If Verdaccio is already running,
                         publish is skipped (the existing registry contents are
                         reused) unless --force-publish is also passed.
                         Only applies when init runs
-  --force-checkout      Force git checkouts even if there are uncommitted changes in the scenario working directory
+  --force-checkout      Force git checkouts even if there are uncommitted changes
+                        in the scenario working directory
   --force-publish       Force publishing to an already-running Verdaccio instance,
                         potentially overwriting its current contents.
                         Only applies when init runs
   --precompile          Run "npx hardhat compile" in the scenario before
                         benchmarking (useful for warming up compilation caches)
-  --prepare <cmd>       Execute CMD before each timing run. Forwarded to
-                        hyperfine's --prepare flag. Useful for clearing disk
+  --prepare <cmd>       Execute CMD unmeasured before each benchmark run
+                        (warm-up runs included). Useful for clearing disk
                         caches or resetting state between runs
-  --warmup <n>          Warmup runs before benchmarking (default: 0). Forwarded
-                        to hyperfine's --warmup flag. Useful for filling disk
-                        caches for I/O-heavy programs
-  --runs <n>            Number of benchmark runs (default: ${DEFAULT_RUNS}).
-                        Forwarded to hyperfine's --runs flag
-  --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
-                        Forwarded to hyperfine's --ignore-failure flag
-  --show-output         Print stdout and stderr of the benchmarked command.
-                        Forwarded to hyperfine's --show-output flag
-  --export-json <path>  Write hyperfine's JSON report to PATH. Forwarded to
-                        hyperfine's --export-json flag
+  --warmup <n>          Unmeasured warm-up runs before benchmarking
+                        (default: 0). Useful for filling disk caches for
+                        I/O-heavy programs
+  --runs <n>            Number of measured runs (default: ${DEFAULT_RUNS})
+  --ignore-failure      Ignore non-zero exit codes of the benchmarked command
+  --show-output         Print stdout and stderr of the benchmarked command
+  --peak-rss <method>   Peak-memory method: "gnu-time" or "sampler" (default:
+                        GNU time when available, else the sampler). An
+                        explicit choice this machine cannot provide fails at
+                        startup
+  --export-json <path>  Write a JSON report to PATH, resolved against the
+                        invoking directory. It holds command, warmupRuns and
+                        measuredRuns. wallSeconds, cpuSeconds (with user and
+                        system nested) and peakRssMb each hold per-run values
+                        in run order with their statistics. peakRssMb is null
+                        without a peak-RSS method. Its statistics are null
+                        when a run lacks a reading. stddev is null for a
+                        single run
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
 
 EXAMPLES
@@ -81,16 +114,29 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   const benchCommand = command ?? scenario.definition.defaultCommand;
   const runs = benchArgs.runs ?? DEFAULT_RUNS;
 
-  if (init) {
-    logStep("Initializing scenario");
-    await e2eInit(
-      e2eCloneDirectory,
-      scenarioPath,
-      useLocal,
-      forceCheckout,
-      forcePublish,
-    );
+  // Resolve before scenario setup: an explicit --peak-rss this machine
+  // cannot provide must fail here, not after minutes of init and precompile.
+  const peakRssMethod = resolvePeakRssMethod(benchArgs.peakRssMethod);
+
+  // pnpm runs scripts from the package root; INIT_CWD preserves the
+  // directory the user actually invoked from.
+  const exportPath =
+    exportJson !== undefined
+      ? path.resolve(process.env.INIT_CWD ?? process.cwd(), exportJson)
+      : undefined;
+
+  if (exportPath !== undefined) {
+    ensureExportPathWritable(exportPath);
   }
+
+  await ensureScenarioInitialized(
+    e2eCloneDirectory,
+    scenarioPath,
+    useLocal,
+    forceCheckout,
+    forcePublish,
+    init,
+  );
 
   if (precompile) {
     logStep("Precompiling (npx hardhat compile)");
@@ -105,87 +151,126 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   }
 
   logStep("Running benchmark");
-  const hyperfineCommand = buildHyperfineCommand(
-    benchCommand,
-    warmup,
-    runs,
-    prepare,
-    ignoreFailure,
-    showOutput,
-    exportJson,
-  );
-
   log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
-  log(`Warmup: ${warmup}, Runs: ${runs}`);
-
-  await e2eExec(
-    e2eCloneDirectory,
-    scenarioPath,
-    hyperfineCommand,
-    useLocal,
-    forceCheckout,
-    forcePublish,
+  const peakRssName =
+    peakRssMethod !== undefined
+      ? PEAK_RSS_METHOD_NAMES[peakRssMethod]
+      : "unmeasured";
+  log(
+    `Warm-up runs: ${warmup}, measured runs: ${runs}, peak RSS: ${peakRssName}`,
   );
+
+  // A private directory per invocation, so concurrent benchmarks of one
+  // scenario cannot delete or read each other's reports.
+  const scenarioTmpDir = mkdtempSync(
+    path.join(tmpdir(), `hardhat-bench-${scenario.id}-`),
+  );
+
+  const measured = await runSeries(
+    benchCommand,
+    reportPathsIn(scenarioTmpDir, "bench"),
+    {
+      cwd: scenario.workingDir,
+      env: scenario.definition.env,
+      peakRssMethod,
+      runs,
+      warmup,
+      prepare,
+      ignoreFailure,
+      showOutput,
+      onWarmupCompleted: (i, total) =>
+        log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
+      onRunCompleted: (run, i, total) =>
+        log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
+    },
+  ).finally(() => rmSync(scenarioTmpDir, { recursive: true, force: true }));
+
+  const summary = summarize(measured);
+
+  for (const line of summaryTable(summary, warmup, peakRssMethod)) {
+    log(line);
+  }
+
+  const missingPeaks = measured.filter((r) => r.peakRssMb === undefined);
+
+  if (peakRssMethod !== undefined && missingPeaks.length > 0) {
+    logWarning(
+      `peak RSS missing for ${missingPeaks.length} of ${measured.length} ` +
+        "runs, so the summary omits its row" +
+        (exportPath !== undefined
+          ? ", and the export holds only the per-run readings"
+          : ""),
+    );
+  }
+
+  if (exportPath !== undefined) {
+    writeFileSync(
+      exportPath,
+      buildExport(benchCommand, warmup, summary, peakRssMethod),
+    );
+    log(`Report written to ${exportPath}`);
+  }
 
   log(fmt.success("Benchmark complete"));
 }
 
 async function cliMain(): Promise<void> {
-  const benchArgs = resolveAndValidateArgs(process.argv.slice(2));
-
-  if (benchArgs === undefined) {
-    console.log(USAGE);
-    return;
-  }
+  let benchArgs: BenchArgs | undefined;
 
   try {
+    benchArgs = resolveAndValidateArgs(process.argv.slice(2));
+
+    if (benchArgs === undefined) {
+      console.log(USAGE);
+      return;
+    }
+
     await runBenchmark(benchArgs);
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
     }
 
-    logError(error.message);
+    logError(failureMessage(error, benchArgs));
     process.exit(1);
   }
 }
 
-function buildHyperfineCommand(
-  command: string,
-  warmup: number,
-  runs: number,
-  prepare: string | undefined,
-  ignoreFailure: boolean,
-  showOutput: boolean,
-  exportJson: string | undefined,
+/**
+ * For a CommandFailedError, the message gains its captured output and only
+ * the applicable rerun hints. `error.command` is set when prepare failed
+ * rather than the benchmarked command; --ignore-failure cannot help there.
+ * A hint is also dropped when its flag is already set.
+ */
+function failureMessage(
+  error: Error,
+  benchArgs: BenchArgs | undefined,
 ): string {
-  const parts: string[] = ["hyperfine"];
-
-  if (warmup > 0) {
-    parts.push("--warmup", String(warmup));
+  if (!(error instanceof CommandFailedError)) {
+    return error.message;
   }
 
-  parts.push("--runs", String(runs));
+  const output = formatOutput({ stdout: error.stdout, stderr: error.stderr });
+  const message = error.message + (output === "" ? "" : `\n${output}`);
 
-  if (prepare !== undefined) {
-    parts.push("--prepare", `'${prepare}'`);
+  if (error.command !== undefined) {
+    return `${message}\n  Failing command: ${error.command}`;
   }
 
-  if (ignoreFailure) {
-    parts.push("--ignore-failure");
+  const hints = [
+    ...(benchArgs?.showOutput === true
+      ? []
+      : ["--show-output to stream the command's output"]),
+    ...(benchArgs?.ignoreFailure === true
+      ? []
+      : ["--ignore-failure to tolerate non-zero exit codes"]),
+  ];
+
+  if (hints.length === 0) {
+    return message;
   }
 
-  if (showOutput) {
-    parts.push("--show-output");
-  }
-
-  if (exportJson !== undefined) {
-    parts.push("--export-json", `'${exportJson}'`);
-  }
-
-  parts.push(`'${command}'`);
-
-  return parts.join(" ");
+  return `${message}\n  Rerun with ${hints.join(", or\n  ")}.`;
 }
 
 if (import.meta.main) {

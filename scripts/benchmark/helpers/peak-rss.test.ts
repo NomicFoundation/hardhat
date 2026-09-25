@@ -7,6 +7,7 @@ import {
   createPeakRssRecorder,
   GNU_TIME_PATH,
   parseGnuTimeMaxRssMb,
+  parsePeakRssMethod,
   PeakRssMethod,
   resolvePeakRssMethod,
   wrapWithGnuTime,
@@ -119,6 +120,18 @@ describe("resolvePeakRssMethod", () => {
     );
   });
 
+  it("suggests the sampler only when it would work", () => {
+    assert.throws(
+      () =>
+        resolvePeakRssMethod(PeakRssMethod.GnuTime, AVAILABILITY.samplerOnly),
+      /--peak-rss sampler/,
+    );
+    assert.throws(
+      () => resolvePeakRssMethod(PeakRssMethod.GnuTime, AVAILABILITY.neither),
+      (error: Error) => !error.message.includes("--peak-rss sampler"),
+    );
+  });
+
   it("throws when the sampler is requested but /proc is unusable", () => {
     assert.throws(
       () =>
@@ -146,6 +159,47 @@ describe("resolvePeakRssMethod", () => {
       resolvePeakRssMethod(undefined, AVAILABILITY.neither),
       undefined,
     );
+  });
+});
+
+describe("parsePeakRssMethod", () => {
+  it("maps each CLI spelling to its method", () => {
+    assert.equal(
+      parsePeakRssMethod(["--peak-rss", "gnu-time"]),
+      PeakRssMethod.GnuTime,
+    );
+    assert.equal(
+      parsePeakRssMethod(["--runs", "3", "--peak-rss", "sampler"]),
+      PeakRssMethod.Sampler,
+    );
+  });
+
+  it("passes an absent flag through for the caller's default", () => {
+    assert.equal(parsePeakRssMethod([]), undefined);
+    assert.equal(parsePeakRssMethod(["--runs", "3"]), undefined);
+  });
+
+  it("rejects a flag without a value instead of applying the default", () => {
+    assert.throws(
+      () => parsePeakRssMethod(["--peak-rss"]),
+      /--peak-rss requires a value/,
+    );
+  });
+
+  it("rejects an unknown spelling and names the accepted ones", () => {
+    assert.throws(
+      () => parsePeakRssMethod(["--peak-rss", "auto"]),
+      /gnu-time, sampler.*"auto"/,
+    );
+    assert.throws(() => parsePeakRssMethod(["--peak-rss", ""]));
+    // Wrong case is a distinct spelling, not an alias.
+    assert.throws(() => parsePeakRssMethod(["--peak-rss", "GNU-TIME"]));
+  });
+
+  it("rejects Object.prototype keys", () => {
+    for (const raw of ["constructor", "toString", "__proto__"]) {
+      assert.throws(() => parsePeakRssMethod(["--peak-rss", raw]));
+    }
   });
 });
 
