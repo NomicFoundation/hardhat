@@ -71,9 +71,16 @@ export async function getGenesisStateAndOwnedAccounts(
   genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
 }> {
+  // The genesis state only depends on the forking config when forking is
+  // enabled, so a disabled config is cached as if there were no forking config
+  const forkingConfigCacheKey =
+    forkingConfig !== undefined && forkingConfig.enabled === true
+      ? forkingConfig
+      : noForkingConfigCacheMarkerObject;
+
   const cached = genesisStateAndAccountsCache
     .get(accountsConfig)
-    ?.get(forkingConfig ?? noForkingConfigCacheMarkerObject)
+    ?.get(forkingConfigCacheKey)
     ?.get(chainType)
     ?.get(hardforkName);
 
@@ -86,7 +93,7 @@ export async function getGenesisStateAndOwnedAccounts(
     // operation initialized it while we were waiting to acquire the mutex
     const cachedAfterWaiting = genesisStateAndAccountsCache
       .get(accountsConfig)
-      ?.get(forkingConfig ?? noForkingConfigCacheMarkerObject)
+      ?.get(forkingConfigCacheKey)
       ?.get(chainType)
       ?.get(hardforkName);
 
@@ -107,8 +114,6 @@ export async function getGenesisStateAndOwnedAccounts(
       genesisStateAndAccountsCache.set(accountsConfig, secondLevelCacheMap);
     }
 
-    const forkingConfigCacheKey =
-      forkingConfig ?? noForkingConfigCacheMarkerObject;
     let thirdLevelCacheMap = secondLevelCacheMap.get(forkingConfigCacheKey);
     if (thirdLevelCacheMap === undefined) {
       thirdLevelCacheMap = new Map();
@@ -158,7 +163,7 @@ async function createGenesisStateAndOwnedAccounts(
   );
 
   const chainGenesisState =
-    forkingConfig !== undefined
+    forkingConfig !== undefined && forkingConfig.enabled === true
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
       : getChainGenesisState(hardforkName, chainType);
 

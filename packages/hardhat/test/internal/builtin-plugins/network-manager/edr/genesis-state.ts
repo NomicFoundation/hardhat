@@ -1,4 +1,7 @@
-import type { EdrNetworkAccountsConfig } from "../../../../../src/types/config.js";
+import type {
+  EdrNetworkAccountsConfig,
+  EdrNetworkForkingConfig,
+} from "../../../../../src/types/config.js";
 import type { AccountOverride } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
@@ -8,11 +11,18 @@ import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { hexToBytes } from "ethereum-cryptography/utils";
 
 import {
+  getChainGenesisState,
   getGenesisStateAndOwnedAccounts,
   mergeGenesisState,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/genesis-state.js";
-import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
-import { L1_CHAIN_TYPE } from "../../../../../src/internal/constants.js";
+import {
+  L1HardforkName,
+  OpHardforkName,
+} from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
+import {
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
 describe("getGenesisStateAndOwnedAccounts", () => {
@@ -70,6 +80,62 @@ describe("getGenesisStateAndOwnedAccounts", () => {
     assert.notEqual(result1, result2);
     assert.notEqual(result2, result3);
     assert.notEqual(result3, result1);
+  });
+
+  describe("with a forking config", () => {
+    function createForkingConfig(enabled: boolean): EdrNetworkForkingConfig {
+      return {
+        enabled,
+        url: new FixedValueConfigurationVariable("http://localhost:8545"),
+        cacheDir: "edr-fork-cache",
+      };
+    }
+
+    for (const [chainType, hardfork] of [
+      [L1_CHAIN_TYPE, L1HardforkName.PRAGUE],
+      [OPTIMISM_CHAIN_TYPE, OpHardforkName.ISTHMUS],
+    ] as const) {
+      const predeployAddresses = getChainGenesisState(hardfork, chainType).map(
+        ({ address }) => bytesToHexString(address),
+      );
+
+      it(`should include the ${chainType} predeploys when forking is disabled`, async () => {
+        assert.ok(
+          predeployAddresses.length > 0,
+          `There should be predeploys for ${chainType}`,
+        );
+
+        const { genesisState } = await getGenesisStateAndOwnedAccounts(
+          accounts,
+          createForkingConfig(false),
+          chainType,
+          hardfork,
+        );
+
+        for (const address of predeployAddresses) {
+          assert.ok(
+            genesisState.has(address),
+            `The predeploy ${address} should be in the genesis state`,
+          );
+        }
+      });
+
+      it(`should not include the ${chainType} predeploys when forking is enabled`, async () => {
+        const { genesisState } = await getGenesisStateAndOwnedAccounts(
+          accounts,
+          createForkingConfig(true),
+          chainType,
+          hardfork,
+        );
+
+        for (const address of predeployAddresses) {
+          assert.ok(
+            !genesisState.has(address),
+            `The predeploy ${address} shouldn't be in the genesis state`,
+          );
+        }
+      });
+    }
   });
 
   describe("mergeGenesisState", () => {
