@@ -95,9 +95,10 @@ DESCRIPTION
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — single command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
-  entry with the total CPU time (user+system). Wall-clock entries carry
-  their per-run samples in the "extra" field; "(cpu)" entries carry their
-  mean user/system there instead.
+  entry with the total CPU time (user+system). Both carry their per-run
+  samples and statistics (times/min/max/median/mean) in the "extra" field;
+  the "(cpu)" entry nests the same shape per user/system split under
+  "user" and "system".
 
   Every measured run also records the peak RSS of the largest single
   process in its tree, emitted as a separate
