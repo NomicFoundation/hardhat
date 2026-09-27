@@ -3173,6 +3173,7 @@ submodule2/=lib/submodule2/src/`,
               files: {
                 "contracts/A.sol": `A`,
                 "contracts/B.sol": `B`,
+                "contracts/.DotFile.sol": `Dot`,
                 "lib/submodule/src/C.sol": `C`,
                 "lib/submodule/src/asd/D.sol": `D`,
                 "lib/submodule/test/E.sol": `E`,
@@ -3263,6 +3264,13 @@ submodule2/=lib/submodule2/src/`,
               contractsA.value,
               "B.sol",
               "./B.sol",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              contractsA.value,
+              ".DotFile.sol",
+              "./.DotFile.sol",
             );
 
             await assertSuggestedRelativeImport(

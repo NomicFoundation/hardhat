@@ -957,9 +957,11 @@ export class ResolverImplementation implements Resolver {
             candidateFsPath,
           );
           const relativeSourceName = fsPathToSourceNamePath(relativeFsPath);
-          const suggestedRelativeImport = relativeSourceName.startsWith(".")
-            ? relativeSourceName
-            : `./${relativeSourceName}`;
+          const suggestedRelativeImport =
+            relativeSourceName.startsWith("./") ||
+            relativeSourceName.startsWith("../")
+              ? relativeSourceName
+              : `./${relativeSourceName}`;
 
           return {
             type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
@@ -969,7 +971,19 @@ export class ResolverImplementation implements Resolver {
           };
         }
 
-        baseDir = path.dirname(baseDir);
+        if (baseDir === from.package.rootFsPath) {
+          break;
+        }
+
+        const nextBaseDir = path.dirname(baseDir);
+        if (
+          nextBaseDir === baseDir ||
+          !nextBaseDir.startsWith(from.package.rootFsPath)
+        ) {
+          break;
+        }
+
+        baseDir = nextBaseDir;
       }
 
       return undefined;
