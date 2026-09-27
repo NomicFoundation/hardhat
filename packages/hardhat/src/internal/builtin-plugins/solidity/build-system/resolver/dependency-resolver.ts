@@ -26,6 +26,7 @@ import path from "node:path";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   exists,
+  isDirectory,
   TrueCasePathResolver,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
@@ -942,6 +943,38 @@ export class ResolverImplementation implements Resolver {
     importPath: string;
   }): Promise<ImportResolutionError | undefined> {
     let baseDir = path.dirname(from.fsPath);
+
+    if (!importPath.includes("/")) {
+      while (baseDir.startsWith(from.package.rootFsPath)) {
+        const candidateFsPath = path.join(baseDir, importPath);
+
+        if (
+          (await exists(candidateFsPath)) &&
+          !(await isDirectory(candidateFsPath))
+        ) {
+          const relativeFsPath = path.relative(
+            path.dirname(from.fsPath),
+            candidateFsPath,
+          );
+          const relativeSourceName = fsPathToSourceNamePath(relativeFsPath);
+          const suggestedRelativeImport = relativeSourceName.startsWith(".")
+            ? relativeSourceName
+            : `./${relativeSourceName}`;
+
+          return {
+            type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+            fromFsPath: from.fsPath,
+            importPath,
+            suggestedRelativeImport,
+          };
+        }
+
+        baseDir = path.dirname(baseDir);
+      }
+
+      return undefined;
+    }
+
     const firstDir = importPath.substring(0, importPath.indexOf("/"));
     // If there's no directory separator, or the import is just a directory
     // we don't suggest a remapping

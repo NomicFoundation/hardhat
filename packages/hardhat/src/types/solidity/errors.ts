@@ -272,7 +272,8 @@ export interface DirectImportToLocalFileError {
   type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
   fromFsPath: string;
   importPath: string;
-  suggestedRemapping: string;
+  suggestedRemapping?: string;
+  suggestedRelativeImport?: string;
 }
 
 export type ImportResolutionError =
