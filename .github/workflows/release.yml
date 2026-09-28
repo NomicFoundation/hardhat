@@ -45,7 +45,7 @@ jobs:
         env:
           # NOTE: If we use the default GITHUB_TOKEN to create the release PR, the checks on the release PR will not be triggered automatically
           GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
-        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           title: Version Packages (v3)
           version: pnpm version-for-release
