@@ -8,7 +8,7 @@ import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCES_MATCHER } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
-import { assertIsNotNull } from "../utils/asserts.js";
+import { assertIsNotNull, checkTransactionResponse } from "../utils/asserts.js";
 import { getAddresses, getBalances } from "../utils/balance.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { ordinal } from "../utils/ordinal.js";
@@ -134,11 +134,22 @@ function validateInput(
 
 export async function getBalanceChanges(
   ethers: HardhatEthers,
-  transaction: TransactionResponse | Promise<TransactionResponse>,
+  transaction:
+    | TransactionResponse
+    | Promise<TransactionResponse>
+    | (() => Promise<TransactionResponse> | TransactionResponse),
   accounts: Array<Addressable | string>,
   options?: BalanceChangeOptions,
 ): Promise<bigint[]> {
-  const txResponse = await transaction;
+  let txResponse: TransactionResponse;
+
+  if (typeof transaction === "function") {
+    txResponse = await transaction();
+  } else {
+    txResponse = await transaction;
+  }
+
+  checkTransactionResponse(txResponse, CHANGE_ETHER_BALANCES_MATCHER);
 
   const txReceipt = await txResponse.wait();
   assertIsNotNull(

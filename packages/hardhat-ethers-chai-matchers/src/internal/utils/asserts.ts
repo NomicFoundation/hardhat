@@ -1,6 +1,8 @@
 import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
+import type { TransactionResponse } from "ethers/providers";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { assert as chaiAssert } from "chai";
 import { keccak256 } from "ethers/crypto";
 import { getBytes, hexlify, isHexString, toUtf8Bytes } from "ethers/utils";
@@ -12,6 +14,21 @@ export function assertIsNotNull<T>(
   errorMessage: string,
 ): asserts value is Exclude<T, null> {
   chaiAssert.notEqual(value, null, errorMessage);
+}
+
+export function checkTransactionResponse(
+  txResponse: unknown,
+  methodName: string,
+): asserts txResponse is TransactionResponse {
+  if (
+    !isObject(txResponse) ||
+    !("wait" in txResponse) ||
+    typeof txResponse.wait !== "function"
+  ) {
+    chaiAssert.fail(
+      `The subject of "${methodName}" must be a transaction response (or a promise of one)`,
+    );
+  }
 }
 
 export function assertArgsArraysEqual(

@@ -484,6 +484,41 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
             `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200`,
           );
         });
+
+        it("should throw when subject is not a transaction response", async () => {
+          await expect(
+            expect(123n).to.changeEtherBalances(
+              ethers,
+              [sender, receiver],
+              [-200, 200],
+            ),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalances" must be a transaction response (or a promise of one)',
+          );
+
+          await expect(
+            expect(Promise.resolve(123n)).to.changeEtherBalances(
+              ethers,
+              [sender, receiver],
+              [-200, 200],
+            ),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalances" must be a transaction response (or a promise of one)',
+          );
+
+          await expect(
+            expect(() => 123n).to.changeEtherBalances(
+              ethers,
+              [sender, receiver],
+              [-200, 200],
+            ),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalances" must be a transaction response (or a promise of one)',
+          );
+        });
       });
     });
 

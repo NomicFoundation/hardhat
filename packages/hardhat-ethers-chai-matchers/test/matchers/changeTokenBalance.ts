@@ -770,6 +770,63 @@ describe(
               "Transferred value is zero",
             );
           });
+
+          it("subject is not a transaction response", async () => {
+            await expect(
+              expect(123n).to.changeTokenBalance(
+                ethers,
+                mockToken,
+                sender,
+                -50,
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(Promise.resolve(123n)).to.changeTokenBalance(
+                ethers,
+                mockToken,
+                sender,
+                -50,
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(() => 123n).to.changeTokenBalance(
+                ethers,
+                mockToken,
+                sender,
+                -50,
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(null).to.changeTokenBalance(
+                ethers,
+                mockToken,
+                sender,
+                -50,
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect({}).to.changeTokenBalance(ethers, mockToken, sender, -50),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+          });
         });
 
         describe(CHANGE_TOKEN_BALANCES_MATCHER, () => {
@@ -892,6 +949,39 @@ describe(
               Error,
               // check that the error message includes the revert reason
               "Transferred value is zero",
+            );
+          });
+
+          it("subject is not a transaction response", async () => {
+            await expect(
+              expect(123n).to.changeTokenBalances(
+                ethers,
+                mockToken,
+                [sender, receiver],
+                [-50, 50],
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(Promise.resolve(123n)).to.changeTokenBalances(
+                ethers,
+                mockToken,
+                [sender, receiver],
+                [-50, 50],
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(123n).to.changeTokenBalances(ethers, mockToken, [], []),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
             );
           });
         });
