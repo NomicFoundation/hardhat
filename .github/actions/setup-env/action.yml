@@ -26,7 +26,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       with:
         version: ${{ inputs.pnpm-version }}
     - id: setup-node
@@ -51,9 +51,12 @@ runs:
     # We need to install it because downloading the prebuilt binaries is not
     # reliable, so the CI sometimes falls back to building it from source,
     # which needs this package.
+    #
+    # `time` is GNU /usr/bin/time: bench:regression and the benchmark runner
+    # tests measure peak RSS with it.
     - name: Install Linux system dependencies
       if: runner.os == 'Linux'
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+        sudo apt-get install -y libusb-1.0-0-dev libudev-dev time

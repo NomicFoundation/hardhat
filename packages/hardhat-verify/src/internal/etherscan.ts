@@ -31,10 +31,8 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
-  getProxyUrl,
   getRequest,
   postFormRequest,
-  shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
 const log = createDebug("hardhat:verify:etherscan");
@@ -181,12 +179,7 @@ export class Etherscan implements VerificationProvider {
     this.url = etherscanConfig.url;
     this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 
-    const proxyUrl = shouldUseProxy(this.apiUrl)
-      ? getProxyUrl(this.apiUrl)
-      : undefined;
-    this.dispatcherOrDispatcherOptions =
-      etherscanConfig.dispatcher ??
-      (proxyUrl !== undefined ? { proxy: proxyUrl } : {});
+    this.dispatcherOrDispatcherOptions = etherscanConfig.dispatcher ?? {};
 
     this.pollingIntervalMs =
       etherscanConfig.dispatcher !== undefined

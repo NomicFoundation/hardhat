@@ -609,6 +609,18 @@ The value is not shown, as configuration variables are meant to hold secrets.`,
 
 The value is not shown, as configuration variables are meant to hold secrets.`,
       },
+      INVALID_PROXY_URL: {
+        number: 31,
+        messageTemplate: `The proxy URL configured in the {envVarName} environment variable is not a valid URL.
+
+Expected format: http://host:port (or https://host:port).`,
+        websiteTitle: "Invalid proxy URL",
+        websiteDescription: `The HTTP or HTTPS proxy set in the environment is not a valid URL.
+
+Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must be an HTTP or HTTPS URL, for example \`http://host:port\` or \`https://host:port\`.
+
+The configured value is not shown, as proxy URLs may contain credentials.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -1412,6 +1424,14 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
         websiteDescription:
           "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
       },
+      TEST_PROFILE_NOT_FOUND: {
+        number: 822,
+        messageTemplate: `The Solidity test profile "{testProfile}" is not defined in your Hardhat config. Declared profiles: {declaredProfiles}`,
+        websiteTitle: "Solidity test profile not defined",
+        websiteDescription: `The Solidity test profile you are trying to use is not defined in your Hardhat config.
+
+Declare it under \`test.solidity.profiles\`, or select one of the profiles you already declared.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
@@ -1461,7 +1481,9 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
         websiteTitle: "`solc` download failed",
         websiteDescription: `Couldn't download \`solc\`.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       VERSION_LIST_DOWNLOAD_FAILED: {
         number: 905,
@@ -1470,7 +1492,9 @@ Please check your internet connection and try again.`,
         websiteTitle: "Couldn't obtain `solc` version list",
         websiteDescription: `Couldn't download \`solc\`'s version list.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 906,
@@ -2510,6 +2534,13 @@ Please try again later.`,
         websiteDescription:
           "--grep and the `fgrep` Mocha config option are competing name filters, and Mocha applies only one of them; its own CLI rejects the pair as mutually exclusive. Remove `fgrep` from your config, or run without --grep.",
       },
+      INVALID_GREP_REGEX_LITERAL: {
+        number: 30005,
+        messageTemplate: `The {name} pattern "{pattern}" cannot be used: Mocha reads it as the regular-expression literal /{body}/{flags}, and "{flags}" is not a valid set of regular-expression flags.`,
+        websiteTitle: "Invalid regex literal in a Mocha name filter",
+        websiteDescription:
+          "Mocha reads a name filter of the form `/pattern/flags` as a regular-expression literal: it strips the outer slashes and compiles the rest with the trailing letters as flags. When those letters are not valid regular-expression flags, Mocha cannot compile the pattern at all. This most often happens with a path-like value such as `/contracts/token`, where `token` is read as the flags. Escape the leading slash (`\\/contracts/token`) to match it as plain text, or drop the surrounding slashes.",
+      },
     },
   },
   HARDHAT_VIEM: {
@@ -3411,7 +3442,9 @@ solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
         websiteTitle: "solx download failed",
         websiteDescription: `The solx compiler binary could not be downloaded from the solx releases mirror used by Hardhat.
 
-Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.`,
+Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       BINARY_NOT_FOUND: {
         number: 110002,
@@ -3427,7 +3460,9 @@ Verify that the path in your Hardhat config points to a valid solx binary.`,
         websiteTitle: "Couldn't obtain the solx checksum",
         websiteDescription: `Every solx binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
 
-Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment. If you are behind a proxy that intercepts HTTPS traffic, it may be blocking or rewriting the request.`,
+Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 110004,

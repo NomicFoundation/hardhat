@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.0
+
+### Minor Changes
+
+- [#8584](https://github.com/NomicFoundation/hardhat/pull/8584) [`4c323f8`](https://github.com/NomicFoundation/hardhat/commit/4c323f852b5c71662971065d05744e70de732e89) Thanks [@kanej](https://github.com/kanej)! - Update the deployment visualization's dependencies to their latest major versions, including React 19 and Mermaid 11.
+
 ## 3.1.2
 
 ### Patch Changes

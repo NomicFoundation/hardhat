@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-mocha
 
+## 4.0.0
+
+### Major Changes
+
+- [#8624](https://github.com/NomicFoundation/hardhat/pull/8624) [`e50cc73`](https://github.com/NomicFoundation/hardhat/commit/e50cc7336b104311519f6fae1f52f3a359016655) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated `mocha` to `^12.0.0`.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
 ## 3.1.0
 
 ### Minor Changes

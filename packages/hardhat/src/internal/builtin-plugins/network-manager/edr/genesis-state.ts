@@ -1,3 +1,4 @@
+import type { L1HardforkName, OpHardforkName } from "./types/hardfork.js";
 import type {
   EdrNetworkAccountsConfig,
   EdrNetworkForkingConfig,
@@ -65,16 +66,23 @@ export async function getGenesisStateAndOwnedAccounts(
   accountsConfig: EdrNetworkAccountsConfig,
   forkingConfig: EdrNetworkForkingConfig | undefined,
   chainType: ChainType,
-  specId: string,
+  hardforkName: L1HardforkName | OpHardforkName,
 ): Promise<{
   genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
 }> {
+  // The genesis state only depends on the forking config when forking is
+  // enabled, so a disabled config is cached as if there were no forking config
+  const forkingConfigCacheKey =
+    forkingConfig !== undefined && forkingConfig.enabled === true
+      ? forkingConfig
+      : noForkingConfigCacheMarkerObject;
+
   const cached = genesisStateAndAccountsCache
     .get(accountsConfig)
-    ?.get(forkingConfig ?? noForkingConfigCacheMarkerObject)
+    ?.get(forkingConfigCacheKey)
     ?.get(chainType)
-    ?.get(specId);
+    ?.get(hardforkName);
 
   if (cached !== undefined) {
     return cached;
@@ -85,9 +93,9 @@ export async function getGenesisStateAndOwnedAccounts(
     // operation initialized it while we were waiting to acquire the mutex
     const cachedAfterWaiting = genesisStateAndAccountsCache
       .get(accountsConfig)
-      ?.get(forkingConfig ?? noForkingConfigCacheMarkerObject)
+      ?.get(forkingConfigCacheKey)
       ?.get(chainType)
-      ?.get(specId);
+      ?.get(hardforkName);
 
     if (cachedAfterWaiting !== undefined) {
       return cachedAfterWaiting;
@@ -97,7 +105,7 @@ export async function getGenesisStateAndOwnedAccounts(
       accountsConfig,
       forkingConfig,
       chainType,
-      specId,
+      hardforkName,
     );
 
     let secondLevelCacheMap = genesisStateAndAccountsCache.get(accountsConfig);
@@ -106,8 +114,6 @@ export async function getGenesisStateAndOwnedAccounts(
       genesisStateAndAccountsCache.set(accountsConfig, secondLevelCacheMap);
     }
 
-    const forkingConfigCacheKey =
-      forkingConfig ?? noForkingConfigCacheMarkerObject;
     let thirdLevelCacheMap = secondLevelCacheMap.get(forkingConfigCacheKey);
     if (thirdLevelCacheMap === undefined) {
       thirdLevelCacheMap = new Map();
@@ -120,7 +126,7 @@ export async function getGenesisStateAndOwnedAccounts(
       thirdLevelCacheMap.set(chainType, fourthLevelCacheMap);
     }
 
-    fourthLevelCacheMap.set(specId, result);
+    fourthLevelCacheMap.set(hardforkName, result);
 
     return result;
   });
@@ -130,7 +136,7 @@ async function createGenesisStateAndOwnedAccounts(
   accountsConfig: EdrNetworkAccountsConfig,
   forkingConfig: EdrNetworkForkingConfig | undefined,
   chainType: ChainType,
-  specId: string,
+  hardforkName: L1HardforkName | OpHardforkName,
 ): Promise<{
   genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
@@ -157,15 +163,25 @@ async function createGenesisStateAndOwnedAccounts(
   );
 
   const chainGenesisState =
-    forkingConfig !== undefined
+    forkingConfig !== undefined && forkingConfig.enabled === true
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
-      : chainType === OPTIMISM_CHAIN_TYPE
-        ? opGenesisState(opHardforkFromString(specId))
-        : l1GenesisState(l1HardforkFromString(specId));
+      : getChainGenesisState(hardforkName, chainType);
 
   mergeGenesisState(genesisState, chainGenesisState);
 
   return { genesisState, ownedAccounts };
+}
+
+/**
+ * Returns the local predeploys for the given hardfork and chain type.
+ */
+export function getChainGenesisState(
+  hardforkName: L1HardforkName | OpHardforkName,
+  chainType: ChainType,
+): AccountOverride[] {
+  return chainType === OPTIMISM_CHAIN_TYPE
+    ? opGenesisState(opHardforkFromString(hardforkName))
+    : l1GenesisState(l1HardforkFromString(hardforkName));
 }
 
 export function mergeGenesisState(

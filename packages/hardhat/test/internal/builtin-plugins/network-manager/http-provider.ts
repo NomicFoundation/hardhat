@@ -1,19 +1,13 @@
 import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertRejectsWithHardhatError,
-  createTestEnvManager,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import {
-  HttpProvider,
-  getHttpDispatcher,
-} from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
+import { HttpProvider } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import {
   ProviderError,
   LimitExceededError,
@@ -512,68 +506,6 @@ describe("http-provider", () => {
         method: "eth_blockNumber",
       });
       assert.equal(blockNumberResult, jsonRpcBlockNumberResponse.result);
-    });
-  });
-
-  describe("getHttpDispatcher", () => {
-    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
-
-    // Each case below names the variable it covers and sets only that one, so
-    // a proxy configured in the environment running the tests would otherwise
-    // decide the result through one of the fallbacks instead. NO_PROXY is
-    // cleared too, as `getHttpDispatcher` checks it before the proxy variables.
-    beforeEach(() => {
-      for (const name of [
-        "http_proxy",
-        "HTTP_PROXY",
-        "https_proxy",
-        "HTTPS_PROXY",
-        "NO_PROXY",
-      ]) {
-        unsetEnvVar(name);
-      }
-    });
-
-    it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "Pool");
-    });
-
-    it("should return a pool dispatcher when shouldUseProxy returns false", async () => {
-      setEnvVar("http_proxy", "http://proxy.com");
-      // shouldUseProxy returns false for localhost, so getProxyUrl should return undefined
-      const dispatcher = await getHttpDispatcher("http://localhost");
-
-      assert.equal(dispatcher.constructor.name, "Pool");
-    });
-
-    it("should return a proxy dispatcher when http_proxy env var is set", async () => {
-      setEnvVar("http_proxy", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when HTTP_PROXY env var is set", async () => {
-      setEnvVar("HTTP_PROXY", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when https_proxy env var is set", async () => {
-      setEnvVar("https_proxy", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("https://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when HTTPS_PROXY env var is set", async () => {
-      setEnvVar("HTTPS_PROXY", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("https://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
     });
   });
 

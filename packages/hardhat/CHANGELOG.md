@@ -1,5 +1,50 @@
 # hardhat
 
+## 3.18.0
+
+### Minor Changes
+
+- [#8574](https://github.com/NomicFoundation/hardhat/pull/8574) [`e28e4f5`](https://github.com/NomicFoundation/hardhat/commit/e28e4f5ccb952913046ac4c14b09fb0db45f5b25) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Removed the pre-Byzantium hardforks (`chainstart`, `homestead`, `dao`, `tangerineWhistle`, `spuriousDragon`) from the accepted `hardfork` and `hardforkHistory` values, as EDR cannot execute them.
+
+- [#8595](https://github.com/NomicFoundation/hardhat/pull/8595) [`562cc0b`](https://github.com/NomicFoundation/hardhat/commit/562cc0b0bed2eb98822f5e302a940f9d20cccb53) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers derive secp256k1 public keys with EDR's native implementation instead of its pure-JS one, speeding up `new Wallet(secretKey)`, `Wallet.createRandom()`, HD wallet derivation and `computeAddress`.
+
+- [#8590](https://github.com/NomicFoundation/hardhat/pull/8590) [`e2ebf54`](https://github.com/NomicFoundation/hardhat/commit/e2ebf54801eceffdcce61a705dcd2609807b51d8) Thanks [@schaable](https://github.com/schaable)! - Added Solidity test profiles, allowing test settings to vary across environments such as local development and CI.
+
+### Patch Changes
+
+- [#8635](https://github.com/NomicFoundation/hardhat/pull/8635) [`ad92657`](https://github.com/NomicFoundation/hardhat/commit/ad92657292c160cd7bdf8cc80a2386a0ebf83d43) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Upgraded EDR to v0.22.0.
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+- [#8624](https://github.com/NomicFoundation/hardhat/pull/8624) [`1377eb0`](https://github.com/NomicFoundation/hardhat/commit/1377eb049a54f0b1bcb911141729356c2a2958da) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated `mocha` to `^12.0.0` in the `hardhat --init` mocha-ethers template project.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
+## 3.17.0
+
+### Minor Changes
+
+- [#8501](https://github.com/NomicFoundation/hardhat/pull/8501) [`5faee42`](https://github.com/NomicFoundation/hardhat/commit/5faee42584ec0a27454914aadf08fee6057dfd23) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add `gasEstimationMode` config option to EDR networks, featuring a `"noInternalOutOfGas"` mode to prevent misleading `eth_estimateGas` results when internal calls run out of gas.
+
+- [#8580](https://github.com/NomicFoundation/hardhat/pull/8580) [`8583e24`](https://github.com/NomicFoundation/hardhat/commit/8583e24c13e5fecd238734f8698867c945541f5d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers use EDR's native Keccak-256 instead of its pure-JS one.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
+### Patch Changes
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`0acd737`](https://github.com/NomicFoundation/hardhat/commit/0acd737df2e04781d6f035c79bfdac480e67b703) Thanks [@schaable](https://github.com/schaable)! - Fixed configuration variables to stop printing of values in error messages.
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`78f613c`](https://github.com/NomicFoundation/hardhat/commit/78f613c1f390cd0d39ef239a387505bc5d5dfdad) Thanks [@schaable](https://github.com/schaable)! - Fixed error shown when an HD key cannot be derived, to only include the derivation path.
+
+- [#8594](https://github.com/NomicFoundation/hardhat/pull/8594) [`0fc2dca`](https://github.com/NomicFoundation/hardhat/commit/0fc2dca0e12b3ed1a7491ea9e7ac934b861b31c6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Upgrade to EDR v0.20.0.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.16.0
 
 ### Minor Changes

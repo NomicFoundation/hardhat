@@ -112,7 +112,7 @@ export function getNodeErrorCode(
  * Traversal stops when a cause is not an Error, a cycle is detected, or
  * `maxCauseDepth` is reached.
  */
-function getErrorChain(error: Error, maxCauseDepth = 10): Error[] {
+export function getErrorChain(error: Error, maxCauseDepth = 10): Error[] {
   const errors: Error[] = [];
   const seen = new Set<Error>();
 

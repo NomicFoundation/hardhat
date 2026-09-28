@@ -12,7 +12,7 @@ import type {
 export type PlannedCommand = CommandData | StepData;
 
 /**
- * A single command benchmarked with hyperfine. `emit` says whether to report it
+ * A single benchmarked command. `emit` says whether to report it
  * (it may run purely as a prerequisite of a later command). When not emitted,
  * the command runs once instead of its configured `runs` — its dependents only
  * observe that it ran once before them.

@@ -28,25 +28,6 @@ describe("native keccak256 registration", () => {
     );
   });
 
-  it("should not register again on later calls", () => {
-    const digestBefore = ethers.keccak256("0x1337");
-
-    ethers.keccak256.register(() => SENTINEL_DIGEST);
-    try {
-      registerNativeKeccak256();
-
-      assert.equal(
-        ethers.keccak256("0x1337"),
-        ethers.hexlify(SENTINEL_DIGEST),
-        "a repeated call shouldn't overwrite an implementation registered after the first one",
-      );
-    } finally {
-      ethers.keccak256.register(nativeKeccak256);
-    }
-
-    assert.equal(ethers.keccak256("0x1337"), digestBefore);
-  });
-
   it("should hash pooled-Buffer views correctly through ethers", () => {
     const pool = Buffer.alloc(64);
     const pooled = pool.subarray(
@@ -128,5 +109,28 @@ describe("native keccak256 registration", () => {
       ethers.TypedDataEncoder.hash(domain, types, value),
       "0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2",
     );
+  });
+
+  // Declared last on purpose: its cleanup re-registers the native
+  // implementation by hand rather than through registerNativeKeccak256, whose
+  // once-only guard makes it a no-op by then. Any test after it would be
+  // checking that hand-rolled registration instead of the production one.
+  it("should not register again on later calls", () => {
+    const digestBefore = ethers.keccak256("0x1337");
+
+    ethers.keccak256.register(() => SENTINEL_DIGEST);
+    try {
+      registerNativeKeccak256();
+
+      assert.equal(
+        ethers.keccak256("0x1337"),
+        ethers.hexlify(SENTINEL_DIGEST),
+        "a repeated call shouldn't overwrite an implementation registered after the first one",
+      );
+    } finally {
+      ethers.keccak256.register(nativeKeccak256);
+    }
+
+    assert.equal(ethers.keccak256("0x1337"), digestBefore);
   });
 });

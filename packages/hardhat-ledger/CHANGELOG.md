@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-ledger
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`eef7ead`](https://github.com/NomicFoundation/hardhat/commit/eef7ead24d915d93cd2c6b7b4c90e7e2ddfec195) Thanks [@renovate](https://github.com/apps/renovate)! - Update the `@ledgerhq/hw-app-eth` dependency to its latest major version.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.0.10
 
 ### Patch Changes

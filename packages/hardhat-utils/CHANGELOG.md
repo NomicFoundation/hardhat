@@ -1,5 +1,23 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.3.0
+
+### Minor Changes
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+## 4.2.0
+
+### Minor Changes
+
+- [#8583](https://github.com/NomicFoundation/hardhat/pull/8583) [`2c98fa5`](https://github.com/NomicFoundation/hardhat/commit/2c98fa5b05c3f2b8d06b44aae4ebea88b82ae132) Thanks [@schaable](https://github.com/schaable)! - Updated undici to v7.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
 ## 4.1.9
 
 ### Patch Changes

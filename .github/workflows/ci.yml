@@ -38,7 +38,7 @@ jobs:
 
       - name: Check if scripts or workflows have changed
         id: scripts-filter
-        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             scripts:
@@ -184,7 +184,7 @@ jobs:
             tee -a $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       - id: filter
-        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}

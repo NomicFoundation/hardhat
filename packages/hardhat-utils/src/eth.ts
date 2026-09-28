@@ -1,10 +1,12 @@
 import type { PrefixedHexString } from "./hex.js";
 
+import { InvalidParameterError } from "./common-errors.js";
 import { bytesToHexString, numberToHexString, setLengthLeft } from "./hex.js";
 import {
   getAddressGenerator,
   getHashGenerator,
   isValidChecksum,
+  toChecksumAddress as toChecksumAddressImpl,
 } from "./internal/eth.js";
 
 /**
@@ -25,6 +27,26 @@ export function isAddress(value: unknown): value is PrefixedHexString {
  */
 export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
   return await (isAddress(value) && isValidChecksum(value));
+}
+
+/**
+ * Converts an Ethereum address to its EIP-55 checksummed representation.
+ *
+ * @param address The address to convert. It can be checksummed or not, but it
+ * must be a valid Ethereum address.
+ * @returns The EIP-55 checksummed representation of the address.
+ * @throws InvalidParameterError If the input is not an Ethereum address.
+ */
+export async function toChecksumAddress(
+  address: string,
+): Promise<PrefixedHexString> {
+  if (!isAddress(address)) {
+    throw new InvalidParameterError(
+      `Expected an Ethereum address. Received: ${address}`,
+    );
+  }
+
+  return await toChecksumAddressImpl(address);
 }
 
 /**

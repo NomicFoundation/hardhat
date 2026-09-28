@@ -11,6 +11,10 @@ function isPositiveInteger(value: unknown): boolean {
   return typeof value === "number" && Number.isInteger(value) && value >= 1;
 }
 
+function isNonNegativeInteger(value: unknown): boolean {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
 export function isScenarioDefinition(
   value: unknown,
 ): value is ScenarioDefinition {
@@ -155,7 +159,13 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
 }
 
 function isCommandVariant(obj: Record<string, unknown>): boolean {
-  const allowedKeys = new Set(["runs", "prepare", "command", "dependsOn"]);
+  const allowedKeys = new Set([
+    "runs",
+    "warmup",
+    "prepare",
+    "command",
+    "dependsOn",
+  ]);
 
   for (const key of Object.keys(obj)) {
     if (!allowedKeys.has(key)) {
@@ -165,6 +175,7 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
 
   return (
     isPositiveInteger(obj.runs) &&
+    (obj.warmup === undefined || isNonNegativeInteger(obj.warmup)) &&
     typeof obj.command === "string" &&
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
