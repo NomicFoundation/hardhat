@@ -55,8 +55,8 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@noble/ciphers": "2.2.0",
-    "@noble/hashes": "2.3.0",
+    "@noble/ciphers": "2.4.0",
+    "@noble/hashes": "2.4.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^4.2.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
