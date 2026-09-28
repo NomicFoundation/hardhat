@@ -2,10 +2,6 @@ name: Setup env
 description: Sets up node and pnpm
 
 inputs:
-  pnpm-version:
-    description: Version of pnpm to install
-    required: false
-    default: "11.20.0"
   node-version:
     description: Version of node to install
     required: false
@@ -27,8 +23,6 @@ runs:
   using: composite
   steps:
     - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      with:
-        version: ${{ inputs.pnpm-version }}
     - id: setup-node
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
