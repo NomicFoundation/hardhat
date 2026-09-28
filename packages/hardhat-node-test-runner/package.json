@@ -48,7 +48,7 @@
     "eslint": "9.39.5",
     "expect-type": "^1.4.0",
     "hardhat": "workspace:^3.12.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.8",
     "rimraf": "^6.1.3",
     "typescript": "~6.0.3"
   },
