@@ -392,10 +392,12 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       );
     }
 
-    const checksummedAddress = addr.addChecksum(
-      bytesToHexString(txData.to ?? new Uint8Array()),
-      true,
-    );
+    // A contract creation has no `to`. micro-eth-signer takes a bare "0x" for
+    // it, which `addr.addChecksum` does not accept.
+    const checksummedAddress =
+      txData.to === undefined || txData.to === null || txData.to.length === 0
+        ? "0x"
+        : addr.addChecksum(bytesToHexString(txData.to));
 
     assertHardhatInvariant(
       txData.nonce !== undefined,
