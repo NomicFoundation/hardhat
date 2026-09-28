@@ -92,7 +92,7 @@ describe("solidity-test/inline-config", () => {
     );
   });
 
-  it("should report invalid inline config directives as INVALID_INLINE_CONFIG", async () => {
+  it("should report invalid inline config directives as TEST_SOURCE_COLLECTION_FAILED", async () => {
     const hre = await createHardhatRuntimeEnvironment(
       hardhatConfigInvalidTests,
     );
@@ -126,7 +126,8 @@ describe("solidity-test/inline-config", () => {
     const [error] = hardhatErrors;
     assert.equal(
       error.number,
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_SOURCE_COLLECTION_FAILED
+        .number,
     );
     // Both invalid directives should be reported in the single error.
     assert.match(

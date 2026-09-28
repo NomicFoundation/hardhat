@@ -3,7 +3,7 @@ import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
   Artifact,
-  InlineConfigError,
+  TestSourceError,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
@@ -16,7 +16,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
 
-import { formatArtifactId, formatInlineConfigErrors } from "./formatters.js";
+import { formatArtifactId, formatTestSourceErrors } from "./formatters.js";
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -101,16 +101,17 @@ export function run(
     } catch (error) {
       ensureError(error);
 
-      // EDR reports the problems it found in the user's inline test config as
-      // an `inlineConfigErrors` property on the error. Report them as a
+      // EDR reports the problems it found while collecting from the test
+      // sources as a `testSourceErrors` property on the error. Report them as a
       // dedicated Hardhat error instead of an unhandled EDR error.
-      if (hasInlineConfigErrors(error)) {
+      if (hasTestSourceErrors(error)) {
         stream.destroy(
           new HardhatError(
-            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+              .TEST_SOURCE_COLLECTION_FAILED,
             {
-              errors: formatInlineConfigErrors(
-                error.inlineConfigErrors,
+              errors: formatTestSourceErrors(
+                error.testSourceErrors,
                 sourceNameToUserSourceName,
               ),
             },
@@ -135,14 +136,12 @@ export function run(
 }
 
 /**
- * EDR attaches the structured inline-config problems to the error that rejects
+ * EDR attaches the structured test-source problems to the error that rejects
  * `runSolidityTests`, but as a property of an `Error` rather than a typed
  * error class, so we have to assert their type here.
  */
-function hasInlineConfigErrors(
+function hasTestSourceErrors(
   error: Error,
-): error is Error & { inlineConfigErrors: InlineConfigError[] } {
-  return (
-    "inlineConfigErrors" in error && Array.isArray(error.inlineConfigErrors)
-  );
+): error is Error & { testSourceErrors: TestSourceError[] } {
+  return "testSourceErrors" in error && Array.isArray(error.testSourceErrors);
 }

@@ -1415,14 +1415,14 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
         websiteDescription:
           "The `--tolerance` option expects a non-negative finite number representing the allowed gas drift percentage.",
       },
-      INVALID_INLINE_CONFIG: {
+      TEST_SOURCE_COLLECTION_FAILED: {
         number: 821,
-        messageTemplate: `Invalid inline test configuration:
+        messageTemplate: `Could not collect from the test sources:
 
 {errors}`,
-        websiteTitle: "Invalid inline test configuration",
+        websiteTitle: "Could not collect from the test sources",
         websiteDescription:
-          "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
+          "Your Solidity test sources are parsed to collect their inline test configuration and their EIP-712 struct definitions. The inline configuration lives in `forge-config:` / `hardhat-config:` NatSpec comments. The struct definitions serve the `eip712HashType` and `eip712HashStruct` cheatcodes. Fix the reported problems and run the tests again.",
       },
       TEST_PROFILE_NOT_FOUND: {
         number: 822,
