@@ -742,7 +742,7 @@ importers:
         version: 7.8.18(debug@4.4.3(supports-color@8.1.1))
       '@ledgerhq/hw-transport':
         specifier: ^6.35.7
-        version: 6.35.7
+        version: 6.36.0
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.29.12
         version: 6.33.5
@@ -2663,6 +2663,9 @@ packages:
   '@ledgerhq/devices@8.17.0':
     resolution: {integrity: sha512-l+rrVQEjR1hSWOLD00LFX4zbS8yB1M/Mb6UYPmSHGO7TmE1CFbZ4CmDJC/kZSl3hdrXCJ+YUNpvaLCcSWDwA+Q==}
 
+  '@ledgerhq/devices@8.18.0':
+    resolution: {integrity: sha512-90qS23wtqdviis+8pDWRbgyp4jE4YLK24CyAmH79rLySaPbgEJX5mZzbEKlDQ6cXvSA/51Z2/PtzmlAi26rzug==}
+
   '@ledgerhq/domain-service@1.8.18':
     resolution: {integrity: sha512-lJ+r7+hjH1C9uRq5Fkr7lMKY+z4o1kl2Huv4Su6iCasCmoWM0VDiyxhHV8Wm/4+qtlJbQkJw2gTjp0fTC8ekvA==}
 
@@ -2692,6 +2695,9 @@ packages:
 
   '@ledgerhq/hw-transport@6.35.7':
     resolution: {integrity: sha512-vVhAVQ56+7A5FY5Mr09HY+bmf3H6TXpwsj+/xbadNkjl//e/YzTWfpXk4eBnj3hwk1PQ9Mn6pKFH0BHjS2BKlg==}
+
+  '@ledgerhq/hw-transport@6.36.0':
+    resolution: {integrity: sha512-fU1rNnn6TgI9CrtynakAkhH09Tu4fTS5QEukO+71n0C5bFBL2Mee5WMQsuGaXBB8Ana3iJwbqZnm+0msssmY3g==}
 
   '@ledgerhq/live-env@4.0.0':
     resolution: {integrity: sha512-H4U9UcaKp1+rg1CqQfzy430pxhSGlRE6B+kj4oMd0YYepvqTzOzb1eT+Nr9TLN3o4ZIK6yTy9baco6O6McJAiQ==}
@@ -8071,6 +8077,10 @@ snapshots:
     dependencies:
       semver: 7.7.3
 
+  '@ledgerhq/devices@8.18.0':
+    dependencies:
+      semver: 7.7.3
+
   '@ledgerhq/domain-service@1.8.18(debug@4.4.3(supports-color@8.1.1))':
     dependencies:
       '@ledgerhq/logs': 6.19.0
@@ -8124,7 +8134,7 @@ snapshots:
       '@ledgerhq/devices': 8.16.0
       '@ledgerhq/errors': 6.37.0
       '@ledgerhq/hw-transport': 6.35.5
-      '@ledgerhq/logs': 6.17.0
+      '@ledgerhq/logs': 6.19.0
       node-hid: 2.1.2
 
   '@ledgerhq/hw-transport-node-hid@6.33.5':
@@ -8142,14 +8152,20 @@ snapshots:
     dependencies:
       '@ledgerhq/devices': 8.16.0
       '@ledgerhq/errors': 6.37.0
-      '@ledgerhq/logs': 6.17.0
+      '@ledgerhq/logs': 6.19.0
       events: 3.3.0
 
   '@ledgerhq/hw-transport@6.35.7':
     dependencies:
       '@ledgerhq/devices': 8.17.0
       '@ledgerhq/errors': 7.0.0
-      '@ledgerhq/logs': 6.17.0
+      '@ledgerhq/logs': 6.19.0
+      events: 3.3.0
+
+  '@ledgerhq/hw-transport@6.36.0':
+    dependencies:
+      '@ledgerhq/devices': 8.18.0
+      '@ledgerhq/logs': 6.19.0
       events: 3.3.0
 
   '@ledgerhq/live-env@4.0.0': {}
