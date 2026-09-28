@@ -23,6 +23,7 @@ import {
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 import {
   isTestSuiteArtifact,
+  selectTestSourcePaths,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
   writeTestRunOutput,
 } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
@@ -568,5 +569,75 @@ describe("writeTestRunOutput", () => {
     // Give the reporter stream's `error` event a chance to surface while this
     // test is still running, so that an unhandled one is reported here.
     await new Promise((resolve) => setImmediate(resolve));
+  });
+});
+
+describe("selectTestSourcePaths", () => {
+  const parsableSource = {
+    sourceName: "project/test/Foo.t.sol",
+    userSourceName: "test/Foo.t.sol",
+    path: "/project/test/Foo.t.sol",
+    solcVersion: "0.8.28",
+  };
+
+  const unparsableSource = {
+    sourceName: "project/test/Legacy.t.sol",
+    userSourceName: "test/Legacy.t.sol",
+    path: "/project/test/Legacy.t.sol",
+    solcVersion: "0.7.6",
+  };
+
+  it("names every source when they can all be parsed", () => {
+    const { testSourcePaths, unparsableSources } = selectTestSourcePaths([
+      parsableSource,
+      {
+        sourceName: "project/test/Bar.t.sol",
+        userSourceName: "test/Bar.t.sol",
+        path: "/project/test/Bar.t.sol",
+        solcVersion: "0.8.0",
+      },
+    ]);
+
+    assert.deepEqual(testSourcePaths, {
+      "project/test/Foo.t.sol": "/project/test/Foo.t.sol",
+      "project/test/Bar.t.sol": "/project/test/Bar.t.sol",
+    });
+    assert.deepEqual(unparsableSources, []);
+  });
+
+  it("names no source when one of them predates solc 0.8", () => {
+    const { testSourcePaths, unparsableSources } = selectTestSourcePaths([
+      parsableSource,
+      unparsableSource,
+    ]);
+
+    assert.equal(testSourcePaths, undefined);
+    assert.deepEqual(unparsableSources, ["test/Legacy.t.sol"]);
+  });
+
+  it("reports each unparsable source once, sorted", () => {
+    const { unparsableSources } = selectTestSourcePaths([
+      {
+        sourceName: "project/test/Older.t.sol",
+        userSourceName: "test/Older.t.sol",
+        path: "/project/test/Older.t.sol",
+        solcVersion: "0.6.12",
+      },
+      unparsableSource,
+      // A file with two test contracts is selected once per contract.
+      unparsableSource,
+    ]);
+
+    assert.deepEqual(unparsableSources, [
+      "test/Legacy.t.sol",
+      "test/Older.t.sol",
+    ]);
+  });
+
+  it("returns an empty map when no test suite is selected", () => {
+    const { testSourcePaths, unparsableSources } = selectTestSourcePaths([]);
+
+    assert.deepEqual(testSourcePaths, {});
+    assert.deepEqual(unparsableSources, []);
   });
 });
