@@ -230,7 +230,7 @@ jobs:
       # once, then becomes the new normal.
       - name: Compare benchmark result against baseline
         id: compare
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
+        uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1.22.2
         # A regression must not break main, so absorb the alert on baseline
         # runs and let the Slack step report it instead. Comparison runs
         # (`/bench`, dispatch) still fail.
@@ -268,7 +268,7 @@ jobs:
       - name: Record baseline in the results repo
         id: record
         if: ${{ needs.setup.outputs.is_baseline == 'true' }}
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
+        uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1.22.2
         # `tool` through `benchmark-data-dir-path` must stay identical to
         # "Compare benchmark result against baseline" — the two invocations
         # have to address the same dataset.
