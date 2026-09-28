@@ -1,4 +1,4 @@
-import { computeStats, mean, type TimingStats } from "./stats.ts";
+import { computeStats, type TimingStats } from "./stats.ts";
 import { logWarning } from "./log.ts";
 import type { PeakRssMethod } from "./peak-rss.ts";
 import type { MeasuredRun } from "./runner.ts";
@@ -129,7 +129,9 @@ function toSampleStats(stats: TimingStats): SampleStats {
 
 /**
  * The CPU entry: its tracked value is the mean total CPU time (user+system)
- * over the per-run totals, with the mean user/system split in `extra`.
+ * over the per-run totals. `extra` mirrors the wall-clock entry — per-run
+ * totals plus their statistics — with the user/system split nested as the
+ * same per-run shape under `user` and `system`.
  */
 export function toCpuEntry(
   scenarioId: string,
@@ -144,6 +146,10 @@ export function toCpuEntry(
     unit: "s",
     value: totals.mean,
     range: `± ${totals.stddev}`,
-    extra: JSON.stringify({ user: mean(user), system: mean(system) }),
+    extra: JSON.stringify({
+      ...toSampleStats(totals),
+      user: toSampleStats(computeStats(user)),
+      system: toSampleStats(computeStats(system)),
+    }),
   };
 }
