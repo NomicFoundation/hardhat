@@ -232,7 +232,7 @@ async function cliMain(): Promise<void> {
     }
 
     logError(failureMessage(error, benchArgs));
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 

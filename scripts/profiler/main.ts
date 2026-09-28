@@ -620,7 +620,8 @@ async function cliMain(): Promise<void> {
     profileArgs = resolveAndValidateArgs(process.argv.slice(2));
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (profileArgs === undefined) {
@@ -636,7 +637,7 @@ async function cliMain(): Promise<void> {
     }
 
     logError(error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 

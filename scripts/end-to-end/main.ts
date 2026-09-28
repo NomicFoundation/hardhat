@@ -83,8 +83,7 @@ async function main(): Promise<void> {
     }
 
     logError(error.message);
-
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
