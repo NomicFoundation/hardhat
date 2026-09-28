@@ -13,9 +13,10 @@ import { withEnv } from "./with-env.ts";
 
 const INVOCATION_DIR = path.resolve("/invoked/from/here");
 const FLAG_DIR = "from-flag";
-const ENV_DIR = "from-env";
 
 describe("givenCloneDirectory", () => {
+  const ENV_DIR = "from-env";
+
   it("prefers the flag over E2E_CLONE_DIR", () => {
     assert.equal(
       withEnv({ E2E_CLONE_DIR: ENV_DIR }, () =>

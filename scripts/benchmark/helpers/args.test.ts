@@ -5,18 +5,21 @@ import path from "node:path";
 import { resolveAndValidateArgs } from "./args.ts";
 import { withEnv } from "../../end-to-end/helpers/with-env.ts";
 
-const INVOCATION_DIR = path.resolve("/invoked/from/here");
-
 describe("benchmark resolveAndValidateArgs", () => {
   it("resolves every path option against INIT_CWD", () => {
-    const args = withEnv({ INIT_CWD: INVOCATION_DIR }, () =>
+    const invocationDir = path.resolve("/invoked/from/here");
+    const scenarioDir = "end-to-end/x";
+    const exportJson = "out/report.json";
+    const cloneDir = "clones";
+
+    const args = withEnv({ INIT_CWD: invocationDir }, () =>
       resolveAndValidateArgs([
         "--scenario",
-        "end-to-end/x",
+        scenarioDir,
         "--export-json",
-        "out/report.json",
+        exportJson,
         "--e2e-clone-dir",
-        "clones",
+        cloneDir,
       ]),
     );
 
@@ -27,14 +30,9 @@ describe("benchmark resolveAndValidateArgs", () => {
         e2eCloneDirectory: args?.e2eCloneDirectory,
       },
       {
-        scenarioPath: path.join(
-          INVOCATION_DIR,
-          "end-to-end",
-          "x",
-          "scenario.json",
-        ),
-        exportJson: path.join(INVOCATION_DIR, "out", "report.json"),
-        e2eCloneDirectory: path.join(INVOCATION_DIR, "clones"),
+        scenarioPath: path.join(invocationDir, scenarioDir, "scenario.json"),
+        exportJson: path.join(invocationDir, exportJson),
+        e2eCloneDirectory: path.join(invocationDir, cloneDir),
       },
     );
   });

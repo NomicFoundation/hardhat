@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 
 import { withEnv } from "./with-env.ts";
 
-const NAME = "WITH_ENV_TEST_VARIABLE";
-
 describe("withEnv", () => {
+  const NAME = "WITH_ENV_TEST_VARIABLE";
+
   it("applies an override for the call and restores the previous value", () => {
     process.env[NAME] = "before";
 

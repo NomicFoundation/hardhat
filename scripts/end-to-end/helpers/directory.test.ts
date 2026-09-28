@@ -6,9 +6,6 @@ import { normalizeScenarioPath, resolveInvocationPath } from "./directory.ts";
 import { withEnv } from "./with-env.ts";
 
 const INVOCATION_DIR = path.resolve("/invoked/from/here");
-const ABSOLUTE_PATH = path.resolve("/tmp/x.json");
-const SCENARIO_DIR = "end-to-end/x";
-const SCENARIO_FILE = path.join(INVOCATION_DIR, SCENARIO_DIR, "scenario.json");
 
 const invoked = <T>(fn: () => T) => withEnv({ INIT_CWD: INVOCATION_DIR }, fn);
 
@@ -30,9 +27,11 @@ describe("resolveInvocationPath", () => {
   });
 
   it("passes an absolute path through unchanged", () => {
+    const absolutePath = path.resolve("/tmp/x.json");
+
     assert.equal(
-      invoked(() => resolveInvocationPath(ABSOLUTE_PATH)),
-      ABSOLUTE_PATH,
+      invoked(() => resolveInvocationPath(absolutePath)),
+      absolutePath,
     );
   });
 
@@ -45,6 +44,13 @@ describe("resolveInvocationPath", () => {
 });
 
 describe("normalizeScenarioPath", () => {
+  const SCENARIO_DIR = "end-to-end/x";
+  const SCENARIO_FILE = path.join(
+    INVOCATION_DIR,
+    SCENARIO_DIR,
+    "scenario.json",
+  );
+
   it("resolves a scenario directory against INIT_CWD and appends scenario.json", () => {
     assert.equal(
       invoked(() => normalizeScenarioPath(SCENARIO_DIR)),
