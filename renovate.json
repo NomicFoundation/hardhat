@@ -48,6 +48,12 @@
       "groupName": "github-actions"
     },
     {
+      "description": "changesets/action stays on v1 until the Changesets CLI v3 migration. v2 refuses to run against CLI v2, and renames the release workflow's inputs, outputs and token handling.",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["changesets/action"],
+      "allowedVersions": "<2"
+    },
+    {
       "description": "Block Node major bumps across every surface (.nvmrc, engines.node, @types/node, actions/setup-node's node-version). Bumped manually, only to even LTS releases.",
       "matchDepNames": ["node", "@types/node"],
       "matchUpdateTypes": ["major"],
