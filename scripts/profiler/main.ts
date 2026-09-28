@@ -9,8 +9,17 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DEFAULT_CLONE_DIR, getArgValue } from "../end-to-end/helpers/args.ts";
-import { normalizeScenarioPath } from "../end-to-end/helpers/directory.ts";
+import {
+  CLONE_DIR_FLAG,
+  DEFAULT_CLONE_DIR,
+  getArgValue,
+  givenCloneDirectory,
+  resolveCloneDirectory,
+} from "../end-to-end/helpers/args.ts";
+import {
+  normalizeScenarioPath,
+  resolveInvocationPath,
+} from "../end-to-end/helpers/directory.ts";
 import { ensureScenarioInitialized } from "../end-to-end/helpers/scenario-setup.ts";
 import {
   fmt,
@@ -72,6 +81,9 @@ DESCRIPTION
   To attribute time inside EDR by function name, build it for profiling
   (\`pnpm build:perf-js\` in edr's crates/edr_napi) and load that binary via
   NAPI_RS_NATIVE_LIBRARY_PATH, or publish it to the running Verdaccio.
+
+  A relative path in any option resolves against the directory you ran
+  the command from.
 
 OPTIONS
   --scenario <path>     Scenario folder or scenario.json (required, repeatable:
@@ -180,7 +192,7 @@ const VALUE_FLAGS = [
   "--sample-rate",
   "--out-dir",
   "--env",
-  "--e2e-clone-dir",
+  CLONE_DIR_FLAG,
 ];
 
 const BOOLEAN_FLAGS = [
@@ -229,7 +241,7 @@ export function resolveAndValidateArgs(
     prepareOrName: getArgValue(args, "--prepare"),
     mode: parseMode(getArgValue(args, "--mode")),
     sampleRateHz: parseSampleRate(getArgValue(args, "--sample-rate")),
-    outDir: getArgValue(args, "--out-dir"),
+    outDir: resolveInvocationPath(getArgValue(args, "--out-dir")),
     env: parseEnvPairs(getAllArgValues(args, "--env")),
     init: args.includes("--init"),
     useLocal: args.includes("--use-local") ? UseLocal.Yes : UseLocal.No,
@@ -241,10 +253,7 @@ export function resolveAndValidateArgs(
       : ForcePublish.No,
     showOutput: args.includes("--show-output"),
     keepPerfData: args.includes("--keep-perf-data"),
-    e2eCloneDirectory:
-      getArgValue(args, "--e2e-clone-dir") ??
-      process.env.E2E_CLONE_DIR ??
-      DEFAULT_CLONE_DIR,
+    e2eCloneDirectory: resolveCloneDirectory(givenCloneDirectory(args)),
   };
 }
 
@@ -620,7 +629,8 @@ async function cliMain(): Promise<void> {
     profileArgs = resolveAndValidateArgs(process.argv.slice(2));
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (profileArgs === undefined) {
@@ -636,7 +646,7 @@ async function cliMain(): Promise<void> {
     }
 
     logError(error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
