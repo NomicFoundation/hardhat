@@ -341,7 +341,11 @@ describe("solidity-test/task-action", function () {
       assert.equal(result.success, false);
 
       const output = stripVTControlCharacters(printed.join("\n"));
-      assert.match(output, /^Error HHE821:/);
+      const errorCode = `HHE${HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number}`;
+      assert.ok(
+        output.startsWith(`Error ${errorCode}:`),
+        "The error should be printed with the CLI's formatting",
+      );
       assert.doesNotMatch(
         output,
         /HardhatError:|\n\s+at /,
