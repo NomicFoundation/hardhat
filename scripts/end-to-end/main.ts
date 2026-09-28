@@ -2,7 +2,7 @@ import { init } from "./subcommands/init.ts";
 import { clean } from "./subcommands/clean.ts";
 import { exec } from "./subcommands/exec.ts";
 import { logError } from "./helpers/log.ts";
-import { resolveAndValidateArgs } from "./helpers/args.ts";
+import { resolveAndValidateArgs, DEFAULT_CLONE_DIR } from "./helpers/args.ts";
 
 const USAGE = `
 ./scripts/end-to-end/main.ts — Run Hardhat in end-to-end scenarios
@@ -12,13 +12,16 @@ DESCRIPTION
   third party repositories.
   Each scenario is defined by a scenario.json in end-to-end/<scenario-slug>/.
 
+  A relative path in any option resolves against the directory you ran
+  the command from.
+
 COMMANDS
   init --scenario <scenario-path>   Setup scenario (i.e. clone) and install hardhat from Verdaccio
   exec --scenario <scenario-path>   Run a command in the scenario's working directory
   clean --scenario <scenario-path>  Remove the scenario's working directory
 
 OPTIONS
-  --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or "/tmp/end-to-end")
+  --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or ${DEFAULT_CLONE_DIR})
   --scenario <path>        The scenario folder or file to work on (default: $E2E_SCENARIO)
   --command <cmd>          Command to run (optional with \`exec\`, falls back to scenario defaultCommand)
   --use-local              Detect packages changed since their release tag, bump versions,
@@ -87,4 +90,6 @@ async function main(): Promise<void> {
   }
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

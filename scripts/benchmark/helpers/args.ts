@@ -1,8 +1,12 @@
-import { log } from "node:console";
-import { normalizeScenarioPath } from "../../end-to-end/helpers/directory.ts";
 import {
-  DEFAULT_CLONE_DIR,
+  normalizeScenarioPath,
+  resolveInvocationPath,
+} from "../../end-to-end/helpers/directory.ts";
+import {
   getArgValue,
+  givenCloneDirectory,
+  logCloneDirectoryDefault,
+  resolveCloneDirectory,
 } from "../../end-to-end/helpers/args.ts";
 import {
   ForceCheckout,
@@ -77,18 +81,12 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     throw new Error("--runs must be a positive integer");
   }
 
-  const exportJson = getArgValue(args, "--export-json");
+  const exportJson = resolveInvocationPath(getArgValue(args, "--export-json"));
 
-  let e2eCloneDirectory =
-    getArgValue(args, "--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR;
+  const givenCloneDir = givenCloneDirectory(args);
 
-  if (e2eCloneDirectory === undefined) {
-    e2eCloneDirectory = DEFAULT_CLONE_DIR;
-
-    log(
-      `No --e2e-clone-dir argument or E2E_CLONE_DIR environment variable provided, defaulting to:`,
-    );
-    log(`  ${DEFAULT_CLONE_DIR}`);
+  if (givenCloneDir === undefined) {
+    logCloneDirectoryDefault();
   }
 
   return {
@@ -106,6 +104,6 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     warmup,
     runs,
     exportJson,
-    e2eCloneDirectory,
+    e2eCloneDirectory: resolveCloneDirectory(givenCloneDir),
   };
 }

@@ -3,9 +3,16 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
+import {
+  getArgValue,
+  givenCloneDirectory,
+  resolveCloneDirectory,
+} from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
-import { loadScenario } from "../end-to-end/helpers/directory.ts";
+import {
+  loadScenario,
+  resolveInvocationPath,
+} from "../end-to-end/helpers/directory.ts";
 import {
   ForceCheckout,
   ForcePublish,
@@ -108,6 +115,9 @@ DESCRIPTION
   Without ${GNU_TIME_PATH} (Debian/Ubuntu package "time") the benchmark
   fails at startup. "--peak-rss sampler" measures via /proc instead, which
   can miss a short-lived peak. Both methods are Linux-only.
+
+  A relative path in any option resolves against the directory you ran
+  the command from.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -319,7 +329,7 @@ async function main(): Promise<void> {
   );
 }
 
-function resolveArgs(argv: string[]): RegressionArgs | undefined {
+export function resolveArgs(argv: string[]): RegressionArgs | undefined {
   const output = getArgValue(argv, "--output");
 
   if (output === undefined) {
@@ -353,13 +363,10 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
   const peakRssMethod = parsePeakRssMethod(argv) ?? PeakRssMethod.GnuTime;
 
-  const e2eCloneDirectory =
-    getArgValue(argv, "--e2e-clone-dir") ??
-    process.env.E2E_CLONE_DIR ??
-    DEFAULT_CLONE_DIR;
+  const e2eCloneDirectory = resolveCloneDirectory(givenCloneDirectory(argv));
 
   return {
-    output: path.resolve(output),
+    output: resolveInvocationPath(output),
     scenarios,
     tag,
     benchmarks,
@@ -754,10 +761,6 @@ function writeOutput(outputPath: string, entries: BenchmarkEntry[]): void {
   writeFileSync(outputPath, JSON.stringify(entries, null, 2));
 }
 
-function getArgValue(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
+if (import.meta.main) {
+  await main();
 }
-
-await main();

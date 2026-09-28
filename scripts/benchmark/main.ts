@@ -38,6 +38,9 @@ DESCRIPTION
   Use --use-local to detect changed packages, publish them to Verdaccio,
   and pin the scenario to those versions before benchmarking.
 
+  A relative path in any option resolves against the directory you ran
+  the command from.
+
 OPTIONS
   --scenario <path>     Scenario folder or scenario.json (required)
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
@@ -71,14 +74,13 @@ OPTIONS
                         GNU time when available, else the sampler). An
                         explicit choice this machine cannot provide fails at
                         startup
-  --export-json <path>  Write a JSON report to PATH, resolved against the
-                        invoking directory. It holds command, warmupRuns and
-                        measuredRuns. wallSeconds, cpuSeconds (with user and
-                        system nested) and peakRssMb each hold per-run values
-                        in run order with their statistics. peakRssMb is null
-                        without a peak-RSS method. Its statistics are null
-                        when a run lacks a reading. stddev is null for a
-                        single run
+  --export-json <path>  Write a JSON report to PATH. It holds command,
+                        warmupRuns and measuredRuns. wallSeconds, cpuSeconds
+                        (with user and system nested) and peakRssMb each hold
+                        per-run values in run order with their statistics.
+                        peakRssMb is null without a peak-RSS method. Its
+                        statistics are null when a run lacks a reading.
+                        stddev is null for a single run
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
 
 EXAMPLES
@@ -118,15 +120,8 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   // cannot provide must fail here, not after minutes of init and precompile.
   const peakRssMethod = resolvePeakRssMethod(benchArgs.peakRssMethod);
 
-  // pnpm runs scripts from the package root; INIT_CWD preserves the
-  // directory the user actually invoked from.
-  const exportPath =
-    exportJson !== undefined
-      ? path.resolve(process.env.INIT_CWD ?? process.cwd(), exportJson)
-      : undefined;
-
-  if (exportPath !== undefined) {
-    ensureExportPathWritable(exportPath);
+  if (exportJson !== undefined) {
+    ensureExportPathWritable(exportJson);
   }
 
   await ensureScenarioInitialized(
@@ -197,18 +192,18 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     logWarning(
       `peak RSS missing for ${missingPeaks.length} of ${measured.length} ` +
         "runs, so the summary omits its row" +
-        (exportPath !== undefined
+        (exportJson !== undefined
           ? ", and the export holds only the per-run readings"
           : ""),
     );
   }
 
-  if (exportPath !== undefined) {
+  if (exportJson !== undefined) {
     writeFileSync(
-      exportPath,
+      exportJson,
       buildExport(benchCommand, warmup, summary, peakRssMethod),
     );
-    log(`Report written to ${exportPath}`);
+    log(`Report written to ${exportJson}`);
   }
 
   log(fmt.success("Benchmark complete"));
