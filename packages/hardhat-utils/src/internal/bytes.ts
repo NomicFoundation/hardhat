@@ -30,7 +30,7 @@ export async function parseJsonStream<T>(stream: Readable): Promise<T> {
     stream,
     jsonParser,
     async (
-      elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
+      elements: AsyncIterable<StreamParserJson.ParsedElementInfo>,
     ): Promise<any | undefined> => {
       let value:
         | StreamParserJson.JsonTypes.JsonPrimitive
