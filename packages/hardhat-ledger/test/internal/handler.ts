@@ -1,13 +1,13 @@
-import type { Eth } from "../../src/internal/cjs-imports.js";
+import type {
+  MethodsConfig,
+  MockCalls,
+} from "../helpers/ledger-device-mock.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
@@ -19,31 +19,38 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { addr } from "micro-eth-signer";
+import { signTyped } from "micro-eth-signer/typed-data";
 
 import {
-  DisconnectedDevice,
-  DisconnectedDeviceDuringOperation,
-  LockedDeviceError,
-  TransportError,
-  TransportStatusError,
-} from "../../src/internal/cjs-imports.js";
+  LedgerConnectionClosedError,
+  LedgerDeviceError,
+} from "../../src/internal/dmk-errors.js";
 import { LedgerHandler } from "../../src/internal/handler.js";
 import { createJsonRpcRequest } from "../helpers/create-json-rpc-request.js";
 import { mockedDisplayInfo } from "../helpers/display-info-mock.js";
-import { getEthMocked, type MethodsConfig } from "../helpers/eth-mocked.js";
 import { EthereumMockedProvider } from "../helpers/ethereum-provider-mock.js";
 import {
-  getTransportNodeHidMock,
-  type TransportMockState,
-} from "../helpers/transport-node-hid-mock.js";
+  createDeviceFactoryState,
+  DEVICE_BUSY_ERROR,
+  DEVICE_DISCONNECTED_BEFORE_SENDING_ERROR,
+  DEVICE_DISCONNECTED_ERROR,
+  DEVICE_LOCKED_ERROR,
+  getLedgerDeviceMock,
+  NO_ACCESSIBLE_DEVICE_ERROR,
+  REFUSED_BY_USER_ERROR,
+} from "../helpers/ledger-device-mock.js";
 
-// Status code 0x6511 is thrown when the Ethereum app is not open on the Ledger device
-const APP_NOT_OPEN_STATUS_CODE = 0x6511;
+/**
+ * The key behind the third Ledger address, so that a test can produce the
+ * signature a real device would over the typed data it is sent.
+ */
+const TYPED_DATA_SIGNER_KEY = `0x${"11".repeat(32)}`;
 
 const LEDGER_ADDRESSES = [
   "0xa809931e3b38059adae9bc5455bc567d0509ab92",
   "0xda6a52afdae5ff66aa786da68754a227331f56e3",
-  "0xbc307688a80ec5ed0edc1279c44c1b34f7746bda",
+  addr.fromPrivateKey(TYPED_DATA_SIGNER_KEY).toLowerCase(),
 ];
 
 const tmpCachePath = path.join(
@@ -78,7 +85,7 @@ const typedMessage = {
       { name: "contents", type: "string" },
     ],
   },
-  primaryType: "Mail",
+  primaryType: "Mail" as const,
   domain: {
     name: "Ether Mail",
     version: "1",
@@ -99,16 +106,77 @@ const typedMessage = {
 };
 const rsv = {
   v: 55,
-  r: "4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d",
-  s: "7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd0",
+  r: "0x4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d",
+  s: "0x7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd0",
 };
 const signature =
   "0x4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd01c";
 
+const personalSignRequest = createJsonRpcRequest("personal_sign", [
+  dataToSign,
+  account.address,
+]);
+const signatureResponse = { jsonrpc: "2.0", id: 1, result: signature };
+
+const typedDataSigner = {
+  address: LEDGER_ADDRESSES[2],
+  publicKey: "0x2",
+};
+/** What the device returns for `typedMessage`: a signature by its owner. */
+const typedDataSignature = signTyped(
+  typedMessage,
+  TYPED_DATA_SIGNER_KEY,
+  false,
+);
+const typedDataRsv = {
+  r: `0x${typedDataSignature.slice(2, 66)}`,
+  s: `0x${typedDataSignature.slice(66, 130)}`,
+  v: parseInt(typedDataSignature.slice(130), 16),
+};
+
+/** Finds `found` at `accountPath`, and another address anywhere else. */
+function findAccountAt(
+  accountPath: string,
+  found = account,
+): NonNullable<MethodsConfig["getAddress"]> {
+  return {
+    result: (searchedPath) =>
+      searchedPath === accountPath
+        ? found
+        : { address: "0x0", publicKey: "0x0" },
+  };
+}
+
+async function noOpSleep(): Promise<void> {}
+
+/** Polls until `condition` holds, giving up after 2 seconds. */
+async function waitFor(condition: () => boolean): Promise<void> {
+  const deadline = Date.now() + 2000;
+
+  while (!condition() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
+
 describe("LedgerHandler", () => {
   let ethereumMockedProvider: EthereumMockedProvider;
-  let eth: typeof Eth;
   let ledgerHandler: LedgerHandler;
+
+  function createHandler(
+    customConfig: ConstructorParameters<typeof LedgerHandler>[3] = {},
+    displayMessage = mockedDisplayInfo.fn,
+  ): LedgerHandler {
+    return new LedgerHandler(
+      ethereumMockedProvider,
+      { accounts: LEDGER_ADDRESSES, derivationFunction: undefined },
+      displayMessage,
+      {
+        deviceFactory: getLedgerDeviceMock()[0],
+        cachePath: tmpCachePath,
+        ...customConfig,
+      },
+    );
+  }
 
   before(async () => {
     ethereumMockedProvider = new EthereumMockedProvider();
@@ -163,217 +231,264 @@ describe("LedgerHandler", () => {
     });
   });
 
-  describe("getLedgerAccounts", async () => {
-    it("should return the ledger accounts", async () => {
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
-        {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
-        },
-        mockedDisplayInfo.fn,
+  describe("init", () => {
+    it("should open a single session when two requests race", async () => {
+      // Hardhat does not serialize requests, and a leaked session keeps the
+      // process alive.
+      const state = createDeviceFactoryState();
+      const [deviceFactory] = getLedgerDeviceMock(
+        {},
+        { state, connectDelayMs: 10 },
       );
 
-      const res = ledgerHandler.getLedgerAccounts();
+      ledgerHandler = createHandler({ deviceFactory });
 
-      assert.deepEqual(res, LEDGER_ADDRESSES);
+      await Promise.all([ledgerHandler.init(), ledgerHandler.init()]);
+
+      assert.equal(state.connectCount, 1);
+
+      await ledgerHandler.close();
+
+      assert.equal(state.closeCount, 1);
     });
-  });
 
-  describe("init", () => {
-    it("should only init once on multiple calls", async () => {
+    it("should tell the user to close the connection once connected", async () => {
+      // An open session keeps the process alive, and nothing tells the plugin
+      // when a script is done, so the user has to be told at connection time.
+      const messages: string[] = [];
+
+      ledgerHandler = createHandler({}, async (_interruptor, message) => {
+        messages.push(message);
+      });
+
+      await ledgerHandler.init();
+
+      assert.deepEqual(messages, [
+        "Connecting to Ledger...",
+        "Connection successful",
+        "Hardhat cannot exit while this Ledger session is open. Scripts should end with `await connection.close()`.",
+      ]);
+    });
+
+    it("should stop waiting to retry as soon as the handler is closed", async () => {
+      // The real retry timer is referenced, so `close()` has to cancel it.
+      const [deviceFactory] = getLedgerDeviceMock(
+        {},
+        { connectionErrors: [NO_ACCESSIBLE_DEVICE_ERROR] },
+      );
+
       mockedDisplayInfo.clear();
 
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
+      ledgerHandler = createHandler({ deviceFactory });
+
+      const initializing = assertRejectsWithHardhatError(
+        () => ledgerHandler.init(),
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
         {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
+          error: new LedgerDeviceError(NO_ACCESSIBLE_DEVICE_ERROR),
+          transportId: NO_ACCESSIBLE_DEVICE_ERROR._tag,
         },
-        mockedDisplayInfo.fn,
-        { transportNodeHid: getTransportNodeHidMock() },
       );
 
-      await ledgerHandler.init();
-      await ledgerHandler.init();
-      await ledgerHandler.init();
+      await waitFor(() =>
+        mockedDisplayInfo.messages.some((message) =>
+          message.includes("Retrying in"),
+        ),
+      );
 
-      // When init is called once, only 2 messages should be displayed
-      assert.equal(mockedDisplayInfo.totCalls, 2);
+      await ledgerHandler.close();
+
+      const outcome = await Promise.race([
+        initializing.then(() => "settled"),
+        new Promise((resolve) => setTimeout(resolve, 1000, "still waiting")),
+      ]);
+
+      assert.equal(outcome, "settled");
     });
 
-    it("should throw a ledger provider error if `create` fails", async () => {
+    it("should not start a retry wait once the handler is closed", async () => {
+      // `close()` can land while the retry message is displayed, before the
+      // real retry timer is armed.
+      const [deviceFactory] = getLedgerDeviceMock({
+        getAddress: findAccountAt(derPath),
+        signMessage: {
+          result: rsv,
+          errorSequenceToEmit: [DEVICE_LOCKED_ERROR],
+        },
+      });
+
+      let closing: Promise<void> | undefined;
+
+      ledgerHandler = createHandler(
+        { deviceFactory },
+        async (_interruptor, message) => {
+          if (message.includes("Device is locked")) {
+            closing = closing ?? ledgerHandler.close();
+
+            await closing;
+          }
+        },
+      );
+
+      const outcome = await Promise.race([
+        ledgerHandler.handle(personalSignRequest).then(
+          () => "settled",
+          () => "settled",
+        ),
+        new Promise((resolve) => setTimeout(resolve, 1000, "still waiting")),
+      ]);
+
+      assert.equal(outcome, "settled");
+    });
+
+    it("should undo a connection that completes after being closed", async () => {
+      const state = createDeviceFactoryState();
+      const [deviceFactory] = getLedgerDeviceMock(
+        {},
+        { state, connectDelayMs: 20 },
+      );
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      const initializing = ledgerHandler.init();
+
+      // Close while the session is still being opened.
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await ledgerHandler.close();
+
+      await assertRejectsWithHardhatError(
+        initializing,
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+        { error: new LedgerConnectionClosedError(), transportId: "" },
+      );
+
+      assert.equal(state.connectCount, 1);
+      assert.equal(state.closeCount, 1);
+    });
+
+    it("should not reconnect after the handler has been closed", async () => {
+      const state = createDeviceFactoryState();
+      const [deviceFactory] = getLedgerDeviceMock({}, { state });
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      await ledgerHandler.init();
+      await ledgerHandler.close();
+
+      await assertRejectsWithHardhatError(
+        () => ledgerHandler.init(),
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+        { error: new LedgerConnectionClosedError(), transportId: "" },
+      );
+
+      assert.equal(state.connectCount, 1);
+    });
+
+    it("should cancel a device action still running when closed", async () => {
+      // The Device Management Kit leaves a running action alone when its
+      // session is closed, so a request signing at that moment would outlive
+      // the connection and keep the process alive.
+      const state = createDeviceFactoryState();
+      const [deviceFactory, calls] = getLedgerDeviceMock(
+        {
+          getAddress: findAccountAt(derPath),
+          signMessage: { result: rsv, delayMs: 1000 },
+        },
+        { state },
+      );
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      const signing = ledgerHandler.handle(personalSignRequest);
+
+      // Close once the device has been asked to sign.
+      await waitFor(() => calls.signMessage.totalCalls === 1);
+      await ledgerHandler.close();
+
+      await assertRejectsWithHardhatError(
+        signing,
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+        { error: new LedgerConnectionClosedError(), transportId: "" },
+      );
+
+      assert.equal(state.cancelCount, 1);
+      assert.equal(state.closeCount, 1);
+    });
+
+    it("should throw a ledger provider error if connecting fails", async () => {
       const error = new Error("Test error");
-
-      const transportNodeHid = getTransportNodeHidMock();
-      transportNodeHid.create = () => {
-        throw error;
-      };
-
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
-        {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
-        },
-        mockedDisplayInfo.fn,
-        { transportNodeHid },
+      const [deviceFactory] = getLedgerDeviceMock(
+        {},
+        { connectionErrors: [error] },
       );
+
+      ledgerHandler = createHandler({
+        deviceFactory,
+        delayBeforeRetry: noOpSleep,
+      });
 
       await assertRejectsWithHardhatError(
         () => ledgerHandler.init(),
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
-        {
-          error,
-          transportId: "",
-        },
-      );
-    });
-
-    it("should throw a ledger provider error if a transport error occurs", async () => {
-      const error = new TransportError("Transport Error", "Transport Error Id");
-
-      const transportNodeHid = getTransportNodeHidMock();
-      transportNodeHid.create = () => {
-        throw error;
-      };
-
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
-        {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
-        },
-        mockedDisplayInfo.fn,
-        {
-          transportNodeHid,
-          // Set maxDeviceNotReadyRetries to 0 so the test fails immediately
-          // without retrying (which would cause actual 30s sleeps)
-          maxDeviceNotReadyRetries: 0,
-        },
-      );
-
-      await assertRejectsWithHardhatError(
-        () => ledgerHandler.init(),
-        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
-        {
-          error,
-          transportId: "Transport Error Id",
-        },
+        { error, transportId: "" },
       );
     });
 
     it("should start the paths cache with what the cache returns", async () => {
-      await writeJsonFile(tmpCachePath, {
+      const paths = {
         "0xe149ff2797adc146aa2d68d3df3e819c3c38e762": "m/44'/60'/0'/0/0",
-      });
+      };
 
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
-        {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
-        },
-        mockedDisplayInfo.fn,
-        {
-          transportNodeHid: getTransportNodeHidMock(),
-          cachePath: tmpCachePath,
-        },
-      );
+      await writeJsonFile(tmpCachePath, paths);
+
+      ledgerHandler = createHandler();
 
       assert.deepEqual(ledgerHandler.paths, {});
 
       await ledgerHandler.init();
 
-      assert.deepEqual(ledgerHandler.paths, {
-        "0xe149ff2797adc146aa2d68d3df3e819c3c38e762": "m/44'/60'/0'/0/0",
-      });
+      assert.deepEqual(ledgerHandler.paths, paths);
     });
 
-    describe("TransportError retry (device not connected)", () => {
-      // No-op sleep for fast tests
-      const noOpSleep = async (_seconds: number): Promise<void> => {};
-
-      it("should retry and succeed after 2 TransportError retries", async () => {
-        let createCallCount = 0;
-
-        const transportNodeHid = getTransportNodeHidMock();
-        const originalCreate = transportNodeHid.create.bind(transportNodeHid);
-
-        transportNodeHid.create = async (...args: any[]) => {
-          createCallCount++;
-          if (createCallCount <= 2) {
-            throw new TransportError("No Ledger device found", "NoDeviceFound");
-          }
-          return await originalCreate(...args);
-        };
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
+    describe("device-not-connected retry", () => {
+      it("should retry and succeed after 2 no-device-found retries", async () => {
+        const state = createDeviceFactoryState();
+        const [deviceFactory] = getLedgerDeviceMock(
+          {},
           {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            transportNodeHid,
-            delayBeforeRetry: noOpSleep,
+            state,
+            connectionErrors: [
+              NO_ACCESSIBLE_DEVICE_ERROR,
+              NO_ACCESSIBLE_DEVICE_ERROR,
+            ],
           },
         );
 
-        mockedDisplayInfo.clear();
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
 
         await ledgerHandler.init();
 
-        assert.equal(
-          createCallCount,
-          3,
-          "Transport create should be called 3 times (2 failures + 1 success)",
-        );
-
-        // Verify the not-connected message was displayed twice
-        const notConnectedMessages = mockedDisplayInfo.messages.filter((m) =>
-          m.includes("Device not connected"),
-        );
-        assert.equal(
-          notConnectedMessages.length,
-          2,
-          "Device not connected message should be displayed twice",
-        );
-
-        // Verify successful connection message was displayed
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Connection successful"),
-          "Connection successful message should be displayed",
-        );
+        assert.equal(state.connectCount, 3);
       });
 
       it("should throw CONNECTION_ERROR after max retries", async () => {
-        let createCallCount = 0;
-        const transportError = new TransportError(
-          "No Ledger device found",
-          "NoDeviceFound",
-        );
-
-        const transportNodeHid = getTransportNodeHidMock();
-        transportNodeHid.create = async () => {
-          createCallCount++;
-          throw transportError;
-        };
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
+        const state = createDeviceFactoryState();
+        const [deviceFactory] = getLedgerDeviceMock(
+          {},
           {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            transportNodeHid,
-            delayBeforeRetry: noOpSleep,
-            maxDeviceNotReadyRetries: 5,
+            state,
+            connectionErrors: new Array(6).fill(NO_ACCESSIBLE_DEVICE_ERROR),
           },
         );
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+          maxDeviceNotReadyRetries: 5,
+        });
 
         mockedDisplayInfo.clear();
 
@@ -381,54 +496,36 @@ describe("LedgerHandler", () => {
           () => ledgerHandler.init(),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
           {
-            error: transportError,
-            transportId: "NoDeviceFound",
+            error: new LedgerDeviceError(NO_ACCESSIBLE_DEVICE_ERROR),
+            transportId: NO_ACCESSIBLE_DEVICE_ERROR._tag,
           },
         );
 
+        assert.equal(state.connectCount, 6);
         assert.equal(
-          createCallCount,
-          6,
-          "Transport create should be called 6 times (5 retries + 1 initial)",
-        );
-
-        // Verify the not-connected message was displayed 5 times (once per retry, not on final failure)
-        const notConnectedMessages = mockedDisplayInfo.messages.filter((m) =>
-          m.includes("Device not connected"),
-        );
-        assert.equal(
-          notConnectedMessages.length,
+          mockedDisplayInfo.messages.filter((m) =>
+            m.includes("Device not connected"),
+          ).length,
           5,
-          "Device not connected message should be displayed 5 times",
         );
-
-        // Verify connection error message was displayed on final failure
         assert.ok(
           mockedDisplayInfo.messages.includes("Connection error"),
-          "Connection error message should be displayed on final failure",
+          "The failure should be displayed",
         );
       });
     });
   });
 
-  describe("request", function () {
+  describe("request", () => {
     it("should forward the request without modifying it for the unsupported JSONRPC methods", async () => {
-      ledgerHandler = new LedgerHandler(
-        ethereumMockedProvider,
-        {
-          accounts: LEDGER_ADDRESSES,
-          derivationFunction: undefined,
-        },
-        mockedDisplayInfo.fn,
-      );
+      ledgerHandler = createHandler();
 
-      let request = createJsonRpcRequest("eth_blockNumber");
-      let res = await ledgerHandler.handle(request);
-      assert.deepEqual(res, request);
-
-      request = createJsonRpcRequest("eth_getBlockByNumber", [1n]);
-      res = await ledgerHandler.handle(request);
-      assert.deepEqual(res, request);
+      for (const request of [
+        createJsonRpcRequest("eth_blockNumber"),
+        createJsonRpcRequest("eth_getBlockByNumber", [1n]),
+      ]) {
+        assert.deepEqual(await ledgerHandler.handle(request), request);
+      }
     });
 
     describe("supported (sign) methods", () => {
@@ -436,274 +533,205 @@ describe("LedgerHandler", () => {
         const uncontrolledAddress =
           "0x76F8654a8e981A4a5D634c2d3cE56E195a65c319";
 
-        const requestArgs = [
-          {
-            method: "eth_sign",
-            params: [uncontrolledAddress, dataToSign],
-          },
-          {
-            method: "personal_sign",
-            params: [dataToSign, uncontrolledAddress],
-          },
-          {
-            method: "eth_signTypedData_v4",
-            params: [uncontrolledAddress, typedMessage],
-          },
-          {
-            method: "eth_sendTransaction",
-            params: [
-              {
-                from: uncontrolledAddress,
-                to: LEDGER_ADDRESSES[1],
-                value: "0x100",
-                gas: "0x1000000",
-                gasPrice: "0x100",
-              },
-            ],
-          },
-        ];
+        ledgerHandler = createHandler();
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-        );
-
-        for (const args of requestArgs) {
-          const request = createJsonRpcRequest(args.method, args.params);
-
-          const res = await ledgerHandler.handle(request);
-
-          assert.deepEqual(res, request);
+        for (const request of [
+          createJsonRpcRequest("eth_sign", [uncontrolledAddress, dataToSign]),
+          createJsonRpcRequest("personal_sign", [
+            dataToSign,
+            uncontrolledAddress,
+          ]),
+          createJsonRpcRequest("eth_signTypedData_v4", [
+            uncontrolledAddress,
+            typedMessage,
+          ]),
+          createJsonRpcRequest("eth_sendTransaction", [
+            {
+              from: uncontrolledAddress,
+              to: LEDGER_ADDRESSES[1],
+              value: "0x100",
+              gas: "0x1000000",
+              gasPrice: "0x100",
+            },
+          ]),
+        ]) {
+          assert.deepEqual(await ledgerHandler.handle(request), request);
         }
       });
 
       it("should successfully handle the method eth_sign", async () => {
-        [eth] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signPersonalMessage: {
+        const [deviceFactory] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
             result: rsv,
-            expectedParams: {
-              path: derPath,
-              data: dataToSign.replace("0x", ""),
-            },
+            expectedParams: { path: derPath, data: dataToSign },
           },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
+        ledgerHandler = createHandler({ deviceFactory });
+
+        assert.deepEqual(
+          await ledgerHandler.handle(
+            createJsonRpcRequest("eth_sign", [account.address, dataToSign]),
+          ),
+          signatureResponse,
         );
-
-        const request = createJsonRpcRequest("eth_sign", [
-          account.address,
-          dataToSign,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-
-        assert.deepEqual(res.result, signature);
       });
 
-      it("should successfully handle the method personal_sign", async () => {
-        [eth] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signPersonalMessage: {
+      it("should fail immediately when the user rejects on the device", async () => {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
             result: rsv,
-            expectedParams: {
-              path: derPath,
-              data: dataToSign.replace("0x", ""),
-            },
+            errorSequenceToEmit: [REFUSED_BY_USER_ERROR],
           },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        await assertRejects(
+          () => ledgerHandler.handle(personalSignRequest),
+          (error) =>
+            error instanceof LedgerDeviceError &&
+            error.tag === REFUSED_BY_USER_ERROR._tag,
+          "Expected the rejection to reach the caller unchanged",
         );
 
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-
-        assert.deepEqual(res.result, signature);
+        assert.equal(calls.signMessage.totalCalls, 1, "It must not retry");
       });
 
-      it("should successfully handle the method eth_signTypedData_v4 for EIP712Message", async () => {
-        [eth] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signEIP712Message: {
-            result: rsv,
-            expectedParams: {
-              path: derPath,
-              jsonMessage: typedMessage,
-            },
-            shouldThrow: false,
+      it("should successfully handle the method eth_signTypedData_v4", async () => {
+        const [deviceFactory] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath, typedDataSigner),
+          signTypedData: {
+            result: typedDataRsv,
+            expectedParams: { path: derPath, typedData: typedMessage },
           },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
+        ledgerHandler = createHandler({ deviceFactory });
+
+        assert.deepEqual(
+          await ledgerHandler.handle(
+            createJsonRpcRequest("eth_signTypedData_v4", [
+              typedDataSigner.address,
+              typedMessage,
+            ]),
+          ),
+          { jsonrpc: "2.0", id: 1, result: typedDataSignature },
         );
-
-        const request = createJsonRpcRequest("eth_signTypedData_v4", [
-          account.address,
-          typedMessage,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-
-        assert.deepEqual(res.result, signature);
       });
 
-      it("should successfully handle the method eth_signTypedData_v4 for HashedMessage", async () => {
-        [eth] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signEIP712Message: {
-            shouldThrow: true,
-          },
-          signEIP712HashedMessage: {
-            result: rsv,
-            expectedParams: {
-              path: derPath,
-              domainSeparatorHex:
-                "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f",
-              hashStructMessageHex:
-                "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e",
-            },
-          },
+      it("should reject a signature that is not over the requested typed data", async () => {
+        // Whatever the device or the signer kit did to the data, a signature
+        // over anything else recovers to another address.
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath, typedDataSigner),
+          signTypedData: { result: rsv },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
+        ledgerHandler = createHandler({ deviceFactory });
+
+        await assertRejectsWithHardhatError(
+          () =>
+            ledgerHandler.handle(
+              createJsonRpcRequest("eth_signTypedData_v4", [
+                typedDataSigner.address,
+                typedMessage,
+              ]),
+            ),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+          {},
         );
 
-        const request = createJsonRpcRequest("eth_signTypedData_v4", [
-          account.address,
-          typedMessage,
-        ]);
+        assert.equal(calls.signTypedData.totalCalls, 1, "It must not retry");
+      });
 
-        const res = await ledgerHandler.handle(request);
+      it("should reject typed data that cannot be hashed faithfully", async () => {
+        // A duplicate field name: the signer kit keeps only the last one, and
+        // our own hasher refuses to guess.
+        const [deviceFactory] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath, typedDataSigner),
+          signTypedData: { result: typedDataRsv },
+        });
 
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
+        ledgerHandler = createHandler({ deviceFactory });
 
-        assert.deepEqual(res.result, signature);
+        await assertRejectsWithHardhatError(
+          () =>
+            ledgerHandler.handle(
+              createJsonRpcRequest("eth_signTypedData_v4", [
+                typedDataSigner.address,
+                {
+                  ...typedMessage,
+                  types: {
+                    ...typedMessage.types,
+                    Mail: [
+                      ...typedMessage.types.Mail,
+                      { name: "contents", type: "string" },
+                    ],
+                  },
+                },
+              ]),
+            ),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+          {},
+        );
+      });
+
+      it("should reject typed data that is not valid EIP-712", async () => {
+        ledgerHandler = createHandler();
+
+        await assertRejectsWithHardhatError(
+          () =>
+            ledgerHandler.handle(
+              createJsonRpcRequest("eth_signTypedData_v4", [
+                account.address,
+                { not: "typed data" },
+              ]),
+            ),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+          {},
+        );
       });
 
       describe("all transaction types", () => {
+        const txRsv = {
+          v: 0xf4f5,
+          r: "0x4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
+          s: "0x3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+        };
+        const accessList = [
+          {
+            address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
+            storageKeys: [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            ],
+          },
+        ];
+
         beforeEach(() => {
-          ethereumMockedProvider.resetNumberOfCalls("eth_getTransactionCount");
-          ethereumMockedProvider.resetNumberOfCalls("eth_chainId");
-        });
-
-        it("should throw for eip7702 transactions because they are not supported in the current ledger library", async () => {
-          [eth] = getEthMocked({
-            getAddress: {
-              result: (searchedPath: string) => {
-                return searchedPath === derPath
-                  ? account
-                  : { address: "0x0", publicKey: "0x0" };
-              },
-            },
-          });
-
           ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
           ethereumMockedProvider.setReturnValue(
             "eth_getTransactionCount",
             "0x64",
           );
+          ethereumMockedProvider.resetNumberOfCalls("eth_getTransactionCount");
+          ethereumMockedProvider.resetNumberOfCalls("eth_chainId");
+        });
 
-          ledgerHandler = new LedgerHandler(
-            ethereumMockedProvider,
-            {
-              accounts: LEDGER_ADDRESSES,
-              derivationFunction: undefined,
-            },
-            mockedDisplayInfo.fn,
-            {
-              ethConstructor: eth,
-              transportNodeHid: getTransportNodeHidMock(),
-              cachePath: tmpCachePath,
-            },
-          );
+        it("should throw for eip7702 transactions because they are not supported in the current ledger library", async () => {
+          const [deviceFactory] = getLedgerDeviceMock({
+            getAddress: findAccountAt(derPath),
+          });
+
+          ledgerHandler = createHandler({ deviceFactory });
 
           const request = createJsonRpcRequest("eth_sendTransaction", [
             {
@@ -714,14 +742,7 @@ describe("LedgerHandler", () => {
               maxFeePerGas: numberToHexString(1000001),
               maxPriorityFeePerGas: numberToHexString(1000001),
               authorizationList: [],
-              accessList: [
-                {
-                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
-                  storageKeys: [
-                    "0x0000000000000000000000000000000000000000000000000000000000000000",
-                  ],
-                },
-              ],
+              accessList,
             },
           ]);
 
@@ -737,56 +758,19 @@ describe("LedgerHandler", () => {
           const signedRawTx =
             "0xf8626465830f424194da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
-          const txRsv = {
-            v: "f4f5",
-            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
-            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
-          };
-
-          [eth] = getEthMocked({
-            getAddress: {
-              result: (searchedPath: string) => {
-                return searchedPath === derPath
-                  ? account
-                  : { address: "0x0", publicKey: "0x0" };
-              },
-            },
+          const [deviceFactory] = getLedgerDeviceMock({
+            getAddress: findAccountAt(derPath),
             signTransaction: {
               result: txRsv,
               expectedParams: {
                 path: derPath,
                 rawTxHex:
-                  "e26465830f424194da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
-                resolution: {
-                  nfts: [],
-                  erc20Tokens: [],
-                  externalPlugin: [],
-                  plugin: [],
-                  domains: [],
-                },
+                  "0xe26465830f424194da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
               },
             },
           });
 
-          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
-          ethereumMockedProvider.setReturnValue(
-            "eth_getTransactionCount",
-            "0x64",
-          );
-
-          ledgerHandler = new LedgerHandler(
-            ethereumMockedProvider,
-            {
-              accounts: LEDGER_ADDRESSES,
-              derivationFunction: undefined,
-            },
-            mockedDisplayInfo.fn,
-            {
-              ethConstructor: eth,
-              transportNodeHid: getTransportNodeHidMock(),
-              cachePath: tmpCachePath,
-            },
-          );
+          ledgerHandler = createHandler({ deviceFactory });
 
           const request = createJsonRpcRequest("eth_sendTransaction", [
             {
@@ -798,17 +782,11 @@ describe("LedgerHandler", () => {
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request);
-
-          assert.ok(modifiedRequest !== null, "res should not be null");
-          assert.ok(
-            "method" in modifiedRequest &&
-              Array.isArray(modifiedRequest.params),
-            "modifiedRequest should have the property 'method' ana params should be an array",
-          );
-
-          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
-          assert.equal(modifiedRequest.params[0], signedRawTx);
+          assert.deepEqual(await ledgerHandler.handle(request), {
+            ...request,
+            method: "eth_sendRawTransaction",
+            params: [signedRawTx],
+          });
 
           assert.equal(
             ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
@@ -818,7 +796,6 @@ describe("LedgerHandler", () => {
             ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
             [account.address, "pending"],
           );
-
           assert.equal(
             ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
             1,
@@ -829,56 +806,19 @@ describe("LedgerHandler", () => {
           const signedRawTx =
             "0x02f8a4827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a0000000000000000000000000000000000000000000000000000000000000000080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
-          const txRsv = {
-            v: "f4f5",
-            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
-            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
-          };
-
-          [eth] = getEthMocked({
-            getAddress: {
-              result: (searchedPath: string) => {
-                return searchedPath === derPath
-                  ? account
-                  : { address: "0x0", publicKey: "0x0" };
-              },
-            },
+          const [deviceFactory] = getLedgerDeviceMock({
+            getAddress: findAccountAt(derPath),
             signTransaction: {
               result: txRsv,
               expectedParams: {
                 path: derPath,
                 rawTxHex:
-                  "02f861827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
-                resolution: {
-                  nfts: [],
-                  erc20Tokens: [],
-                  externalPlugin: [],
-                  plugin: [],
-                  domains: [],
-                },
+                  "0x02f861827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
               },
             },
           });
 
-          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
-          ethereumMockedProvider.setReturnValue(
-            "eth_getTransactionCount",
-            "0x64",
-          );
-
-          ledgerHandler = new LedgerHandler(
-            ethereumMockedProvider,
-            {
-              accounts: LEDGER_ADDRESSES,
-              derivationFunction: undefined,
-            },
-            mockedDisplayInfo.fn,
-            {
-              ethConstructor: eth,
-              transportNodeHid: getTransportNodeHidMock(),
-              cachePath: tmpCachePath,
-            },
-          );
+          ledgerHandler = createHandler({ deviceFactory });
 
           const request = createJsonRpcRequest("eth_sendTransaction", [
             {
@@ -888,98 +828,34 @@ describe("LedgerHandler", () => {
               gas: numberToHexString(1000001),
               maxFeePerGas: numberToHexString(1000001),
               maxPriorityFeePerGas: numberToHexString(1000001),
-              accessList: [
-                {
-                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
-                  storageKeys: [
-                    "0x0000000000000000000000000000000000000000000000000000000000000000",
-                  ],
-                },
-              ],
+              accessList,
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request);
-
-          assert.ok(modifiedRequest !== null, "res should not be null");
-          assert.ok(
-            "method" in modifiedRequest &&
-              Array.isArray(modifiedRequest.params),
-            "modifiedRequest should have the property 'method' ana params should be an array",
-          );
-
-          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
-          assert.equal(modifiedRequest.params[0], signedRawTx);
-
-          assert.equal(
-            ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
-            1,
-          );
-          assert.deepEqual(
-            ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
-            [account.address, "pending"],
-          );
-
-          assert.equal(
-            ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
-            1,
-          );
+          assert.deepEqual(await ledgerHandler.handle(request), {
+            ...request,
+            method: "eth_sendRawTransaction",
+            params: [signedRawTx],
+          });
         });
 
         it("should successfully handle the method eth_sendTransaction for eip2930 transactions", async () => {
           const signedRawTx =
             "0x01f8a0827a6964830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a0000000000000000000000000000000000000000000000000000000000000000080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
-          const txRsv = {
-            v: "f4f5",
-            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
-            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
-          };
-
-          [eth] = getEthMocked({
-            getAddress: {
-              result: (searchedPath: string) => {
-                return searchedPath === derPath
-                  ? account
-                  : { address: "0x0", publicKey: "0x0" };
-              },
-            },
+          const [deviceFactory] = getLedgerDeviceMock({
+            getAddress: findAccountAt(derPath),
             signTransaction: {
               result: txRsv,
               expectedParams: {
                 path: derPath,
                 rawTxHex:
-                  "01f85d827a6964830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
-                resolution: {
-                  nfts: [],
-                  erc20Tokens: [],
-                  externalPlugin: [],
-                  plugin: [],
-                  domains: [],
-                },
+                  "0x01f85d827a6964830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
               },
             },
           });
 
-          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
-          ethereumMockedProvider.setReturnValue(
-            "eth_getTransactionCount",
-            "0x64",
-          );
-
-          ledgerHandler = new LedgerHandler(
-            ethereumMockedProvider,
-            {
-              accounts: LEDGER_ADDRESSES,
-              derivationFunction: undefined,
-            },
-            mockedDisplayInfo.fn,
-            {
-              ethConstructor: eth,
-              transportNodeHid: getTransportNodeHidMock(),
-              cachePath: tmpCachePath,
-            },
-          );
+          ledgerHandler = createHandler({ deviceFactory });
 
           const request = createJsonRpcRequest("eth_sendTransaction", [
             {
@@ -988,134 +864,54 @@ describe("LedgerHandler", () => {
               value: numberToHexString(100),
               gas: numberToHexString(1000001),
               gasPrice: numberToHexString(1000001),
-              accessList: [
-                {
-                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
-                  storageKeys: [
-                    "0x0000000000000000000000000000000000000000000000000000000000000000",
-                  ],
-                },
-              ],
+              accessList,
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request);
-
-          assert.ok(modifiedRequest !== null, "res should not be null");
-          assert.ok(
-            "method" in modifiedRequest &&
-              Array.isArray(modifiedRequest.params),
-            "modifiedRequest should have the property 'method' ana params should be an array",
-          );
-
-          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
-          assert.equal(modifiedRequest.params[0], signedRawTx);
-
-          assert.equal(
-            ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
-            1,
-          );
-          assert.deepEqual(
-            ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
-            [account.address, "pending"],
-          );
-
-          assert.equal(
-            ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
-            1,
-          );
+          assert.deepEqual(await ledgerHandler.handle(request), {
+            ...request,
+            method: "eth_sendRawTransaction",
+            params: [signedRawTx],
+          });
         });
       });
     });
 
     describe("path derivation", () => {
-      let calls: Map<string, { totalCalls: number; args: any[] }>;
-      const request = createJsonRpcRequest("personal_sign", [
-        dataToSign,
-        account.address,
-      ]);
+      let calls: MockCalls;
 
-      beforeEach(async () => {
-        [eth, calls] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signPersonalMessage: {
+      beforeEach(() => {
+        const [deviceFactory, deviceCalls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
             result: rsv,
-            expectedParams: {
-              path: derPath,
-              data: dataToSign.replace("0x", ""),
-            },
+            expectedParams: { path: derPath, data: dataToSign },
           },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
-        );
+        calls = deviceCalls;
+        ledgerHandler = createHandler({ deviceFactory });
       });
 
       it("should cache the derived path from the supplied accounts", async () => {
-        const c = calls.get("getAddress");
-        assertHardhatInvariant(c !== undefined, "c should be defined");
+        await ledgerHandler.handle(personalSignRequest);
+        await ledgerHandler.handle(personalSignRequest);
 
-        await ledgerHandler.handle(request);
-        await ledgerHandler.handle(request);
-        await ledgerHandler.handle(request);
-        await ledgerHandler.handle(request);
-
-        assert.equal(c.args[0], "m/44'/60'/0'/0/0");
-        assert.equal(c.args[1], "m/44'/60'/1'/0/0");
-        assert.equal(c.totalCalls, 2);
-      });
-
-      it("should cache the path per address on the paths property", async () => {
-        await ledgerHandler.handle(request);
-        await ledgerHandler.handle(request);
-
-        assert.deepEqual(ledgerHandler.paths, {
-          [LEDGER_ADDRESSES[1]]: derPath,
-        });
+        assert.deepEqual(calls.getAddress.args, ["m/44'/60'/0'/0/0", derPath]);
       });
 
       it("should write the cache with the new paths", async () => {
-        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(personalSignRequest);
 
-        const file = await readJsonFile(tmpCachePath);
-
-        assert.deepEqual(file, {
+        assert.deepEqual(await readJsonFile(tmpCachePath), {
           [LEDGER_ADDRESSES[1]]: derPath,
         });
-      });
-
-      it("should not break if caching fails", async () => {
-        let hasThrown = false;
-        try {
-          await ledgerHandler.handle(request);
-        } catch (_error) {
-          hasThrown = true;
-        }
-
-        assert.equal(hasThrown, false);
       });
 
       it("should throw a DerivationPathError if trying to get the address fails", async () => {
         const errorMessage = "Test:error: getting the address broke";
 
-        [eth] = getEthMocked({
+        const [deviceFactory] = getLedgerDeviceMock({
           getAddress: {
             result: () => {
               throw new Error(errorMessage);
@@ -1123,56 +919,24 @@ describe("LedgerHandler", () => {
           },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
-        );
+        ledgerHandler = createHandler({ deviceFactory });
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          () => ledgerHandler.handle(personalSignRequest),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ERROR_WHILE_DERIVING_PATH,
-          {
-            path: "m/44'/60'/0'/0/0",
-            message: errorMessage,
-          },
+          { path: "m/44'/60'/0'/0/0", message: errorMessage },
         );
       });
 
       it("should throw a DerivationPathError if the max number of derivations is searched without a result", async () => {
-        [eth] = getEthMocked({
-          getAddress: {
-            result: () => ({
-              address: "0x0",
-              publicKey: "0x0",
-            }),
-          },
+        const [deviceFactory] = getLedgerDeviceMock({
+          getAddress: { result: () => ({ address: "0x0", publicKey: "0x0" }) },
         });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
-        );
+        ledgerHandler = createHandler({ deviceFactory });
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          () => ledgerHandler.handle(personalSignRequest),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
             .CANNOT_FIND_VALID_DERIVATION_PATH,
           {
@@ -1184,845 +948,214 @@ describe("LedgerHandler", () => {
       });
 
       it("should use the supplied derivationFunction when deriving paths", async () => {
-        const customDerivation = (idx: number) =>
-          `m/44'/60'/${1337 + idx}'/0/0`;
+        const derivationFunction = (index: number) =>
+          `m/44'/60'/${1337 + index}'/0/0`;
 
-        const expectedPath = customDerivation(0);
+        const expectedPath = derivationFunction(0);
 
-        [eth, calls] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === expectedPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
+        const [deviceFactory, deviceCalls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(expectedPath),
+          signMessage: {
             result: rsv,
-            expectedParams: {
-              path: expectedPath,
-              data: dataToSign.replace("0x", ""),
-            },
+            expectedParams: { path: expectedPath, data: dataToSign },
           },
         });
 
         ledgerHandler = new LedgerHandler(
           ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: customDerivation,
-          },
+          { accounts: LEDGER_ADDRESSES, derivationFunction },
           mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
+          { deviceFactory, cachePath: tmpCachePath },
         );
 
-        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(personalSignRequest);
 
-        const c = calls.get("getAddress");
-        assertHardhatInvariant(c !== undefined, "c should be defined");
-
-        assert.equal(c.args[0], expectedPath);
+        assert.deepEqual(deviceCalls.getAddress.args, [expectedPath]);
       });
     });
   });
 
-  describe("reconnection", () => {
-    // No-op sleep for fast tests
-    const noOpSleep = async (_seconds: number): Promise<void> => {};
-
-    describe("exhausted retries", () => {
+  describe("device error recovery", () => {
+    describe("during signing (#withConfirmation)", () => {
       it("should give up and display failure message after reconnection also fails", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            // Need enough errors to exhaust retries (initial + 2 reconnection attempts = 3)
-            errorSequenceToThrow: [
-              new DisconnectedDevice(),
-              new DisconnectedDevice(),
-              new DisconnectedDevice(),
-            ],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
+        const state = createDeviceFactoryState();
+        const [deviceFactory] = getLedgerDeviceMock(
           {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
+            getAddress: findAccountAt(derPath),
+            // The first attempt, and both reconnections.
+            signMessage: {
+              result: rsv,
+              errorSequenceToEmit: new Array(3).fill(DEVICE_DISCONNECTED_ERROR),
+            },
           },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
+          { state },
         );
 
-        mockedDisplayInfo.clear();
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
 
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
+        mockedDisplayInfo.clear();
 
         await assertRejects(
-          () => ledgerHandler.handle(request),
-          (error) => error instanceof DisconnectedDevice,
-          "Expected DisconnectedDevice error after exhausted retries",
+          () => ledgerHandler.handle(personalSignRequest),
+          (error) =>
+            error instanceof LedgerDeviceError &&
+            error.tag === DEVICE_DISCONNECTED_ERROR._tag,
+          "Expected the disconnection to reach the caller",
         );
 
-        assert.equal(
-          transportState.createCount,
-          3,
-          "Transport should be created 3 times (initial + 2 reconnection attempts)",
-        );
+        assert.equal(state.connectCount, 3);
         assert.ok(
           mockedDisplayInfo.messages.includes("Confirmation failure"),
-          "Confirmation failure should be displayed after exhausting retries",
-        );
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
-        );
-      });
-    });
-
-    describe("DisconnectedDevice recovery", () => {
-      it("should reconnect and succeed when device is unplugged/replugged during signing", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            throwOnCall: 2,
-            errorSequenceToThrow: [new DisconnectedDevice()],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        // First request should succeed
-        const request1 = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-        const res1 = await ledgerHandler.handle(request1);
-        assert.ok(res1 !== null, "res1 should not be null");
-        assert.ok("result" in res1, "res1 should have the property 'result'");
-        assert.deepEqual(res1.result, signature);
-
-        assert.equal(
-          transportState.createCount,
-          1,
-          "Transport should be created once initially",
-        );
-
-        // Clear messages before second request to verify reconnection messages
-        mockedDisplayInfo.clear();
-
-        // Second request - should reconnect and succeed
-        const request2 = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-        const res2 = await ledgerHandler.handle(request2);
-
-        assert.ok(res2 !== null, "res2 should not be null");
-        assert.ok("result" in res2, "res2 should have the property 'result'");
-        assert.deepEqual(res2.result, signature);
-
-        assert.equal(
-          transportState.createCount,
-          2,
-          "Transport should be created twice (initial + reconnection)",
-        );
-
-        assert.ok(
-          !mockedDisplayInfo.messages.includes("Confirmation failure"),
-          "Confirmation failure should not be displayed on successful reconnection",
-        );
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
-        );
-      });
-
-      it("should reconnect and succeed when device is disconnected during operation", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            throwOnCall: 2,
-            errorSequenceToThrow: [new DisconnectedDeviceDuringOperation()],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        // First request should succeed
-        const request1 = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-        const res1 = await ledgerHandler.handle(request1);
-        assert.ok(res1 !== null, "res1 should not be null");
-        assert.ok("result" in res1, "res1 should have the property 'result'");
-
-        // Clear messages before second request to verify reconnection messages
-        mockedDisplayInfo.clear();
-
-        // Second request - should reconnect and succeed
-        const request2 = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-        const res2 = await ledgerHandler.handle(request2);
-
-        assert.ok(res2 !== null, "res2 should not be null");
-        assert.ok("result" in res2, "res2 should have the property 'result'");
-        assert.deepEqual(res2.result, signature);
-
-        assert.equal(
-          transportState.createCount,
-          2,
-          "Transport should be created twice (initial + reconnection)",
-        );
-
-        assert.ok(
-          !mockedDisplayInfo.messages.includes("Confirmation failure"),
-          "Confirmation failure should not be displayed on successful reconnection",
-        );
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
-        );
-      });
-    });
-
-    describe("error during path derivation", () => {
-      it("should reconnect and succeed when device is disconnected during path derivation", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-            throwOnCall: 1,
-            errorSequenceToThrow: [new DisconnectedDevice()],
-          },
-          signPersonalMessage: {
-            result: rsv,
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        // Clear messages to verify reconnection messages
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        assert.equal(
-          transportState.createCount,
-          2,
-          "Transport should be created twice (initial + reconnection)",
-        );
-
-        assert.ok(
-          !mockedDisplayInfo.messages.includes("Derivation failure"),
-          "Derivation failure should not be displayed on successful reconnection",
-        );
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
-        );
-      });
-    });
-  });
-
-  describe("LockedDeviceError handling", () => {
-    // No-op sleep for fast tests
-    const noOpSleep = async (_seconds: number): Promise<void> => {};
-
-    describe("during signing (#withConfirmation)", () => {
-      it("should retry and succeed after 2 LockedDeviceError retries", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            // Throw LockedDeviceError twice, then succeed on 3rd call
-            errorSequenceToThrow: [
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-            ],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock, calls] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        const signCalls = calls.get("signPersonalMessage");
-        assert.ok(signCalls !== undefined, "signCalls should be defined");
-        assert.equal(
-          signCalls.totalCalls,
-          3,
-          "signPersonalMessage should be called 3 times (2 failures + 1 success)",
-        );
-
-        // Verify the locked device message was displayed twice
-        const lockedMessages = mockedDisplayInfo.messages.filter((m) =>
-          m.includes("Device is locked"),
-        );
-        assert.equal(
-          lockedMessages.length,
-          2,
-          "Locked device message should be displayed twice",
+          "The failure should be displayed",
         );
       });
 
       it("should throw HardhatError.LOCKED_DEVICE after max retries", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
             result: rsv,
-            // Need enough errors for maxLockedDeviceRetries (5) + 1 initial = 6 calls
-            errorSequenceToThrow: [
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-            ],
+            errorSequenceToEmit: new Array(6).fill(DEVICE_LOCKED_ERROR),
           },
-        };
+        });
 
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock, calls] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-            maxDeviceNotReadyRetries: 5,
-          },
-        );
-
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+          maxDeviceNotReadyRetries: 5,
+        });
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          () => ledgerHandler.handle(personalSignRequest),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           {},
         );
 
-        const signCalls = calls.get("signPersonalMessage");
-        assert.ok(signCalls !== undefined, "signCalls should be defined");
-        assert.equal(
-          signCalls.totalCalls,
-          6,
-          "signPersonalMessage should be called 6 times (5 retries + 1 initial)",
-        );
+        assert.equal(calls.signMessage.totalCalls, 6);
       });
 
-      it("should retry and succeed after app-not-open errors (0x6511)", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            // First call: app not open (0x6511)
-            // Second call: app not open (0x6511)
-            // Third call: success
-            errorSequenceToThrow: [
-              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
-              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
-            ],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock, calls] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
+      it("should handle a disconnection, then a locked device, then a busy device, then another disconnection, and succeed", async () => {
+        // Opening the Ethereum app on a busy device disconnects it.
+        const state = createDeviceFactoryState();
+        const [deviceFactory, calls] = getLedgerDeviceMock(
           {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
+            getAddress: findAccountAt(derPath),
+            signMessage: {
+              result: rsv,
+              errorSequenceToEmit: [
+                DEVICE_DISCONNECTED_ERROR,
+                DEVICE_LOCKED_ERROR,
+                DEVICE_BUSY_ERROR,
+                DEVICE_DISCONNECTED_BEFORE_SENDING_ERROR,
+              ],
+            },
           },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
+          { state },
         );
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
 
         mockedDisplayInfo.clear();
 
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        const signCalls = calls.get("signPersonalMessage");
-        assert.ok(signCalls !== undefined, "signCalls should be defined");
-        assert.equal(
-          signCalls.totalCalls,
-          3,
-          "signPersonalMessage should be called 3 times (2 failures + 1 success)",
+        assert.deepEqual(
+          await ledgerHandler.handle(personalSignRequest),
+          signatureResponse,
         );
 
-        // Verify the app-not-open message was displayed twice
-        const appNotOpenMessages = mockedDisplayInfo.messages.filter((m) =>
-          m.includes("Device not ready"),
-        );
+        assert.equal(calls.signMessage.totalCalls, 5);
+        assert.equal(state.connectCount, 3);
+
+        const { messages } = mockedDisplayInfo;
+
         assert.equal(
-          appNotOpenMessages.length,
+          messages.filter((m) => m === "Reconnecting to Ledger...").length,
           2,
-          "Device not ready message should be displayed twice",
-        );
-      });
-
-      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open followed by DisconnectedDeviceDuringOperation then succeed", async () => {
-        // This test reproduces a real-world scenario where app-not-open is followed
-        // by a disconnect when the user opens the Ethereum app (app switch causes disconnect)
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-          },
-          signPersonalMessage: {
-            result: rsv,
-            // First call: DisconnectedDevice (triggers reconnect)
-            // Second call: LockedDeviceError (triggers wait/retry)
-            // Third call: app not open (0x6511, triggers wait/retry)
-            // Fourth call: DisconnectedDeviceDuringOperation (triggers reconnect - user opened app)
-            // Fifth call: success
-            errorSequenceToThrow: [
-              new DisconnectedDevice(),
-              new LockedDeviceError("Device is locked"),
-              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
-              new DisconnectedDeviceDuringOperation(),
-            ],
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock, calls] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        const signCalls = calls.get("signPersonalMessage");
-        assert.ok(signCalls !== undefined, "signCalls should be defined");
-        assert.equal(
-          signCalls.totalCalls,
-          5,
-          "signPersonalMessage should be called 5 times",
-        );
-
-        assert.equal(
-          transportState.createCount,
-          3,
-          "Transport should be created 3 times (initial + 2 reconnections)",
-        );
-
-        // Reconnecting message should appear twice (once for each disconnect)
-        const reconnectMessages = mockedDisplayInfo.messages.filter(
-          (m) => m === "Reconnecting to Ledger...",
-        );
-        assert.equal(
-          reconnectMessages.length,
-          2,
-          "Reconnecting message should be displayed twice",
         );
         assert.ok(
-          mockedDisplayInfo.messages.some((m) =>
-            m.includes("Device is locked"),
-          ),
-          "Locked device message should be displayed",
+          messages.some((m) => m.includes("Device is locked")),
+          "The locked device should be reported",
         );
         assert.ok(
-          mockedDisplayInfo.messages.some((m) =>
-            m.includes("Device not ready"),
-          ),
-          "Device not ready message should be displayed",
+          messages.some((m) => m.includes("Device not ready")),
+          "The busy device should be reported",
         );
       });
     });
 
     describe("during path derivation (#derivePath)", () => {
-      it("should retry and succeed after 2 LockedDeviceError retries", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-            // Throw LockedDeviceError twice, then succeed
-            // Note: derivation may call getAddress multiple times per attempt
-            // First call (path 0): LockedDeviceError
-            // Second call (path 0 retry): LockedDeviceError
-            // Third call (path 0 retry): success, returns wrong address
-            // Fourth call (path 1): success, returns correct address
-            errorSequenceToThrow: [
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-            ],
-          },
-          signPersonalMessage: {
-            result: rsv,
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
-        );
-
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        // Verify the locked device message was displayed twice
-        const lockedMessages = mockedDisplayInfo.messages.filter((m) =>
-          m.includes("Device is locked"),
-        );
-        assert.equal(
-          lockedMessages.length,
-          2,
-          "Locked device message should be displayed twice",
-        );
-      });
-
       it("should throw HardhatError.LOCKED_DEVICE after max retries", async () => {
-        const methodsConfig: MethodsConfig = {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
           getAddress: {
-            result: () => ({ address: "0x0", publicKey: "0x0" }),
-            // Need enough errors for maxLockedDeviceRetries (5) + 1 initial = 6 calls
-            errorSequenceToThrow: [
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-              new LockedDeviceError("Device is locked"),
-            ],
+            ...findAccountAt(derPath),
+            errorSequenceToEmit: new Array(6).fill(DEVICE_LOCKED_ERROR),
           },
-          signPersonalMessage: {
-            result: rsv,
-          },
-        };
+        });
 
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock, calls] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-            maxDeviceNotReadyRetries: 5,
-          },
-        );
-
-        mockedDisplayInfo.clear();
-
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+          maxDeviceNotReadyRetries: 5,
+        });
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          () => ledgerHandler.handle(personalSignRequest),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           {},
         );
 
-        const getAddressCalls = calls.get("getAddress");
-        assert.ok(
-          getAddressCalls !== undefined,
-          "getAddressCalls should be defined",
-        );
-        assert.equal(
-          getAddressCalls.totalCalls,
-          6,
-          "getAddress should be called 6 times (5 retries + 1 initial)",
-        );
+        assert.equal(calls.getAddress.totalCalls, 6);
       });
 
-      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open then succeed", async () => {
-        const methodsConfig: MethodsConfig = {
-          getAddress: {
-            result: (searchedPath: string) =>
-              searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" },
-            // First call: DisconnectedDevice (triggers reconnect)
-            // Second call: LockedDeviceError (triggers wait/retry)
-            // Third call: app not open (0x6511, triggers wait/retry)
-            // Fourth+ calls: success
-            errorSequenceToThrow: [
-              new DisconnectedDevice(),
-              new LockedDeviceError("Device is locked"),
-              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
-            ],
-          },
-          signPersonalMessage: {
-            result: rsv,
-          },
-        };
-
-        const transportState: TransportMockState = { createCount: 0 };
-        const [ethMock] = getEthMocked(methodsConfig);
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
+      it("should handle a disconnection, then a locked device, then a busy device, and succeed", async () => {
+        const state = createDeviceFactoryState();
+        const [deviceFactory] = getLedgerDeviceMock(
           {
-            accounts: LEDGER_ADDRESSES,
-            derivationFunction: undefined,
+            getAddress: {
+              ...findAccountAt(derPath),
+              errorSequenceToEmit: [
+                DEVICE_DISCONNECTED_ERROR,
+                DEVICE_LOCKED_ERROR,
+                DEVICE_BUSY_ERROR,
+              ],
+            },
+            signMessage: { result: rsv },
           },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: ethMock,
-            transportNodeHid: getTransportNodeHidMock(transportState),
-            cachePath: tmpCachePath,
-            delayBeforeRetry: noOpSleep,
-          },
+          { state },
         );
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
 
         mockedDisplayInfo.clear();
 
-        const request = createJsonRpcRequest("personal_sign", [
-          dataToSign,
-          account.address,
-        ]);
-
-        const res = await ledgerHandler.handle(request);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-        assert.deepEqual(res.result, signature);
-
-        assert.equal(
-          transportState.createCount,
-          2,
-          "Transport should be created twice (initial + reconnection after disconnect)",
+        assert.deepEqual(
+          await ledgerHandler.handle(personalSignRequest),
+          signatureResponse,
         );
 
+        assert.equal(state.connectCount, 2);
+
+        const { messages } = mockedDisplayInfo;
+
         assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
+          messages.includes("Reconnecting to Ledger..."),
+          "The reconnection should be displayed",
         );
         assert.ok(
-          mockedDisplayInfo.messages.some((m) =>
-            m.includes("Device is locked"),
-          ),
-          "Locked device message should be displayed",
+          messages.some((m) => m.includes("Device is locked")),
+          "The locked device should be reported",
         );
         assert.ok(
-          mockedDisplayInfo.messages.some((m) =>
-            m.includes("Device not ready"),
-          ),
-          "Device not ready message should be displayed",
+          messages.some((m) => m.includes("Device not ready")),
+          "The busy device should be reported",
         );
       });
     });

@@ -1,0 +1,11 @@
+---
+"@nomicfoundation/hardhat-ledger": minor
+---
+
+Migrated the Ledger integration from the deprecated LedgerJS packages (`@ledgerhq/hw-app-eth`, `@ledgerhq/hw-transport-node-hid`) to Ledger's Device Management Kit.
+
+Ledger is dropping support for `signEIP712HashedMessage` in the Ethereum app in September 2026, which removes the last working path for `@ledgerhq/hw-app-eth` and would have broken `eth_signTypedData_v4`.
+
+There are no configuration changes, and the plugin's behaviour is unchanged except in three ways. The plugin now talks to Ledger's servers: on every transaction and typed-data signature, the Device Management Kit asks Ledger for display metadata and reports the signing event to Ledger's analytics endpoint. On the device, ERC-20 and NFT transfers show the token or collection and the amount instead of raw data, recipients with an ENS name show that name, and every device except the Nano S shows the network name; everything else, including contract calls and typed data, looks as it did before. The Ethereum app is now opened on the device as part of each request, instead of being reported as an error when it is not already open. And Hardhat no longer exits on its own after a script has used the Ledger: the Device Management Kit keeps the USB connection to the device open until it is closed, so scripts must end with `await connection.close()`. The plugin prints a reminder when it connects. Hardhat Ignition's tasks close the connection for you as of the `@nomicfoundation/hardhat-ignition` release published with this one, so update both packages together.
+
+Two inputs are now rejected that used to be signed: an integer above 2^53 passed as a JSON number, which `JSON.parse` rounds before the plugin can see it (pass it as a string instead), and a string containing a lone surrogate. In addition, every typed-data signature is now checked against the data you sent before it is returned, and rejected if it does not match. That catches the inputs the Device Management Kit encodes differently from EIP-712, such as a field name made only of digits or two fields with the same name, which the device would otherwise sign as a different message without anyone noticing. Typed data produced by ethers, viem and other standard tooling is unaffected.

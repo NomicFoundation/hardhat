@@ -58,17 +58,16 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@ledgerhq/errors": "^6.25.0",
-    "@ledgerhq/evm-tools": "^1.7.7",
-    "@ledgerhq/hw-app-eth": "^7.0.0",
-    "@ledgerhq/hw-transport": "^6.35.7",
-    "@ledgerhq/hw-transport-node-hid": "^6.29.12",
-    "@ledgerhq/types-live": "^6.85.0",
+    "@ledgerhq/context-module": "^2.5.0",
+    "@ledgerhq/device-management-kit": "^1.9.0",
+    "@ledgerhq/device-signer-kit-ethereum": "^1.18.0",
+    "@ledgerhq/device-transport-kit-node-hid": "^1.0.1",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.2",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "micro-eth-signer": "^0.14.0",
     "node-gyp": "^12.1.0",
+    "rxjs": "7.8.2",
     "zod": "^3.23.8"
   },
   "peerDependencies": {

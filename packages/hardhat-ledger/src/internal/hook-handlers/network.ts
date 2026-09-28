@@ -3,9 +3,13 @@ import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
+import { LedgerConnectionClosedError } from "../dmk-errors.js";
 import { isFailedJsonRpcResponse, isJsonRpcResponse } from "../rpc-helpers.js";
 
 // The ledger packages have been problematic in the past, leading to errors
@@ -22,6 +26,13 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     NetworkConnection<ChainType | string>,
     LedgerHandlerT
   > = new WeakMap();
+
+  // Connections whose `closeConnection` has already run. A request that was
+  // still loading the handler when that happened must not build a new one: it
+  // would open a device session for a connection that is going away, and
+  // nothing would ever close it.
+  const closedConnections: WeakSet<NetworkConnection<ChainType | string>> =
+    new WeakSet();
 
   const initializationMutex = new AsyncMutex();
 
@@ -63,6 +74,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           ledgerHandlerPerConnection.get(networkConnection);
 
         if (handlerPerConnection === undefined) {
+          if (closedConnections.has(networkConnection)) {
+            return undefined;
+          }
+
           assertHardhatInvariant(
             LedgerHandler !== undefined,
             "LedgerHandler should have been imported",
@@ -87,6 +102,17 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
         return handlerPerConnection;
       });
+
+      if (ledgerHandler === undefined) {
+        // The connection was closed while this request was starting. Serving it
+        // would open a device session nothing will ever close, and forwarding
+        // it would silently drop the Ledger accounts from `eth_accounts` or
+        // send a transaction the Ledger never signed.
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+          { error: new LedgerConnectionClosedError(), transportId: "" },
+        );
+      }
 
       if (jsonRpcRequest.method === "eth_accounts") {
         const accountsResponse = await next(
@@ -136,7 +162,19 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ): Promise<void> {
-      if (ledgerHandlerPerConnection.has(networkConnection) === true) {
+      closedConnections.add(networkConnection);
+
+      const ledgerHandler = ledgerHandlerPerConnection.get(networkConnection);
+
+      if (ledgerHandler !== undefined) {
+        // The Device Management Kit keeps USB hotplug listeners registered for
+        // the lifetime of the process, so the connection has to be torn down
+        // explicitly or Hardhat never exits.
+        await ledgerHandler.close();
+
+        // Dropped only once it is closed. A request arriving while we await
+        // would otherwise find no handler, build a fresh one, and open a device
+        // session on a connection that is already going away.
         ledgerHandlerPerConnection.delete(networkConnection);
       }
 
