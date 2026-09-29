@@ -130,6 +130,6 @@ try {
 }
 ```
 
-Without it, the process keeps running after your script ends until you stop it with Ctrl+C. The plugin prints a reminder every time it connects to the device.
+Without it, the process keeps running after your script ends until you stop it with Ctrl+C.
 
 Hardhat Ignition closes the connection for you at the end of `ignition deploy`, `ignition track-tx` and `ignition verify`.

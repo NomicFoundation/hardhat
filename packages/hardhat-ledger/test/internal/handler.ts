@@ -252,9 +252,7 @@ describe("LedgerHandler", () => {
       assert.equal(state.closeCount, 1);
     });
 
-    it("should tell the user to close the connection once connected", async () => {
-      // An open session keeps the process alive, and nothing tells the plugin
-      // when a script is done, so the user has to be told at connection time.
+    it("should report the connection progress", async () => {
       const messages: string[] = [];
 
       ledgerHandler = createHandler({}, async (_interruptor, message) => {
@@ -266,7 +264,6 @@ describe("LedgerHandler", () => {
       assert.deepEqual(messages, [
         "Connecting to Ledger...",
         "Connection successful",
-        "Hardhat cannot exit while this Ledger session is open. Scripts should end with `await connection.close()`.",
       ]);
     });
 

@@ -320,13 +320,6 @@ export class LedgerHandler {
       this.#device = await this.#deviceFactory(LedgerHandler.DEFAULT_TIMEOUT);
 
       await this.#displayMessage("Connection successful");
-
-      // An open session keeps the process alive, and nothing tells this plugin
-      // when a script is done, so the script has to close the connection. Said
-      // at connection time because there is no later moment the plugin knows of.
-      await this.#displayMessage(
-        "Hardhat cannot exit while this Ledger session is open. Scripts should end with `await connection.close()`.",
-      );
     } catch (error) {
       ensureError(error);
 
