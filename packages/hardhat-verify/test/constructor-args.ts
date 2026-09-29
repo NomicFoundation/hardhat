@@ -69,6 +69,7 @@ describe("constructor-args", () => {
           .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
         {
           value: String(constructorArgs[0]),
+          path: "arg1",
           reason: "invalid numeric value",
         },
       );
@@ -92,6 +93,7 @@ describe("constructor-args", () => {
           .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
         {
           value: String(constructorArgs[0]),
+          path: "arg1",
           reason: "invalid string value",
         },
       );
@@ -146,6 +148,8 @@ describe("constructor-args", () => {
           .CONSTRUCTOR_ARGUMENT_OVERFLOW,
         {
           value: String(constructorArgs[0]),
+          path: "arg1",
+          solidityType: "uint8",
         },
       );
     });

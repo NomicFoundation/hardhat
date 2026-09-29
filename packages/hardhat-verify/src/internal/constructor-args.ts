@@ -55,7 +55,11 @@ export async function encodeConstructorArgs(
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
           .CONSTRUCTOR_ARGUMENT_OVERFLOW,
-        { value: String(error.value) },
+        {
+          value: String(error.value),
+          path: error.path,
+          solidityType: error.solidityType,
+        },
         error,
       );
     }
@@ -64,7 +68,7 @@ export async function encodeConstructorArgs(
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
           .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
-        { value: String(error.value), reason: error.reason },
+        { value: String(error.value), path: error.path, reason: error.reason },
         error,
       );
     }

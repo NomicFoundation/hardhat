@@ -7,7 +7,11 @@ import {
   AbiParametersLengthMismatchError,
 } from "./errors/abi.js";
 import { getPrefixedHexString } from "./hex.js";
-import { normalizeAbiValue, toUnnamedAbiParameters } from "./internal/abi.js";
+import {
+  assertNoDuplicateAbiParameterNames,
+  normalizeAbiValue,
+  toUnnamedAbiParameters,
+} from "./internal/abi.js";
 
 // We don't load micro-eth-signer on startup because it's slow to initialize,
 // and most callers of this module never encode anything.
@@ -133,10 +137,12 @@ export async function encodeAbiParameters(
     );
   }
 
-  // There's nothing to encode, so we avoid loading micro-eth-signer at all.
+  // Returning here also keeps micro-eth-signer unloaded.
   if (parameters.length === 0) {
     return "0x";
   }
+
+  assertNoDuplicateAbiParameterNames(parameters);
 
   // The values are normalized sequentially so that, when more than one is
   // invalid, the error reported is always the one of the first.
@@ -170,7 +176,8 @@ export async function encodeAbiParameters(
     // deployContract returns `<bytecode><encoded args>`, so we pass no bytecode.
     encoded = deployContractImpl(abi, "0x", value);
   } catch (error) {
-    // Unreachable unless normalizeAbiValue let an invalid value through.
+    // Reached by types that pass validation but the encoder still refuses,
+    // such as `uint256[0][]`, whose zero-size element it treats as a DoS risk.
     ensureError(error);
     throw new AbiEncodingFailedError(error);
   }
@@ -183,6 +190,7 @@ export {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
+  DuplicateAbiParameterNameError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   isAbiEncodingError,

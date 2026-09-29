@@ -3,6 +3,7 @@ import type { AbiParameter } from "../abi.js";
 import { getIntTypeRange, parseIntType } from "../abi.js";
 import {
   AbiValueOutOfBoundsError,
+  DuplicateAbiParameterNameError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
 } from "../errors/abi.js";
@@ -37,6 +38,34 @@ const ARRAY_REGEX = /^(.+)(\[(\d+)?\])$/;
 const BYTES_N_REGEX = /^bytes([0-9]{1,2})$/;
 const DECIMAL_REGEX = /^\d+$/;
 const HEX_REGEX = /^0x[0-9a-f]+$/i;
+
+/**
+ * Throws if two of the given parameters share a name.
+ *
+ * This is checked against the parameter list rather than the value, so that the
+ * array and object input shapes fail the same way.
+ *
+ * @param parameters The parameters to check.
+ * @param path The path of their container, or undefined at the top level.
+ * @throws DuplicateAbiParameterNameError If a name is repeated.
+ */
+export function assertNoDuplicateAbiParameterNames(
+  parameters: readonly AbiParameter[],
+  path?: string,
+): void {
+  const seen = new Set<string>();
+  for (const { name } of parameters) {
+    if (name === undefined || name === "") {
+      continue;
+    }
+
+    if (seen.has(name)) {
+      throw new DuplicateAbiParameterNameError(path, name);
+    }
+
+    seen.add(name);
+  }
+}
 
 /**
  * Removes the names of a list of ABI parameters, recursively.
@@ -176,6 +205,8 @@ async function normalizeTuple(
     throw new UnsupportedAbiTypeError(path, type);
   }
 
+  assertNoDuplicateAbiParameterNames(components, path);
+
   if (Array.isArray(value)) {
     if (value.length !== components.length) {
       throw new InvalidAbiValueError(
@@ -217,7 +248,8 @@ async function normalizeTuple(
       }
 
       const componentPath = `${path}.${name}`;
-      if (!(name in value)) {
+
+      if (!Object.hasOwn(value, name)) {
         throw new InvalidAbiValueError(
           componentPath,
           component.type,
@@ -270,7 +302,9 @@ async function normalizeAddress(value: unknown, path: string): Promise<string> {
     );
   }
 
-  const address = getPrefixedHexString(value);
+  // The prefix is re-added in lowercase, so that a "0X"-prefixed address still
+  // matches the checksummed form it is compared against below.
+  const address = getPrefixedHexString(getUnprefixedHexString(value));
   if (!isAddress(address)) {
     throw new InvalidAbiValueError(
       path,

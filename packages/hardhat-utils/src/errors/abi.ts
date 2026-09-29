@@ -8,6 +8,7 @@ export type AbiEncodingErrorKind =
   | "invalid-value"
   | "value-out-of-bounds"
   | "unsupported-type"
+  | "duplicate-parameter-name"
   | "encoding-failed";
 
 /**
@@ -93,8 +94,31 @@ export class UnsupportedAbiTypeError extends AbiEncodingError {
 }
 
 /**
- * Thrown when the encoder fails for a reason we didn't anticipate. Reaching it
- * means the values passed validation but the encoder still rejected them.
+ * Thrown when two parameters, or two components of the same tuple, share a
+ * name.
+ *
+ * Only a hand-written ABI can carry duplicate names; solc never emits one. The
+ * encoder's own guard covers named parameters only, and names are stripped
+ * before it runs, so it never sees them.
+ */
+export class DuplicateAbiParameterNameError extends AbiEncodingError {
+  public readonly kind: "duplicate-parameter-name" = "duplicate-parameter-name";
+
+  constructor(
+    // undefined when the duplicate is between top-level parameters
+    public readonly path: string | undefined,
+    public readonly duplicatedName: string,
+  ) {
+    super(
+      path === undefined
+        ? `Two or more parameters are named "${duplicatedName}".`
+        : `Two or more components of the parameter "${path}" are named "${duplicatedName}".`,
+    );
+  }
+}
+
+/**
+ * Thrown when the encoder refuses values that already passed validation.
  */
 export class AbiEncodingFailedError extends AbiEncodingError {
   public readonly kind: "encoding-failed" = "encoding-failed";
@@ -114,6 +138,7 @@ export type AnyAbiEncodingError =
   | InvalidAbiValueError
   | AbiValueOutOfBoundsError
   | UnsupportedAbiTypeError
+  | DuplicateAbiParameterNameError
   | AbiEncodingFailedError;
 
 /**

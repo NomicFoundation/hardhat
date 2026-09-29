@@ -617,6 +617,65 @@ describe("abi", () => {
         );
       });
 
+      it("Should accept a checksummed address behind an uppercase 0X prefix", async () => {
+        // The prefix carries no checksum, so its casing must not decide
+        // whether the body's checksum validates.
+        assert.equal(
+          await encode(
+            [{ name: "a", type: "address" }],
+            ["0X5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"],
+          ),
+          await encode(
+            [{ name: "a", type: "address" }],
+            ["0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"],
+          ),
+        );
+      });
+
+      it("Should report a missing tuple component named like an Object member", async () => {
+        // `toString` exists on Object.prototype, so an `in` check would find
+        // it and report the wrong error.
+        await assertEncodingError(
+          [
+            {
+              name: "s",
+              type: "tuple",
+              components: [
+                { name: "toString", type: "string" },
+                { name: "x", type: "uint256" },
+              ],
+            },
+          ],
+          [{ x: 1n }],
+          "InvalidAbiValueError",
+          { reason: 'missing value for the tuple component "toString"' },
+        );
+      });
+
+      it("Should throw if two parameters or components share a name", async () => {
+        const components = [
+          { name: "a", type: "uint256" },
+          { name: "a", type: "uint256" },
+        ];
+
+        // Rejected on the parameter list, so both input shapes fail alike.
+        for (const value of [[[1n, 2n]], [{ a: 1n }]]) {
+          await assertEncodingError(
+            [{ name: "s", type: "tuple", components }],
+            value,
+            "DuplicateAbiParameterNameError",
+            { path: "s", duplicatedName: "a" },
+          );
+        }
+
+        await assertEncodingError(
+          components,
+          [1n, 2n],
+          "DuplicateAbiParameterNameError",
+          { path: undefined, duplicatedName: "a" },
+        );
+      });
+
       it("Should throw if a bytes value is invalid", async () => {
         await assertEncodingError(
           [{ name: "arg1", type: "bytes" }],
