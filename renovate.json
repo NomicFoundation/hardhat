@@ -107,12 +107,13 @@
     },
     {
       "description": "Group the noble crypto cluster. The repository's cryptography primitives have interdependencies, so we co-ordinate them.",
-      "matchPackageNames": [
-        "/^@noble\\//",
-        "ethereum-cryptography",
-        "micro-eth-signer"
-      ],
+      "matchPackageNames": ["/^@noble\\//", "ethereum-cryptography"],
       "groupName": "noble-crypto"
+    },
+    {
+      "description": "micro-eth-signer is its own update rather than inside the npm minor/patch group. Its minor and patch releases can introduce breaking changes.",
+      "matchPackageNames": ["micro-eth-signer"],
+      "groupName": null
     },
     {
       "description": "forge-std is its own update rather than inside the npm minor/patch group.",
