@@ -452,7 +452,7 @@ describe("abi", () => {
           "0000000000000000000000000000000000000000000000000000000000000000",
         ].join("");
 
-        for (const value of ["0x", "", new Uint8Array()]) {
+        for (const value of ["0x", new Uint8Array()]) {
           assert.equal(
             await encode([{ name: "a", type: "bytes" }], [value]),
             expected,
@@ -490,7 +490,6 @@ describe("abi", () => {
 
         for (const value of [
           "0xdeadbeef",
-          "deadbeef",
           "0xDEADBEEF",
           new Uint8Array([0xde, 0xad, 0xbe, 0xef]),
         ]) {
@@ -631,15 +630,19 @@ describe("abi", () => {
           "InvalidAbiValueError",
           { reason: "invalid bytes length, expected 4 bytes but got 2" },
         );
-        await assertEncodingError(
-          [{ name: "arg1", type: "bytes" }],
-          ["nothex"],
-          "InvalidAbiValueError",
-          {
-            reason:
-              "invalid bytes value, expected a hex string or a Uint8Array",
-          },
-        );
+        // Unprefixed strings are rejected, including the empty one, so that a
+        // value meant to be something other than bytes isn't read as hex.
+        for (const value of ["nothex", "deadbeef", ""]) {
+          await assertEncodingError(
+            [{ name: "arg1", type: "bytes" }],
+            [value],
+            "InvalidAbiValueError",
+            {
+              reason:
+                'invalid bytes value, expected a "0x"-prefixed hex string or a Uint8Array',
+            },
+          );
+        }
       });
 
       it("Should throw if an array value is invalid", async () => {

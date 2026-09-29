@@ -12,6 +12,7 @@ import {
   getUnprefixedHexString,
   hexStringToBytes,
   isHexString,
+  isPrefixedHexString,
 } from "../hex.js";
 import { isObject } from "../lang.js";
 
@@ -309,7 +310,13 @@ function normalizeBytes(
 
   if (value instanceof Uint8Array) {
     bytes = value;
-  } else if (typeof value === "string" && isHexString(value)) {
+    // The "0x" prefix is required, as an unprefixed string is more likely to
+    // be a value that was meant to be something other than bytes.
+  } else if (
+    typeof value === "string" &&
+    isPrefixedHexString(value) &&
+    isHexString(value)
+  ) {
     const unprefixed = getUnprefixedHexString(value);
     if (unprefixed.length % 2 !== 0) {
       throw new InvalidAbiValueError(
@@ -326,7 +333,7 @@ function normalizeBytes(
       path,
       type,
       value,
-      "invalid bytes value, expected a hex string or a Uint8Array",
+      'invalid bytes value, expected a "0x"-prefixed hex string or a Uint8Array',
     );
   }
 
