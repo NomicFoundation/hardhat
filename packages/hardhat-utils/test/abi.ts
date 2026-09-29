@@ -458,6 +458,28 @@ describe("abi", () => {
         }
       });
 
+      it("Should accept booleans as booleans and as their Solidity literals", async () => {
+        const parameters = [{ name: "a", type: "bool" }];
+
+        // Command line arguments arrive as strings, so "true" and "false" must
+        // encode as the booleans they spell, and "false" must not be truthy.
+        for (const value of [true, "true"]) {
+          assert.equal(
+            await encode(parameters, [value]),
+            "0000000000000000000000000000000000000000000000000000000000000001",
+            `${JSON.stringify(value)} should encode as true`,
+          );
+        }
+
+        for (const value of [false, "false"]) {
+          assert.equal(
+            await encode(parameters, [value]),
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            `${JSON.stringify(value)} should encode as false`,
+          );
+        }
+      });
+
       it("Should accept bytes as hex strings and Uint8Arrays", async () => {
         const parameters = [{ name: "a", type: "bytes4" }];
         const expected =
@@ -559,7 +581,13 @@ describe("abi", () => {
         );
         await assertEncodingError(
           [{ name: "arg1", type: "bool" }],
-          ["true"],
+          ["yes"],
+          "InvalidAbiValueError",
+          { reason: "invalid boolean value" },
+        );
+        await assertEncodingError(
+          [{ name: "arg1", type: "bool" }],
+          [1],
           "InvalidAbiValueError",
           { reason: "invalid boolean value" },
         );

@@ -92,15 +92,7 @@ export function normalizeAbiValue(
   }
 
   if (type === "bool") {
-    if (typeof value !== "boolean") {
-      throw new InvalidAbiValueError(
-        path,
-        type,
-        value,
-        "invalid boolean value",
-      );
-    }
-    return value;
+    return normalizeBool(value, path);
   }
 
   if (type === "string") {
@@ -232,6 +224,24 @@ function normalizeTuple(
     value,
     "invalid tuple value, expected an array or an object",
   );
+}
+
+function normalizeBool(value: unknown, path: string): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  // Command line arguments always arrive as strings, so the two Solidity
+  // literals are accepted. Any other string is rejected.
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  throw new InvalidAbiValueError(path, "bool", value, "invalid boolean value");
 }
 
 function normalizeAddress(value: unknown, path: string): string {
