@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { getArgValue, parsePositionalArgs } from "./args.ts";
+import { getArgValue, isHelpRequested, parsePositionalArgs } from "./args.ts";
 import { shellQuote } from "./shell.ts";
 import { toolAvailable } from "./perf-check.ts";
 
@@ -70,7 +70,7 @@ interface FlamegraphArgs {
 }
 
 export function resolveArgs(args: string[]): FlamegraphArgs | undefined {
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  if (args.length === 0 || isHelpRequested(args)) {
     return undefined;
   }
 

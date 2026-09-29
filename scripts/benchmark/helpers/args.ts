@@ -3,8 +3,11 @@ import {
   resolveInvocationPath,
 } from "../../end-to-end/helpers/directory.ts";
 import {
+  assertOnlyFlags,
+  CLONE_DIR_FLAG,
   getArgValue,
   givenCloneDirectory,
+  isHelpRequested,
   logCloneDirectoryDefault,
   resolveCloneDirectory,
 } from "../../end-to-end/helpers/args.ts";
@@ -13,7 +16,11 @@ import {
   ForcePublish,
   UseLocal,
 } from "../../end-to-end/subcommands/init.ts";
-import { parsePeakRssMethod, type PeakRssMethod } from "./peak-rss.ts";
+import {
+  parsePeakRssMethod,
+  PEAK_RSS_FLAG,
+  type PeakRssMethod,
+} from "./peak-rss.ts";
 
 export interface BenchArgs {
   scenarioPath: string;
@@ -38,6 +45,31 @@ export interface BenchArgs {
 }
 
 export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
+  if (isHelpRequested(args)) {
+    return undefined;
+  }
+
+  const valueFlags = [
+    "--scenario",
+    "--command",
+    "--prepare",
+    "--warmup",
+    "--runs",
+    "--export-json",
+    PEAK_RSS_FLAG,
+    CLONE_DIR_FLAG,
+  ];
+  const booleanFlags = [
+    "--init",
+    "--use-local",
+    "--force-checkout",
+    "--force-publish",
+    "--precompile",
+    "--ignore-failure",
+    "--show-output",
+  ];
+  assertOnlyFlags(args, valueFlags, booleanFlags);
+
   const scenarioPathRaw =
     getArgValue(args, "--scenario") ?? process.env.E2E_SCENARIO;
 

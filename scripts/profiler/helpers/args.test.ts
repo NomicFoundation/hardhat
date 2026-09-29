@@ -1,11 +1,9 @@
-// cSpell:ignore outpt -- a deliberate misspelling testing flag validation
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   getAllArgValues,
   parseEnvPairs,
   parseMode,
-  parsePositionalArgs,
   parseSampleRate,
 } from "./args.ts";
 
@@ -22,68 +20,6 @@ describe("getAllArgValues", () => {
 
   it("returns an empty array when absent", () => {
     assert.deepEqual(getAllArgValues(["--mode", "js"], "--scenario"), []);
-  });
-});
-
-describe("parsePositionalArgs", () => {
-  it("collects tokens that are neither flags nor flag values", () => {
-    assert.deepEqual(
-      parsePositionalArgs(
-        ["render", "/run-dir", "--title", "cpu profile"],
-        ["--title"],
-      ),
-      ["render", "/run-dir"],
-    );
-  });
-
-  it("excludes the value following a value flag", () => {
-    assert.deepEqual(
-      parsePositionalArgs(["--output", "out.svg", "fold"], ["--output"]),
-      ["fold"],
-    );
-  });
-
-  it("treats a boolean flag's neighbor as positional, not its value", () => {
-    assert.deepEqual(
-      parsePositionalArgs(["--dry-run", "stray"], [], ["--dry-run"]),
-      ["stray"],
-    );
-  });
-
-  it("returns an empty array for flag-only args", () => {
-    assert.deepEqual(
-      parsePositionalArgs(
-        ["--title", "x", "--dry-run"],
-        ["--title"],
-        ["--dry-run"],
-      ),
-      [],
-    );
-  });
-
-  it("rejects unknown flags", () => {
-    assert.throws(
-      () => parsePositionalArgs(["--outpt", "x"], ["--output"]),
-      /unknown option: --outpt/,
-    );
-  });
-
-  it("rejects a flag missing its value", () => {
-    assert.throws(
-      () => parsePositionalArgs(["--output"], ["--output"]),
-      /--output requires a value/,
-    );
-  });
-
-  it("rejects a flag whose value looks like a flag", () => {
-    assert.throws(
-      () =>
-        parsePositionalArgs(
-          ["--output", "--title", "x"],
-          ["--output", "--title"],
-        ),
-      /--output requires a value/,
-    );
   });
 });
 

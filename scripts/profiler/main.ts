@@ -10,10 +10,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
+  assertOnlyFlags,
   CLONE_DIR_FLAG,
   DEFAULT_CLONE_DIR,
   getArgValue,
   givenCloneDirectory,
+  isHelpRequested,
   resolveCloneDirectory,
 } from "../end-to-end/helpers/args.ts";
 import {
@@ -41,7 +43,6 @@ import {
   Mode,
   parseEnvPairs,
   parseMode,
-  parsePositionalArgs,
   parseSampleRate,
 } from "./helpers/args.ts";
 import { PERF_SCRIPT_OUTPUT_FILENAME } from "./helpers/flamegraph.ts";
@@ -184,38 +185,32 @@ interface RunRecord {
   symbolized?: boolean;
 }
 
-const VALUE_FLAGS = [
-  "--scenario",
-  "--command",
-  "--prepare",
-  "--mode",
-  "--sample-rate",
-  "--out-dir",
-  "--env",
-  CLONE_DIR_FLAG,
-];
-
-const BOOLEAN_FLAGS = [
-  "--init",
-  "--use-local",
-  "--force-checkout",
-  "--force-publish",
-  "--show-output",
-  "--keep-perf-data",
-];
-
 export function resolveAndValidateArgs(
   args: string[],
 ): ProfileArgs | undefined {
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  if (args.length === 0 || isHelpRequested(args)) {
     return undefined;
   }
 
-  const stray = parsePositionalArgs(args, VALUE_FLAGS, BOOLEAN_FLAGS);
-
-  if (stray.length > 0) {
-    throw new Error(`unexpected argument: ${stray[0]}`);
-  }
+  const valueFlags = [
+    "--scenario",
+    "--command",
+    "--prepare",
+    "--mode",
+    "--sample-rate",
+    "--out-dir",
+    "--env",
+    CLONE_DIR_FLAG,
+  ];
+  const booleanFlags = [
+    "--init",
+    "--use-local",
+    "--force-checkout",
+    "--force-publish",
+    "--show-output",
+    "--keep-perf-data",
+  ];
+  assertOnlyFlags(args, valueFlags, booleanFlags);
 
   const scenarioPaths = getAllArgValues(args, "--scenario").map(
     normalizeScenarioPath,

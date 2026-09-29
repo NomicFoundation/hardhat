@@ -4,8 +4,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
+  assertOnlyFlags,
+  CLONE_DIR_FLAG,
   getArgValue,
   givenCloneDirectory,
+  isHelpRequested,
   resolveCloneDirectory,
 } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
@@ -49,6 +52,7 @@ import { formatRun, runCounter } from "./helpers/report.ts";
 import {
   GNU_TIME_PATH,
   parsePeakRssMethod,
+  PEAK_RSS_FLAG,
   PEAK_RSS_METHOD_NAMES,
   PeakRssMethod,
   resolvePeakRssMethod,
@@ -334,6 +338,26 @@ async function main(): Promise<void> {
 }
 
 export function resolveArgs(argv: string[]): RegressionArgs | undefined {
+  if (isHelpRequested(argv)) {
+    return undefined;
+  }
+
+  const valueFlags = [
+    "--output",
+    "--scenarios",
+    "--tag",
+    "--benchmarks",
+    PEAK_RSS_FLAG,
+    CLONE_DIR_FLAG,
+  ];
+  const booleanFlags = [
+    "--use-local",
+    "--force-checkout",
+    "--force-publish",
+    "--fail-fast",
+  ];
+  assertOnlyFlags(argv, valueFlags, booleanFlags);
+
   const output = getArgValue(argv, "--output");
 
   if (output === undefined) {

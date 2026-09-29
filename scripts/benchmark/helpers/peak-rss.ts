@@ -139,7 +139,7 @@ export function resolvePeakRssMethod(
   return undefined;
 }
 
-const PEAK_RSS_FLAG = "--peak-rss";
+export const PEAK_RSS_FLAG = "--peak-rss";
 
 /** `--peak-rss` values, as both benchmark CLIs spell them. */
 export const PEAK_RSS_METHOD_FLAGS: Readonly<Record<string, PeakRssMethod>> = {

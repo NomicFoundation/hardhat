@@ -1,4 +1,8 @@
-import { getArgValue } from "../../end-to-end/helpers/args.ts";
+import {
+  getArgValue,
+  isHelpRequested,
+  parsePositionalArgs,
+} from "../../end-to-end/helpers/args.ts";
 
 export const Mode = {
   Both: "both",
@@ -21,50 +25,6 @@ export function getAllArgValues(args: string[], flag: string): string[] {
   }
 
   return values;
-}
-
-/**
- * Validates the flags and returns the positional arguments.
- *
- * Throws on an unknown `--flag`. Also throws on a value flag whose value is
- * missing — absent, or another flag. The positional arguments are the
- * remaining tokens: neither a flag nor a value consumed by one. Knowing each
- * flag's arity lets a stray token after a boolean flag surface as a
- * positional, instead of being mistaken for the flag's value.
- */
-export function parsePositionalArgs(
-  args: string[],
-  valueFlags: string[],
-  booleanFlags: string[] = [],
-): string[] {
-  const positionals: string[] = [];
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (!arg.startsWith("--")) {
-      positionals.push(arg);
-      continue;
-    }
-
-    if (booleanFlags.includes(arg)) {
-      continue;
-    }
-
-    if (!valueFlags.includes(arg)) {
-      throw new Error(`unknown option: ${arg}`);
-    }
-
-    const value = args[i + 1];
-
-    if (value === undefined || value.startsWith("--")) {
-      throw new Error(`${arg} requires a value`);
-    }
-
-    i++;
-  }
-
-  return positionals;
 }
 
 /** Parses repeated `KEY=VALUE` pairs into an environment record. */
@@ -115,4 +75,4 @@ export function parseSampleRate(value: string | undefined): number {
   return rate;
 }
 
-export { getArgValue };
+export { getArgValue, isHelpRequested, parsePositionalArgs };
