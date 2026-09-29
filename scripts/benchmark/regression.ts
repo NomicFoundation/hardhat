@@ -1,6 +1,5 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
@@ -41,6 +40,7 @@ import {
   runPrepare,
   runSeries,
   reportPathsIn,
+  withReportDir,
   type MeasuredRun,
   type ReportPaths,
 } from "./helpers/runner.ts";
@@ -498,9 +498,6 @@ async function runScenario(
     return [];
   }
 
-  const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
-  mkdirSync(scenarioTmpDir, { recursive: true });
-
   logStep("Initializing scenario");
   await e2eInit(
     args.e2eCloneDirectory,
@@ -519,41 +516,46 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  const entries: BenchmarkEntry[] = [];
+  return withReportDir(
+    `hardhat-regression-${scenario.id}-`,
+    async (scenarioTmpDir) => {
+      const entries: BenchmarkEntry[] = [];
 
-  for (const planned of plan) {
-    if ("run" in planned) {
-      entries.push(
-        ...(await runStepsPhase(
-          scenario.id,
-          scenarioTmpDir,
-          loaded.workingDir,
-          loaded.definition.env,
-          planned.name,
-          planned.cfg,
-          new Set(planned.run),
-          new Set(planned.once),
-          new Set(planned.emit),
-          peakRssMethod,
-        )),
-      );
-    } else {
-      entries.push(
-        ...(await runCommandPhase(
-          scenario.id,
-          scenarioTmpDir,
-          loaded.workingDir,
-          loaded.definition.env,
-          planned.name,
-          planned.cfg,
-          planned.emit,
-          peakRssMethod,
-        )),
-      );
-    }
-  }
+      for (const planned of plan) {
+        if ("run" in planned) {
+          entries.push(
+            ...(await runStepsPhase(
+              scenario.id,
+              scenarioTmpDir,
+              loaded.workingDir,
+              loaded.definition.env,
+              planned.name,
+              planned.cfg,
+              new Set(planned.run),
+              new Set(planned.once),
+              new Set(planned.emit),
+              peakRssMethod,
+            )),
+          );
+        } else {
+          entries.push(
+            ...(await runCommandPhase(
+              scenario.id,
+              scenarioTmpDir,
+              loaded.workingDir,
+              loaded.definition.env,
+              planned.name,
+              planned.cfg,
+              planned.emit,
+              peakRssMethod,
+            )),
+          );
+        }
+      }
 
-  return entries;
+      return entries;
+    },
+  );
 }
 
 /**
