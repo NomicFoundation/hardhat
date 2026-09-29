@@ -193,7 +193,7 @@ export function wrapWithGnuTime(command: string, memPath: string): string {
 }
 
 /** Parse the peak RSS written by {@link wrapWithGnuTime}, in whole MB. */
-export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
+export function parseGnuTimeMaxRssMb(raw: string): number {
   // GNU time prepends a "Command exited …" or "Command terminated …" line
   // when the command failed, so the measurement is the last line. That line
   // must be a lone integer, so a report holding only the prefix line throws
@@ -202,9 +202,7 @@ export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
   const kb = Number(reading);
 
   if (!/^\d+$/.test(reading) || kb <= 0) {
-    throw new Error(
-      `Unparseable GNU time output at ${source}: ${JSON.stringify(raw)}`,
-    );
+    throw new Error(`Unparseable GNU time output: ${JSON.stringify(raw)}`);
   }
 
   return kbToMb(kb);
@@ -222,11 +220,11 @@ function readGnuTimeReport(memPath: string): string {
       throw error;
     }
 
-    throw new Error(`GNU time wrote no report at ${memPath}`);
+    throw new Error("GNU time wrote no report");
   }
 
   if (raw.trim() === "") {
-    throw new Error(`GNU time left an empty report at ${memPath}`);
+    throw new Error("GNU time left an empty report");
   }
 
   return raw;
@@ -266,7 +264,7 @@ export function createPeakRssRecorder(
     return {
       ...NO_PEAK_RSS_RECORDER,
       wrapCommand: (command) => wrapWithGnuTime(command, memPath),
-      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath), memPath),
+      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath)),
     };
   }
 

@@ -130,6 +130,26 @@ function removeActiveReportDirs(): void {
   activeReportDirs.clear();
 }
 
+/**
+ * Name the calibration in a failure, since nothing else does. A failed
+ * command keeps its captured output, so the failure report can show it.
+ */
+export function calibrationFailure(error: unknown): Error {
+  const context = "Spawn-overhead calibration failed";
+
+  if (error instanceof CommandFailedError) {
+    return new CommandFailedError(
+      `${context}: ${error.message}`,
+      error.stdout,
+      error.stderr,
+    );
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+
+  return new Error(`${context}: ${message}`, { cause: error });
+}
+
 export interface RunOptions {
   cwd: string;
   env?: Record<string, string>;
@@ -352,14 +372,11 @@ function netOfOverhead(measured: number, overhead: number): number {
 
 /** Read the CPU report a wrapped run wrote to `timingPath`. */
 function readCpuTiming(timingPath: string): { user: number; system: number } {
-  return parseCpuTiming(readFileSync(timingPath, "utf-8"), timingPath);
+  return parseCpuTiming(readFileSync(timingPath, "utf-8"));
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
-export function parseCpuTiming(
-  raw: string,
-  source: string,
-): { user: number; system: number } {
+export function parseCpuTiming(raw: string): { user: number; system: number } {
   const fields = raw.trim().split(/\s+/);
   // bash prints the report with the inherited locale's decimal separator.
   const [user, system] = fields.map((field) => Number(field.replace(",", ".")));
@@ -369,9 +386,7 @@ export function parseCpuTiming(
     !Number.isFinite(user) ||
     !Number.isFinite(system)
   ) {
-    throw new Error(
-      `Unparseable bash time output at ${source}: ${JSON.stringify(raw)}`,
-    );
+    throw new Error(`Unparseable bash time output: ${JSON.stringify(raw)}`);
   }
 
   return { user, system };
@@ -455,6 +470,8 @@ export async function measureShellSpawnOverhead(
         walls.push(wallSeconds);
         users.push(cpu.user);
         systems.push(cpu.system);
+      } catch (error) {
+        throw calibrationFailure(error);
       } finally {
         recorder.cancel();
       }

@@ -54,14 +54,13 @@ describe("wrapWithGnuTime", () => {
 
 describe("parseGnuTimeMaxRssMb", () => {
   it("converts the reported kB to whole MB", () => {
-    assert.equal(parseGnuTimeMaxRssMb(`${PEAK_RSS_KB}\n`, "x"), PEAK_RSS_MB);
+    assert.equal(parseGnuTimeMaxRssMb(`${PEAK_RSS_KB}\n`), PEAK_RSS_MB);
   });
 
   it("reads past the prefix line GNU time adds on a non-zero exit", () => {
     assert.equal(
       parseGnuTimeMaxRssMb(
         `Command exited with non-zero status 3\n${PEAK_RSS_KB}\n`,
-        "x",
       ),
       PEAK_RSS_MB,
     );
@@ -69,33 +68,30 @@ describe("parseGnuTimeMaxRssMb", () => {
 
   it("reads past the prefix line GNU time adds on a signal", () => {
     assert.equal(
-      parseGnuTimeMaxRssMb(
-        `Command terminated by signal 9\n${PEAK_RSS_KB}\n`,
-        "x",
-      ),
+      parseGnuTimeMaxRssMb(`Command terminated by signal 9\n${PEAK_RSS_KB}\n`),
       PEAK_RSS_MB,
     );
   });
 
-  it("names the report file when the content is unparseable", () => {
+  it("throws on unparseable content, quoting it", () => {
     assert.throws(
-      () => parseGnuTimeMaxRssMb("", REPORT_PATH),
-      new RegExp(REPORT_PATH),
+      () => parseGnuTimeMaxRssMb("garbage\n"),
+      /Unparseable GNU time output: "garbage\\n"/,
     );
   });
 
   it("rejects a non-integer or non-positive reading", () => {
-    assert.throws(() => parseGnuTimeMaxRssMb("no numbers here", "x"));
-    assert.throws(() => parseGnuTimeMaxRssMb("1.5\n", "x"));
-    assert.throws(() => parseGnuTimeMaxRssMb("0\n", "x"));
+    assert.throws(() => parseGnuTimeMaxRssMb("no numbers here"));
+    assert.throws(() => parseGnuTimeMaxRssMb("1.5\n"));
+    assert.throws(() => parseGnuTimeMaxRssMb("0\n"));
   });
 
   it("rejects a report that holds only the failure prefix line", () => {
     assert.throws(() =>
-      parseGnuTimeMaxRssMb("Command exited with non-zero status 3\n", "x"),
+      parseGnuTimeMaxRssMb("Command exited with non-zero status 3\n"),
     );
     assert.throws(() =>
-      parseGnuTimeMaxRssMb("Command terminated by signal 9\n", "x"),
+      parseGnuTimeMaxRssMb("Command terminated by signal 9\n"),
     );
   });
 });
@@ -200,19 +196,19 @@ describe("createPeakRssRecorder", () => {
     assert.equal(recorder.finish(), undefined);
   });
 
-  it("throws, naming the report, when GNU time never wrote it", () => {
+  it("throws when the GNU time report is missing or empty", () => {
     rmSync(memPath, { force: true });
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      new RegExp(memPath),
+      /GNU time wrote no report/,
     );
 
     writeFileSync(memPath, "");
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      new RegExp(memPath),
+      /GNU time left an empty report/,
     );
   });
 

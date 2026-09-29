@@ -13,6 +13,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import {
+  calibrationFailure,
   CommandFailedError,
   formatOutput,
   measureShellSpawnOverhead,
@@ -96,31 +97,35 @@ describe("wrapWithCpuTiming", () => {
 
 describe("parseCpuTiming", () => {
   it("parses user and system seconds", () => {
-    assert.deepEqual(parseCpuTiming("1.25 0.75\n", "x"), {
+    assert.deepEqual(parseCpuTiming("1.25 0.75\n"), {
       user: 1.25,
       system: 0.75,
     });
   });
 
   it("parses a comma decimal separator from a non-C locale", () => {
-    assert.deepEqual(parseCpuTiming("0,003 0,001\n", "x"), {
+    assert.deepEqual(parseCpuTiming("0,003 0,001\n"), {
       user: 0.003,
       system: 0.001,
     });
   });
 
-  it("throws on unparseable content", () => {
-    assert.throws(() => parseCpuTiming("", "/tmp/cpu.txt"), /\/tmp\/cpu\.txt/);
-    assert.throws(() => parseCpuTiming("no numbers here", "x"));
+  it("throws on unparseable content, quoting it", () => {
+    assert.throws(
+      () => parseCpuTiming("garbage\n"),
+      /Unparseable bash time output: "garbage\\n"/,
+    );
+    assert.throws(() => parseCpuTiming(""), /Unparseable bash time output: ""/);
+    assert.throws(() => parseCpuTiming("no numbers here"));
   });
 
   it("throws when the system time is missing", () => {
-    assert.throws(() => parseCpuTiming("1.25\n", "x"));
+    assert.throws(() => parseCpuTiming("1.25\n"));
   });
 
   it("throws on unexpected extra tokens", () => {
-    assert.throws(() => parseCpuTiming("1.25 0.75 0.99\n", "x"));
-    assert.throws(() => parseCpuTiming("stray output\n1.25 0.75\n", "x"));
+    assert.throws(() => parseCpuTiming("1.25 0.75 0.99\n"));
+    assert.throws(() => parseCpuTiming("stray output\n1.25 0.75\n"));
   });
 });
 
@@ -521,6 +526,32 @@ describe("withReportDir on termination (subprocess)", { skip: WINDOWS }, () => {
     assert.equal(ended.code, 0);
     assert.deepEqual(ended.lines.slice(2), ["swallowed", "true true"]);
     assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+});
+
+describe("calibrationFailure", () => {
+  it("keeps a failed command's captured output", () => {
+    const failure = calibrationFailure(
+      new CommandFailedError("Command exited with code 127", "out", "err"),
+    );
+
+    assert.ok(failure instanceof CommandFailedError);
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: Command exited with code 127",
+    );
+    assert.deepEqual([failure.stdout, failure.stderr], ["out", "err"]);
+  });
+
+  it("wraps any other error, keeping it as the cause", () => {
+    const cause = new Error("GNU time wrote no report");
+    const failure = calibrationFailure(cause);
+
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: GNU time wrote no report",
+    );
+    assert.equal(failure.cause, cause);
   });
 });
 
