@@ -3152,7 +3152,7 @@ Please ensure all argument values fit within the valid range for their respectiv
       },
       CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED: {
         number: 80020,
-        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}.`,
+        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}`,
         websiteTitle: "Constructor arguments encoding failed",
         websiteDescription: `The constructor arguments provided for the contract could not be encoded correctly.
 Please review the provided arguments and ensure they match the expected arguments defined in the contract's ABI.`,

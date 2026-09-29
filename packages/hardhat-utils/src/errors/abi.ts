@@ -100,7 +100,9 @@ export class AbiEncodingFailedError extends AbiEncodingError {
   public readonly kind: "encoding-failed" = "encoding-failed";
 
   constructor(cause: Error) {
-    super(`The values could not be ABI-encoded: ${cause.message}`, cause);
+    // The encoder's messages don't end with a period, so one is added to keep
+    // this message punctuated like the rest.
+    super(`The values could not be ABI-encoded: ${cause.message}.`, cause);
   }
 }
 
