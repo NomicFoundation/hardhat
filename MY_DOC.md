@@ -6,7 +6,7 @@ Ledger's developer news states that in **September 2026** the Ethereum app drops
 
 # Product & user impact
 
-No configuration changes. Every method that worked before still works, with the same config, the same error codes and the same derivation-path cache file. Only two retry messages changed: they no longer tell you to open the Ethereum app, because it now opens itself. The plugin also prints what the device is waiting for: unlocking it, confirming that the Ethereum app opens, reviewing the transaction, message or typed data, or answering the Transaction Check opt-in. One request that used to be served now fails: a request sent after `connection.close()` is refused with `CONNECTION_ERROR` ("The Ledger connection was closed"). Before, the plugin quietly opened a new device session for it; on the DMK that session would keep the process alive with nothing left to close it.
+No configuration changes. Every method that worked before still works, with the same config, the same error codes and the same derivation-path cache file. Only two retry messages changed: they no longer tell you to open the Ethereum app, because it now opens itself. The plugin also prints what the device is waiting for: unlocking it, confirming that the Ethereum app opens, reviewing the transaction, message or typed data, or answering the Transaction Check opt-in.
 
 Three things behave differently:
 
