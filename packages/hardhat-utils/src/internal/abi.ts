@@ -6,7 +6,7 @@ import {
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
 } from "../errors/abi.js";
-import { isAddress } from "../eth.js";
+import { isAddress, isValidChecksumAddress } from "../eth.js";
 import {
   getPrefixedHexString,
   getUnprefixedHexString,
@@ -70,25 +70,25 @@ export function toUnnamedAbiParameters(
  * @throws AbiValueOutOfBoundsError If a numeric value is out of the type's range.
  * @throws UnsupportedAbiTypeError If the type itself can't be encoded.
  */
-export function normalizeAbiValue(
+export async function normalizeAbiValue(
   parameter: AbiParameter,
   value: unknown,
   path: string,
-): NormalizedAbiValue {
+): Promise<NormalizedAbiValue> {
   const { type } = parameter;
 
   // Arrays must be checked first, as the check is recursive.
   const arrayMatch = ARRAY_REGEX.exec(type);
   if (arrayMatch !== null) {
-    return normalizeArray(parameter, value, path, arrayMatch);
+    return await normalizeArray(parameter, value, path, arrayMatch);
   }
 
   if (type === "tuple") {
-    return normalizeTuple(parameter, value, path);
+    return await normalizeTuple(parameter, value, path);
   }
 
   if (type === "address") {
-    return normalizeAddress(value, path);
+    return await normalizeAddress(value, path);
   }
 
   if (type === "bool") {
@@ -123,12 +123,12 @@ export function normalizeAbiValue(
   throw new UnsupportedAbiTypeError(path, type);
 }
 
-function normalizeArray(
+async function normalizeArray(
   parameter: AbiParameter,
   value: unknown,
   path: string,
   arrayMatch: RegExpExecArray,
-): NormalizedAbiValue[] {
+): Promise<NormalizedAbiValue[]> {
   const { type } = parameter;
   const elementType = arrayMatch[1];
   const fixedLength = arrayMatch[3];
@@ -152,16 +152,21 @@ function normalizeArray(
   }
 
   const elementParameter = { ...parameter, type: elementType };
-  return value.map((element, i) =>
-    normalizeAbiValue(elementParameter, element, `${path}[${i}]`),
-  );
+  const normalized: NormalizedAbiValue[] = [];
+  for (const [i, element] of value.entries()) {
+    normalized.push(
+      await normalizeAbiValue(elementParameter, element, `${path}[${i}]`),
+    );
+  }
+
+  return normalized;
 }
 
-function normalizeTuple(
+async function normalizeTuple(
   parameter: AbiParameter,
   value: unknown,
   path: string,
-): NormalizedAbiValue[] {
+): Promise<NormalizedAbiValue[]> {
   const { type, components } = parameter;
 
   // The encoder rejects zero-sized tuples, as arrays of them can be used to
@@ -180,19 +185,25 @@ function normalizeTuple(
       );
     }
 
-    return components.map((component, i) =>
-      normalizeAbiValue(
-        component,
-        value[i],
-        component.name === undefined
-          ? `${path}[${i}]`
-          : `${path}.${component.name}`,
-      ),
-    );
+    const normalized: NormalizedAbiValue[] = [];
+    for (const [i, component] of components.entries()) {
+      normalized.push(
+        await normalizeAbiValue(
+          component,
+          value[i],
+          component.name === undefined
+            ? `${path}[${i}]`
+            : `${path}.${component.name}`,
+        ),
+      );
+    }
+
+    return normalized;
   }
 
   if (isObject(value)) {
-    return components.map((component) => {
+    const normalized: NormalizedAbiValue[] = [];
+    for (const component of components) {
       const { name } = component;
 
       if (name === undefined || name === "") {
@@ -214,8 +225,12 @@ function normalizeTuple(
         );
       }
 
-      return normalizeAbiValue(component, value[name], componentPath);
-    });
+      normalized.push(
+        await normalizeAbiValue(component, value[name], componentPath),
+      );
+    }
+
+    return normalized;
   }
 
   throw new InvalidAbiValueError(
@@ -244,7 +259,7 @@ function normalizeBool(value: unknown, path: string): boolean {
   throw new InvalidAbiValueError(path, "bool", value, "invalid boolean value");
 }
 
-function normalizeAddress(value: unknown, path: string): string {
+async function normalizeAddress(value: unknown, path: string): Promise<string> {
   if (typeof value !== "string") {
     throw new InvalidAbiValueError(
       path,
@@ -261,6 +276,23 @@ function normalizeAddress(value: unknown, path: string): string {
       "address",
       value,
       "invalid address value",
+    );
+  }
+
+  // A mixed-case address carries an EIP-55 checksum, so it is validated to
+  // catch mistyped addresses here instead of failing later, somewhere else.
+  // An all-lowercase or all-uppercase one carries no checksum to validate.
+  const hexAddress = getUnprefixedHexString(address);
+  const isCaseless =
+    hexAddress === hexAddress.toLowerCase() ||
+    hexAddress === hexAddress.toUpperCase();
+
+  if (!isCaseless && !(await isValidChecksumAddress(address))) {
+    throw new InvalidAbiValueError(
+      path,
+      "address",
+      value,
+      "invalid address checksum",
     );
   }
 

@@ -432,7 +432,10 @@ describe("abi", () => {
           "000000000000000000000000752c8191e6b1db38b41a8c8921f7a703f2969d18";
 
         for (const value of [
-          "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18", // mixed
+          // A mixed-case address is checksummed, and this one is valid.
+          "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+          // These carry no checksum, so they are taken as they are, even
+          // though they don't match the checksummed form above.
           "0x752c8191e6b1db38b41a8c8921f7a703f2969d18", // lowercase
           "0x752C8191E6B1DB38B41A8C8921F7A703F2969D18", // uppercase
           "752C8191E6b1Db38B41A8c8921F7a703F2969d18", // unprefixed
@@ -602,6 +605,16 @@ describe("abi", () => {
           [1234],
           "InvalidAbiValueError",
           { reason: "invalid address value, expected a string" },
+        );
+      });
+
+      it("Should throw if a mixed-case address has a bad checksum", async () => {
+        // The canonical EIP-55 address with its last character mistyped.
+        await assertEncodingError(
+          [{ name: "arg1", type: "address" }],
+          ["0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAee"],
+          "InvalidAbiValueError",
+          { reason: "invalid address checksum" },
         );
       });
 

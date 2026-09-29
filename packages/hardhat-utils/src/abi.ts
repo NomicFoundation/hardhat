@@ -138,9 +138,14 @@ export async function encodeAbiParameters(
     return "0x";
   }
 
-  const normalizedValues = parameters.map((parameter, i) =>
-    normalizeAbiValue(parameter, values[i], parameter.name ?? `[${i}]`),
-  );
+  // The values are normalized sequentially so that, when more than one is
+  // invalid, the error reported is always the one of the first.
+  const normalizedValues = [];
+  for (const [i, parameter] of parameters.entries()) {
+    normalizedValues.push(
+      await normalizeAbiValue(parameter, values[i], parameter.name ?? `[${i}]`),
+    );
+  }
 
   if (deployContractImpl === undefined) {
     ({ deployContract: deployContractImpl } =
