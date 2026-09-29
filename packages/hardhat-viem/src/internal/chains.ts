@@ -41,10 +41,9 @@ export async function getChain<ChainTypeT extends ChainType | string>(
 
   const chainId = await getChainId(provider);
 
-  let chain = extractChain({
-    chains,
-    id: chainId,
-  });
+  let chain =
+    chainDescriptors.get(BigInt(chainId))?.viemChain ??
+    extractChain({ chains, id: chainId });
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
