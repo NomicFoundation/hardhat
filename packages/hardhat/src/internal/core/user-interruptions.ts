@@ -68,6 +68,30 @@ export class UserInterruptionManagerImplementation implements UserInterruptionMa
   }
 }
 
+/**
+ * Lines read from stdin that were not the answer to the prompt that read
+ * them. When input is piped, a single chunk usually contains the answers to
+ * several prompts, and readline still emits its remaining lines after the
+ * interface used for the first answer is closed, so they are kept here for
+ * the next prompts.
+ */
+const pendingLines: string[] = [];
+
+function takePendingLine(
+  interruptor: string,
+  inputDescription: string,
+): string | undefined {
+  const line = pendingLines.shift();
+
+  if (line !== undefined) {
+    process.stdout.write(
+      styleText("blue", `[${interruptor}]`) + ` ${inputDescription}: `,
+    );
+  }
+
+  return line;
+}
+
 async function defaultDisplayMessage(
   _context: HookContext,
   interruptor: string,
@@ -81,10 +105,18 @@ async function defaultRequestInput(
   interruptor: string,
   inputDescription: string,
 ): Promise<string> {
+  const pendingLine = takePendingLine(interruptor, inputDescription);
+  if (pendingLine !== undefined) {
+    return pendingLine;
+  }
+
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
+    terminal: process.stdin.isTTY === true,
   });
+
+  rl.on("line", (line) => pendingLines.push(line));
 
   return await askQuestion(rl, interruptor, inputDescription);
 }
@@ -94,10 +126,18 @@ async function defaultRequestSecretInput(
   interruptor: string,
   inputDescription: string,
 ): Promise<string> {
+  const pendingLine = takePendingLine(interruptor, inputDescription);
+  if (pendingLine !== undefined) {
+    return pendingLine;
+  }
+
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
+    terminal: process.stdin.isTTY === true,
   });
+
+  rl.on("line", (line) => pendingLines.push(line));
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We need to access a private property of the readline interface. */
