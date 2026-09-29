@@ -1,4 +1,5 @@
 import { after, describe, it } from "node:test";
+import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 import {
   existsSync,
@@ -9,6 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import {
   CommandFailedError,
@@ -368,6 +370,136 @@ describe("withReportDir", () => {
 
     assert.notEqual(created, undefined);
     assert.equal(existsSync(created), false);
+  });
+});
+
+describe("withReportDir on termination (subprocess)", () => {
+  const prefix = "runner-signal-test-";
+  const runnerUrl = pathToFileURL(path.join(import.meta.dirname, "runner.ts"));
+  // A handler that never fires would hang the child, which must fail the test
+  // instead.
+  const deadlineMs = 10_000;
+
+  /**
+   * Source for a child that holds two nested report directories. It prints
+   * both, waits `holdMs`, then prints whether they still exist. `setup`
+   * runs inside the inner callback, after the handlers are installed.
+   */
+  function holdReportDirs(setup: string, holdMs: number): string {
+    return `
+      const { existsSync } = await import("node:fs");
+      const { withReportDir } = await import(${JSON.stringify(runnerUrl.href)});
+      await withReportDir(${JSON.stringify(prefix)}, (outer) =>
+        withReportDir(${JSON.stringify(prefix)}, async (inner) => {
+          ${setup}
+          console.log(outer);
+          console.log(inner);
+          await new Promise((resolve) => setTimeout(resolve, ${holdMs}));
+          console.log(existsSync(outer), existsSync(inner));
+        }),
+      );
+    `;
+  }
+
+  interface Ended {
+    dirs: string[];
+    lines: string[];
+    code: number | null;
+    signal: NodeJS.Signals | null;
+  }
+
+  async function endWithSignal(
+    script: string,
+    signal: NodeJS.Signals,
+  ): Promise<Ended> {
+    const child = spawn(
+      process.execPath,
+      ["--input-type=module", "--eval", script],
+      { stdio: ["ignore", "pipe", "inherit"] },
+    );
+    let stdout = "";
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    const lines = () => stdout.split("\n").filter((line) => line !== "");
+
+    const closed = new Promise<[number | null, NodeJS.Signals | null]>(
+      (resolve, reject) => {
+        child.once("close", (code, endedBy) => resolve([code, endedBy]));
+        child.once("error", reject);
+      },
+    );
+    const deadline = new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error(`child still running after ${deadlineMs} ms`)),
+        deadlineMs,
+      ).unref();
+    });
+
+    try {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          child.stdout.on("data", () => {
+            if (lines().length >= 2) {
+              resolve();
+            }
+          });
+        }),
+        closed.then(() => {
+          throw new Error(`child ended early: ${stdout}`);
+        }),
+        deadline,
+      ]);
+
+      const dirs = lines().slice(0, 2);
+
+      for (const dir of dirs) {
+        assert.ok(existsSync(dir), dir);
+      }
+
+      child.kill(signal);
+      const [code, endedBy] = await Promise.race([closed, deadline]);
+
+      return { dirs, lines: lines(), code, signal: endedBy };
+    } finally {
+      child.kill("SIGKILL");
+    }
+  }
+
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const) {
+    it(`removes both directories and dies by ${signal} when nothing else handles it`, async () => {
+      const ended = await endWithSignal(holdReportDirs("", 60_000), signal);
+
+      assert.equal(ended.signal, signal);
+      assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+    });
+  }
+
+  it("removes both directories when another listener exits the process", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        'process.on("SIGTERM", () => setTimeout(() => process.exit(7), 0));',
+        60_000,
+      ),
+      "SIGTERM",
+    );
+
+    assert.equal(ended.code, 7);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+
+  it("keeps the run and its directories alive when another listener swallows the signal", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        'process.on("SIGINT", () => console.log("swallowed"));',
+        300,
+      ),
+      "SIGINT",
+    );
+
+    assert.equal(ended.code, 0);
+    assert.deepEqual(ended.lines.slice(2), ["swallowed", "true true"]);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
   });
 });
 

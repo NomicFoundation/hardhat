@@ -60,20 +60,72 @@ export function reportPathsIn(dir: string, stem: string): ReportPaths {
 
 /**
  * Run `fn` with a fresh directory for its report files, removed once `fn`
- * settles. No two calls share a directory, so concurrent callers cannot
- * delete or read each other's reports.
+ * settles, or when the process exits or takes SIGINT, SIGTERM or SIGHUP.
+ * No two calls share a directory, so concurrent callers cannot delete or
+ * read each other's reports.
  */
 export async function withReportDir<T>(
   prefix: string,
   fn: (dir: string) => Promise<T>,
 ): Promise<T> {
   const dir = mkdtempSync(path.join(tmpdir(), prefix));
+  installTerminationCleanup();
+  activeReportDirs.add(dir);
 
   try {
     return await fn(dir);
   } finally {
+    activeReportDirs.delete(dir);
     rmSync(dir, { recursive: true, force: true });
   }
+}
+
+const activeReportDirs = new Set<string>();
+
+const TERMINATION_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
+
+let terminationCleanupInstalled = false;
+
+/**
+ * Install the handlers, once, that remove the active report directories
+ * when the process exits or takes a termination signal, which skips every
+ * `finally`.
+ */
+function installTerminationCleanup(): void {
+  if (terminationCleanupInstalled) {
+    return;
+  }
+
+  terminationCleanupInstalled = true;
+  process.on("exit", removeActiveReportDirs);
+
+  for (const signal of TERMINATION_SIGNALS) {
+    const onSignal = (): void => {
+      // Only the sole listener may end the process. Another listener decides
+      // that itself, and the exit handler then removes the directories.
+      if (process.listenerCount(signal) === 1) {
+        removeActiveReportDirs();
+        process.off(signal, onSignal);
+        process.kill(process.pid, signal);
+      }
+    };
+
+    process.on(signal, onSignal);
+  }
+}
+
+function removeActiveReportDirs(): void {
+  for (const dir of activeReportDirs) {
+    // A failed removal must not abort the other listeners or replace the
+    // exit status.
+    try {
+      rmSync(dir, { recursive: true, force: true });
+    } catch {
+      continue;
+    }
+  }
+
+  activeReportDirs.clear();
 }
 
 export interface RunOptions {
