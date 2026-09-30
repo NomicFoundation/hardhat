@@ -134,20 +134,11 @@ function validateInput(
 
 export async function getBalanceChanges(
   ethers: HardhatEthers,
-  transaction:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => Promise<TransactionResponse> | TransactionResponse),
+  transaction: TransactionResponse | Promise<TransactionResponse>,
   accounts: Array<Addressable | string>,
   options?: BalanceChangeOptions,
 ): Promise<bigint[]> {
-  let txResponse: TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   checkTransactionResponse(txResponse, CHANGE_ETHER_BALANCES_MATCHER);
 

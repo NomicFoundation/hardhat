@@ -28,7 +28,11 @@ export function supportChangeEtherBalance(
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
-      const subject = this._obj;
+
+      let subject = this._obj;
+      if (typeof subject === "function") {
+        subject = subject();
+      }
 
       preventAsyncMatcherChaining(
         this,
@@ -72,20 +76,11 @@ export function supportChangeEtherBalance(
 
 export async function getBalanceChange(
   ethers: HardhatEthers,
-  transaction:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => Promise<TransactionResponse> | TransactionResponse),
+  transaction: TransactionResponse | Promise<TransactionResponse>,
   account: Addressable | string,
   options?: BalanceChangeOptions,
 ): Promise<bigint> {
-  let txResponse: TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   checkTransactionResponse(txResponse, CHANGE_ETHER_BALANCE_MATCHER);
 
