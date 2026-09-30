@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.10
+
+### Patch Changes
+
+- [#8646](https://github.com/NomicFoundation/hardhat/pull/8646) [`ac45dab`](https://github.com/NomicFoundation/hardhat/commit/ac45dab636432dbe98da5eb2909913dab0e202f5) Thanks [@renovate](https://github.com/apps/renovate)! - Updated the `immer` dependency to 11.1.18.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.1.9
 
 ### Patch Changes

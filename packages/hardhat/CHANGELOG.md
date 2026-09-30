@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.18.1
+
+### Patch Changes
+
+- [#8631](https://github.com/NomicFoundation/hardhat/pull/8631) [`d014d43`](https://github.com/NomicFoundation/hardhat/commit/d014d43b157ab8c54d1ed4d94e24e2dd98cdf68b) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed `edr-simulated` networks with `forking.enabled: false` starting without the chain's predeploys (e.g. OP's `GasPriceOracle` and `L1Block`, or the L1 beacon roots and history storage contracts).
+
+- [#8636](https://github.com/NomicFoundation/hardhat/pull/8636) [`8b24451`](https://github.com/NomicFoundation/hardhat/commit/8b2445190330a18851c6deda682d0d11efd214e8) Thanks [@schaable](https://github.com/schaable)! - Fixed the formatting of errors reported while running Solidity tests.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.18.0
 
 ### Minor Changes
