@@ -83,13 +83,18 @@ describe("path", () => {
 
     it("Shouldn't shorten a path that's not inside the folder whose path relative path would be longer", async () => {
       // We define a folder so nested that the relative path will be longer
-      // than the absolute one, due to too many ".." in the path
+      // than the absolute one, due to too many ".." in the path.
+      // The depth is derived from the path's length because a hardcoded one
+      // stops being enough in a deep checkout.
+      const segmentLength = "..".length + path.sep.length;
+      const depth = Math.ceil(import.meta.dirname.length / segmentLength) + 1;
+
       const cwd = path.join(
         import.meta.dirname,
         "fixture-projects",
         "fs",
         "shorten-path",
-        ...Array(20).fill("a"),
+        ...Array(depth).fill("a"),
       );
       await ensureDir(cwd);
       process.chdir(cwd);

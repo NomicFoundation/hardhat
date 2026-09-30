@@ -3121,7 +3121,7 @@ This usually happens when a library is only referenced in the contract's constru
       },
       INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
         number: 80017,
-        messageTemplate: `The value "{value}" for a constructor parameter cannot be encoded.
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" cannot be encoded.
 Reason: {reason}.`,
         websiteTitle: "Invalid constructor argument type",
         websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
@@ -3142,7 +3142,7 @@ Please verify that you pass the exact number of arguments required by the constr
       },
       CONSTRUCTOR_ARGUMENT_OVERFLOW: {
         number: 80019,
-        messageTemplate: `The value "{value}" is out of bounds for its Solidity type and cannot be encoded.`,
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" is out of bounds for the type "{solidityType}" and cannot be encoded.`,
         websiteTitle: "Constructor argument value out of bounds",
         websiteDescription: `One of the arguments passed to the contract's constructor is outside the allowed range for its Solidity type (for example, passing 256 to a uint8 parameter).
 
@@ -3152,7 +3152,7 @@ Please ensure all argument values fit within the valid range for their respectiv
       },
       CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED: {
         number: 80020,
-        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}.`,
+        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}`,
         websiteTitle: "Constructor arguments encoding failed",
         websiteDescription: `The constructor arguments provided for the contract could not be encoded correctly.
 Please review the provided arguments and ensure they match the expected arguments defined in the contract's ABI.`,
