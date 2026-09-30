@@ -74,6 +74,11 @@ declare module "../../../types/test.js" {
     fuzz?: SolidityTestFuzzUserConfig;
     invariant?: SolidityTestInvariantUserConfig;
     forking?: SolidityTestForkingUserConfig;
+    /**
+     * @deprecated This option no longer has any effect. The EIP-712 cheatcodes
+     * resolve struct names from the sources of the test contract itself and the
+     * files it imports.
+     */
     eip712Types?: {
       include?: string[];
       exclude?: string[];
@@ -152,6 +157,11 @@ declare module "../../../types/test.js" {
     fuzz: SolidityTestFuzzConfig;
     invariant?: SolidityTestInvariantConfig;
     forking?: SolidityTestForkingConfig;
+    /**
+     * @deprecated This option no longer has any effect. The EIP-712 cheatcodes
+     * resolve struct names from the sources of the test contract itself and the
+     * files it imports.
+     */
     eip712Types: {
       include: string[];
       exclude: string[];
