@@ -22,7 +22,13 @@ const ELF_MAGIC_HEX = "7f454c46";
 
 describe(
   "hardhat-slang output augmentation",
-  { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
+  {
+    // The prerelease binary doesn't emit debugInfo yet. Opt in once the pinned
+    // release does, so this turns on without a code change.
+    skip:
+      process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+      process.env.HARDHAT_SLANG_EXPECT_DEBUG_INFO !== "true",
+  },
   () => {
     useFixtureProject("with-debug-info");
 

@@ -1,50 +1,49 @@
-# Hardhat Slang Solx plugin
+# Hardhat Slang plugin
 
-This plugin enables the [slang-solx](https://github.com/NomicFoundation/solx) Solidity compiler in Hardhat. `slang-solx` is a Solidity compiler based on solc and LLVM. It compiles faster, produces better optimized bytecode, and gets rid of “stack too deep” errors.
+This plugin enables the new `slang` Solidity compiler in Hardhat.
 
-The `slang-solx` compiler is currently experimental and is not ready for production use-cases. We recommend using the compiler for test builds and test execution locally, and continuing to use `solc` for production use-cases (including during deployment, for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `slang-solx` in other build profiles, see configuration flags below.
-
-The compiler was originally developed at Matter Labs under the name `solx`. It moved to the Nomic Foundation in 2025, where it was renamed `slang-solx`. Its repository and release assets still use the `solx` name.
-
-> 💡 **Tip:** Read the [Compiling with slang-solx](https://hardhat.org/docs/cookbook/compiling-with-slang-solx) guide for more details.
+The `slang` compiler is experimental and is not ready for production use-cases. Use it for test builds and test execution locally, and keep using `solc` for production use-cases (including during deployment, for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `slang` in other build profiles, see the configuration flags below.
 
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-slang-solx
+npm install --save-dev @nomicfoundation/hardhat-slang
 ```
 
-Then add the plugin to your `hardhat.config.ts` and create a `slang-solx` build profile. You must use the build profiles config format, which requires both a `default` and a `slang-solx` profile:
+Then add the plugin to your `hardhat.config.ts`, pin a `slang` release, and create a `slang` build profile. You must use the build profiles config format, which requires both a `default` and a `slang` profile:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
-import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 
 export default defineConfig({
-  plugins: [hardhatSlangSolx],
+  plugins: [hardhatSlang],
   solidity: {
     profiles: {
       default: {
-        version: "0.8.29",
+        version: "0.8.34",
       },
-      "slang-solx": {
-        type: "slang-solx",
+      slang: {
+        type: "slang",
         version: "0.8.34",
       },
     },
   },
+  slang: {
+    version: "0.1.0-pre.2026-10-01",
+  },
 });
 ```
 
-The `default` profile uses solc as usual. The `slang-solx` profile uses the slang-solx compiler, identified by `type: "slang-solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with the hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `slang` profile uses the slang compiler, identified by `type: "slang"`. The `version` of a `type: "slang"` entry is still the Solidity version, exactly as with solc: Hardhat uses it to resolve pragmas and group files into compilation jobs. Which `slang` binary compiles them is decided separately, by `slang.version`.
 
 ## Usage
 
-Run tests or compile using the slang-solx build profile:
+Run tests or compile using the slang build profile:
 
 ```bash
-hardhat test --build-profile slang-solx
-hardhat build --build-profile slang-solx
+hardhat test --build-profile slang
+hardhat build --build-profile slang
 ```
 
 The default profile continues to use solc as usual:
@@ -55,57 +54,81 @@ hardhat build    # uses solc (default profile)
 
 ## Configuration
 
+### Pinning a slang release
+
+Unlike solc, one `slang` binary compiles a range of Solidity versions (`0.8.x`). The plugin therefore downloads a single release, the one pinned in `slang.version`, and uses it for every `type: "slang"` compiler entry. Each entry's Solidity `version` must fall inside the range supported by the pinned release (see [Supported Solidity versions](#supported-solidity-versions)); anything outside is a validation error.
+
+`slang.version` is required whenever a `type: "slang"` entry needs a download. Entries with a custom `path` (see below) don't.
+
 ### Multi-version example
 
-You can configure the `slang-solx` profile with multiple compilers. Compilers without `type: "slang-solx"` will use solc:
+You can configure the `slang` profile with multiple compilers. Compilers without `type: "slang"` will use solc:
 
 ```typescript
 export default defineConfig({
-  plugins: [hardhatSlangSolx],
+  plugins: [hardhatSlang],
   solidity: {
     profiles: {
       default: {
         compilers: [{ version: "0.8.34" }, { version: "0.8.20" }],
       },
-      "slang-solx": {
+      slang: {
         compilers: [
-          { type: "slang-solx", version: "0.8.34" },
-          { version: "0.8.20" }, // uses solc, slang-solx doesn't support this version
+          { type: "slang", version: "0.8.34" }, // compiled by the pinned slang release
+          { type: "slang", version: "0.8.20" }, // same binary, different Solidity version
+          { version: "0.7.6" }, // uses solc; outside the slang range
         ],
       },
     },
+  },
+  slang: {
+    version: "0.1.0-pre.2026-10-01",
   },
 });
 ```
 
 ### Options
 
-- `dangerouslyAllowSlangSolxInProduction` (`boolean`, default: `false`), allows compiler type `"slang-solx"` in build profiles other than `slang-solx`. By default, using `type: "slang-solx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
+- `version` (`string`), the slang release to download and compile with. See [Supported Solidity versions](#supported-solidity-versions) for the known releases.
+- `dangerouslyAllowSlangInProduction` (`boolean`, default: `false`), allows compiler type `"slang"` in build profiles other than `slang`. By default, using `type: "slang"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
 export default defineConfig({
-  plugins: [hardhatSlangSolx],
+  plugins: [hardhatSlang],
   solidity: {
     profiles: {
       default: {
-        type: "slang-solx", // allowed only because of the option below
+        type: "slang", // not recommended, allowed only because of the option below
         version: "0.8.34",
       },
-      "slang-solx": {
-        type: "slang-solx",
+      slang: {
+        type: "slang",
         version: "0.8.34",
       },
     },
   },
-  "slang-solx": {
-    dangerouslyAllowSlangSolxInProduction: true,
+  slang: {
+    version: "0.1.0-pre.2026-10-01",
+    dangerouslyAllowSlangInProduction: true,
   },
 });
 ```
 
+### Using a custom binary
+
+Point a compiler entry at a locally built binary with `path`. The entry skips the download and the Solidity range check, and the plugin reads the compiler version from the binary's `--version` output:
+
+```typescript
+slang: {
+  type: "slang",
+  version: "0.8.34",
+  path: "/path/to/slang",
+},
+```
+
 ### Optimization level
 
-slang-solx optimizes via LLVM; set the level per profile with `settings.optimizer.mode`:
+slang optimizes via LLVM; set the level per profile with `settings.optimizer.mode`:
 
 | Mode  | What it does                                          |
 | ----- | ----------------------------------------------------- |
@@ -115,46 +138,40 @@ slang-solx optimizes via LLVM; set the level per profile with `settings.optimize
 | `"s"` | Smaller bytecode.                                     |
 | `"z"` | Smallest bytecode.                                    |
 
-slang-solx has two independent optimizer knobs:
-
-- `optimizer.mode` (above) is the LLVM backend level. There is **no "off"** — the minimum is `"1"`, so LLVM always optimizes.
-- `optimizer.enabled` is the embedded solc front end's own optimizer, `false` by default. It only affects the legacy pipeline, where it optimizes the EVM assembly slang-solx translates. Under `viaIR: true` it changes nothing but the metadata hash: slang-solx bypasses the Yul optimizer entirely, so the IR handed to LLVM is always unoptimized.
+There is **no "off"**: the minimum is `"1"`, so LLVM always optimizes. The solc-specific knobs `optimizer.enabled` and `viaIR` have no effect on the slang pipeline, which has neither the solc optimizer nor a Yul step; the plugin passes them through untouched.
 
 For example, optimizing for size instead of performance:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
-import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 
 export default defineConfig({
-  plugins: [hardhatSlangSolx],
+  plugins: [hardhatSlang],
   solidity: {
     profiles: {
       default: { version: "0.8.34" },
-      "slang-solx": {
-        type: "slang-solx",
+      slang: {
+        type: "slang",
         version: "0.8.34",
         settings: { optimizer: { mode: "z" } }, // optimize for size
       },
     },
   },
+  slang: {
+    version: "0.1.0-pre.2026-10-01",
+  },
 });
-```
-
-Or, on the legacy pipeline, run the front end's assembly optimizer before LLVM `-O3` (both knobs on) — just the `slang-solx` profile:
-
-```typescript
-"slang-solx": {
-  type: "slang-solx",
-  version: "0.8.34",
-  settings: { optimizer: { enabled: true, mode: "3" } },
-},
 ```
 
 ### Supported Solidity versions
 
-slang-solx maps each Solidity version to a specific slang-solx binary version internally. Currently supported: `0.8.34` (solx 0.1.8). Earlier slang-solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.
+Each slang release supports a range of Solidity versions:
+
+| slang release | Solidity versions | Notes |
+| --- | --- | --- |
+| `0.1.0-pre.2026-10-01` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `b74af542`, 2026-10-01) downloaded from GitHub. |
 
 ### EVM version support
 
-slang-solx supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang-solx"` will result in a validation error.
+slang supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang"` will result in a validation error.
