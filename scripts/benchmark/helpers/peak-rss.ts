@@ -78,8 +78,9 @@ export function detectPeakRssAvailability(): PeakRssAvailability {
  * A `requested` method that this machine cannot provide throws, so an
  * explicit choice never degrades silently. Without a request, GNU time wins
  * for its exactness and the sampler is the fallback. bench:regression always
- * requests GNU time, so the fallback serves ad-hoc callers. An undefined
- * result means neither is available, so memory goes unmeasured.
+ * requests a method (GNU time unless --peak-rss says otherwise), so the
+ * fallback serves `pnpm bench`. An undefined result means neither is
+ * available, so memory goes unmeasured.
  */
 export function resolvePeakRssMethod(
   requested: PeakRssMethod,
@@ -95,7 +96,13 @@ export function resolvePeakRssMethod(
 ): PeakRssMethod | undefined {
   if (requested === PeakRssMethod.GnuTime) {
     if (!availability.gnuTime) {
-      throw new Error(GNU_TIME_UNAVAILABLE);
+      // Only suggest the sampler when it would actually work; on e.g. macOS
+      // neither method is available.
+      throw new Error(
+        availability.sampler
+          ? `${GNU_TIME_UNAVAILABLE}, or pass --peak-rss sampler`
+          : GNU_TIME_UNAVAILABLE,
+      );
     }
 
     return PeakRssMethod.GnuTime;
@@ -130,6 +137,56 @@ export function resolvePeakRssMethod(
   );
 
   return undefined;
+}
+
+const PEAK_RSS_FLAG = "--peak-rss";
+
+/** `--peak-rss` values, as both benchmark CLIs spell them. */
+export const PEAK_RSS_METHOD_FLAGS: Readonly<Record<string, PeakRssMethod>> = {
+  "gnu-time": PeakRssMethod.GnuTime,
+  sampler: PeakRssMethod.Sampler,
+};
+
+const PEAK_RSS_METHOD_LIST = Object.keys(PEAK_RSS_METHOD_FLAGS).join(", ");
+
+/** Each method's CLI spelling, for user-facing output. */
+export const PEAK_RSS_METHOD_NAMES: Readonly<Record<PeakRssMethod, string>> =
+  Object.fromEntries(
+    Object.entries(PEAK_RSS_METHOD_FLAGS).map(([flag, method]) => [
+      method,
+      flag,
+    ]),
+  ) as Record<PeakRssMethod, string>;
+
+/**
+ * Parse the `--peak-rss` flag out of `argv`. An absent flag returns
+ * undefined, so each CLI applies its own default. A flag without a value, or
+ * with an unknown one, throws.
+ */
+export function parsePeakRssMethod(argv: string[]): PeakRssMethod | undefined {
+  const flagIndex = argv.indexOf(PEAK_RSS_FLAG);
+
+  if (flagIndex === -1) {
+    return undefined;
+  }
+
+  const raw = argv[flagIndex + 1];
+
+  if (raw === undefined) {
+    throw new Error(
+      `${PEAK_RSS_FLAG} requires a value: one of ${PEAK_RSS_METHOD_LIST}`,
+    );
+  }
+
+  // Object.hasOwn: a plain index would also find Object.prototype keys, so
+  // e.g. `--peak-rss constructor` would pass validation.
+  if (!Object.hasOwn(PEAK_RSS_METHOD_FLAGS, raw)) {
+    throw new Error(
+      `${PEAK_RSS_FLAG} must be one of ${PEAK_RSS_METHOD_LIST} (got "${raw}")`,
+    );
+  }
+
+  return PEAK_RSS_METHOD_FLAGS[raw];
 }
 
 /**

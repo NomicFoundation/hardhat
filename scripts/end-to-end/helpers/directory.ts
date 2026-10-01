@@ -44,11 +44,29 @@ export function resolveScenarioWorkingDir(
 }
 
 /**
+ * Resolve a path given by the user. pnpm runs scripts from the
+ * package root and stores the invoking directory in INIT_CWD, so a
+ * relative path resolves there. Without INIT_CWD, as in a direct node
+ * run, it resolves against cwd. An undefined path passes through.
+ */
+export function resolveInvocationPath(givenPath: string): string;
+export function resolveInvocationPath(
+  givenPath: string | undefined,
+): string | undefined;
+export function resolveInvocationPath(
+  givenPath: string | undefined,
+): string | undefined {
+  return givenPath === undefined
+    ? undefined
+    : resolve(process.env.INIT_CWD ?? process.cwd(), givenPath);
+}
+
+/**
  * Normalize a scenario path to always point at the scenario.json file.
  * Accepts either a directory or a direct path to scenario.json.
  */
 export function normalizeScenarioPath(scenarioPath: string): string {
-  const abs = resolve(scenarioPath);
+  const abs = resolveInvocationPath(scenarioPath);
 
   if (abs.endsWith("scenario.json")) {
     return abs;

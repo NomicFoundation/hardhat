@@ -1,6 +1,10 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { parseIntType } from "../helpers/int-type.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  getIntTypeRange,
+  parseIntType,
+} from "@nomicfoundation/hardhat-utils/abi";
 
 interface MinValueActionArguments {
   type: string;
@@ -9,11 +13,17 @@ interface MinValueActionArguments {
 const minValueAction: NewUtilsTaskActionFunction<
   MinValueActionArguments
 > = async ({ type }) => {
-  const { signed, bits } = parseIntType(type);
+  const intType = parseIntType(type);
 
-  const min = signed ? -(2n ** BigInt(bits - 1)) : 0n;
+  if (intType === undefined) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
+      value: type,
+      name: "type",
+      reason: "it must be a Solidity integer type, like uint256 or int128",
+    });
+  }
 
-  console.log(min.toString());
+  console.log(getIntTypeRange(intType).min.toString());
 };
 
 export default minValueAction;
