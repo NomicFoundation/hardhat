@@ -160,3 +160,89 @@ export interface JsonRpcServer {
    */
   afterClosed(): Promise<void>;
 }
+
+/**
+ * A transaction that Hardhat has filled and serialized, and that a
+ * {@link TransactionSigner} is asked to sign.
+ *
+ * The decoded fields are there for signers that check or display what they
+ * sign. The access list and the authorization list are only part of
+ * `serialized`.
+ */
+export interface UnsignedTransaction {
+  /** The transaction type. */
+  readonly type: "legacy" | "eip2930" | "eip1559" | "eip7702";
+
+  /** The sender, as a lowercase `0x`-prefixed address. */
+  readonly from: string;
+
+  /**
+   * The recipient, as a lowercase `0x`-prefixed address, or `undefined` for a
+   * contract creation.
+   */
+  readonly to: string | undefined;
+
+  readonly chainId: bigint;
+  readonly nonce: bigint;
+  readonly gasLimit: bigint;
+  readonly value: bigint;
+
+  /** The calldata, as a `0x`-prefixed hex string. */
+  readonly data: string;
+
+  /** The gas price of a legacy or EIP-2930 transaction. */
+  readonly gasPrice: bigint | undefined;
+
+  /** The max fee per gas of an EIP-1559 or EIP-7702 transaction. */
+  readonly maxFeePerGas: bigint | undefined;
+
+  /** The max priority fee per gas of an EIP-1559 or EIP-7702 transaction. */
+  readonly maxPriorityFeePerGas: bigint | undefined;
+
+  /**
+   * The unsigned transaction, serialized as the payload whose hash is signed:
+   * the EIP-2718 typed payload, or the EIP-155 RLP list for a legacy
+   * transaction.
+   */
+  readonly serialized: Uint8Array;
+
+  /** The keccak256 hash of `serialized`, which is the digest to sign. */
+  readonly hash: Uint8Array;
+}
+
+/**
+ * A secp256k1 signature of an {@link UnsignedTransaction}'s hash.
+ *
+ * Hardhat accepts high-S signatures, like the ones some cloud KMSs return,
+ * and converts them to the equivalent low-S signature (`s` becomes `n - s`
+ * and `yParity` flips) before adding them to the transaction.
+ */
+export interface TransactionSignature {
+  readonly r: bigint;
+  readonly s: bigint;
+
+  /** The recovery id: `0` or `1`, not `27` or `28`. */
+  readonly yParity: number;
+}
+
+/**
+ * Signs transactions for an account whose key Hardhat doesn't hold, like a
+ * key in a cloud KMS, an HSM or a hardware wallet.
+ *
+ * Plugins provide one through the `network#resolveTransactionSigner` hook.
+ */
+export interface TransactionSigner {
+  /**
+   * Signs a transaction that Hardhat has filled.
+   *
+   * Hardhat adds the signature to the transaction, checks that it recovers to
+   * the transaction's `from`, and sends the result with
+   * `eth_sendRawTransaction`.
+   *
+   * @param transaction The filled transaction.
+   * @returns The signature of `transaction.hash`.
+   */
+  signTransaction(
+    transaction: UnsignedTransaction,
+  ): Promise<TransactionSignature>;
+}

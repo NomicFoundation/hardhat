@@ -51,7 +51,16 @@ export default async (): Promise<Partial<NetworkHooks>> => {
             return handlersPerConnectionAfterWaiting;
           }
 
-          const result = await createHandlersArray(networkConnection);
+          const result = await createHandlersArray(
+            networkConnection,
+            async (from) =>
+              await context.hooks.runHandlerChain(
+                "network",
+                "resolveTransactionSigner",
+                [networkConnection, from],
+                async () => undefined,
+              ),
+          );
 
           requestHandlersPerConnection.set(networkConnection, result);
 
