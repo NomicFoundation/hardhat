@@ -1,3 +1,4 @@
+import type { SlangRelease } from "./constants.js";
 import type {
   Compiler,
   CompilerInput,
@@ -13,29 +14,56 @@ export const SLANG_DEBUG_INFO_SELECTORS: readonly string[] = [
   "evm.deployedBytecode.debugInfo",
 ] as const;
 
+export interface SlangCompilerOptions {
+  /** The release table row of the slang binary being driven. */
+  release: SlangRelease;
+  /**
+   * The Solidity version Hardhat selected for the compilation job. slang
+   * compiles a range of Solidity versions, so the job's version is passed to
+   * the binary through the release's `targetVersionFlag`, when it has one.
+   */
+  targetSolidityVersion: string;
+  /** Intended for tests. */
+  spawnCompile?: typeof defaultSpawnCompile;
+}
+
 export class SlangCompiler implements Compiler {
   public readonly version: string;
   public readonly longVersion: string;
   public readonly compilerPath: string;
   public readonly isSolcJs: boolean = false;
 
+  /** The CLI arguments passed to the binary on every compile. */
+  public readonly args: readonly string[];
+
   readonly #spawnCompile: typeof defaultSpawnCompile;
 
   constructor(
     slangVersion: string,
     compilerPath: string,
-    spawnCompile: typeof defaultSpawnCompile = defaultSpawnCompile,
+    options: SlangCompilerOptions,
   ) {
+    const {
+      release,
+      targetSolidityVersion,
+      spawnCompile = defaultSpawnCompile,
+    } = options;
+
     this.version = slangVersion;
     this.longVersion = `${slangVersion}+slang`;
     this.compilerPath = compilerPath;
+    this.args = [
+      "--standard-json",
+      ...release.extraArgs,
+      ...(release.targetVersionFlag !== undefined
+        ? [release.targetVersionFlag, targetSolidityVersion]
+        : []),
+    ];
     this.#spawnCompile = spawnCompile;
   }
 
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
-    const args = ["--standard-json", "--no-import-callback"];
-
-    return await this.#spawnCompile(this.compilerPath, args, input);
+    return await this.#spawnCompile(this.compilerPath, [...this.args], input);
   }
 }
 

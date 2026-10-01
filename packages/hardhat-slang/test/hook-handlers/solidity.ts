@@ -3,7 +3,7 @@ import type { SolidityCompilerConfig } from "hardhat/types/config";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
+import { chmod, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
@@ -24,6 +24,7 @@ import { getSlangBinaryPath } from "../../src/internal/downloader.js";
 import solidityHookHandlers, {
   parseSlangVersion,
 } from "../../src/internal/hook-handlers/solidity.js";
+import { SlangCompiler } from "../../src/internal/slang-compiler.js";
 
 const PINNED_VERSION = "0.1.0-pre.2026-10-01";
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
@@ -287,6 +288,23 @@ describe("hardhat-slang solidity hook handler", () => {
       assert.equal(compiler.isSolcJs, false);
     });
 
+    it("drives the binary with the pinned release's args", async () => {
+      const hooks = await solidityHookHandlers();
+      await cacheFakePinnedBinary();
+
+      const compiler = await hooks.getCompiler!(
+        createContext(),
+        createSolidityCompilerConfig({ type: "slang", version: "0.8.20" }),
+        createGetCompilerMockNext().next,
+      );
+
+      assert.ok(compiler instanceof SlangCompiler, "expected a SlangCompiler");
+      assert.deepEqual(compiler.args, [
+        "--standard-json",
+        ...PINNED_RELEASE.extraArgs,
+      ]);
+    });
+
     it("throws an invariant error when the pinned binary isn't cached", async () => {
       const hooks = await solidityHookHandlers();
 
@@ -342,6 +360,47 @@ describe("hardhat-slang solidity hook handler", () => {
         },
       );
     });
+
+    it(
+      "reads the version from a custom-path binary and drives it with the newest release's args when nothing is pinned",
+      { skip: process.platform === "win32" },
+      async () => {
+        const hooks = await solidityHookHandlers();
+
+        // A stand-in binary that only knows how to answer --version.
+        const fakeBinaryPath = path.join(tmpDir, "fake-slang");
+        await writeFile(
+          fakeBinaryPath,
+          '#!/bin/sh\necho "solx v0.0.1-fake, LLVM-based Solidity compiler for the EVM, Front end: Slang"\n',
+        );
+        await chmod(fakeBinaryPath, 0o755);
+
+        const mockNext = createGetCompilerMockNext();
+        const compiler = await hooks.getCompiler!(
+          createContext(null),
+          createSolidityCompilerConfig({
+            type: "slang",
+            version: "0.8.20",
+            path: fakeBinaryPath,
+          }),
+          mockNext.next,
+        );
+
+        assert.ok(!mockNext.wasCalled(), "next should NOT have been called");
+        assert.ok(
+          compiler instanceof SlangCompiler,
+          "expected a SlangCompiler",
+        );
+        assert.equal(compiler.compilerPath, fakeBinaryPath);
+        assert.equal(compiler.version, "0.0.1-fake");
+        assert.equal(compiler.longVersion, "0.0.1-fake+slang");
+        const newest = Object.values(SLANG_RELEASES).at(-1)!;
+        assert.deepEqual(compiler.args, [
+          "--standard-json",
+          ...newest.extraArgs,
+        ]);
+      },
+    );
 
     it("returns SlangCompiler with version from binary when path is provided", async () => {
       // Use the real prerelease binary if it is in the global cache, skip otherwise

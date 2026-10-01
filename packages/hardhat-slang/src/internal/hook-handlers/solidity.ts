@@ -62,6 +62,28 @@ function getPinnedRelease(config: HardhatConfig): {
   return { version, release };
 }
 
+/**
+ * Returns the release row whose CLI arguments drive a custom-path binary: the
+ * pinned release when there is one, otherwise the newest release the plugin
+ * knows, since a custom binary is usually a build ahead of any release.
+ */
+function getReleaseForCustomPath(config: HardhatConfig): SlangRelease {
+  const pinned =
+    config.slang.version !== undefined
+      ? SLANG_RELEASES[config.slang.version]
+      : undefined;
+  if (pinned !== undefined) {
+    return pinned;
+  }
+
+  const newest = Object.values(SLANG_RELEASES).at(-1);
+  assertHardhatInvariant(
+    newest !== undefined,
+    "The slang release table must not be empty",
+  );
+  return newest;
+}
+
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (context, compilerConfigs, quiet) => {
     // Every type: "slang" entry without a custom path shares the single
@@ -124,7 +146,10 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         `Creating SlangCompiler with custom path for Solidity ${compilerConfig.version} (slang ${customSlangVersion}) at ${compilerConfig.path}`,
       );
 
-      return new SlangCompiler(customSlangVersion, compilerConfig.path);
+      return new SlangCompiler(customSlangVersion, compilerConfig.path, {
+        release: getReleaseForCustomPath(context.config),
+        targetSolidityVersion: compilerConfig.version,
+      });
     }
 
     const { version: slangVersion, release } = getPinnedRelease(context.config);
@@ -140,6 +165,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       `Creating SlangCompiler for Solidity ${compilerConfig.version} (slang ${slangVersion}) at ${binaryPath}`,
     );
 
-    return new SlangCompiler(slangVersion, binaryPath);
+    return new SlangCompiler(slangVersion, binaryPath, {
+      release,
+      targetSolidityVersion: compilerConfig.version,
+    });
   },
 });
