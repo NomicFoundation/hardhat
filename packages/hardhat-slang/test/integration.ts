@@ -20,6 +20,7 @@ describe("hardhat-slang integration", () => {
   it("resolves plugin config through the HRE", async () => {
     const hre = await createHre();
     assert.equal(hre.config.slang.dangerouslyAllowSlangInProduction, false);
+    assert.equal(hre.config.slang.version, "0.1.0-pre.2026-10-01");
   });
 
   it("resolves plugin config with defaults when not specified", async () => {
@@ -35,10 +36,52 @@ describe("hardhat-slang integration", () => {
           },
         },
       },
+      slang: { version: "0.1.0-pre.2026-10-01" },
       plugins: [(await import("../src/index.js")).default],
     });
 
     assert.equal(hre.config.slang.dangerouslyAllowSlangInProduction, false);
+  });
+
+  it("coexists with hardhat-slang-solx in the same config", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      solidity: {
+        profiles: {
+          default: {
+            version: "0.8.34",
+          },
+          slang: {
+            type: "slang",
+            version: "0.8.34",
+          },
+          "slang-solx": {
+            type: "slang-solx",
+            version: "0.8.34",
+          },
+        },
+      },
+      slang: { version: "0.1.0-pre.2026-10-01" },
+      plugins: [
+        (await import("../src/index.js")).default,
+        (await import("@nomicfoundation/hardhat-slang-solx")).default,
+      ],
+    });
+
+    assert.deepEqual(
+      [...hre.config.solidity.registeredCompilerTypes].sort(),
+      ["slang", "slang-solx", "solc"],
+      "both plugins register their compiler type",
+    );
+    assert.equal(hre.config.slang.version, "0.1.0-pre.2026-10-01");
+    assert.equal(
+      hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
+      false,
+    );
+    assert.equal(hre.config.solidity.profiles.slang.compilers[0].type, "slang");
+    assert.equal(
+      hre.config.solidity.profiles["slang-solx"].compilers[0].type,
+      "slang-solx",
+    );
   });
 
   it("default profile compilers use solc (no type or 'solc')", async () => {

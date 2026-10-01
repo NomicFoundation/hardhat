@@ -11,6 +11,9 @@
       "path": "../hardhat-node-test-reporter"
     },
     {
+      "path": "../hardhat-slang-solx"
+    },
+    {
       "path": "../hardhat-test-utils"
     },
     {

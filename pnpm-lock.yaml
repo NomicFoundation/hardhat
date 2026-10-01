@@ -1184,6 +1184,9 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.1.0
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-slang-solx':
+        specifier: workspace:^
+        version: link:../hardhat-slang-solx
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils

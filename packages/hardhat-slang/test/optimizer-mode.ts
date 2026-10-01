@@ -47,8 +47,8 @@ describe("hardhat-slang optimizer mode reaches the solc input", () => {
     );
     assert.equal(
       (solcInput.settings as { viaIR?: boolean }).viaIR,
-      false,
-      "the plugin's default viaIR:false should also reach the resolved solcInput",
+      undefined,
+      "the slang pipeline has no Yul step, so the plugin must not inject viaIR",
     );
   });
 });

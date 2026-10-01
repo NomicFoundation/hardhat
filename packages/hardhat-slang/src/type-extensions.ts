@@ -44,6 +44,15 @@ declare module "hardhat/types/config" {
 
   export interface SlangUserConfig {
     /**
+     * The slang release to download and compile with. Every compiler entry
+     * with `type: "slang"` and no custom `path` uses this one binary, and its
+     * Solidity `version` must fall inside the release's supported range.
+     *
+     * Required when any such entry exists.
+     */
+    version?: string;
+
+    /**
      * Allow compiler type `"slang"` in the production build profile.
      * By default, `"slang"` in production is rejected as a safeguard.
      */
@@ -51,6 +60,11 @@ declare module "hardhat/types/config" {
   }
 
   export interface SlangConfig {
+    /**
+     * The pinned slang release, or `undefined` when the user didn't set one
+     * (only valid when no `type: "slang"` entry needs a download).
+     */
+    version: string | undefined;
     dangerouslyAllowSlangInProduction: boolean;
   }
 

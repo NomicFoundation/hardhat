@@ -1,8 +1,10 @@
+import type { SlangRelease } from "../constants.js";
 import type {
   ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
   SlangConfig,
+  SlangUserConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
@@ -10,7 +12,13 @@ import type {
   HardhatUserConfigValidationError,
 } from "hardhat/types/hooks";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
+import {
+  greaterThanOrEqual,
+  lowerThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   conditionalUnionType,
@@ -20,8 +28,8 @@ import { z } from "zod";
 
 import {
   DEFAULT_SLANG_OPTIMIZER_MODE,
-  SOLIDITY_TO_SOLX_VERSION_MAP,
   SLANG_COMPILER_TYPE,
+  SLANG_RELEASES,
   SUPPORTED_SLANG_EVM_VERSIONS,
   SUPPORTED_SLANG_OPTIMIZER_MODES,
 } from "../constants.js";
@@ -32,9 +40,7 @@ const log = createDebug("hardhat:slang:hook-handlers:config");
 // These zod types need to be aligned in shape with the ones of the solidity
 // builtin plugin, but don't need to revalidate everything.
 
-const SUPPORTED_VERSIONS = Array.from(
-  Object.keys(SOLIDITY_TO_SOLX_VERSION_MAP),
-);
+const KNOWN_SLANG_VERSIONS = Object.keys(SLANG_RELEASES);
 
 const supportedEvmVersionsType = z
   .string()
@@ -64,16 +70,7 @@ const slangSolidityCompilerUserConfigType = z
       .passthrough()
       .optional(),
   })
-  .passthrough()
-  .refine(
-    (data) =>
-      (typeof data.path === "string" && data.path.length > 0) ||
-      SUPPORTED_VERSIONS.includes(data.version),
-    {
-      message: `Slang only supports versions: ${SUPPORTED_VERSIONS.join(", ")}`,
-      path: ["version"],
-    },
-  );
+  .passthrough();
 
 const solidityCompilerUserConfigType = conditionalUnionType(
   [
@@ -159,14 +156,137 @@ const solidityUserConfigType = conditionalUnionType(
   "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
 );
 
-const slangUserConfigType = z.object({
-  solidity: solidityUserConfigType.optional(),
-  slang: z
-    .object({
-      dangerouslyAllowSlangInProduction: z.boolean().optional(),
-    })
-    .optional(),
+const slangVersionType = z.string().superRefine((version, ctx) => {
+  if (!(version in SLANG_RELEASES)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Unknown slang version "${version}". Known slang releases: ${KNOWN_SLANG_VERSIONS.join(", ")}`,
+    });
+  }
 });
+
+const slangUserConfigType = z
+  .object({
+    solidity: solidityUserConfigType.optional(),
+    slang: z
+      .object({
+        version: slangVersionType.optional(),
+        dangerouslyAllowSlangInProduction: z.boolean().optional(),
+      })
+      .optional(),
+  })
+  .superRefine((config, ctx) => {
+    const entries = collectSlangEntriesToDownload(config.solidity);
+    if (entries.length === 0) {
+      return;
+    }
+
+    const pinnedVersion = config.slang?.version;
+    if (pinnedVersion === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["slang", "version"],
+        message: `slang.version is required when a compiler entry uses type: "${SLANG_COMPILER_TYPE}" without a custom path. Known slang releases: ${KNOWN_SLANG_VERSIONS.join(", ")}`,
+      });
+      return;
+    }
+
+    const release = SLANG_RELEASES[pinnedVersion];
+    if (release === undefined) {
+      // Already reported by slangVersionType.
+      return;
+    }
+
+    for (const { version, path } of entries) {
+      if (!isSolidityVersionSupportedBy(version, release)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [...path, "version"],
+          message: `Solidity version ${version} is not supported by slang ${pinnedVersion}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
+        });
+      }
+    }
+  });
+
+interface SlangEntryToDownload {
+  version: string;
+  path: Array<string | number>;
+}
+
+/**
+ * Collects every compiler entry with `type: "slang"` and no custom `path`
+ * from any of the shapes `solidity` can take, along with the config path of
+ * the entry, so that errors point at the right place.
+ */
+function collectSlangEntriesToDownload(
+  solidity: unknown,
+): SlangEntryToDownload[] {
+  const entries: SlangEntryToDownload[] = [];
+
+  function visit(entry: unknown, path: Array<string | number>): void {
+    if (
+      !isObject(entry) ||
+      entry.type !== SLANG_COMPILER_TYPE ||
+      (typeof entry.path === "string" && entry.path.length > 0)
+    ) {
+      return;
+    }
+    entries.push({ version: String(entry.version), path });
+  }
+
+  function visitVersionsConfig(
+    versionsConfig: unknown,
+    path: Array<string | number>,
+  ): void {
+    if (!isObject(versionsConfig)) {
+      return;
+    }
+    if ("version" in versionsConfig) {
+      visit(versionsConfig, path);
+      return;
+    }
+    if (Array.isArray(versionsConfig.compilers)) {
+      versionsConfig.compilers.forEach((compiler, i) =>
+        visit(compiler, [...path, "compilers", i]),
+      );
+    }
+    if (isObject(versionsConfig.overrides)) {
+      for (const [key, override] of Object.entries(versionsConfig.overrides)) {
+        visit(override, [...path, "overrides", key]);
+      }
+    }
+  }
+
+  if (isObject(solidity) && isObject(solidity.profiles)) {
+    for (const [name, profile] of Object.entries(solidity.profiles)) {
+      visitVersionsConfig(profile, ["solidity", "profiles", name]);
+    }
+  } else {
+    visitVersionsConfig(solidity, ["solidity"]);
+  }
+
+  return entries;
+}
+
+function isSolidityVersionSupportedBy(
+  version: string,
+  release: SlangRelease,
+): boolean {
+  const parsed = parseVersion(version);
+  const min = parseVersion(release.minSolidity);
+  const max = parseVersion(release.maxSolidity);
+
+  assertHardhatInvariant(
+    min !== undefined && max !== undefined,
+    `The slang release table has an invalid Solidity range: ${release.minSolidity} to ${release.maxSolidity}`,
+  );
+
+  return (
+    parsed !== undefined &&
+    greaterThanOrEqual(parsed, min) &&
+    lowerThanOrEqual(parsed, max)
+  );
+}
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   validateUserConfig,
@@ -263,7 +383,6 @@ async function augmentIfSlang<
       ...settings,
       // Defaults added here instead of in SlangCompiler.compile so this reaches
       // the solcInput and hence the build-id hash.
-      viaIR: settings.viaIR ?? false,
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
@@ -328,10 +447,9 @@ export async function validateResolvedConfig(
   return errors;
 }
 
-function resolveSlangConfig(userConfig?: {
-  dangerouslyAllowSlangInProduction?: boolean;
-}): SlangConfig {
+function resolveSlangConfig(userConfig?: SlangUserConfig): SlangConfig {
   return {
+    version: userConfig?.version,
     dangerouslyAllowSlangInProduction:
       userConfig?.dangerouslyAllowSlangInProduction ?? false,
   };
