@@ -357,7 +357,7 @@ importers:
         specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.3.0
+        specifier: workspace:^4.4.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-vendored':
         specifier: workspace:^3.0.4
@@ -445,7 +445,7 @@ importers:
   packages/hardhat-errors:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.3.0
+        specifier: workspace:^4.4.0
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
@@ -869,7 +869,7 @@ importers:
         specifier: workspace:^3.0.15
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.2.0
+        specifier: workspace:^4.4.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1554,7 +1554,7 @@ importers:
         specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.3.0
+        specifier: workspace:^4.4.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1875,7 +1875,7 @@ importers:
         specifier: workspace:^3.0.16
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.4.0
         version: link:../hardhat-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
