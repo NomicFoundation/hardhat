@@ -1,12 +1,16 @@
+import type { SlangRelease } from "./constants.js";
+
 import os from "node:os";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 /**
  * Returns the platform-specific base name for the slang binary (without version suffix).
- * The full asset name is `${baseName}-v${version}` (or `.exe` on Windows).
+ * The full asset name is `${baseName}-v${version}` (or `.exe` on Windows),
+ * unless the release overrides the suffix.
  *
- * Actual GitHub release assets (e.g., for v0.1.4):
+ * The slang pipeline ships as the `solx` binary built with its Slang front
+ * end, so the assets keep the `solx-` prefix for now:
  *   solx-linux-amd64-gnu-v0.1.4
  *   solx-linux-arm64-gnu-v0.1.4
  *   solx-macosx-v0.1.4           (universal binary)
@@ -31,10 +35,19 @@ export function getSlangBinaryBaseName(): string {
   );
 }
 
-export function getSlangAssetName(version: string): string {
+/**
+ * Returns the release asset name for the given slang release on the current
+ * platform: `${baseName}-v${version}`, or the release's own suffix when it
+ * isn't published under the standard naming.
+ */
+export function getSlangAssetName(
+  version: string,
+  release: SlangRelease,
+): string {
   const baseName = getSlangBinaryBaseName();
+  const suffix = release.assetOverride?.assetSuffix ?? `v${version}`;
   if (process.platform === "win32") {
-    return `${baseName}-v${version}.exe`;
+    return `${baseName}-${suffix}.exe`;
   }
-  return `${baseName}-v${version}`;
+  return `${baseName}-${suffix}`;
 }

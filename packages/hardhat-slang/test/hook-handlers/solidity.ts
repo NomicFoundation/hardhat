@@ -1,14 +1,32 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions -- test */
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- test */
 import type { SolidityCompilerConfig } from "hardhat/types/config";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  makeWorkspaceTmpDir,
+  safeRemoveTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
-import { parseSlangVersion } from "../../src/internal/hook-handlers/solidity.js";
+import { SLANG_RELEASES } from "../../src/internal/constants.js";
+import { getSlangBinaryPath } from "../../src/internal/downloader.js";
+import solidityHookHandlers, {
+  parseSlangVersion,
+} from "../../src/internal/hook-handlers/solidity.js";
+
+const PINNED_VERSION = "0.1.0-pre.2026-10-01";
+const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 // Helper to create a compiler config
 function createSolidityCompilerConfig(
@@ -22,6 +40,11 @@ function createSolidityCompilerConfig(
     },
     ...overrides,
   };
+}
+
+// A hook context whose config pins the given slang release, or none for null
+function createContext(slangVersion: string | null = PINNED_VERSION): any {
+  return { config: { slang: { version: slangVersion ?? undefined } } };
 }
 
 // A mock "next" function for getCompiler
@@ -57,7 +80,7 @@ describe("parseSlangVersion", () => {
   it("parses version from stable release output", () => {
     assert.equal(
       parseSlangVersion(
-        "slang, LLVM-based Solidity compiler for the EVM v0.1.3, LLVM revision: v1.0.2, LLVM build: a33d492",
+        "solx, LLVM-based Solidity compiler for the EVM v0.1.3, LLVM revision: v1.0.2, LLVM build: a33d492",
       ),
       "0.1.3",
     );
@@ -66,26 +89,54 @@ describe("parseSlangVersion", () => {
   it("parses version from nightly build output", () => {
     assert.equal(
       parseSlangVersion(
-        "slang v0.1.4, LLVM-based Solidity compiler for the EVM, Front end: solc, LLVM build: 12f24e07",
+        "solx v0.1.4, LLVM-based Solidity compiler for the EVM, Front end: solc, LLVM build: 12f24e07",
       ),
       "0.1.4",
     );
   });
 
+  it("parses the prerelease build's banner, which names the Slang front end", () => {
+    assert.equal(
+      parseSlangVersion(
+        "solx v0.1.8, LLVM-based Solidity compiler for the EVM, Front end: Slang, LLVM build: e7c67b95\nVersion: 0.8.37",
+      ),
+      "0.1.8",
+    );
+  });
+
   it("parses pre-release version", () => {
     assert.equal(
-      parseSlangVersion("slang v0.2.0-alpha.1, LLVM-based Solidity compiler"),
+      parseSlangVersion("solx v0.2.0-alpha.1, LLVM-based Solidity compiler"),
       "0.2.0-alpha.1",
     );
   });
 });
 
 describe("hardhat-slang solidity hook handler", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await makeWorkspaceTmpDir("slang-solidity-hooks");
+    setMockCacheDir(tmpDir);
+  });
+
+  afterEach(async () => {
+    resetMockCacheDir();
+    await safeRemoveTmpDir(tmpDir);
+  });
+
+  // Puts a fake binary where the downloader would cache the pinned prerelease, so
+  // the hooks take their cached path and never reach the network.
+  async function cacheFakePinnedBinary(): Promise<string> {
+    const binaryPath = await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE);
+    await ensureDir(path.dirname(binaryPath));
+    await writeFile(binaryPath, "#!/bin/sh\necho fake slang\n");
+    return binaryPath;
+  }
+
   describe("downloadCompilers", () => {
     it("is defined on the hook handler", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
       assert.ok(
         hooks.downloadCompilers !== undefined,
@@ -94,66 +145,83 @@ describe("hardhat-slang solidity hook handler", () => {
     });
 
     it("does nothing when no slang-typed compilers present", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
-
-      // All configs are solc (no type or type undefined)
+      // All configs are solc (no type or type undefined), and nothing is
+      // pinned: the hook must not even look at slang.version.
       const configs: SolidityCompilerConfig[] = [
         createSolidityCompilerConfig({ type: undefined }),
         createSolidityCompilerConfig({ type: "solc" }),
       ];
 
-      // Should not throw
-      assert.ok(
-        hooks.downloadCompilers !== undefined,
-        "downloadCompilers hook should be defined",
-      );
-      await hooks.downloadCompilers(context, configs, true);
+      await hooks.downloadCompilers!(createContext(null), configs, true);
 
-      // Paths should remain undefined (no download triggered, no mutation)
-      assert.equal(configs[0].path, undefined);
-      assert.equal(configs[1].path, undefined);
+      assert.equal(
+        await exists(await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)),
+        false,
+        "nothing should have been downloaded",
+      );
     });
 
-    it("does not mutate compiler config paths", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+    it("skips download when every slang config has a custom path", async () => {
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({
+          type: "slang",
+          version: "0.8.34",
+          path: "/custom/path/to/slang",
+        }),
+      ];
+
+      // Not pinned either: a custom path never needs the release table.
+      await hooks.downloadCompilers!(createContext(null), configs, true);
+
+      assert.equal(
+        await exists(await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)),
+        false,
+        "nothing should have been downloaded",
+      );
+    });
+
+    it("uses the cached binary of the pinned release for every slang Solidity version", async () => {
+      const hooks = await solidityHookHandlers();
+      await cacheFakePinnedBinary();
+
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({ type: "slang", version: "0.8.34" }),
+        createSolidityCompilerConfig({ type: "slang", version: "0.8.20" }),
+      ];
+
+      // Two Solidity versions, one pinned release: the hook must resolve
+      // without any download attempt (there is no network in this test).
+      await hooks.downloadCompilers!(createContext(), configs, true);
+
+      assert.equal(configs[0].path, undefined, "paths must not be mutated");
+      assert.equal(configs[1].path, undefined, "paths must not be mutated");
+    });
+
+    it("throws an invariant error when slang.version isn't pinned but a download is needed", async () => {
+      const hooks = await solidityHookHandlers();
 
       const configs: SolidityCompilerConfig[] = [
         createSolidityCompilerConfig({ type: "slang", version: "0.8.34" }),
       ];
 
-      // This will fail to download (no network in tests), but we can
-      // verify via the error that it tries and that path is not mutated.
-      // For a true unit test we'd mock downloadSlang, but for now just
-      // check the path isn't set before the download attempt.
-      const originalPath = configs[0].path;
-
-      try {
-        await hooks.downloadCompilers!(context, configs, true);
-      } catch {
-        // Expected — download fails in test environment
-      }
-
-      assert.equal(
-        configs[0].path,
-        originalPath,
-        "compiler config path should not be mutated",
+      await assertRejectsWithHardhatError(
+        hooks.downloadCompilers!(createContext(null), configs, true),
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message:
+            "slang.version is not set — this should have been caught by config validation",
+        },
       );
     });
   });
 
   describe("getCompiler", () => {
     it("is defined on the hook handler", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
       assert.ok(
         hooks.getCompiler !== undefined,
@@ -162,16 +230,13 @@ describe("hardhat-slang solidity hook handler", () => {
     });
 
     it("passes through to next for non-slang compiler configs", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({ type: "solc" });
       const mockNext = createGetCompilerMockNext();
 
       const result = await hooks.getCompiler!(
-        context,
+        createContext(null),
         compilerConfig,
         mockNext.next,
       );
@@ -181,16 +246,13 @@ describe("hardhat-slang solidity hook handler", () => {
     });
 
     it("passes through to next for undefined type", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({ type: undefined });
       const mockNext = createGetCompilerMockNext();
 
       const result = await hooks.getCompiler!(
-        context,
+        createContext(null),
         compilerConfig,
         mockNext.next,
       );
@@ -199,36 +261,72 @@ describe("hardhat-slang solidity hook handler", () => {
       assert.equal(result, mockNext.compiler);
     });
 
-    it("throws invariant error for unsupported slang version", async () => {
-      const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+    it("returns a SlangCompiler for the pinned release when its binary is cached", async () => {
+      const hooks = await solidityHookHandlers();
+      const binaryPath = await cacheFakePinnedBinary();
 
-      const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
         type: "slang",
-        version: "0.8.99",
+        version: "0.8.34",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const compiler = await hooks.getCompiler!(
+        createContext(),
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(
+        !mockNext.wasCalled(),
+        "next should NOT have been called for slang type",
+      );
+      assert.equal(compiler.compilerPath, binaryPath);
+      assert.equal(compiler.version, PINNED_VERSION);
+      assert.equal(compiler.longVersion, `${PINNED_VERSION}+slang`);
+      assert.equal(compiler.isSolcJs, false);
+    });
+
+    it("throws an invariant error when the pinned binary isn't cached", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
       });
       const mockNext = createGetCompilerMockNext();
 
       await assertRejectsWithHardhatError(
-        hooks.getCompiler!(context, compilerConfig, mockNext.next),
+        hooks.getCompiler!(createContext(), compilerConfig, mockNext.next),
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: `slang binary not found at ${await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)} — downloadCompilers should have been called first`,
+        },
+      );
+    });
+
+    it("throws an invariant error when slang.version isn't pinned", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      await assertRejectsWithHardhatError(
+        hooks.getCompiler!(createContext(null), compilerConfig, mockNext.next),
         HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message:
-            "No slang version mapping for Solidity 0.8.99 — this should have been caught by config validation",
+            "slang.version is not set — this should have been caught by config validation",
         },
       );
     });
 
     it("throws HardhatError when path does not exist", async () => {
-      const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
         type: "slang",
         version: "0.8.34",
@@ -237,7 +335,7 @@ describe("hardhat-slang solidity hook handler", () => {
       const mockNext = createGetCompilerMockNext();
 
       await assertRejectsWithHardhatError(
-        hooks.getCompiler!(context, compilerConfig, mockNext.next),
+        hooks.getCompiler!(createContext(null), compilerConfig, mockNext.next),
         HardhatError.ERRORS.HARDHAT_SLANG.GENERAL.BINARY_NOT_FOUND,
         {
           path: "/nonexistent/path/to/slang",
@@ -246,21 +344,18 @@ describe("hardhat-slang solidity hook handler", () => {
     });
 
     it("returns SlangCompiler with version from binary when path is provided", async () => {
-      const { getSlangBinaryPath } =
-        await import("../../src/internal/downloader.js");
-      const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
-
-      // Use the cached slang binary if available, skip otherwise
-      const cachedPath = await getSlangBinaryPath("0.1.4");
+      // Use the real prerelease binary if it is in the global cache, skip otherwise
+      resetMockCacheDir();
+      const cachedPath = await getSlangBinaryPath(
+        PINNED_VERSION,
+        PINNED_RELEASE,
+      );
       if (!(await exists(cachedPath))) {
         return;
       }
 
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
+      const hooks = await solidityHookHandlers();
 
-      const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
         type: "slang",
         version: "0.8.34",
@@ -269,7 +364,7 @@ describe("hardhat-slang solidity hook handler", () => {
       const mockNext = createGetCompilerMockNext();
 
       const compiler = await hooks.getCompiler!(
-        context,
+        createContext(null),
         compilerConfig,
         mockNext.next,
       );
@@ -280,29 +375,8 @@ describe("hardhat-slang solidity hook handler", () => {
       );
       assert.equal(compiler.compilerPath, cachedPath);
       // Version should be parsed from the binary, not from config
-      assert.equal(compiler.version, "0.1.4");
-      assert.equal(compiler.longVersion, "0.1.4+slang");
-    });
-  });
-
-  describe("downloadCompilers with path override", () => {
-    it("skips download when config has custom path", async () => {
-      const hookHandlerModule =
-        await import("../../src/internal/hook-handlers/solidity.js");
-      const hooks = await hookHandlerModule.default();
-
-      const context = { config: {} } as any;
-
-      const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig({
-          type: "slang",
-          version: "0.8.34",
-          path: "/custom/path/to/slang",
-        }),
-      ];
-
-      // Should not throw — download is skipped for configs with path
-      await hooks.downloadCompilers!(context, configs, true);
+      assert.match(compiler.version, /^\d+\.\d+\.\d+/);
+      assert.equal(compiler.longVersion, `${compiler.version}+slang`);
     });
   });
 });

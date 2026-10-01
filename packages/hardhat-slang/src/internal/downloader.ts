@@ -1,3 +1,4 @@
+import type { SlangRelease } from "./constants.js";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 
@@ -41,14 +42,15 @@ const SHA256_HEX_DIGEST_LENGTH = 64;
 const DOWNLOAD_RETRY_DELAY_MS = 2000;
 
 /**
- * Returns the deterministic path where a slang binary for the given version
+ * Returns the deterministic path where the binary of the given slang release
  * would be cached. This is a pure function — it does not check whether the
  * binary exists on disk.
  */
 export async function getSlangBinaryPath(
   slangVersion: string,
+  release: SlangRelease,
 ): Promise<string> {
-  const assetName = getSlangAssetName(slangVersion);
+  const assetName = getSlangAssetName(slangVersion, release);
   const globalCacheDir = await getCacheDir();
   return path.join(
     globalCacheDir,
@@ -72,20 +74,22 @@ export interface DownloadSlangOptions {
 }
 
 /**
- * Downloads the slang binary for the given version if not already cached.
+ * Downloads the binary of the given slang release if not already cached.
  * Returns the path to the binary on disk.
  *
- * @param slangVersion - The slang version to download (e.g. "0.1.3")
+ * @param slangVersion - The slang version to download (e.g. "0.1.0-pre.2026-10-01")
+ * @param release - The release table row for that version
  * @param onBinaryDownloadStart - A callback invoked once the compiler download is about to start
  * @param options - See {@link DownloadSlangOptions}.
  */
 export async function downloadSlang(
   slangVersion: string,
+  release: SlangRelease,
   onBinaryDownloadStart: () => void,
   options: DownloadSlangOptions = {},
 ): Promise<string> {
   const { dispatcher, retryDelayMs = DOWNLOAD_RETRY_DELAY_MS } = options;
-  const binaryPath = await getSlangBinaryPath(slangVersion);
+  const binaryPath = await getSlangBinaryPath(slangVersion, release);
 
   // Return cached binary if it already exists
   if (await exists(binaryPath)) {
@@ -97,8 +101,9 @@ export async function downloadSlang(
   const mutex = new MultiProcessMutex(
     path.join(globalCacheDir, `slang-download-${slangVersion}`),
   );
-  const assetName = getSlangAssetName(slangVersion);
-  const url = `${SLANG_RELEASES_BASE_URL}/${assetName}`;
+  const assetName = getSlangAssetName(slangVersion, release);
+  const baseUrl = release.assetOverride?.baseUrl ?? SLANG_RELEASES_BASE_URL;
+  const url = `${baseUrl}/${assetName}`;
 
   // The checksum is required, we fail immediately if we can't get it.
   const expectedChecksum = await downloadExpectedChecksum(

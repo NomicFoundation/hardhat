@@ -36,11 +36,6 @@ export const SUPPORTED_SLANG_OPTIMIZER_MODES: readonly string[] = [
  */
 export const DEFAULT_SLANG_OPTIMIZER_MODE = "1";
 
-/** Maps Solidity versions to the slang version that embeds them. */
-export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
-  "0.8.34": "0.1.8",
-};
-
 /**
  * A slang release the plugin knows how to download and drive. slang compiles
  * a range of Solidity versions with one binary, so each release maps to an

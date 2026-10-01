@@ -1,10 +1,24 @@
+import type { SlangRelease } from "../src/internal/constants.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { SLANG_RELEASES } from "../src/internal/constants.js";
 import {
   getSlangAssetName,
   getSlangBinaryBaseName,
 } from "../src/internal/platform.js";
+
+const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-01"];
+
+// A release served by the mirror under the standard `v${version}` naming.
+const MIRROR_RELEASE: SlangRelease = {
+  minSolidity: "0.8.0",
+  maxSolidity: "0.8.36",
+  extraArgs: [],
+};
+
+const EXE = process.platform === "win32" ? ".exe" : "";
 
 describe("hardhat-slang platform detection", () => {
   it("returns a valid base name for the current platform", () => {
@@ -33,15 +47,17 @@ describe("hardhat-slang platform detection", () => {
     }
   });
 
-  it("asset name includes version suffix", () => {
-    const assetName = getSlangAssetName("0.1.4");
-    assert.ok(
-      assetName.includes("-v0.1.4"),
-      `asset name should include version suffix: ${assetName}`,
+  it("names a mirror-served release's asset with the version suffix", () => {
+    assert.equal(
+      getSlangAssetName("0.2.0", MIRROR_RELEASE),
+      `${getSlangBinaryBaseName()}-v0.2.0${EXE}`,
     );
-    assert.ok(
-      assetName.startsWith("solx-"),
-      `asset name should start with 'solx-': ${assetName}`,
+  });
+
+  it("names the pinned prerelease's asset with its override suffix instead of the version", () => {
+    assert.equal(
+      getSlangAssetName("0.1.0-pre.2026-10-01", PINNED_RELEASE),
+      `${getSlangBinaryBaseName()}-slang-2026-10-01${EXE}`,
     );
   });
 });

@@ -1,3 +1,5 @@
+import type { SlangRelease } from "../constants.js";
+import type { HardhatConfig } from "hardhat/types/config";
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 import { execFile } from "node:child_process";
@@ -10,10 +12,7 @@ import {
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
-import {
-  SOLIDITY_TO_SOLX_VERSION_MAP,
-  SLANG_COMPILER_TYPE,
-} from "../constants.js";
+import { SLANG_COMPILER_TYPE, SLANG_RELEASES } from "../constants.js";
 import { downloadSlang, getSlangBinaryPath } from "../downloader.js";
 import { SlangCompiler } from "../slang-compiler.js";
 
@@ -39,49 +38,68 @@ async function getSlangVersionFromBinary(binaryPath: string): Promise<string> {
   return parseSlangVersion(stdout);
 }
 
-export default async (): Promise<Partial<SolidityHooks>> => ({
-  downloadCompilers: async (_context, compilerConfigs, quiet) => {
-    const slangConfigs = compilerConfigs.filter(
-      (c) => c.type === SLANG_COMPILER_TYPE,
-    );
+/**
+ * Returns the slang release pinned in the config. Config validation already
+ * guarantees it is set and known whenever a `type: "slang"` entry needs a
+ * download, so both checks are invariants here.
+ */
+function getPinnedRelease(config: HardhatConfig): {
+  version: string;
+  release: SlangRelease;
+} {
+  const version = config.slang.version;
+  assertHardhatInvariant(
+    version !== undefined,
+    `slang.version is not set — this should have been caught by config validation`,
+  );
 
-    if (slangConfigs.length === 0) {
+  const release = SLANG_RELEASES[version];
+  assertHardhatInvariant(
+    release !== undefined,
+    `Unknown slang version ${version} — this should have been caught by config validation`,
+  );
+
+  return { version, release };
+}
+
+export default async (): Promise<Partial<SolidityHooks>> => ({
+  downloadCompilers: async (context, compilerConfigs, quiet) => {
+    // Every type: "slang" entry without a custom path shares the single
+    // pinned release, whatever its Solidity version, so there is at most one
+    // binary to download.
+    const needsDownload = compilerConfigs.some((c) => {
+      if (c.type !== SLANG_COMPILER_TYPE) {
+        return false;
+      }
+      if (c.path !== undefined) {
+        log(
+          `Skipping download for Solidity ${c.version}: custom path provided`,
+        );
+        return false;
+      }
+      return true;
+    });
+
+    if (!needsDownload) {
       return;
     }
 
-    // Collect unique slang versions to download (skip configs with custom path)
-    const slangVersions = new Set<string>();
-    for (const config of slangConfigs) {
-      if (config.path !== undefined) {
-        log(
-          `Skipping download for Solidity ${config.version}: custom path provided`,
-        );
-        continue;
-      }
-      const slangVersion = SOLIDITY_TO_SOLX_VERSION_MAP[config.version];
-      if (slangVersion !== undefined) {
-        slangVersions.add(slangVersion);
-      }
+    const { version: slangVersion, release } = getPinnedRelease(context.config);
+
+    const binaryPath = await getSlangBinaryPath(slangVersion, release);
+    if (await exists(binaryPath)) {
+      log(`slang ${slangVersion} already cached at ${binaryPath}`);
+      return;
     }
 
-    await Promise.all(
-      [...slangVersions].map(async (slangVersion) => {
-        const binaryPath = await getSlangBinaryPath(slangVersion);
-        if (await exists(binaryPath)) {
-          log(`slang ${slangVersion} already cached at ${binaryPath}`);
-          return;
-        }
+    const slangPath = await downloadSlang(slangVersion, release, () => {
+      if (quiet) {
+        return;
+      }
 
-        const slangPath = await downloadSlang(slangVersion, () => {
-          if (quiet) {
-            return;
-          }
-
-          console.log(`Downloading slang ${slangVersion}`);
-        });
-        log(`Downloaded slang ${slangVersion} to ${slangPath}`);
-      }),
-    );
+      console.log(`Downloading slang ${slangVersion}`);
+    });
+    log(`Downloaded slang ${slangVersion} to ${slangPath}`);
   },
 
   getCompiler: async (context, compilerConfig, next) => {
@@ -109,13 +127,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       return new SlangCompiler(customSlangVersion, compilerConfig.path);
     }
 
-    const slangVersion = SOLIDITY_TO_SOLX_VERSION_MAP[compilerConfig.version];
-    assertHardhatInvariant(
-      slangVersion !== undefined,
-      `No slang version mapping for Solidity ${compilerConfig.version} — this should have been caught by config validation`,
-    );
+    const { version: slangVersion, release } = getPinnedRelease(context.config);
 
-    const binaryPath = await getSlangBinaryPath(slangVersion);
+    const binaryPath = await getSlangBinaryPath(slangVersion, release);
 
     assertHardhatInvariant(
       await exists(binaryPath),
