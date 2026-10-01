@@ -64,3 +64,4 @@ After modifying a test file, run it with the "Test single file" command above.
 ## Scoped docs to read
 
 - If changing anything in ./scripts/, read ./scripts/README.md first.
+- Before any security review or audit, read ./THREAT_MODEL.md first and follow it.

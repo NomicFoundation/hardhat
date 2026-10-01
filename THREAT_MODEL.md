@@ -1,64 +1,186 @@
-# Threat model
+# Hardhat threat model
 
-This document defines how security findings in this repository are **rated and reported**. A security analysis MUST read it in full before starting and treat the rules below as binding.
+This document defines how security findings in this repository are **rated and reported**. Read it in full before starting a security analysis and treat every rule below as binding.
 
-It places **no limits on what may be investigated** — every code path is fair game. Never skip or cut short a code path because the outcome is predicted to be LOW: severity cannot be known before understanding what the code actually does. Explore first, rate afterwards.
+Every code path is in scope. Never skip or cut short a path because you expect the result to be Low severity: understand the behavior first and rate it afterward.
 
-## What Hardhat is, for the purposes of this model
+## Core rule
 
-Hardhat is a local development tool for smart contracts, run on a developer's machine or in CI with that user's privileges. Users routinely clone third-party projects and run Hardhat on them, run Hardhat in CI against untrusted pull requests, and store encrypted keys and secrets in a keystore.
+**Rate a finding by whether it gives the attacker a new capability, not by how much access you imagine the attacker has.**
 
-## The one rule
+The baselines below form a ladder from least capability to most. Use the **weakest baseline that can trigger the bug**. Assuming a stronger attacker than the bug requires is the most common way to dismiss a valid finding.
 
-**Decide severity by whether a finding gives the attacker a NEW capability they did not already have — not by how much access you imagine the attacker has.**
+## Hardhat's security context
 
-To apply it you must know what each attacker starts with. The baselines below are rungs on a ladder from least capability to most: a finding matters when it moves an attacker **up** a rung. When rating, pick the **weakest** rung from which the bug is still triggerable — assuming a stronger attacker than the bug requires is the most common way to wrongly dismiss a valid finding.
+Hardhat is a local smart-contract development tool. It runs on a developer's machine or in CI with that user's privileges. Users routinely:
+
+- clone third-party projects and run Hardhat on them
+- run Hardhat in CI against untrusted pull requests
+- store encrypted keys and secrets in a keystore
+
+## Attacker baselines
+
+Reports name each attacker by the exact label below.
+
+| Attacker | Report label |
+| --- | --- |
+| Baseline 1 | Someone who controls a network response |
+| Baseline 2 | Someone who controls a project's files but not its config |
+| Baseline 3 | Someone who controls a project's config or plugins |
+| Baseline 4 | Someone already running code as you |
+| [Another local user](#another-local-user-is-not-baseline-4) | Another user on the same computer |
 
 ### Baseline 1 — controls a network response
 
-Controls only the bytes coming back over the wire (compiler downloads, `hardhat verify` responses, JSON-RPC when forking, telemetry, hardware-wallet endpoints). No account on the machine, no presence in the project. Integrity checks on these paths (e.g. compiler downloads verified against a published SHA-256) are **meant to hold against it**. Anything that lets a network response change what code runs, what gets written outside the project, or what gets sent out is an escalation from nothing — never down-rank it with config-execution reasoning, which requires an attacker this one is not.
+This attacker controls only bytes returned over the wire, such as compiler downloads, `hardhat verify` responses, JSON-RPC responses during forking, telemetry responses, or hardware-wallet endpoints. They have no account on the machine and no presence in the project.
 
-### Baseline 2 — controls only the project's *data*
+Integrity checks on these paths, such as checking a compiler download against a published SHA-256 hash, are intended to resist this attacker. If a network response can produce any outcome under [Forbidden outcomes for Baselines 1 and 2](#forbidden-outcomes-for-baselines-1-and-2), the result is an escalation from nothing. Never down-rank it using config-execution reasoning; this attacker does not control the config.
 
-Can write Solidity sources, imports, remappings, `artifacts/`, `build-info`, or cache — but **not** `hardhat.config.ts` or plugins. (Dependency manifests and lockfiles are the exception: controlling them chooses which packages load, i.e. code execution, so treat that as Baseline 3.) This is a fork PR, a dependency's vendored sources, or CI running trusted config against untrusted sources.
+### Baseline 2 — controls only project data
 
-**This is not a code-execution baseline, and keeping it that way is a boundary Hardhat must hold.** A path that turns "can write a `.sol` file" or "can write an artifact" into code execution, a write outside the project, or a read of a file the project should never see IS a real escalation. Do not collapse this rung into Baseline 3 merely because both involve "an untrusted project."
+This attacker can write Solidity sources, imports, remappings, `artifacts/`, `build-info`, or cache data, but cannot write `hardhat.config.ts` or plugins. Examples include a fork pull request, vendored source files from a dependency, or CI running trusted config against untrusted sources.
 
-### Baseline 3 — controls the project's config or plugins
+Dependency manifests and lockfiles are the exception: controlling them selects which packages load and therefore provides code execution. Treat that control as Baseline 3.
 
-Hardhat loads and executes the project's `hardhat.config.ts` and plugins as the user — intended, unavoidable behavior. So this attacker **already has arbitrary code execution**: they can read, write, delete, exfiltrate, and run anything the user can.
+**Baseline 2 does not include code execution, and Hardhat must preserve that boundary.** If a `.sol` file, artifact, or other data produces a forbidden outcome, the result is a real escalation. Do not collapse this baseline into Baseline 3 merely because both can involve an "untrusted project."
 
-A finding that genuinely *requires* config control is therefore **not an escalation on its own** — LOW / defense-in-depth — unless it adds a capability config execution does not (see below). Before down-ranking, confirm the finding really needs config control: if a Baseline 2 or Baseline 1 attacker can reach the same code, rate it at that weaker rung instead.
+### Baseline 3 — controls project config or plugins
 
-### Baseline 4 — already running code as the user
+Hardhat intentionally loads and executes the project's `hardhat.config.ts` and plugins as the user. This attacker already has arbitrary code execution: they can read, write, delete, exfiltrate, and run anything the user can, inside or outside the project, now or later.
 
-Can do almost anything; the general fact of that access is not a Hardhat vulnerability. Two things this rung does **not** cover:
+An issue that genuinely requires config control is therefore an **already-compromised issue**, not a rated finding, unless it defeats a boundary in [Boundaries that survive same-user code execution](#boundaries-that-survive-same-user-code-execution).
 
-- **A different, less-privileged user on the same machine** (co-tenant on a shared CI runner or dev box). They are closer to Baseline 1. Predictable temp paths, world-writable output dirs, and symlink races in the artifacts/cache pipeline are genuine findings against them.
-- **Boundaries designed to hold even against a same-user attacker** — the encrypted keystore above all. Defeating such a boundary is valid regardless of assumed access (see Rule 3 in 'Rules for judging findings' below).
+Before using this classification, confirm that config control is necessary. If a Baseline 1 or 2 attacker can reach the same code, or the path runs in a command or context where config has not been loaded and executed, rate it from that weaker baseline.
 
-## What escalates past config execution
+### Baseline 4 — already running code as the user outside Hardhat
 
-The Baseline 3 down-rank is the easiest rule here to over-apply. These capabilities are **not** part of "the config already runs code," so a finding that provides one is an escalation even when the attacker also controls the config:
+This attacker's code already runs, or the attacker can already write files, as the user because of something other than Hardhat loading it. Hardhat made no trust decision, and it cannot undo an already-compromised account. The general fact of this access is not a Hardhat vulnerability.
 
-- **Effects outside the project directory** — writes, reads, or state changes in the global cache, `~/.config/hardhat`, temp dirs, or another project's files.
-- **Persistence** — anything that still affects the user after the malicious project is deleted, or poisons a later run of an unrelated project.
-- **Secret disclosure** — keystore contents, decrypted secrets, or configuration variables the project was never granted.
-- **Triggering before or without config execution** — a path that fires from a command or context where the config has not been loaded and run.
-- **Crossing into another trust domain** — causing a request, transaction, or submission to go somewhere the user did not intend.
+The following preconditions already provide same-user code execution or file write access, regardless of how an issue describes them (for example, "plants," "edits," "poisons," or "pre-seeds"):
 
-If a finding fits none of these, the down-rank is probably correct. If it fits one, name which and rate it on its own merits.
+- an install-time script (`preinstall`, `postinstall`, or `prepare`) that the package manager runs for any dependency;
+- a compromised editor, IDE extension, shell profile, or any other program the user runs;
+- a pre-seeded Docker or CI base image;
+- a poisoned CI cache restored into the job, because only a workflow already running code in that cache scope can write it;
+- control of the user's environment variables, including `PATH`, `NODE_OPTIONS`, `HOME`, `XDG_CONFIG_HOME`, and `XDG_CACHE_HOME`; and
+- same-user write access to files that no clone, pull request, or package install supplies, including Hardhat's global config, cache, and data directories (`~/.config/hardhat-nodejs`, `~/.cache/hardhat-nodejs`, and `~/.local/share/hardhat-nodejs` on Linux).
+
+Classify a candidate at Baseline 4 only when evidence supports all three points:
+
+1. **Weakest attacker:** identify a precondition from the list above and show why neither a network response nor data-only project content reaches the same code. A weaker-baseline path that requires another defect does not count; report that defect separately.
+2. **No other-user path:** show that another local user cannot reach the issue through locations or permissions Hardhat creates. A directory the user chose to share with other users, containers, or machines counts as Baseline 4; the relevant precaution is to check its owner and warn the user.
+3. **No surviving boundary is defeated:** show that the issue defeats none of the boundaries listed below.
+
+#### Another local user is not Baseline 4
+
+A different, less-privileged user on the same machine is closer to Baseline 1. Examples include a co-tenant on a shared CI runner or development machine, a container sidecar, or a low-privilege service account.
+
+Predictable temporary paths, world-readable credential files, world-writable output directories, secrets exposed in process arguments, and symlink races in the artifacts or cache pipeline are genuine findings against this attacker.
+
+## Forbidden outcomes for Baselines 1 and 2
+
+Each outcome below is an escalation when reached from a network response or data alone, such as a `.sol` file, artifact, symlink, committed JSON file, or a dependency file that nothing is intended to execute:
+
+- **Code execution:** run anything selected by the response or data.
+- **Effects outside the project directory:** read, write, or change state in Hardhat's global directories, temporary directories, or another project's files.
+- **Persistence:** continue affecting the user after the malicious project is deleted, or poison a later run of an unrelated project.
+- **Secret disclosure:** reveal keystore contents, decrypted secrets, or configuration variables that the project was never granted.
+- **Crossing into another trust domain:** cause a request, transaction, or submission to go somewhere the user did not intend.
+
+Baselines 3 and 4 already have all these capabilities, so these outcomes never raise the rating at those baselines.
+
+## Boundaries that survive same-user code execution
+
+Defeating one of the following boundaries is the only escalation beyond same-user code execution, so it is a finding at every baseline. This list is exhaustive.
+
+### Production-keystore confidentiality
+
+The production keystore is encrypted at rest, and its password is never stored. A same-user attacker merely reading the encrypted file is not a finding. Another local user reading it is a finding because Hardhat has given that user an offline password-guessing target.
+
+A **decrypted** secret escaping to an observable location—such as a log, error message, temporary file, environment variable, child-process argument, or network request—defeats this boundary and is a finding. A secret sent to the destination selected by resolved config is not an escape.
+
+Judge observable egress, not time in memory. JavaScript strings cannot be reliably zeroed, so holding a secret in memory "too long" is not reportable on its own.
+
+### Hardware-wallet confirmation on the device
+
+The device displays what it will sign, and the user approves it there. Causing the device to sign something different from what it displayed defeats this boundary. Causing the host to send a different request, path, or account to the device does not: the host was never trusted, and device confirmation still applies.
+
+### Explicit non-boundaries
+
+The following are not boundaries against a same-user attacker, who can bypass them by editing `hardhat.config.ts`, exporting an environment variable, or patching `node_modules`. Another local user reaching one is still evaluated as described under [Another local user is not Baseline 4](#another-local-user-is-not-baseline-4).
+
+- the development keystore, which intentionally unlocks from a plaintext password file;
+- the integrity of configuration variables, the compiler cache, the compiler list, the Ledger derivation-path cache, or any other file in Hardhat's global directories or the project—download-time hash checks protect the Baseline 1 network path, not a same-user writer; and
+- silence or stealth: "the user sees no prompt" is not a capability because a same-user attacker's edits are already silent.
+
+## Already-compromised issues
+
+An issue belongs here only when the attacker already runs code as the user, either through project config or plugins (Baseline 3) or outside Hardhat (Baseline 4), and no surviving boundary is defeated. It receives no severity.
+
+Put each issue in one of these groups:
+
+- **Precautions help:** Hardhat can still limit the damage, for example by encrypting secrets at rest or warning the user. Name the precaution.
+- **Nothing to do:** nothing Hardhat can do would avoid the damage.
 
 ## Assets to protect
 
-In rough order: (1) private keys and secrets, especially the encrypted keystore and any decrypted copies; (2) the user's machine and files — nothing read, written, or deleted outside the project beyond intent; (3) downstream-published outputs that leave the machine (build-info uploaded to CI, source/metadata sent to block explorers by `hardhat verify`) — these are exfiltration channels; (4) integrity of the build.
+In rough priority order:
 
-## Rules for judging findings
+1. Private keys and secrets, especially the encrypted keystore and decrypted copies.
+2. The user's machine and files: nothing should be read, written, or deleted outside the project beyond the user's intent.
+3. Published outputs that leave the machine, such as build information uploaded to CI or source and metadata sent to block explorers by `hardhat verify`. These outputs can become exfiltration channels.
+4. Build integrity.
 
-1. **Rate by escalation, not by assumed access.** HIGH/MEDIUM only if the finding grants a capability the attacker did not already have. If an intended path already grants an equal-or-greater capability, it is LOW / defense-in-depth — and name that stronger capability when you down-rank.
+## Severity definitions
 
-2. **Do NOT justify low severity with "the attacker would need full control of the machine."** Almost always wrong: most findings need only the victim to run Hardhat on untrusted input, which is normal usage. And if an attacker truly has full machine control, there is usually no vulnerability to report — except a boundary meant to hold even against them (rule 3).
+- **High:** in a default setup, a Baseline 1 or 2 attacker reaches any [forbidden outcome](#forbidden-outcomes-for-baselines-1-and-2), or any attacker defeats a [surviving boundary](#boundaries-that-survive-same-user-code-execution).
+- **Medium:** a High result that needs an unusual setup or extra access, such as one operating system, a specific plugin, a non-default setting, or another user on the same computer.
+- **Low:** every other finding, such as a crash, a hang, or an effect whose content or destination the attacker cannot choose. A finding that requires the user's own mistake, such as a typo that makes Hardhat print a secret, is Low even when its result would otherwise be High or Medium.
 
-3. **A finding IS valid when it defeats a boundary meant to hold even against a local attacker.** The keystore is encrypted at rest, so reading the keystore file without the password reveals nothing (that boundary holds — not a finding). But if a *decrypted* secret escapes somewhere observable — a log, error message, temp file, environment variable, child-process arguments, or a network request — that defeats the boundary and IS a finding. Judge by observable egress, not in-memory lifetime: JS strings cannot be reliably zeroed, so "held in memory too long" is not on its own reportable.
+## Finding requirements
 
-4. **Report concrete, exploitable issues, not style nits.** For each finding, describe a plausible attacker, the precondition they need, and the concrete bad outcome. If you cannot, it is not a finding.
+A reported finding must:
+
+1. identify the weakest attacker baseline that can trigger it;
+2. name the new capability gained or the surviving boundary defeated;
+3. describe a plausible attacker, the required precondition, and a concrete bad outcome; and
+4. be a concrete, exploitable issue rather than a style concern.
+
+"The attacker already runs code as the user" is a conclusion, not a starting assumption. Use it only after showing that the issue requires config control (Baseline 3) or proving all three Baseline 4 conditions. Most findings require only that a victim run Hardhat on untrusted input, which is normal use.
+
+If a candidate does not meet the requirements above, it is not a finding. If it only works for an attacker who already runs code as the user, classify it under [Already-compromised issues](#already-compromised-issues) instead. Always check Baseline 3 and 4 candidates against the exhaustive list of surviving boundaries first.
+
+## Examples
+
+These examples illustrate the rules; they never override them.
+
+### High
+
+- Project files alone make a build read, write, or delete files outside the project.
+- A network response makes Hardhat run a compiler whose checksum it never verified.
+- Project files make Hardhat send a stored secret to a server the user did not choose.
+
+### Medium
+
+- A file shipped inside a dependency executes, but only on one operating system.
+- Another person on the same computer can read Hardhat's secret files.
+- A website the user visits can send requests to a running `hardhat node`.
+
+### Low
+
+- A typo in a stored secret makes Hardhat print it in an error message.
+- A crafted Solidity file makes a build hang.
+- A proxy exclusion setting is ignored, so a request uses the proxy anyway.
+
+### Already compromised: precautions help
+
+- Malware copies the production keystore file, but encryption makes the copy useless.
+- A development-keystore value silently replaces the production value; a notice would warn the user.
+- A cached compiler runs without another checksum check; rechecking would detect a swapped binary.
+- The user shares their Hardhat folder with other users; checking its owner and warning the user limits planted files.
+
+### Already compromised: nothing to do
+
+- Malware sets environment variables, which override saved settings by design.
+- A malicious plugin returns its own configuration-variable values through Hardhat hooks.
+- Malware edits Hardhat's code in `node_modules`.
