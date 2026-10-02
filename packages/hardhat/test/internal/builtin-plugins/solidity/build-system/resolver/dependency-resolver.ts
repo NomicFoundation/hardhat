@@ -3148,6 +3148,23 @@ submodule2/=lib/submodule2/src/`,
           });
         }
 
+        async function assertSuggestedRelativeImport(
+          resolver: Resolver,
+          from: ResolvedFile,
+          importPath: string,
+          suggestedRelativeImport: string,
+        ) {
+          assert.deepEqual(await resolver.resolveImport(from, importPath), {
+            success: false,
+            error: {
+              type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+              fromFsPath: from.fsPath,
+              importPath,
+              suggestedRelativeImport,
+            },
+          });
+        }
+
         describe("From a local file", () => {
           it("Should suggest a remapping to make the local direct import work", async () => {
             const localTemplate: TestProjectTemplate = {
@@ -3156,6 +3173,7 @@ submodule2/=lib/submodule2/src/`,
               files: {
                 "contracts/A.sol": `A`,
                 "contracts/B.sol": `B`,
+                "contracts/.DotFile.sol": `Dot`,
                 "lib/submodule/src/C.sol": `C`,
                 "lib/submodule/src/asd/D.sol": `D`,
                 "lib/submodule/test/E.sol": `E`,
@@ -3239,6 +3257,39 @@ submodule2/=lib/submodule2/src/`,
               testF.value,
               "contracts/NonExistent.sol",
               "contracts/=contracts/",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              contractsA.value,
+              "B.sol",
+              "./B.sol",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              contractsA.value,
+              ".DotFile.sol",
+              "./.DotFile.sol",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              libSubmoduleSrcAsdD.value,
+              "C.sol",
+              "../C.sol",
+            );
+
+            assert.deepEqual(
+              await resolver.resolveImport(contractsA.value, "NonExistent.sol"),
+              {
+                success: false,
+                error: {
+                  type: ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX,
+                  fromFsPath: contractsA.value.fsPath,
+                  importPath: "NonExistent.sol",
+                },
+              },
             );
           });
         });
@@ -3326,6 +3377,20 @@ submodule2/=lib/submodule2/src/`,
               libSubmoduleTestE.value.file,
               "src/C.sol",
               "npm/dep@1.2.3/lib/submodule/:src/=npm/dep@1.2.3/src/",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              contractsA.value.file,
+              "B.sol",
+              "./B.sol",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
+              libSubmoduleSrcAsdD.value.file,
+              "C.sol",
+              "../C.sol",
             );
           });
         });
