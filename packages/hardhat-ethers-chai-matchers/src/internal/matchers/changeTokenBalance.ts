@@ -124,8 +124,7 @@ export function supportChangeTokenBalance(
       const balanceChangesPromise =
         accounts.length === 0
           ? (async () => {
-              const txResponse =
-                typeof subject === "function" ? await subject() : await subject;
+              const txResponse = await subject;
               checkTransactionResponse(
                 txResponse,
                 CHANGE_TOKEN_BALANCES_MATCHER,
@@ -235,21 +234,12 @@ function checkToken(token: unknown, method: string) {
 
 export async function getBalanceChange(
   ethers: HardhatEthers,
-  transaction:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => Promise<TransactionResponse> | TransactionResponse),
+  transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Addressable | string,
   matcherName: string = CHANGE_TOKEN_BALANCE_MATCHER,
 ): Promise<bigint> {
-  let txResponse: TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   checkTransactionResponse(txResponse, matcherName);
 

@@ -978,7 +978,31 @@ describe(
             );
 
             await expect(
+              expect(() => 123n).to.changeTokenBalances(
+                ethers,
+                mockToken,
+                [sender, receiver],
+                [-50, 50],
+              ),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
               expect(123n).to.changeTokenBalances(ethers, mockToken, [], []),
+            ).to.be.rejectedWith(
+              AssertionError,
+              `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
+            );
+
+            await expect(
+              expect(() => 123n).to.changeTokenBalances(
+                ethers,
+                mockToken,
+                [],
+                [],
+              ),
             ).to.be.rejectedWith(
               AssertionError,
               `The subject of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be a transaction response (or a promise of one)`,
