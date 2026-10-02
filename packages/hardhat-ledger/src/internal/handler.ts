@@ -72,6 +72,13 @@ interface RetryState {
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
+  /**
+   * How long to look for the device after its session was lost. The device is
+   * usually re-enumerating, e.g. after opening the Ethereum app, and the Device
+   * Management Kit waits 6 seconds for it before giving up. A slower USB stack
+   * takes longer than that: WSL, through usbipd, takes about 8 seconds.
+   */
+  public static readonly RECONNECTION_TIMEOUT = 10_000;
   public static readonly MAX_RECONNECTION_ATTEMPTS = 2;
   public static readonly RECONNECTION_DELAY_SECONDS = 0.5;
   public static readonly DEVICE_NOT_READY_RETRY_DELAY_SECONDS = 30;
@@ -284,9 +291,12 @@ export class LedgerHandler {
     );
   }
 
-  async #initExclusive(retryAttempts: number): Promise<void> {
+  async #initExclusive(
+    retryAttempts: number,
+    reconnecting: boolean = false,
+  ): Promise<void> {
     if (this.#device === undefined && !this.#closed) {
-      await this.#connect(retryAttempts);
+      await this.#connect(retryAttempts, reconnecting);
     }
 
     if (this.#closed) {
@@ -313,11 +323,20 @@ export class LedgerHandler {
     } catch (_error) {}
   }
 
-  async #connect(retryAttempts: number): Promise<void> {
+  /**
+   * @param reconnecting Whether the device was connected until it went away
+   * mid-request. It usually comes back by itself, so it gets longer to do so,
+   * and asking the user to plug it in or to enter the PIN would be misleading.
+   */
+  async #connect(retryAttempts: number, reconnecting: boolean): Promise<void> {
     try {
       await this.#displayMessage("Connecting to Ledger...");
 
-      this.#device = await this.#deviceFactory(LedgerHandler.DEFAULT_TIMEOUT);
+      this.#device = await this.#deviceFactory(
+        reconnecting
+          ? LedgerHandler.RECONNECTION_TIMEOUT
+          : LedgerHandler.DEFAULT_TIMEOUT,
+      );
 
       await this.#displayMessage("Connection successful");
     } catch (error) {
@@ -336,14 +355,16 @@ export class LedgerHandler {
 
         const delay = LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS;
         await this.#displayMessage(
-          `Device not connected or PIN not entered. Please plug in your Ledger and enter the PIN. Retrying in ${delay} seconds...`,
+          reconnecting
+            ? `Device did not reconnect. Please check that your Ledger is plugged in and unlocked. Retrying in ${delay} seconds...`
+            : `Device not connected or PIN not entered. Please plug in your Ledger and enter the PIN. Retrying in ${delay} seconds...`,
         );
         await this.#delayBeforeRetry(delay);
 
         // `close()` typically lands inside that wait, and another attempt would
         // rebuild the kit and its USB listeners for a connection that is gone.
         if (!this.#closed) {
-          return await this.#connect(retryAttempts + 1);
+          return await this.#connect(retryAttempts + 1, reconnecting);
         }
       }
 
@@ -418,10 +439,7 @@ export class LedgerHandler {
         log("Reconnectable error during path derivation, attempting reconnect");
         log(error);
 
-        await this.#displayMessage("Reconnecting to Ledger...");
-        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
-        await this.#resetConnection();
-        await this.init();
+        await this.#reconnect();
 
         return await this.#derivePath(addressToFindAsBuffer, {
           ...retryState,
@@ -619,7 +637,7 @@ export class LedgerHandler {
    * read handle on the open device, so a process that does not release them
    * never exits. Nothing else releases them: Hardhat never closes a connection
    * on its own, and the plugin cannot tell when a script is done, which is why
-   * `#connect` reminds the user to call `connection.close()`.
+   * scripts must call `connection.close()`.
    */
   public async close(): Promise<void> {
     this.#closed = true;
@@ -646,6 +664,19 @@ export class LedgerHandler {
     await this.#resetConnection();
 
     closeDeviceManagementKit();
+  }
+
+  /**
+   * Replaces a session the device dropped mid-request with a new one, opened
+   * under the same lock as `init` opens one.
+   */
+  async #reconnect(): Promise<void> {
+    await this.#displayMessage("Reconnecting to Ledger...");
+    await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
+    await this.#resetConnection();
+    await this.#initializationMutex.exclusiveRun(
+      async () => await this.#initExclusive(0, true),
+    );
   }
 
   /**
@@ -693,10 +724,7 @@ export class LedgerHandler {
         log("Reconnectable error during confirmation, attempting reconnect");
         log(error);
 
-        await this.#displayMessage("Reconnecting to Ledger...");
-        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
-        await this.#resetConnection();
-        await this.init();
+        await this.#reconnect();
 
         return await this.#withConfirmation(func, {
           ...retryState,

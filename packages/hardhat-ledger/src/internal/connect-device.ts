@@ -18,6 +18,13 @@ import {
 const log = createDebug("hardhat:ledger:connect-device");
 
 /**
+ * How often discovery lists the devices again. Each listing enumerates the HID
+ * devices, which is cheap, and a device that re-enumerated is picked up within
+ * this long of reappearing.
+ */
+const DISCOVERY_POLL_INTERVAL_MS = 500;
+
+/**
  * The transport the DMK built for us.
  *
  * `DeviceManagementKit#close()` does *not* release the USB hotplug listeners
@@ -100,8 +107,9 @@ export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
 
   try {
     const device = await discoverFirstDevice(
-      dmk.listenToAvailableDevices({}),
+      () => dmk.listenToAvailableDevices({}),
       timeoutMs,
+      DISCOVERY_POLL_INTERVAL_MS,
     );
 
     log(`Connecting to Ledger device "${device.name}"`);

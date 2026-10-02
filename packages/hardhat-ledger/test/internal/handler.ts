@@ -1,3 +1,4 @@
+import type { LedgerDeviceFactory } from "../../src/internal/types.js";
 import type {
   MethodsConfig,
   MockCalls,
@@ -25,6 +26,7 @@ import { signTyped } from "micro-eth-signer/typed-data";
 import {
   LedgerConnectionClosedError,
   LedgerDeviceError,
+  LedgerNoDeviceFoundError,
 } from "../../src/internal/dmk-errors.js";
 import { LedgerHandler } from "../../src/internal/handler.js";
 import { createJsonRpcRequest } from "../helpers/create-json-rpc-request.js";
@@ -1081,6 +1083,60 @@ describe("LedgerHandler", () => {
         assert.ok(
           messages.some((m) => m.includes("Device not ready")),
           "The busy device should be reported",
+        );
+      });
+
+      it("should give a disconnected device longer to come back, without asking to plug it in", async () => {
+        // Opening the Ethereum app makes the device re-enumerate, which can take
+        // longer than a first connection waits for it.
+        const [mockedDeviceFactory] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
+            result: rsv,
+            errorSequenceToEmit: [DEVICE_DISCONNECTED_ERROR],
+          },
+        });
+
+        const timeouts: number[] = [];
+
+        // The first attempt to reconnect finds no device.
+        const deviceFactory: LedgerDeviceFactory = async (timeoutMs) => {
+          timeouts.push(timeoutMs);
+
+          if (timeouts.length === 2) {
+            throw new LedgerNoDeviceFoundError();
+          }
+
+          return await mockedDeviceFactory(timeoutMs);
+        };
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        mockedDisplayInfo.clear();
+
+        assert.deepEqual(
+          await ledgerHandler.handle(personalSignRequest),
+          signatureResponse,
+        );
+
+        assert.deepEqual(timeouts, [
+          LedgerHandler.DEFAULT_TIMEOUT,
+          LedgerHandler.RECONNECTION_TIMEOUT,
+          LedgerHandler.RECONNECTION_TIMEOUT,
+        ]);
+
+        const { messages } = mockedDisplayInfo;
+
+        assert.ok(
+          messages.some((m) => m.startsWith("Device did not reconnect.")),
+          "The device not coming back should be reported",
+        );
+        assert.ok(
+          !messages.some((m) => m.includes("Device not connected")),
+          "The user should not be asked to plug in a device that is connected",
         );
       });
     });
