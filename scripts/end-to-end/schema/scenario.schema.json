@@ -97,6 +97,30 @@
                     "minimum": 1,
                     "description": "Number of measured runs for this command"
                   },
+                  "statistic": {
+                    "description": "Statistic of the measured runs tracked for wall-clock time, CPU time and peak RSS (default \"mean\"), for all three or per metric. Use \"median\" when runs can stall on something outside the code under test, e.g. a remote RPC round trip",
+                    "oneOf": [
+                      { "type": "string", "enum": ["mean", "median"] },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "wall": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          },
+                          "cpu": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          },
+                          "peakRss": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          }
+                        }
+                      }
+                    ]
+                  },
                   "warmup": {
                     "type": "integer",
                     "minimum": 0,

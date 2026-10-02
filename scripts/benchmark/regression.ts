@@ -77,6 +77,8 @@ DESCRIPTION
     // single command
     {
       "runs":    <positive integer>,    // measured runs (required)
+      "statistic": "mean" | "median"    // optional tracked value (default "mean"),
+                 | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
@@ -109,8 +111,9 @@ DESCRIPTION
 
   Every measured run also records the peak RSS of the largest single
   process in its tree, emitted as a separate
-  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the mean
-  of the per-run peaks, with the peaks themselves and their statistics
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
+  command's "statistic" (default mean) of the per-run peaks, with the peaks
+  themselves and their statistics
   (mean/stddev/min/max/median) in the entry's extra.
   The default method wraps each run in GNU time, whose %M reading is exact.
   Without ${GNU_TIME_PATH} (Debian/Ubuntu package "time") the benchmark
@@ -599,7 +602,13 @@ async function runCommandPhase(
       },
     );
 
-    return measuredRunsToEntries(scenarioId, name, measured, peakRssMethod);
+    return measuredRunsToEntries(
+      scenarioId,
+      name,
+      measured,
+      peakRssMethod,
+      cfg.statistic,
+    );
   } catch (error) {
     throw benchmarkError(
       `${scenarioId} / ${name} failed`,
