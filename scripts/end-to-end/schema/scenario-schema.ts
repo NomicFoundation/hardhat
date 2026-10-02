@@ -161,6 +161,7 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
 function isCommandVariant(obj: Record<string, unknown>): boolean {
   const allowedKeys = new Set([
     "runs",
+    "statistic",
     "warmup",
     "prepare",
     "command",
@@ -175,6 +176,9 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
 
   return (
     isPositiveInteger(obj.runs) &&
+    (obj.statistic === undefined ||
+      obj.statistic === "mean" ||
+      obj.statistic === "median") &&
     (obj.warmup === undefined || isNonNegativeInteger(obj.warmup)) &&
     typeof obj.command === "string" &&
     obj.command.length > 0 &&

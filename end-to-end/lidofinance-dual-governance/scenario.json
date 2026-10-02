@@ -46,17 +46,20 @@
       },
       "test solidity": {
         "runs": 15,
+        "statistic": "median",
         "warmup": 1,
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\"",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvv": {
         "runs": 15,
+        "statistic": "median",
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\" -vvv",
         "dependsOn": ["cold compile", "test solidity"]
       },
       "test solidity -vvvv": {
         "runs": 15,
+        "statistic": "median",
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\" -vvvv",
         "dependsOn": ["cold compile", "test solidity"]
       }

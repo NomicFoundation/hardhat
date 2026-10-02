@@ -51,11 +51,25 @@ interface ScenarioDefinitionBase {
  */
 export type CommandConfig = CommandVariant | StepsVariant;
 
+/**
+ * Which statistic of the measured runs a benchmark's tracked value is: the
+ * one the regression alert compares across commits.
+ */
+export type TrackedStatistic = "mean" | "median";
+
 export interface CommandVariant {
   /**
    * The number of times to run this command in the regression harness.
    */
   runs: number;
+  /**
+   * The statistic of the measured runs that the regression harness tracks for
+   * wall-clock time, CPU time and peak RSS (default "mean"). Use "median" for
+   * a command whose runs can stall on something outside the code under test,
+   * such as a remote RPC round trip, so one slow run cannot trip the
+   * regression alert alone.
+   */
+  statistic?: TrackedStatistic;
   /**
    * The number of unmeasured runs to execute before the measured ones in the
    * regression harness (default 0). Use it to keep one-off startup costs, such

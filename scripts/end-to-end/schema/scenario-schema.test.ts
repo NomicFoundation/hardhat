@@ -440,6 +440,27 @@ describe("isCommandConfig", () => {
     );
   });
 
+  it("accepts an optional statistic of mean or median", () => {
+    for (const statistic of ["mean", "median"]) {
+      assert.equal(
+        isCommandConfig({ runs: 3, statistic, command: "npx hardhat test" }),
+        true,
+        statistic,
+      );
+    }
+  });
+
+  it("rejects an unknown statistic", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: "p99",
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+  });
+
   it("rejects when runs is missing", () => {
     assert.equal(isCommandConfig({ command: "npx hardhat compile" }), false);
   });

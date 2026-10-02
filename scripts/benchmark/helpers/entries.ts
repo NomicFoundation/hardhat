@@ -2,6 +2,7 @@ import { computeStats, type TimingStats } from "./stats.ts";
 import { logWarning } from "./log.ts";
 import type { PeakRssMethod } from "./peak-rss.ts";
 import type { MeasuredRun } from "./runner.ts";
+import type { TrackedStatistic } from "../../end-to-end/types.ts";
 
 /**
  * One benchmark-action/github-action-benchmark entry in the
@@ -23,12 +24,14 @@ export interface BenchmarkEntry {
  *
  * `peakRssMethod` is the method the runs were measured with. With none in
  * use, missing peaks are expected and the startup warning suffices.
+ * `statistic` picks the tracked value of every entry.
  */
 export function measuredRunsToEntries(
   scenarioId: string,
   label: string,
   runs: MeasuredRun[],
   peakRssMethod: PeakRssMethod | undefined,
+  statistic: TrackedStatistic = "mean",
 ): BenchmarkEntry[] {
   const peaks: number[] = [];
 
@@ -54,12 +57,14 @@ export function measuredRunsToEntries(
       label,
       computeStats(runs.map((r) => r.wallSeconds)),
       peaks.length === runs.length ? peaks : undefined,
+      statistic,
     ),
     toCpuEntry(
       scenarioId,
       label,
       runs.map((r) => r.user),
       runs.map((r) => r.system),
+      statistic,
     ),
   ];
 }
@@ -67,15 +72,16 @@ export function measuredRunsToEntries(
 /**
  * One benchmark produces a timing entry and, when peak RSS was captured, a
  * separate memory entry (its own MB series, independently charted + alerted).
- * `peakRssMb` holds one peak per run. The tracked value is their mean, which
- * varies less across runs than the max. The per-run distribution goes in the
- * entry's `extra`.
+ * `peakRssMb` holds one peak per run. The tracked value is their `statistic`
+ * (default mean), which varies less across runs than the max. The per-run
+ * distribution goes in the entry's `extra`.
  */
 export function toEntries(
   scenarioId: string,
   phaseLabel: string,
   wall: TimingStats,
   peakRssMb: number[] | undefined,
+  statistic: TrackedStatistic = "mean",
 ): BenchmarkEntry[] {
   const rss =
     peakRssMb !== undefined && peakRssMb.length > 0
@@ -85,7 +91,7 @@ export function toEntries(
   const timeEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel}`,
     unit: "s",
-    value: wall.mean,
+    value: wall[statistic],
     range: `± ${wall.stddev}`,
     extra: JSON.stringify(toSampleStats(wall)),
   };
@@ -97,7 +103,7 @@ export function toEntries(
   const memEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
     unit: "MB",
-    value: rss.mean,
+    value: rss[statistic],
     range: `± ${rss.stddev}`,
     extra: JSON.stringify({
       ...toSampleStats(rss),
@@ -128,8 +134,8 @@ function toSampleStats(stats: TimingStats): SampleStats {
 }
 
 /**
- * The CPU entry: its tracked value is the mean total CPU time (user+system)
- * over the per-run totals. `extra` mirrors the wall-clock entry — per-run
+ * The CPU entry: its tracked value is the `statistic` (default mean) of the
+ * per-run total CPU time (user+system). `extra` mirrors the wall-clock entry — per-run
  * totals plus their statistics — with the user/system split nested as the
  * same per-run shape under `user` and `system`.
  */
@@ -138,13 +144,14 @@ export function toCpuEntry(
   phaseLabel: string,
   user: number[],
   system: number[],
+  statistic: TrackedStatistic = "mean",
 ): BenchmarkEntry {
   const totals = computeStats(user.map((u, i) => u + system[i]));
 
   return {
     name: `${scenarioId} / ${phaseLabel} (cpu)`,
     unit: "s",
-    value: totals.mean,
+    value: totals[statistic],
     range: `± ${totals.stddev}`,
     extra: JSON.stringify({
       ...toSampleStats(totals),

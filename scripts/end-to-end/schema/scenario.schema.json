@@ -97,6 +97,11 @@
                     "minimum": 1,
                     "description": "Number of measured runs for this command"
                   },
+                  "statistic": {
+                    "type": "string",
+                    "enum": ["mean", "median"],
+                    "description": "Statistic of the measured runs tracked for wall-clock time, CPU time and peak RSS (default \"mean\"). Use \"median\" when runs can stall on something outside the code under test, e.g. a remote RPC round trip"
+                  },
                   "warmup": {
                     "type": "integer",
                     "minimum": 0,
