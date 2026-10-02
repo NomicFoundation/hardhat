@@ -36,10 +36,25 @@ describe("toEntries", () => {
   });
 
   it("tracks the median run and median peak when asked", () => {
-    const [time, mem] = toEntries("s", "x", WALL, [301, 315, 311], "median");
+    const [time, mem] = toEntries("s", "x", WALL, [301, 315, 311], {
+      wall: "median",
+      cpu: "median",
+      peakRss: "median",
+    });
 
     assert.equal(time.value, WALL.median);
     assert.equal(mem.value, 311);
+  });
+
+  it("tracks each metric by its own statistic when given per metric", () => {
+    const [time, mem] = toEntries("s", "x", WALL, [301, 315, 311], {
+      wall: "median",
+      cpu: "mean",
+      peakRss: "mean",
+    });
+
+    assert.equal(time.value, WALL.median);
+    assert.equal(mem.value, 309);
   });
 
   it("emits no memory entry without peaks", () => {
@@ -106,6 +121,20 @@ describe("measuredRunsToEntries", () => {
 
     assert.equal(time.value, 2);
     assert.equal(cpu.value, 2 / 2 + 2 / 4);
+  });
+
+  it("leaves metrics not named in a per-metric statistic on the mean", () => {
+    const [time, mem, cpu] = measuredRunsToEntries(
+      "s",
+      "x",
+      [run(1, 100), run(2, 200), run(6, 600)],
+      PeakRssMethod.GnuTime,
+      { wall: "median" },
+    );
+
+    assert.equal(time.value, 2);
+    assert.equal(mem.value, 300);
+    assert.equal(cpu.value, 3 / 2 + 3 / 4);
   });
 
   it("emits only time and cpu entries when no method measured memory", () => {

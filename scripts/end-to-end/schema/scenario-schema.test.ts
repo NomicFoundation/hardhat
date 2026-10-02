@@ -450,6 +450,44 @@ describe("isCommandConfig", () => {
     }
   });
 
+  it("accepts a per-metric statistic object", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "median" },
+        command: "npx hardhat test",
+      }),
+      true,
+    );
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "median", cpu: "mean", peakRss: "median" },
+        command: "npx hardhat test",
+      }),
+      true,
+    );
+  });
+
+  it("rejects a per-metric statistic with an unknown metric or value", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "p99" },
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { time: "median" },
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+  });
+
   it("rejects an unknown statistic", () => {
     assert.equal(
       isCommandConfig({

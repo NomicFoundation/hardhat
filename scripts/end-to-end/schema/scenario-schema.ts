@@ -176,15 +176,34 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
 
   return (
     isPositiveInteger(obj.runs) &&
-    (obj.statistic === undefined ||
-      obj.statistic === "mean" ||
-      obj.statistic === "median") &&
+    (obj.statistic === undefined || isStatisticConfig(obj.statistic)) &&
     (obj.warmup === undefined || isNonNegativeInteger(obj.warmup)) &&
     typeof obj.command === "string" &&
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
     isDependsOn(obj.dependsOn)
+  );
+}
+
+const STATISTICS = new Set(["mean", "median"]);
+const METRICS = new Set(["wall", "cpu", "peakRss"]);
+
+// A statistic name, or an object mapping metric names to statistic names.
+function isStatisticConfig(value: unknown): boolean {
+  if (typeof value === "string") {
+    return STATISTICS.has(value);
+  }
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.entries(value).every(
+      ([metric, statistic]) =>
+        METRICS.has(metric) &&
+        typeof statistic === "string" &&
+        STATISTICS.has(statistic),
+    )
   );
 }
 

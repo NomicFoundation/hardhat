@@ -77,7 +77,8 @@ DESCRIPTION
     // single command
     {
       "runs":    <positive integer>,    // measured runs (required)
-      "statistic": "mean" | "median",   // optional tracked value (default "mean")
+      "statistic": "mean" | "median"    // optional tracked value (default "mean"),
+                 | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
