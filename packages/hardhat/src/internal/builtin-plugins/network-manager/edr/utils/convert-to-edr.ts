@@ -33,7 +33,10 @@ import {
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../../constants.js";
-import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
+import {
+  FixedValueConfigurationVariable,
+  getPrivateKey,
+} from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
@@ -115,7 +118,7 @@ export async function hardhatAccountsToEdrOwnedAccounts(
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
-    secretKey: await account.privateKey.getHexString(),
+    secretKey: await getPrivateKey(account.privateKey),
     balance: account.balance,
   }));
 

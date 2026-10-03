@@ -8,7 +8,11 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  getUnprefixedHexString,
+  isHexString,
+  normalizeHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 export const CONFIGURATION_VARIABLE_MARKER = "{variable}";
@@ -22,6 +26,38 @@ export function resolveConfigurationVariable(
   }
 
   return new LazyResolvedConfigurationVariable(hooks, variable);
+}
+
+/**
+ * Returns true if the value is a hex-encoded private key: a hex string with
+ * exactly 64 digits (32 bytes), with or without the 0x prefix.
+ */
+export function isPrivateKey(value: string): boolean {
+  return isHexString(value) && getUnprefixedHexString(value).length === 64;
+}
+
+/**
+ * Returns the value of a configuration variable that holds a private key,
+ * normalized like `getHexString` does.
+ *
+ * @throws a HardhatError if the value isn't a hex-encoded private key.
+ */
+export async function getPrivateKey(
+  variable: ResolvedConfigurationVariable,
+): Promise<string> {
+  const privateKey = await variable.getHexString();
+
+  if (!isPrivateKey(privateKey)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+      {
+        configVariable:
+          BaseResolvedConfigurationVariable.getDescription(variable),
+      },
+    );
+  }
+
+  return privateKey;
 }
 
 abstract class BaseResolvedConfigurationVariable implements ResolvedConfigurationVariable {
@@ -38,6 +74,20 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
    * Resolved values may be secrets, so they must never be included in errors.
    */
   protected abstract _getDescription(): string;
+
+  /**
+   * Returns the description of a variable, for errors thrown outside of its
+   * own methods.
+   */
+  public static getDescription(
+    variable: ResolvedConfigurationVariable,
+  ): string {
+    // Hardhat only creates instances of this class, but other implementations
+    // of the public interface can't describe themselves
+    return variable instanceof BaseResolvedConfigurationVariable
+      ? variable._getDescription()
+      : "a configuration variable";
+  }
 
   constructor(public readonly format: string) {
     assertHardhatInvariant(

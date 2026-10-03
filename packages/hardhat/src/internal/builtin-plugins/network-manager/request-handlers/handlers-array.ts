@@ -6,6 +6,7 @@ import type {
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
+import { getPrivateKey } from "../../../core/configuration-variables.js";
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
@@ -114,7 +115,7 @@ export async function createHandlersArray<
 
     if (Array.isArray(accounts)) {
       const resolvedAccounts = await Promise.all(
-        accounts.map((acc) => acc.getHexString()),
+        accounts.map((acc) => getPrivateKey(acc)),
       );
 
       requestHandlers.push(
