@@ -954,6 +954,48 @@ describe("LocalAccountsHandler", () => {
       );
     });
 
+    describe("blob transactions", () => {
+      const blob = `0x${"ab".repeat(32)}`;
+      const blobVersionedHash = `0x01${"cd".repeat(31)}`;
+
+      const testCases = [
+        {
+          name: "blobs and blobVersionedHashes",
+          blobFields: {
+            blobs: [blob],
+            blobVersionedHashes: [blobVersionedHash],
+          },
+        },
+        { name: "only blobs", blobFields: { blobs: [blob] } },
+        {
+          name: "only blobVersionedHashes",
+          blobFields: { blobVersionedHashes: [blobVersionedHash] },
+        },
+      ];
+
+      for (const { name, blobFields } of testCases) {
+        it(`should throw when calling sendTransaction with ${name}`, async () => {
+          const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+            {
+              from: addr.fromPrivateKey(accounts[0]),
+              to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+              nonce: numberToHexString(0x8),
+              gas: numberToHexString(30000),
+              maxFeePerGas: numberToHexString(12),
+              maxPriorityFeePerGas: numberToHexString(2),
+              ...blobFields,
+            },
+          ]);
+
+          await assertRejectsWithHardhatError(
+            () => localAccountsHandler.handle(jsonRpcRequest),
+            HardhatError.ERRORS.CORE.NETWORK.BLOB_TX_CANNOT_BE_SIGNED_LOCALLY,
+            {},
+          );
+        });
+      }
+    });
+
     it("should throw if trying to send from an account that isn't local", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {

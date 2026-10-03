@@ -209,6 +209,17 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     if (jsonRpcRequest.method === "eth_sendTransaction" && params.length > 0) {
       const [txRequest] = validateParams(params, rpcTransactionRequest);
 
+      // We can't sign blob txs, and signing them as non-blob txs would drop
+      // their blobs silently
+      if (
+        txRequest.blobs !== undefined ||
+        txRequest.blobVersionedHashes !== undefined
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.BLOB_TX_CANNOT_BE_SIGNED_LOCALLY,
+        );
+      }
+
       if (txRequest.gas === undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
