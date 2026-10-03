@@ -116,10 +116,20 @@ describe("UserInterruptionManager", () => {
 
     let stdout: PassThrough;
 
-    // Returns what has been written to stdout since the last call
+    // Returns what has been written to stdout since the last call. Since Node
+    // 26, `read()` returns a single chunk instead of the whole buffer.
     function readStdout(): string {
-      const output: unknown = stdout.read();
-      return output === null ? "" : String(output);
+      let output = "";
+
+      for (
+        let chunk: unknown = stdout.read();
+        chunk !== null;
+        chunk = stdout.read()
+      ) {
+        output += String(chunk);
+      }
+
+      return output;
     }
 
     beforeEach(() => {
