@@ -621,6 +621,18 @@ Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY
 
 The configured value is not shown, as proxy URLs may contain credentials.`,
       },
+      PROMPT_CLOSED_BEFORE_ANSWER: {
+        number: 32,
+        messageTemplate: `The prompt from {interruptor} was closed before an answer was entered.
+
+This happens when Hardhat runs without an interactive terminal (for example, in a scheduled job or with its input redirected from a file), or when the prompt is cancelled with Ctrl+C or Ctrl+D.`,
+        websiteTitle: "Prompt closed before an answer was entered",
+        websiteDescription: `Hardhat or one of its plugins showed a prompt, but it was closed before an answer was entered.
+
+This happens when Hardhat runs without an interactive terminal and has no input left to read, for example in a scheduled job, or with its input redirected from \`/dev/null\` or an empty file. It also happens when you cancel the prompt with Ctrl+C or Ctrl+D.
+
+Run the command in an interactive terminal to answer the prompt. If it's the keystore asking for its password to read a configuration variable, you can set that variable in the environment instead.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
