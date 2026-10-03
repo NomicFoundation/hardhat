@@ -20,6 +20,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createTestEnvManager,
   createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -27,6 +28,7 @@ import {
   numberToHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 
+import { configVariable } from "../../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
@@ -1013,6 +1015,29 @@ describe("edr-provider", () => {
         w.includes(L1HardforkName.AMSTERDAM),
       );
       assert.equal(experimentalWarnings.length, 1);
+    });
+  });
+
+  describe("accounts from configuration variables", () => {
+    const { setEnvVar } = createTestEnvManager();
+
+    it("should throw if a private key isn't 32 bytes long", async () => {
+      setEnvVar("SHORT_PRIVATE_KEY", "0x1234");
+
+      await assertRejectsWithHardhatError(
+        hre.network.create({
+          override: {
+            accounts: [
+              {
+                privateKey: configVariable("SHORT_PRIVATE_KEY"),
+                balance: 10n ** 18n,
+              },
+            ],
+          },
+        }),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+        { configVariable: `the configuration variable "SHORT_PRIVATE_KEY"` },
+      );
     });
   });
 });
