@@ -3,6 +3,7 @@ import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertIsHardhatError,
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -798,12 +799,30 @@ describe("LocalAccountsHandler", () => {
         },
       ]);
 
-      await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
-        HardhatError.ERRORS.CORE.NETWORK.INVALID_TX_PARAMS_TO_SIGN_LOCALLY,
-        // The reported size is the number of hex characters
-        { errors: "\t* data: initcode is too big: 1048578" },
-      );
+      try {
+        await localAccountsHandler.handle(jsonRpcRequest);
+      } catch (error) {
+        assertIsHardhatError(
+          error,
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_TX_PARAMS_TO_SIGN_LOCALLY,
+          // The reported size is the number of hex characters
+          { errors: "\t* data: initcode is too big: 1048578" },
+        );
+
+        // The original micro-eth-signer error is kept as the cause
+        assert.ok(
+          error.cause instanceof Error,
+          "The error should have a cause",
+        );
+        assert.ok("errors" in error.cause, "The cause should list the errors");
+        assert.deepEqual(error.cause.errors, [
+          { field: "data", error: "initcode is too big: 1048578" },
+        ]);
+
+        return;
+      }
+
+      assert.fail("Function did not throw any error");
     });
 
     it("should send access list transactions", async () => {
