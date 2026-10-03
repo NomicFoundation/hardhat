@@ -9,8 +9,11 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { defineChain } from "viem";
 import * as chains from "viem/chains";
 
+import HardhatViem from "../src/index.js";
 import {
   getChain,
   getChainId,
@@ -182,6 +185,76 @@ describe("chains", () => {
 
       assert.equal(chain.id, 9876);
       assert.equal(chain.name, "GCCNET");
+    });
+
+    it("should use the complete viem chain from a descriptor, including for a known chain id", async () => {
+      const viemChain = defineChain({
+        id: 1,
+        name: "Custom viem name",
+        nativeCurrency: { name: "Custom Coin", symbol: "CC", decimals: 18 },
+        rpcUrls: { default: { http: [] } },
+        contracts: {
+          multicall3: {
+            address: "0x0000000000000000000000000000000000000001",
+            blockCreated: 123,
+          },
+        },
+      });
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [HardhatViem],
+        chainDescriptors: {
+          1: {
+            name: "Hardhat descriptor name",
+            viemChain,
+          },
+        },
+      });
+      const descriptor = hre.config.chainDescriptors.get(1n);
+      assert.equal(descriptor?.name, "Hardhat descriptor name");
+      assert.equal(descriptor?.viemChain, viemChain);
+
+      const provider = new MockEthereumProvider({ eth_chainId: "0x1" });
+      const chain = await getChain(
+        provider,
+        "generic",
+        hre.config.chainDescriptors,
+        "mainnet",
+      );
+      assert.equal(chain, viemChain);
+      assert.deepEqual(
+        chain.contracts?.multicall3,
+        viemChain.contracts.multicall3,
+      );
+    });
+
+    it("should use a complete viem chain for an unknown chain id", async () => {
+      const viemChain = defineChain({
+        id: 9876,
+        name: "Custom network",
+        nativeCurrency: { name: "Custom Coin", symbol: "CC", decimals: 18 },
+        rpcUrls: { default: { http: [] } },
+        contracts: {
+          multicall3: {
+            address: "0x0000000000000000000000000000000000000001",
+          },
+        },
+      });
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [HardhatViem],
+        chainDescriptors: {
+          9876: { name: "Descriptor name", viemChain },
+        },
+      });
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" });
+
+      const chain = await getChain(
+        provider,
+        "generic",
+        hre.config.chainDescriptors,
+        "customNetwork",
+      );
+
+      assert.equal(chain, viemChain);
     });
 
     it("should fall back to a minimal chain with the network name when the chain id is not in viem's chain list and no descriptor matches", async () => {

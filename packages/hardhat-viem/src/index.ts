@@ -7,6 +7,7 @@ export type * from "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-viem",
   hookHandlers: {
+    config: () => import("./internal/hook-handlers/config.js"),
     network: () => import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-viem",

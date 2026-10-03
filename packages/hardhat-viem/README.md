@@ -42,6 +42,40 @@ console.log(await counter.read.x());
 
 To learn more about using viem with Hardhat, read [our guide](https://hardhat.org/docs/learn-more/using-viem).
 
+### Custom chains
+
+For chains that need viem-specific settings such as multicall contracts, provide a full viem `Chain` in the matching chain descriptor:
+
+```ts
+import { defineConfig } from "hardhat/config";
+import hardhatViem from "@nomicfoundation/hardhat-viem";
+import { defineChain } from "viem";
+
+export default defineConfig({
+  plugins: [hardhatViem],
+  chainDescriptors: {
+    9876: {
+      name: "MyChain",
+      chainType: "generic",
+      viemChain: defineChain({
+        id: 9876,
+        name: "MyChain",
+        nativeCurrency: { name: "MYC", symbol: "MYC", decimals: 18 },
+        rpcUrls: { default: { http: [] } },
+        contracts: {
+          multicall3: {
+            address: "0x0000000000000000000000000000000000000001",
+            blockCreated: 123,
+          },
+        },
+      }),
+    },
+  },
+});
+```
+
+The provided `viemChain` is used as-is for viem clients, including when viem already knows the chain ID. Its `id` should match the descriptor key. Hardhat uses the descriptor's `name` independently of `viemChain.name`. Network connections provide their own transport, so the `rpcUrls` field is required by viem's type but is not used for requests.
+
 ### Clients
 
 Viem provides a set of interfaces to interact with the blockchain called **clients**. There are three types:
