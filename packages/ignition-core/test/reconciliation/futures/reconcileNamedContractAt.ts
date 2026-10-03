@@ -138,6 +138,50 @@ describe("Reconciliation - named contract at", () => {
     await assertSuccessReconciliation(moduleDefinition, previousExecutionState);
   });
 
+  it("should reconcile when the address changes from checksummed to lowercase", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contractAt(
+        "Contract1",
+        exampleAddress.toLowerCase(),
+        {
+          id: "Factory",
+        },
+      );
+
+      return { contract1 };
+    });
+
+    const previousExecutionState = createDeploymentState({
+      ...exampleContractAtState,
+      id: "Module#Factory",
+      futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
+      status: ExecutionStatus.STARTED,
+      contractAddress: exampleAddress,
+    });
+
+    await assertSuccessReconciliation(moduleDefinition, previousExecutionState);
+  });
+
+  it("should reconcile when the address changes from lowercase to checksummed", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contractAt("Contract1", exampleAddress, {
+        id: "Factory",
+      });
+
+      return { contract1 };
+    });
+
+    const previousExecutionState = createDeploymentState({
+      ...exampleContractAtState,
+      id: "Module#Factory",
+      futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
+      status: ExecutionStatus.STARTED,
+      contractAddress: exampleAddress.toLowerCase(),
+    });
+
+    await assertSuccessReconciliation(moduleDefinition, previousExecutionState);
+  });
+
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt("ContractChanged", exampleAddress, {
