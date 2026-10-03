@@ -12,11 +12,13 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   bytesToHexString,
   hexStringToBigInt,
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   bytesToBigInt,
   bytesToNumber,
@@ -253,6 +255,21 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         );
       }
 
+      if (
+        hasEip7702Fields &&
+        (txRequest.to === undefined || txRequest.to === null)
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.EIP7702_TX_CANNOT_CREATE_CONTRACT,
+        );
+      }
+
+      if (txRequest.authorizationList?.length === 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.EMPTY_EIP7702_AUTHORIZATION_LIST,
+        );
+      }
+
       if (hasGasPrice && hasEip1559Fields) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
@@ -427,53 +444,73 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       gasLimit: txData.gasLimit,
     };
 
-    if (authorizationList !== undefined) {
-      assertHardhatInvariant(
-        txData.maxFeePerGas !== undefined,
-        "maxFeePerGas should be defined",
-      );
+    try {
+      if (authorizationList !== undefined) {
+        assertHardhatInvariant(
+          txData.maxFeePerGas !== undefined,
+          "maxFeePerGas should be defined",
+        );
 
-      transaction = Transaction.prepare(
-        {
-          type: "eip7702",
-          ...baseTxParams,
-          maxFeePerGas: txData.maxFeePerGas,
-          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-          accessList: accessList ?? [],
-          authorizationList: authorizationList ?? [],
-        },
-        strictMode,
-      );
-    } else if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare(
-        {
-          type: "eip1559",
-          ...baseTxParams,
-          maxFeePerGas: txData.maxFeePerGas,
-          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-          accessList: accessList ?? [],
-        },
-        strictMode,
-      );
-    } else if (accessList !== undefined) {
-      transaction = Transaction.prepare(
-        {
-          type: "eip2930",
-          ...baseTxParams,
-          gasPrice: txData.gasPrice ?? 0n,
-          accessList,
-        },
-        strictMode,
-      );
-    } else {
-      transaction = Transaction.prepare(
-        {
-          type: "legacy",
-          ...baseTxParams,
-          gasPrice: txData.gasPrice ?? 0n,
-        },
-        strictMode,
-      );
+        transaction = Transaction.prepare(
+          {
+            type: "eip7702",
+            ...baseTxParams,
+            maxFeePerGas: txData.maxFeePerGas,
+            maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+            accessList: accessList ?? [],
+            authorizationList: authorizationList ?? [],
+          },
+          strictMode,
+        );
+      } else if (txData.maxFeePerGas !== undefined) {
+        transaction = Transaction.prepare(
+          {
+            type: "eip1559",
+            ...baseTxParams,
+            maxFeePerGas: txData.maxFeePerGas,
+            maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+            accessList: accessList ?? [],
+          },
+          strictMode,
+        );
+      } else if (accessList !== undefined) {
+        transaction = Transaction.prepare(
+          {
+            type: "eip2930",
+            ...baseTxParams,
+            gasPrice: txData.gasPrice ?? 0n,
+            accessList,
+          },
+          strictMode,
+        );
+      } else {
+        transaction = Transaction.prepare(
+          {
+            type: "legacy",
+            ...baseTxParams,
+            gasPrice: txData.gasPrice ?? 0n,
+          },
+          strictMode,
+        );
+      }
+    } catch (error) {
+      ensureError(error);
+
+      // micro-eth-signer reports invalid fields with a generic message and
+      // keeps the reasons in an `errors` array, so we include them in ours
+      if (isMicroEthSignerValidationError(error)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_TX_PARAMS_TO_SIGN_LOCALLY,
+          {
+            errors: error.errors
+              .map(({ field, error: reason }) => `\t* ${field}: ${reason}`)
+              .join("\n"),
+          },
+          error,
+        );
+      }
+
+      throw error;
     }
 
     const signedTransaction = transaction.signBy(privateKey, EXTRA_ENTROPY);
@@ -491,4 +528,28 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       result,
     };
   }
+}
+
+/**
+ * Returns true if the error is micro-eth-signer's `AggregatedError`, which it
+ * throws when some of a transaction's fields are invalid. Each item of its
+ * `errors` array has the name of a field and the reason it's invalid.
+ *
+ * micro-eth-signer 0.19 doesn't export `AggregatedError` from its root, so we
+ * detect it structurally instead of using `instanceof`.
+ */
+function isMicroEthSignerValidationError(
+  error: Error,
+): error is Error & { errors: Array<{ field: string; error: string }> } {
+  return (
+    "errors" in error &&
+    Array.isArray(error.errors) &&
+    error.errors.length > 0 &&
+    error.errors.every(
+      (fieldError: unknown) =>
+        isObject(fieldError) &&
+        typeof fieldError.field === "string" &&
+        typeof fieldError.error === "string",
+    )
+  );
 }
