@@ -1,10 +1,14 @@
 import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+import type { Interface } from "node:readline";
 
 import { createInterface } from "node:readline";
 import { styleText } from "node:util";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 export class UserInterruptionManagerImplementation implements UserInterruptionManager {
@@ -82,15 +86,7 @@ async function defaultRequestInput(
     output: process.stdout,
   });
 
-  return await new Promise<string>((resolve) => {
-    rl.question(
-      styleText("blue", `[${interruptor}]`) + ` ${inputDescription}: `,
-      (answer) => {
-        resolve(answer);
-        rl.close();
-      },
-    );
-  });
+  return await askQuestion(rl, interruptor, inputDescription);
 }
 
 async function defaultRequestSecretInput(
@@ -136,10 +132,55 @@ async function defaultRequestSecretInput(
     }
   };
 
-  return await new Promise<string>((resolve) => {
+  return await askQuestion(rl, interruptor, inputDescription);
+}
+
+/**
+ * Asks the user for input through the given readline interface.
+ *
+ * If the interface closes before an answer arrives (e.g. stdin reaches EOF, or
+ * the user cancels the prompt) it throws instead of never settling.
+ */
+async function askQuestion(
+  rl: Interface,
+  interruptor: string,
+  inputDescription: string,
+): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    let prompted = false;
+    let answered = false;
+
+    rl.once("close", () => {
+      if (answered) {
+        return;
+      }
+
+      // The prompt doesn't end with a newline, so we print one to keep the
+      // error off the prompt's line
+      if (prompted) {
+        process.stdout.write("\n");
+      }
+
+      reject(
+        new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.PROMPT_CLOSED_BEFORE_ANSWER,
+          { interruptor },
+        ),
+      );
+    });
+
+    // If a previous prompt already read stdin's EOF, readline won't receive
+    // another "end" event, so we close the interface ourselves.
+    if (process.stdin.readableEnded) {
+      rl.close();
+      return;
+    }
+
+    prompted = true;
     rl.question(
       styleText("blue", `[${interruptor}]`) + ` ${inputDescription}: `,
       (answer) => {
+        answered = true;
         resolve(answer);
         rl.close();
       },
