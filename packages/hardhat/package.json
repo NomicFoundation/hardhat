@@ -73,6 +73,7 @@
     "dist/src/",
     "src/",
     "templates/",
+    "!templates/*/node_modules/",
     "console.sol",
     "skills/",
     "CHANGELOG.md",
