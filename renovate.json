@@ -131,6 +131,11 @@
       "groupName": null
     },
     {
+      "description": "prettier is its own update rather than inside the npm minor/patch group. It is pinned exactly in every package, so a bump touches a package.json per package and buries the rest of the group's diff.",
+      "matchPackageNames": ["prettier"],
+      "groupName": null
+    },
+    {
       "description": "hardhat-ledger holds micro-eth-signer at 0.14 while the rest of the monorepo is on 0.19. 0.19 dropped the typed-data subpath and does not re-export encoder, which #signTypedData needs to derive the EIP-712 domain and struct hashes for signEIP712HashedMessage — the fallback for devices that cannot take a whole typed message. Scoped to this file: the hardhat package must stay free to move.",
       "matchFileNames": ["packages/hardhat-ledger/package.json"],
       "matchPackageNames": ["micro-eth-signer"],
