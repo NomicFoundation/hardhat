@@ -1,5 +1,5 @@
 import type {
-  SpecId,
+  L1Hardfork,
   MineOrdering,
   IntervalRange,
   DebugTraceResult,
@@ -7,27 +7,6 @@ import type {
   TracingMessageResult,
   TracingStep,
   HttpHeader,
-} from "@nomicfoundation/edr";
-import {
-  FRONTIER,
-  HOMESTEAD,
-  DAO_FORK,
-  TANGERINE,
-  SPURIOUS_DRAGON,
-  BYZANTIUM,
-  CONSTANTINOPLE,
-  PETERSBURG,
-  ISTANBUL,
-  MUIR_GLACIER,
-  BERLIN,
-  LONDON,
-  ARROW_GLACIER,
-  GRAY_GLACIER,
-  MERGE,
-  SHANGHAI,
-  CANCUN,
-  PRAGUE,
-  OSAKA,
 } from "@nomicfoundation/edr";
 import { Address } from "@ethereumjs/util";
 
@@ -44,101 +23,18 @@ import {
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
-  switch (hardfork) {
-    case HardforkName.FRONTIER:
-      return FRONTIER;
-    case HardforkName.HOMESTEAD:
-      return HOMESTEAD;
-    case HardforkName.DAO:
-      return DAO_FORK;
-    case HardforkName.TANGERINE_WHISTLE:
-      return TANGERINE;
-    case HardforkName.SPURIOUS_DRAGON:
-      return SPURIOUS_DRAGON;
-    case HardforkName.BYZANTIUM:
-      return BYZANTIUM;
-    case HardforkName.CONSTANTINOPLE:
-      return CONSTANTINOPLE;
-    case HardforkName.PETERSBURG:
-      return PETERSBURG;
-    case HardforkName.ISTANBUL:
-      return ISTANBUL;
-    case HardforkName.MUIR_GLACIER:
-      return MUIR_GLACIER;
-    case HardforkName.BERLIN:
-      return BERLIN;
-    case HardforkName.LONDON:
-      return LONDON;
-    case HardforkName.ARROW_GLACIER:
-      return ARROW_GLACIER;
-    case HardforkName.GRAY_GLACIER:
-      return GRAY_GLACIER;
-    case HardforkName.MERGE:
-      return MERGE;
-    case HardforkName.SHANGHAI:
-      return SHANGHAI;
-    case HardforkName.CANCUN:
-      return CANCUN;
-    case HardforkName.PRAGUE:
-      return PRAGUE;
-    case HardforkName.OSAKA:
-      return OSAKA;
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      throw new Error(
-        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
-      );
-  }
+  // EDR's hardfork names match Hardhat's, so no conversion is needed. Names
+  // EDR does not support (e.g. pre-Byzantium) are rejected by EDR itself.
+  return hardfork;
 }
 
-export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
-  const { SpecId } = requireNapiRsModule(
+export function edrSpecIdToEthereumHardfork(specId: L1Hardfork): HardforkName {
+  const { l1HardforkToString } = requireNapiRsModule(
     "@nomicfoundation/edr"
   ) as typeof import("@nomicfoundation/edr");
 
-  switch (specId) {
-    case SpecId.Frontier:
-      return HardforkName.FRONTIER;
-    case SpecId.Homestead:
-      return HardforkName.HOMESTEAD;
-    case SpecId.DaoFork:
-      return HardforkName.DAO;
-    case SpecId.Tangerine:
-      return HardforkName.TANGERINE_WHISTLE;
-    case SpecId.SpuriousDragon:
-      return HardforkName.SPURIOUS_DRAGON;
-    case SpecId.Byzantium:
-      return HardforkName.BYZANTIUM;
-    case SpecId.Constantinople:
-      return HardforkName.CONSTANTINOPLE;
-    case SpecId.Petersburg:
-      return HardforkName.PETERSBURG;
-    case SpecId.Istanbul:
-      return HardforkName.ISTANBUL;
-    case SpecId.MuirGlacier:
-      return HardforkName.MUIR_GLACIER;
-    case SpecId.Berlin:
-      return HardforkName.BERLIN;
-    case SpecId.London:
-      return HardforkName.LONDON;
-    case SpecId.ArrowGlacier:
-      return HardforkName.ARROW_GLACIER;
-    case SpecId.GrayGlacier:
-      return HardforkName.GRAY_GLACIER;
-    case SpecId.Merge:
-      return HardforkName.MERGE;
-    case SpecId.Shanghai:
-      return HardforkName.SHANGHAI;
-    case SpecId.Cancun:
-      return HardforkName.CANCUN;
-    case SpecId.Prague:
-      return HardforkName.PRAGUE;
-    case SpecId.Osaka:
-      return HardforkName.OSAKA;
-
-    default:
-      throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
-  }
+  // EDR's hardfork names match Hardhat's, so no conversion is needed.
+  return l1HardforkToString(specId) as HardforkName;
 }
 
 export function ethereumjsIntervalMiningConfigToEdr(
