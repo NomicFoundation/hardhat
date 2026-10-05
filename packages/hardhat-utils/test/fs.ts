@@ -1082,6 +1082,24 @@ describe("File system utils", () => {
       });
     });
 
+    it("Should throw InvalidFileFormatError if the file has multiple JSON values", async () => {
+      const filePath = path.join(tmp.path, "file.json");
+      await writeUtf8File(filePath, '{"a":1}{"b":2}');
+
+      await assert.rejects(readJsonFileAsStream(filePath), {
+        name: "InvalidFileFormatError",
+        message: `Invalid file format: ${filePath}`,
+      });
+    });
+
+    it("Should read and parse a JSON file with surrounding whitespace", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const filePath = path.join(tmp.path, "file.json");
+      await writeUtf8File(filePath, ` \n${JSON.stringify(expectedObject)}\n `);
+
+      assert.deepEqual(await readJsonFileAsStream(filePath), expectedObject);
+    });
+
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(tmp.path, "not-exists.json");
 

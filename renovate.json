@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "customManagers:githubActionsVersions"
+  ],
   "timezone": "UTC",
   "schedule": ["before 9am on Monday"],
   "minimumReleaseAge": "7 days",
@@ -113,12 +117,13 @@
     },
     {
       "description": "Group the noble crypto cluster. The repository's cryptography primitives have interdependencies, so we co-ordinate them.",
-      "matchPackageNames": [
-        "/^@noble\\//",
-        "ethereum-cryptography",
-        "micro-eth-signer"
-      ],
+      "matchPackageNames": ["/^@noble\\//", "ethereum-cryptography"],
       "groupName": "noble-crypto"
+    },
+    {
+      "description": "micro-eth-signer is its own update rather than inside the npm minor/patch group. Its minor and patch releases can introduce breaking changes.",
+      "matchPackageNames": ["micro-eth-signer"],
+      "groupName": null
     },
     {
       "description": "forge-std is its own update rather than inside the npm minor/patch group.",
@@ -141,6 +146,12 @@
         "/^@eslint-community\\//"
       ],
       "groupName": "eslint-stack"
+    },
+    {
+      "description": "The Renovate CLI pinned in ci.yml runs on the job's own Node, not hardhat's supported range: strict constraintsFiltering against the root `constraints.node` drops every renovate release.",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["renovate"],
+      "constraintsFiltering": "none"
     }
   ],
   "labels": ["dependencies", "no docs needed", "no peer bump needed"],

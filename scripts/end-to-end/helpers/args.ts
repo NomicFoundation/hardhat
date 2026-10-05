@@ -1,8 +1,27 @@
 import { log } from "node:console";
-import { normalizeScenarioPath } from "./directory.ts";
+import { normalizeScenarioPath, resolveInvocationPath } from "./directory.ts";
 import { ForceCheckout, ForcePublish, UseLocal } from "../subcommands/init.ts";
 
 export const DEFAULT_CLONE_DIR = "/tmp/end-to-end";
+
+export const CLONE_DIR_FLAG = "--e2e-clone-dir";
+
+/** The clone directory the user asked for, by flag or E2E_CLONE_DIR. */
+export function givenCloneDirectory(args: string[]): string | undefined {
+  return getArgValue(args, CLONE_DIR_FLAG) ?? process.env.E2E_CLONE_DIR;
+}
+
+/** The clone directory to use, DEFAULT_CLONE_DIR when none was given. */
+export function resolveCloneDirectory(given: string | undefined): string {
+  return resolveInvocationPath(given ?? DEFAULT_CLONE_DIR);
+}
+
+export function logCloneDirectoryDefault(): void {
+  log(
+    `No ${CLONE_DIR_FLAG} argument or E2E_CLONE_DIR environment variable provided, defaulting to:`,
+  );
+  log(`  ${resolveCloneDirectory(undefined)}`);
+}
 
 export function resolveAndValidateArgs(args: string[]) {
   const scenarioPathRaw =
@@ -29,8 +48,7 @@ export function resolveAndValidateArgs(args: string[]) {
     ? ForcePublish.Yes
     : ForcePublish.No;
 
-  let e2eCloneDirectory =
-    getArgValue(args, "--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR;
+  const givenCloneDir = givenCloneDirectory(args);
 
   const commandFlagCount = [initFlag, execFlag, cleanFlag].filter(
     (f) => f,
@@ -46,20 +64,15 @@ export function resolveAndValidateArgs(args: string[]) {
     );
   }
 
-  if (e2eCloneDirectory === undefined) {
-    e2eCloneDirectory = DEFAULT_CLONE_DIR;
-
-    log(
-      `No --e2e-clone-dir argument or E2E_CLONE_DIR environment variable provided, defaulting to:`,
-    );
-    log(`  ${DEFAULT_CLONE_DIR}`);
+  if (givenCloneDir === undefined) {
+    logCloneDirectoryDefault();
   }
 
   return {
     initFlag,
     execFlag,
     cleanFlag,
-    e2eCloneDirectory,
+    e2eCloneDirectory: resolveCloneDirectory(givenCloneDir),
     scenarioPath,
     command,
     useLocal,

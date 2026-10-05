@@ -20,7 +20,7 @@ function main() {
   );
   if (!fs.existsSync(pnpmLockfilePath)) {
     console.warn(
-      `${pnpmLockfilePath} doesn't exist, please run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json`,
+      `${pnpmLockfilePath} doesn't exist, please run: yq -p yaml -o json 'select(has("settings"))' pnpm-lock.yaml | tee pnpm-lock.json`,
     );
 
     process.exit(1);

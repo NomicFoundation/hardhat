@@ -52,8 +52,8 @@ describe("hhu utils constants tasks", () => {
       assert.deepEqual(capture.lines, ["-128", INT256_MIN]);
     });
 
-    // The full list of invalid types is covered by the max-value tests, which
-    // share the type parsing; this only checks that min-value validates too.
+    // Which type names are valid is covered by the parseIntType tests in
+    // hardhat-utils; this only checks that min-value rejects the invalid ones.
     it("throws when the type is not a valid Solidity integer type", async () => {
       await assertRejectsWithHardhatError(
         runMinValue({ type: "address" }),

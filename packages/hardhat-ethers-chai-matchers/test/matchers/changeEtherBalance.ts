@@ -622,6 +622,33 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
           );
         });
 
+        it("should throw when subject is not a transaction response", async () => {
+          await expect(
+            expect(123n).to.changeEtherBalance(ethers, sender, -200),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalance" must be a transaction response (or a promise of one)',
+          );
+
+          await expect(
+            expect(Promise.resolve(123n)).to.changeEtherBalance(
+              ethers,
+              sender,
+              -200,
+            ),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalance" must be a transaction response (or a promise of one)',
+          );
+
+          await expect(
+            expect(() => 123n).to.changeEtherBalance(ethers, sender, -200),
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'The subject of "changeEtherBalance" must be a transaction response (or a promise of one)',
+          );
+        });
+
         it("should throw if chained to another non-chainable method", () => {
           assertThrows(
             () =>

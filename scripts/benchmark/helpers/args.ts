@@ -1,14 +1,19 @@
-import { log } from "node:console";
-import { normalizeScenarioPath } from "../../end-to-end/helpers/directory.ts";
 import {
-  DEFAULT_CLONE_DIR,
+  normalizeScenarioPath,
+  resolveInvocationPath,
+} from "../../end-to-end/helpers/directory.ts";
+import {
   getArgValue,
+  givenCloneDirectory,
+  logCloneDirectoryDefault,
+  resolveCloneDirectory,
 } from "../../end-to-end/helpers/args.ts";
 import {
   ForceCheckout,
   ForcePublish,
   UseLocal,
 } from "../../end-to-end/subcommands/init.ts";
+import { parsePeakRssMethod, type PeakRssMethod } from "./peak-rss.ts";
 
 export interface BenchArgs {
   scenarioPath: string;
@@ -21,6 +26,11 @@ export interface BenchArgs {
   prepare: string | undefined;
   ignoreFailure: boolean;
   showOutput: boolean;
+  /**
+   * Explicit `--peak-rss` choice; undefined lets `resolvePeakRssMethod`
+   * auto-select.
+   */
+  peakRssMethod: PeakRssMethod | undefined;
   warmup: number;
   runs: number | undefined;
   exportJson: string | undefined;
@@ -52,6 +62,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
   const prepare = getArgValue(args, "--prepare");
   const ignoreFailure = args.includes("--ignore-failure");
   const showOutput = args.includes("--show-output");
+  const peakRssMethod = parsePeakRssMethod(args);
 
   const warmupRaw = getArgValue(args, "--warmup");
   const warmup = warmupRaw !== undefined ? parseInt(warmupRaw, 10) : 0;
@@ -70,18 +81,12 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     throw new Error("--runs must be a positive integer");
   }
 
-  const exportJson = getArgValue(args, "--export-json");
+  const exportJson = resolveInvocationPath(getArgValue(args, "--export-json"));
 
-  let e2eCloneDirectory =
-    getArgValue(args, "--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR;
+  const givenCloneDir = givenCloneDirectory(args);
 
-  if (e2eCloneDirectory === undefined) {
-    e2eCloneDirectory = DEFAULT_CLONE_DIR;
-
-    log(
-      `No --e2e-clone-dir argument or E2E_CLONE_DIR environment variable provided, defaulting to:`,
-    );
-    log(`  ${DEFAULT_CLONE_DIR}`);
+  if (givenCloneDir === undefined) {
+    logCloneDirectoryDefault();
   }
 
   return {
@@ -95,9 +100,10 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     prepare,
     ignoreFailure,
     showOutput,
+    peakRssMethod,
     warmup,
     runs,
     exportJson,
-    e2eCloneDirectory,
+    e2eCloneDirectory: resolveCloneDirectory(givenCloneDir),
   };
 }

@@ -3,9 +3,16 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
+import {
+  getArgValue,
+  givenCloneDirectory,
+  resolveCloneDirectory,
+} from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
-import { loadScenario } from "../end-to-end/helpers/directory.ts";
+import {
+  loadScenario,
+  resolveInvocationPath,
+} from "../end-to-end/helpers/directory.ts";
 import {
   ForceCheckout,
   ForcePublish,
@@ -38,8 +45,11 @@ import {
   type ReportPaths,
 } from "./helpers/runner.ts";
 import { shellQuote } from "./helpers/shell.ts";
+import { formatRun, runCounter } from "./helpers/report.ts";
 import {
   GNU_TIME_PATH,
+  parsePeakRssMethod,
+  PEAK_RSS_METHOD_NAMES,
   PeakRssMethod,
   resolvePeakRssMethod,
 } from "./helpers/peak-rss.ts";
@@ -67,6 +77,8 @@ DESCRIPTION
     // single command
     {
       "runs":    <positive integer>,    // measured runs (required)
+      "statistic": "mean" | "median"    // optional tracked value (default "mean"),
+                 | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
@@ -92,18 +104,24 @@ DESCRIPTION
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — single command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
-  entry with the total CPU time (user+system). Wall-clock entries carry
-  their per-run samples in the "extra" field; "(cpu)" entries carry their
-  mean user/system there instead.
+  entry with the total CPU time (user+system). Both carry their per-run
+  samples and statistics (times/min/max/median/mean) in the "extra" field;
+  the "(cpu)" entry nests the same shape per user/system split under
+  "user" and "system".
 
-  Every measured run is additionally wrapped in GNU time, whose %M reports
-  the exact peak RSS of the largest single process among the descendants
-  the wrapper waits for. This is emitted as a separate
-  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the mean
-  of the per-run peaks, with the peaks themselves and their statistics
+  Every measured run also records the peak RSS of the largest single
+  process in its tree, emitted as a separate
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
+  command's "statistic" (default mean) of the per-run peaks, with the peaks
+  themselves and their statistics
   (mean/stddev/min/max/median) in the entry's extra.
-  GNU time is required, so this benchmark is Linux-only: without
-  ${GNU_TIME_PATH} (Debian/Ubuntu package "time") it fails at startup.
+  The default method wraps each run in GNU time, whose %M reading is exact.
+  Without ${GNU_TIME_PATH} (Debian/Ubuntu package "time") the benchmark
+  fails at startup. "--peak-rss sampler" measures via /proc instead, which
+  can miss a short-lived peak. Both methods are Linux-only.
+
+  A relative path in any option resolves against the directory you ran
+  the command from.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -125,6 +143,7 @@ OPTIONS
                         potentially overwriting its current contents
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
+  --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -165,6 +184,7 @@ interface RegressionArgs {
   forcePublish: ForcePublish;
   e2eCloneDirectory: string;
   failFast: boolean;
+  peakRssMethod: PeakRssMethod;
 }
 
 interface ScenarioEntry {
@@ -174,7 +194,15 @@ interface ScenarioEntry {
 }
 
 async function main(): Promise<void> {
-  const args = resolveArgs(process.argv.slice(2));
+  let args: RegressionArgs | undefined;
+
+  try {
+    args = resolveArgs(process.argv.slice(2));
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return;
+  }
 
   if (args === undefined) {
     console.log(USAGE);
@@ -198,12 +226,14 @@ async function main(): Promise<void> {
   let peakRssMethod: PeakRssMethod;
 
   try {
-    peakRssMethod = resolvePeakRssMethod(PeakRssMethod.GnuTime);
+    peakRssMethod = resolvePeakRssMethod(args.peakRssMethod);
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
     return;
   }
+
+  log(`Peak RSS method: ${PEAK_RSS_METHOD_NAMES[peakRssMethod]}`);
 
   const results: BenchmarkEntry[] = [];
   const failures: string[] = [];
@@ -303,7 +333,7 @@ async function main(): Promise<void> {
   );
 }
 
-function resolveArgs(argv: string[]): RegressionArgs | undefined {
+export function resolveArgs(argv: string[]): RegressionArgs | undefined {
   const output = getArgValue(argv, "--output");
 
   if (output === undefined) {
@@ -335,13 +365,12 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
   const failFast = argv.includes("--fail-fast");
 
-  const e2eCloneDirectory =
-    getArgValue(argv, "--e2e-clone-dir") ??
-    process.env.E2E_CLONE_DIR ??
-    DEFAULT_CLONE_DIR;
+  const peakRssMethod = parsePeakRssMethod(argv) ?? PeakRssMethod.GnuTime;
+
+  const e2eCloneDirectory = resolveCloneDirectory(givenCloneDirectory(argv));
 
   return {
-    output: path.resolve(output),
+    output: resolveInvocationPath(output),
     scenarios,
     tag,
     benchmarks,
@@ -350,6 +379,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
     forcePublish,
     e2eCloneDirectory,
     failFast,
+    peakRssMethod,
   };
 }
 
@@ -572,7 +602,13 @@ async function runCommandPhase(
       },
     );
 
-    return measuredRunsToEntries(scenarioId, name, measured, peakRssMethod);
+    return measuredRunsToEntries(
+      scenarioId,
+      name,
+      measured,
+      peakRssMethod,
+      cfg.statistic,
+    );
   } catch (error) {
     throw benchmarkError(
       `${scenarioId} / ${name} failed`,
@@ -720,17 +756,6 @@ function benchmarkError(
   );
 }
 
-function formatRun(run: MeasuredRun): string {
-  return (
-    `${run.wallSeconds.toFixed(3)} s, cpu ${(run.user + run.system).toFixed(3)} s` +
-    (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
-  );
-}
-
-function runCounter(index: number, total: number): string {
-  return `${String(index + 1).padStart(String(total).length)}/${total}`;
-}
-
 // One report file set per command or step sequence, overwritten by each
 // run.
 function reportPaths(scenarioTmpDir: string, name: string): ReportPaths {
@@ -746,10 +771,6 @@ function writeOutput(outputPath: string, entries: BenchmarkEntry[]): void {
   writeFileSync(outputPath, JSON.stringify(entries, null, 2));
 }
 
-function getArgValue(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
+if (import.meta.main) {
+  await main();
 }
-
-await main();

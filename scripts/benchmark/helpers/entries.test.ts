@@ -35,6 +35,28 @@ describe("toEntries", () => {
     assertChartable(extra, WALL);
   });
 
+  it("tracks the median run and median peak when asked", () => {
+    const [time, mem] = toEntries("s", "x", WALL, [301, 315, 311], {
+      wall: "median",
+      cpu: "median",
+      peakRss: "median",
+    });
+
+    assert.equal(time.value, WALL.median);
+    assert.equal(mem.value, 311);
+  });
+
+  it("tracks each metric by its own statistic when given per metric", () => {
+    const [time, mem] = toEntries("s", "x", WALL, [301, 315, 311], {
+      wall: "median",
+      cpu: "mean",
+      peakRss: "mean",
+    });
+
+    assert.equal(time.value, WALL.median);
+    assert.equal(mem.value, 309);
+  });
+
   it("emits no memory entry without peaks", () => {
     assert.equal(toEntries("s", "x", WALL, undefined).length, 1);
     assert.equal(toEntries("s", "x", WALL, []).length, 1);
@@ -88,6 +110,33 @@ describe("measuredRunsToEntries", () => {
     assert.equal(entries[1].value, 150);
   });
 
+  it("tracks the median wall and cpu time when asked", () => {
+    const [time, cpu] = measuredRunsToEntries(
+      "s",
+      "x",
+      [run(1), run(2), run(6)],
+      undefined,
+      "median",
+    );
+
+    assert.equal(time.value, 2);
+    assert.equal(cpu.value, 2 / 2 + 2 / 4);
+  });
+
+  it("leaves metrics not named in a per-metric statistic on the mean", () => {
+    const [time, mem, cpu] = measuredRunsToEntries(
+      "s",
+      "x",
+      [run(1, 100), run(2, 200), run(6, 600)],
+      PeakRssMethod.GnuTime,
+      { wall: "median" },
+    );
+
+    assert.equal(time.value, 2);
+    assert.equal(mem.value, 300);
+    assert.equal(cpu.value, 3 / 2 + 3 / 4);
+  });
+
   it("emits only time and cpu entries when no method measured memory", () => {
     const entries = measuredRunsToEntries(
       "s",
@@ -123,24 +172,50 @@ describe("measuredRunsToEntries", () => {
 });
 
 describe("toCpuEntry", () => {
+  const USER = [1.0, 1.2, 1.9];
+  const SYSTEM = [0.4, 0.6, 0.5];
+  // Derived by hand, so a change to how totals are paired fails the tests.
+  // Mean and median differ, so a confusion of the two fails too.
+  const TOTALS = computeStats([1.0 + 0.4, 1.2 + 0.6, 1.9 + 0.5]);
+
   it("tracks the mean of per-run totals with their spread", () => {
-    const user = [1.0, 1.2];
-    const system = [0.4, 0.6];
-    const entry = toCpuEntry("scenario", "test", user, system);
+    const entry = toCpuEntry("scenario", "test", USER, SYSTEM);
 
     assert.equal(entry.name, "scenario / test (cpu)");
     assert.equal(entry.unit, "s");
-
-    const totals = computeStats([1.0 + 0.4, 1.2 + 0.6]);
-    assert.equal(entry.value, totals.mean);
-    assert.equal(entry.range, `± ${totals.stddev}`);
+    assert.equal(entry.value, TOTALS.mean);
+    assert.equal(entry.range, `± ${TOTALS.stddev}`);
   });
 
-  it("carries the mean user/system split in extra", () => {
-    const extra = JSON.parse(
-      toCpuEntry("s", "x", [1.0, 1.2], [0.4, 0.6]).extra,
-    );
+  it("tracks the median of per-run totals when asked", () => {
+    const entry = toCpuEntry("scenario", "test", USER, SYSTEM, "median");
 
-    assert.deepEqual(extra, { user: 1.1, system: 0.5 });
+    assert.equal(entry.value, TOTALS.median);
+  });
+
+  it("renders on the dashboard: per-run totals and statistics in extra", () => {
+    const extra = JSON.parse(toCpuEntry("s", "x", USER, SYSTEM).extra);
+
+    assert.deepEqual(extra.times, TOTALS.times);
+    assertChartable(extra, TOTALS);
+  });
+
+  it("carries the user/system split as per-run stats sub-objects", () => {
+    const extra = JSON.parse(toCpuEntry("s", "x", USER, SYSTEM).extra);
+
+    assert.deepEqual(extra.user, {
+      times: [1.0, 1.2, 1.9],
+      min: 1.0,
+      max: 1.9,
+      median: 1.2,
+      mean: (1.0 + 1.2 + 1.9) / 3,
+    });
+    assert.deepEqual(extra.system, {
+      times: [0.4, 0.6, 0.5],
+      min: 0.4,
+      max: 0.6,
+      median: 0.5,
+      mean: (0.4 + 0.6 + 0.5) / 3,
+    });
   });
 });

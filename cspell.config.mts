@@ -27,7 +27,12 @@ export default defineConfig({
     "packages/hardhat-vendored/{src,test}/**/*",
     "**/vendored/**/*",
     "**/vendor/**/*",
+    // The html report that the `coverage` feature writes into a project's
+    // coverage directory, including the fixture projects used to test it.
     "**/coverage/html/**/*",
+    // The c8 output of `test:coverage`. Anchored at a package's root so that
+    // the `coverage` feature's own sources keep being checked.
+    "packages/*/coverage",
     "**/artifacts/**/*.json",
     "**/artifacts/**/*.d.ts",
     "**/build-info/**/*",
