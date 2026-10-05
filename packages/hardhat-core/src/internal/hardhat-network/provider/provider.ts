@@ -285,7 +285,6 @@ export class EdrProviderWrapper
       observability: {
         includeCallTraces: IncludeTraces.All,
         recordStack: StackSnapshotType.Top,
-        includePrecompileCalls: true,
       },
       ownedAccounts,
       // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
