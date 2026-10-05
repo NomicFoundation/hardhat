@@ -136,6 +136,11 @@
       "groupName": null
     },
     {
+      "description": "pnpm is its own update rather than inside the npm minor/patch group, and moves the root packageManager field and the devcontainer's pnpmVersion together so the two cannot drift apart.",
+      "matchPackageNames": ["pnpm"],
+      "groupName": "pnpm"
+    },
+    {
       "description": "hardhat-ledger holds micro-eth-signer at 0.14 while the rest of the monorepo is on 0.19. 0.19 dropped the typed-data subpath and does not re-export encoder, which #signTypedData needs to derive the EIP-712 domain and struct hashes for signEIP712HashedMessage — the fallback for devices that cannot take a whole typed message. Scoped to this file: the hardhat package must stay free to move.",
       "matchFileNames": ["packages/hardhat-ledger/package.json"],
       "matchPackageNames": ["micro-eth-signer"],
@@ -157,6 +162,16 @@
       "matchManagers": ["custom.regex"],
       "matchDepNames": ["renovate"],
       "constraintsFiltering": "none"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "The devcontainer's pnpmVersion. The built-in devcontainer manager reads the node feature's version but not its pnpmVersion option.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.devcontainer/devcontainer\\.json$/"],
+      "matchStrings": ["\"pnpmVersion\":\\s*\"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "pnpm",
+      "datasourceTemplate": "npm"
     }
   ],
   "labels": ["dependencies", "no docs needed", "no peer bump needed"],
