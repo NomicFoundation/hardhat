@@ -159,8 +159,9 @@ export class EdrProviderWrapper
       _vm: MinimalEthereumJsVm;
     },
     private readonly _subscriptionConfig: SubscriptionConfig,
-    // Store the initial `genesisAccounts`, `cacheDir`, and `chainOverrides` for `hardhat_reset`
-    // calls, in case there is switching between local and fork configurations.
+    // Store the initial `genesisAccounts`, `cacheDir`, `chainOverrides`, and local-network
+    // genesis values for `hardhat_reset` calls, in case there is switching between local
+    // and fork configurations.
     private readonly _originalGenesisAccounts: GenesisAccount[],
     private readonly _originalCacheDir: string | undefined,
     private readonly _originalChainOverrides: ChainOverride[] | undefined,
@@ -210,22 +211,24 @@ export class EdrProviderWrapper
         ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
         : undefined;
 
-    const network =
-      config.forkConfig !== undefined
-        ? {
-            blockNumber:
-              config.forkConfig.blockNumber !== undefined
-                ? BigInt(config.forkConfig.blockNumber)
-                : undefined,
-            cacheDir,
-            chainOverrides,
-            httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
-            url: config.forkConfig.jsonRpcUrl,
-          }
-        : {
-            genesisBlockGasLimit,
-            genesisBlockTime,
-          };
+    let network;
+    if (config.forkConfig !== undefined) {
+      network = {
+        blockNumber:
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined,
+        cacheDir,
+        chainOverrides,
+        httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
+        url: config.forkConfig.jsonRpcUrl,
+      };
+    } else {
+      network = {
+        genesisBlockGasLimit,
+        genesisBlockTime,
+      };
+    }
 
     // EDR holds `subscriptionCallback` through a threadsafe function, which V8
     // cannot see through. A strong reference to the wrapper from that callback
