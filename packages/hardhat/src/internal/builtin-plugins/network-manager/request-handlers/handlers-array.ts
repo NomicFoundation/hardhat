@@ -1,3 +1,4 @@
+import type { TransactionSignerResolver } from "./handlers/accounts/transaction-signer-handler.js";
 import type { RequestHandler } from "./types.js";
 import type {
   ChainType,
@@ -12,6 +13,7 @@ import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-han
 import { FixedSenderHandler } from "./handlers/accounts/fixed-sender-handler.js";
 import { HDWalletHandler } from "./handlers/accounts/hd-wallet-handler.js";
 import { LocalAccountsHandler } from "./handlers/accounts/local-accounts.js";
+import { TransactionSignerHandler } from "./handlers/accounts/transaction-signer-handler.js";
 import { ChainIdValidatorHandler } from "./handlers/chain-id/chain-id-handler.js";
 import { AutomaticGasHandler } from "./handlers/gas/automatic-gas-handler.js";
 import { AutomaticGasPriceHandler } from "./handlers/gas/automatic-gas-price-handler.js";
@@ -20,12 +22,15 @@ import { FixedGasPriceHandler } from "./handlers/gas/fixed-gas-price-handler.js"
 
 /**
  * This function returns an handlers array based on the values in the NetworkConnection and NetworkConfig.
- * The order of the handlers, if all are present, is: chain handler, gas handlers (gasPrice first, then gas), sender handler and accounts handler.
+ * The order of the handlers, if all are present, is: chain handler, gas handlers (gasPrice first, then gas), sender handler, transaction signer handler and accounts handler.
  * The order is important to get a correct result when the handlers are executed.
  */
 export async function createHandlersArray<
   ChainTypeT extends ChainType | string,
->(networkConnection: NetworkConnection<ChainTypeT>): Promise<RequestHandler[]> {
+>(
+  networkConnection: NetworkConnection<ChainTypeT>,
+  resolveTransactionSigner: TransactionSignerResolver,
+): Promise<RequestHandler[]> {
   const requestHandlers = [];
 
   const networkConfig = networkConnection.networkConfig;
@@ -108,6 +113,15 @@ export async function createHandlersArray<
       new FixedSenderHandler(networkConnection.provider, networkConfig.from),
     );
   }
+
+  // This handler runs on every network, so plugins can sign for accounts that
+  // neither the node nor the local accounts know.
+  requestHandlers.push(
+    new TransactionSignerHandler(
+      networkConnection.provider,
+      resolveTransactionSigner,
+    ),
+  );
 
   if (networkConfig.type === "http") {
     const accounts = networkConfig.accounts;
