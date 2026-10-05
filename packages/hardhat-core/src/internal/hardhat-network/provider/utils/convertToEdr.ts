@@ -2,7 +2,6 @@ import type {
   L1Hardfork,
   MineOrdering,
   IntervalRange,
-  DebugTraceResult,
   TracingMessage,
   TracingMessageResult,
   TracingStep,
@@ -13,7 +12,6 @@ import { Address } from "@ethereumjs/util";
 import { requireNapiRsModule } from "../../../../common/napi-rs";
 import { HardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
-import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import {
   MinimalEVMResult,
   MinimalInterpreterStep,
