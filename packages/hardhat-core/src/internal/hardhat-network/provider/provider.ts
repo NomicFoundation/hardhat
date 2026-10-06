@@ -35,6 +35,7 @@ import * as t from "io-ts";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
+  FUSAKA_TRANSACTION_GAS_LIMIT,
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
@@ -255,6 +256,18 @@ export class EdrProviderWrapper
         : [precompileP256Verify()]
       : [];
 
+    // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
+    // when being run from `solidity-coverage`.
+    // We detect the magic number that `solidity-coverage` sets the block
+    // gas limit to, see https://github.com/sc-forks/solidity-coverage/blob/8e52fd7eae73803edf50c5af2faeeca8e5a57e27/lib/api.js#L55
+    // We turn it off the transaction gas limit by setting it
+    // to a large number (the same number `solidity-coverage` uses for
+    // setting gas).
+    const transactionGasCap =
+      config.blockGasLimit === 0x1fffffffffffff
+        ? BigInt(0xfffffffffffff)
+        : undefined;
+
     const edrProviderConfig = {
       allowBlocksWithSameTimestamp:
         config.allowBlocksWithSameTimestamp ?? false,
@@ -263,7 +276,11 @@ export class EdrProviderWrapper
       bailOnTransactionFailure: config.throwOnTransactionFailures,
       chainId: BigInt(config.chainId),
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      defaultTransactionGasLimit: BigInt(config.blockGasLimit),
+      defaultTransactionGasLimit: _resolveDefaultTransactionGasLimit(
+        hardforkName,
+        config.blockGasLimit,
+        transactionGasCap
+      ),
       precompileOverrides,
       genesisState,
       hardfork: edrHardfork,
@@ -287,17 +304,7 @@ export class EdrProviderWrapper
         recordStack: StackSnapshotType.Top,
       },
       ownedAccounts,
-      // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
-      // when being run from `solidity-coverage`.
-      // We detect the magic number that `solidity-coverage` sets the block
-      // gas limit to, see https://github.com/sc-forks/solidity-coverage/blob/8e52fd7eae73803edf50c5af2faeeca8e5a57e27/lib/api.js#L55
-      // We turn it off the transaction gas limit by setting it
-      // to a large number (the same number `solidity-coverage` uses for
-      // setting gas).
-      transactionGasCap:
-        config.blockGasLimit === 0x1fffffffffffff
-          ? BigInt(0xfffffffffffff)
-          : undefined,
+      transactionGasCap,
     };
 
     const edrLoggerConfig = {
@@ -708,6 +715,22 @@ function _addCompilationResultParams(
 
 function _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
   return validateParams(params, optionalRpcHardhatNetworkConfig);
+}
+
+function _resolveDefaultTransactionGasLimit(
+  hardfork: HardforkName,
+  blockGasLimit: number,
+  transactionGasCap: bigint | undefined
+): bigint {
+  if (transactionGasCap !== undefined) {
+    return transactionGasCap;
+  }
+
+  if (hardforkGte(hardfork, HardforkName.OSAKA)) {
+    return BigInt(Math.min(FUSAKA_TRANSACTION_GAS_LIMIT, blockGasLimit));
+  }
+
+  return BigInt(blockGasLimit);
 }
 
 function _genesisStateAndOwnedAccounts(
