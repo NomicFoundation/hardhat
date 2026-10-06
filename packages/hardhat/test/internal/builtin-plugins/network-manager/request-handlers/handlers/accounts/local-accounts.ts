@@ -971,6 +971,7 @@ describe("LocalAccountsHandler", () => {
           name: "only blobVersionedHashes",
           blobFields: { blobVersionedHashes: [blobVersionedHash] },
         },
+        { name: "type 0x3 and no blob fields", blobFields: { type: "0x3" } },
       ];
 
       for (const { name, blobFields } of testCases) {

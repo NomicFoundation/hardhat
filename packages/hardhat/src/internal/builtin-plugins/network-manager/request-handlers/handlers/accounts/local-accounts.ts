@@ -209,9 +209,10 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     if (jsonRpcRequest.method === "eth_sendTransaction" && params.length > 0) {
       const [txRequest] = validateParams(params, rpcTransactionRequest);
 
-      // We can't sign blob txs, and signing them as non-blob txs would drop
-      // their blobs silently
+      // We can't sign blob txs (type 3), and signing them as non-blob txs
+      // would drop their blobs silently
       if (
+        txRequest.type === 3n ||
         txRequest.blobs !== undefined ||
         txRequest.blobVersionedHashes !== undefined
       ) {

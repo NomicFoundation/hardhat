@@ -1245,7 +1245,7 @@ Please double check your transactions' parameters.`,
         messageTemplate:
           "Blob transactions (EIP-4844) can't be signed with locally managed accounts.",
         websiteTitle: "Blob transactions can't be signed locally",
-        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. You sent blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
+        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. Your transaction has type 0x3, blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
 
 Please sign the transaction yourself and send it with eth_sendRawTransaction, or send it from an account managed by your node.`,
       },
