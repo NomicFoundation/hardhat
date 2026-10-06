@@ -5,13 +5,13 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@12.6.0",
+  "packageManager": "pnpm@12.8.0",
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.1",
     "@types/node": "^24.1.0",
     "cspell": "10.0.1",
-    "prettier": "3.9.8",
+    "prettier": "3.9.9",
     "rimraf": "^6.1.3",
     "typescript": "~6.0.3",
     "verdaccio": "^6.8.0"

@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.1
+
+### Patch Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`ad49ec2`](https://github.com/NomicFoundation/hardhat/commit/ad49ec23136c8eb5a88024cb9b211a8b0b20ff11) Thanks [@schaable](https://github.com/schaable)! - Improved the constructor argument errors so `HHE80017` and `HHE80019` name the parameter that could not be encoded.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.1.0
 
 ### Minor Changes

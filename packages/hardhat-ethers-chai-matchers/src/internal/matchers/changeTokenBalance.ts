@@ -17,7 +17,7 @@ import {
   CHANGE_TOKEN_BALANCE_MATCHER,
 } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
-import { assertIsNotNull } from "../utils/asserts.js";
+import { assertIsNotNull, checkTransactionResponse } from "../utils/asserts.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
@@ -121,11 +121,27 @@ export function supportChangeTokenBalance(
 
       validateInput(this._obj, token, accounts, balanceChanges);
 
-      const balanceChangesPromise = Promise.all(
-        accounts.map((account) =>
-          getBalanceChange(ethers, subject, token, account),
-        ),
-      );
+      const balanceChangesPromise =
+        accounts.length === 0
+          ? (async () => {
+              const txResponse = await subject;
+              checkTransactionResponse(
+                txResponse,
+                CHANGE_TOKEN_BALANCES_MATCHER,
+              );
+              return [];
+            })()
+          : Promise.all(
+              accounts.map((account) =>
+                getBalanceChange(
+                  ethers,
+                  subject,
+                  token,
+                  account,
+                  CHANGE_TOKEN_BALANCES_MATCHER,
+                ),
+              ),
+            );
       const addressesPromise = Promise.all(accounts.map(getAddressOf));
 
       const checkBalanceChanges = ([
@@ -221,8 +237,11 @@ export async function getBalanceChange(
   transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Addressable | string,
+  matcherName: string = CHANGE_TOKEN_BALANCE_MATCHER,
 ): Promise<bigint> {
   const txResponse = await transaction;
+
+  checkTransactionResponse(txResponse, matcherName);
 
   const txReceipt = await txResponse.wait();
   assertIsNotNull(
