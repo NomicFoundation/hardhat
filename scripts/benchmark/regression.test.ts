@@ -76,6 +76,13 @@ describe("resolveArgs", () => {
     }
   });
 
+  it("rejects a missing --output", () => {
+    assert.throws(
+      () => resolveArgs(["--fail-fast"]),
+      /--output is required\nRun `pnpm bench:regression --help` for usage\./,
+    );
+  });
+
   it("rejects an unknown option", () => {
     assert.throws(
       () => resolveArgs(["--output", "x", "--scenario", "y"]),

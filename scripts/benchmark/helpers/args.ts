@@ -68,7 +68,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
   const scenarioPathRaw = values.scenario ?? process.env.E2E_SCENARIO;
 
   if (scenarioPathRaw === undefined) {
-    return undefined;
+    throw cliError(cli, "--scenario is required unless E2E_SCENARIO is set");
   }
 
   const warmupRaw = values.warmup;

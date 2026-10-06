@@ -101,6 +101,16 @@ describe("benchmark resolveAndValidateArgs", () => {
     }
   });
 
+  it("rejects a missing --scenario", () => {
+    assert.throws(
+      () =>
+        withEnv({ E2E_SCENARIO: undefined }, () =>
+          resolveAndValidateArgs(["--runs", "3"]),
+        ),
+      /--scenario is required unless E2E_SCENARIO is set\nRun `pnpm bench --help` for usage\./,
+    );
+  });
+
   it("rejects an unknown option", () => {
     assert.throws(
       () => resolveAndValidateArgs(["--scenario", "x", "--run", "3"]),

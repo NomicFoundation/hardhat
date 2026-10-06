@@ -7,7 +7,7 @@ import {
   givenCloneDirectory,
   resolveCloneDirectory,
 } from "../end-to-end/helpers/args.ts";
-import { parseCliArgs } from "../lib/cli-args.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import {
   loadScenario,
@@ -334,7 +334,7 @@ async function main(): Promise<void> {
 }
 
 export function resolveArgs(argv: string[]): RegressionArgs | undefined {
-  const parsed = parseCliArgs(argv, {
+  const cli = {
     command: "pnpm bench:regression",
     options: {
       output: { type: "string" },
@@ -348,7 +348,8 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
       "fail-fast": { type: "boolean" },
       "peak-rss": { type: "string" },
     },
-  } as const);
+  } as const;
+  const parsed = parseCliArgs(argv, cli);
 
   if (parsed === undefined) {
     return undefined;
@@ -357,7 +358,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
   const { values } = parsed;
 
   if (values.output === undefined) {
-    return undefined;
+    throw cliError(cli, "--output is required");
   }
 
   const scenarios =

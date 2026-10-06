@@ -42,7 +42,8 @@ DESCRIPTION
   the command from.
 
 OPTIONS
-  --scenario <path>     Scenario folder or scenario.json (required)
+  --scenario <path>     Scenario folder or scenario.json (required unless
+                        $E2E_SCENARIO is set)
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
   --init                Force (re-)initialization of the scenario even if it is
                         already set up. Without this flag, an existing setup is
