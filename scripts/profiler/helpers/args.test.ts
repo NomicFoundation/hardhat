@@ -1,27 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  getAllArgValues,
-  parseEnvPairs,
-  parseMode,
-  parseSampleRate,
-} from "./args.ts";
-
-describe("getAllArgValues", () => {
-  it("collects every occurrence in order", () => {
-    assert.deepEqual(
-      getAllArgValues(
-        ["--scenario", "a", "--mode", "js", "--scenario", "b"],
-        "--scenario",
-      ),
-      ["a", "b"],
-    );
-  });
-
-  it("returns an empty array when absent", () => {
-    assert.deepEqual(getAllArgValues(["--mode", "js"], "--scenario"), []);
-  });
-});
+import { parseEnvPairs, parseMode, parseSampleRate } from "./args.ts";
 
 describe("parseEnvPairs", () => {
   it("parses KEY=VALUE pairs, allowing = in values", () => {

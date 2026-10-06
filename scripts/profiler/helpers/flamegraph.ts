@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { getArgValue, isHelpRequested, parsePositionalArgs } from "./args.ts";
+import { cliError, parseCliArgs } from "../../lib/cli-args.ts";
 import { shellQuote } from "./shell.ts";
 import { toolAvailable } from "./perf-check.ts";
 
@@ -70,33 +70,42 @@ interface FlamegraphArgs {
 }
 
 export function resolveArgs(args: string[]): FlamegraphArgs | undefined {
-  if (args.length === 0 || isHelpRequested(args)) {
+  const cli = {
+    command: "pnpm profiler:flamegraph",
+    options: {
+      output: { type: "string" },
+      title: { type: "string" },
+    },
+    allowPositionals: true,
+  } as const;
+  const parsed = parseCliArgs(args, cli);
+
+  if (parsed === undefined) {
     return undefined;
   }
 
-  const positional = parsePositionalArgs(args, ["--output", "--title"]);
+  const [subcommand, runDir] = parsed.positionals;
 
-  if (positional.length === 0) {
-    throw new Error("missing subcommand (expected: render or fold)");
+  if (subcommand === undefined) {
+    throw cliError(cli, "missing subcommand (expected: render or fold)");
   }
 
-  const [subcommand, runDir] = positional;
-
   if (subcommand !== Subcommand.Render && subcommand !== Subcommand.Fold) {
-    throw new Error(
+    throw cliError(
+      cli,
       `unknown subcommand "${subcommand}" (expected: render or fold)`,
     );
   }
 
-  if (positional.length !== 2 || runDir === undefined) {
-    throw new Error(`${subcommand} expects exactly one <run-dir>`);
+  if (parsed.positionals.length !== 2 || runDir === undefined) {
+    throw cliError(cli, `${subcommand} expects exactly one <run-dir>`);
   }
 
   return {
     subcommand,
     runDir,
-    output: getArgValue(args, "--output"),
-    title: getArgValue(args, "--title"),
+    output: parsed.values.output,
+    title: parsed.values.title,
   };
 }
 

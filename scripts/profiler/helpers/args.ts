@@ -1,9 +1,3 @@
-import {
-  getArgValue,
-  isHelpRequested,
-  parsePositionalArgs,
-} from "../../end-to-end/helpers/args.ts";
-
 export const Mode = {
   Both: "both",
   Js: "js",
@@ -13,19 +7,6 @@ export const Mode = {
 export type Mode = (typeof Mode)[keyof typeof Mode];
 
 export const DEFAULT_SAMPLE_RATE_HZ = 999;
-
-/** Collects every value of a repeatable flag, in order. */
-export function getAllArgValues(args: string[], flag: string): string[] {
-  const values: string[] = [];
-
-  for (let i = 0; i < args.length - 1; i++) {
-    if (args[i] === flag) {
-      values.push(args[i + 1]);
-    }
-  }
-
-  return values;
-}
 
 /** Parses repeated `KEY=VALUE` pairs into an environment record. */
 export function parseEnvPairs(pairs: string[]): Record<string, string> {
@@ -74,5 +55,3 @@ export function parseSampleRate(value: string | undefined): number {
 
   return rate;
 }
-
-export { getArgValue, isHelpRequested, parsePositionalArgs };

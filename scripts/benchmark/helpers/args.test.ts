@@ -104,14 +104,14 @@ describe("benchmark resolveAndValidateArgs", () => {
   it("rejects an unknown option", () => {
     assert.throws(
       () => resolveAndValidateArgs(["--scenario", "x", "--run", "3"]),
-      /unknown option: --run/,
+      /Unknown option '--run'/,
     );
   });
 
   it("rejects a positional argument", () => {
     assert.throws(
       () => resolveAndValidateArgs(["--scenario", "x", "--init", "stray"]),
-      /unexpected argument: stray/,
+      /Unexpected argument 'stray'/,
     );
   });
 });

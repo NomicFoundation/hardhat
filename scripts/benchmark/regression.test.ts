@@ -79,14 +79,14 @@ describe("resolveArgs", () => {
   it("rejects an unknown option", () => {
     assert.throws(
       () => resolveArgs(["--output", "x", "--scenario", "y"]),
-      /unknown option: --scenario/,
+      /Unknown option '--scenario'/,
     );
   });
 
   it("rejects a positional argument", () => {
     assert.throws(
       () => resolveArgs(["--output", "x", "--fail-fast", "stray"]),
-      /unexpected argument: stray/,
+      /Unexpected argument 'stray'/,
     );
   });
 });
