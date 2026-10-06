@@ -169,8 +169,9 @@ jobs:
       - name: Build All Packages
         run: pnpm run --recursive --no-bail --filter './packages/**' --if-present build
 
+      # hardhat-slang is excluded, once part of core this filter can be dropped
       - name: Publish All Packages (dry-run) and save list of packages that need publishing
-        run: pnpm publish --filter "./packages/**" -r --no-git-checks --access public --dry-run --report-summary
+        run: pnpm publish --filter "./packages/**" --filter "!@nomicfoundation/hardhat-slang" -r --no-git-checks --access public --dry-run --report-summary
 
       - name: Store the package list to be published
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
