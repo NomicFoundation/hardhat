@@ -1240,6 +1240,15 @@ Please double check your transactions' parameters.`,
         websiteDescription:
           "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
       },
+      BLOB_TX_CANNOT_BE_SIGNED_LOCALLY: {
+        number: 725,
+        messageTemplate:
+          "Blob transactions (EIP-4844) can't be signed with locally managed accounts.",
+        websiteTitle: "Blob transactions can't be signed locally",
+        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. Your transaction has type 0x3, blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
+
+Please sign the transaction yourself and send it with eth_sendRawTransaction, or send it from an account managed by your node.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
