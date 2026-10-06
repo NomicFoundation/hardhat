@@ -3,6 +3,7 @@ import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertIsHardhatError,
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -728,6 +729,100 @@ describe("LocalAccountsHandler", () => {
         HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
         {},
       );
+    });
+
+    it("should throw if 'authorizationList' is defined and 'to' is undefined", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(100000),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+          data: "0x1234",
+          chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+          maxFeePerGas: numberToHexString(12),
+          maxPriorityFeePerGas: numberToHexString(2),
+          authorizationList: [
+            {
+              chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+              nonce: numberToHexString(1),
+              address: "0x1234567890123456789012345678901234567890",
+              yParity: "0x1",
+              r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+              s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+            },
+          ],
+        },
+      ]);
+
+      await assertRejectsWithHardhatError(
+        () => localAccountsHandler.handle(jsonRpcRequest),
+        HardhatError.ERRORS.CORE.NETWORK.EIP7702_TX_CANNOT_CREATE_CONTRACT,
+        {},
+      );
+    });
+
+    it("should throw if 'authorizationList' is empty", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(100000),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+          chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+          maxFeePerGas: numberToHexString(12),
+          maxPriorityFeePerGas: numberToHexString(2),
+          authorizationList: [],
+        },
+      ]);
+
+      await assertRejectsWithHardhatError(
+        () => localAccountsHandler.handle(jsonRpcRequest),
+        HardhatError.ERRORS.CORE.NETWORK.EMPTY_EIP7702_AUTHORIZATION_LIST,
+        {},
+      );
+    });
+
+    it("should throw with the reasons if micro-eth-signer rejects some tx fields", async () => {
+      // micro-eth-signer limits the initcode to 524,288 bytes
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(30_000_000),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+          data: `0x${"00".repeat(524_289)}`,
+          chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+          maxFeePerGas: numberToHexString(12),
+          maxPriorityFeePerGas: numberToHexString(2),
+        },
+      ]);
+
+      try {
+        await localAccountsHandler.handle(jsonRpcRequest);
+      } catch (error) {
+        assertIsHardhatError(
+          error,
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_TX_PARAMS_TO_SIGN_LOCALLY,
+          // The reported size is the number of hex characters
+          { errors: "\t* data: initcode is too big: 1048578" },
+        );
+
+        // The original micro-eth-signer error is kept as the cause
+        assert.ok(
+          error.cause instanceof Error,
+          "The error should have a cause",
+        );
+        assert.ok("errors" in error.cause, "The cause should list the errors");
+        assert.deepEqual(error.cause.errors, [
+          { field: "data", error: "initcode is too big: 1048578" },
+        ]);
+
+        return;
+      }
+
+      assert.fail("Function did not throw any error");
     });
 
     it("should send access list transactions", async () => {
