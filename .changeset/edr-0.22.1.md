@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Upgraded EDR to v0.22.1.
+Upgraded EDR to v0.22.2.
