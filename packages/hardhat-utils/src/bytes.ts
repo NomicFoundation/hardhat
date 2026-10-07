@@ -1,6 +1,11 @@
+import { constants as bufferConstants } from "node:buffer";
 import { Readable } from "node:stream";
 
 import { buildLpsTable, parseJsonStream } from "./internal/bytes.js";
+import {
+  hasHeapHeadroomFor,
+  READ_HEAP_BYTES_PER_JSON_BYTE,
+} from "./internal/json.js";
 
 /**
  * Checks if a value is an instance of Uint8Array.
@@ -110,27 +115,27 @@ export function bytesIncludesUtf8String(
 /**
  * Parses UTF-8 encoded JSON bytes into a value.
  *
- * Payloads that fit in a single string are decoded and parsed with
- * `JSON.parse`, which is much faster. Payloads too large to be held in a
- * single string are parsed as a stream instead, which decodes and parses
- * incrementally rather than materializing the whole payload as one string.
+ * The bytes are decoded and parsed with `JSON.parse`, which is much faster,
+ * when the decoded text fits in a single string and the heap has room for it.
+ * Otherwise, they are parsed as a stream, which never holds the whole text as
+ * one string. Both give the same result.
  *
  * @param bytes The UTF-8 encoded JSON bytes.
  * @returns The parsed JSON object.
  */
 export async function parseJsonBytes<T>(bytes: Uint8Array): Promise<T> {
-  let json: string;
-  try {
-    json = bytesToUtf8String(bytes);
-  } catch {
-    // `bytesToUtf8String` decodes non-fatally, so it never throws on malformed
-    // bytes; its only failure mode is a payload larger than the maximum string
-    // length the runtime can hold. Stream parsing handles those, as it never
-    // materializes the whole payload as a single string.
+  // Each UTF-8 byte decodes to at most one character, so this also guarantees
+  // that the text fits in a string. Everything from the heap check on is
+  // synchronous, so no other code can use memory in between.
+  if (
+    bytes.length > bufferConstants.MAX_STRING_LENGTH ||
+    !hasHeapHeadroomFor(bytes.length * READ_HEAP_BYTES_PER_JSON_BYTE)
+  ) {
     return await parseJsonStream<T>(Readable.from([bytes]));
   }
 
-  return JSON.parse(json);
+  // `bytesToUtf8String` skips a leading BOM, like the stream parser does.
+  return JSON.parse(bytesToUtf8String(bytes));
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";
