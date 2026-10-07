@@ -15,6 +15,7 @@ import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getFullyQualifiedName,
   parseFullyQualifiedName,
+  parseName,
 } from "../../../utils/contract-names.js";
 
 import {
@@ -196,40 +197,86 @@ export function parseFunctionGasSnapshots(
 
   const lines = stringifiedSnapshots.split("\n");
   const snapshots: FunctionGasSnapshot[] = [];
+  const snapshotKeys = new Set<string>();
 
-  const standardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;
-  const fuzzTestRegex = /^(.+)#(.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+  const hardhatStandardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;
+  const hardhatFuzzTestRegex =
+    /^(.+)#(.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+
+  // Forge uses `:` as the separator. Requiring a function signature with
+  // parentheses keeps a truncated Hardhat FQN such as
+  // `contracts/Token.sol:Token (gas: 123)` from being accepted as a Forge row.
+  const forgeStandardTestRegex = /^(.+):([^:]+\([^:]*\)) \(gas: (\d+)\)$/;
+  const forgeFuzzTestRegex =
+    /^(.+):([^:]+\([^:]*\)) \(runs: (\d+), μ: (\d+), ~: (\d+)(?:, failed corpus replays: \d+)?\)$/;
+  const forgeInvariantTestRegex =
+    /^(.+):([^:]+\([^:]*\)) \(runs: \d+, calls: \d+, reverts: \d+(?:, failed corpus replays: \d+)?\)$/;
+
+  const expectedFormat =
+    "'ContractName#functionName (gas: value)' or 'ContractName:functionName() (gas: value)' for standard tests, or the same with '(runs: value, μ: value, ~: value)' for fuzz tests; entries must be unique";
+
+  const addSnapshot = (snapshot: FunctionGasSnapshot, line: string): void => {
+    const key = `${snapshot.contractNameOrFqn}#${snapshot.functionSig}`;
+    if (snapshotKeys.has(key)) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_FORMAT,
+        {
+          file: FUNCTION_GAS_SNAPSHOTS_FILE,
+          line,
+          expectedFormat,
+        },
+      );
+    }
+
+    snapshotKeys.add(key);
+    snapshots.push(snapshot);
+  };
 
   for (const line of lines) {
     if (line.trim() === "") {
       continue;
     }
 
-    const standardMatch = standardTestRegex.exec(line);
-    if (standardMatch !== null) {
-      const [, contractNameOrFqn, functionSig, gasValue] = standardMatch;
-      snapshots.push({
-        contractNameOrFqn,
-        functionSig,
-        gasUsage: { kind: "standard", gas: BigInt(gasValue) },
-      });
+    // Hardhat does not currently collect invariant gas snapshots. Ignore
+    // Forge-only invariant rows so the supported standard and fuzz rows in a
+    // Forge baseline can still be compared.
+    if (forgeInvariantTestRegex.test(line)) {
       continue;
     }
 
-    const fuzzMatch = fuzzTestRegex.exec(line);
+    const standardMatch =
+      hardhatStandardTestRegex.exec(line) ?? forgeStandardTestRegex.exec(line);
+    if (standardMatch !== null) {
+      const [, contractNameOrFqn, functionSig, gasValue] = standardMatch;
+      addSnapshot(
+        {
+          contractNameOrFqn,
+          functionSig,
+          gasUsage: { kind: "standard", gas: BigInt(gasValue) },
+        },
+        line,
+      );
+      continue;
+    }
+
+    const fuzzMatch =
+      hardhatFuzzTestRegex.exec(line) ?? forgeFuzzTestRegex.exec(line);
     if (fuzzMatch !== null) {
       const [, contractNameOrFqn, functionSig, runs, meanGas, medianGas] =
         fuzzMatch;
-      snapshots.push({
-        contractNameOrFqn,
-        functionSig,
-        gasUsage: {
-          kind: "fuzz",
-          runs: BigInt(runs),
-          meanGas: BigInt(meanGas),
-          medianGas: BigInt(medianGas),
+      addSnapshot(
+        {
+          contractNameOrFqn,
+          functionSig,
+          gasUsage: {
+            kind: "fuzz",
+            runs: BigInt(runs),
+            meanGas: BigInt(meanGas),
+            medianGas: BigInt(medianGas),
+          },
         },
-      });
+        line,
+      );
       continue;
     }
 
@@ -238,8 +285,7 @@ export function parseFunctionGasSnapshots(
       {
         file: FUNCTION_GAS_SNAPSHOTS_FILE,
         line,
-        expectedFormat:
-          "'ContractName#functionName (gas: value)' for standard tests or 'ContractName#functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+        expectedFormat,
       },
     );
   }
@@ -259,13 +305,63 @@ export function compareFunctionGasSnapshots(
     ]),
   );
 
+  const currentUnqualifiedKeyCounts = new Map<string, number>();
+  for (const current of currentSnapshots) {
+    const { contractName } = parseName(current.contractNameOrFqn);
+    const key = `${contractName}#${current.functionSig}`;
+    currentUnqualifiedKeyCounts.set(
+      key,
+      (currentUnqualifiedKeyCounts.get(key) ?? 0) + 1,
+    );
+  }
+
   const added: FunctionGasSnapshot[] = [];
   const changed: FunctionGasSnapshotChange[] = [];
   const tolerated: FunctionGasSnapshotChange[] = [];
 
   for (const current of currentSnapshots) {
     const key = `${current.contractNameOrFqn}#${current.functionSig}`;
-    const previous = previousSnapshotsMap.get(key);
+    let previousKey = key;
+    let previous = previousSnapshotsMap.get(previousKey);
+
+    if (previous === undefined && current.contractNameOrFqn.includes(":")) {
+      const { contractName } = parseFullyQualifiedName(
+        current.contractNameOrFqn,
+      );
+      const unqualifiedKey = `${contractName}#${current.functionSig}`;
+      const unqualifiedKeyCount =
+        currentUnqualifiedKeyCounts.get(unqualifiedKey) ?? 0;
+
+      // Forge always writes bare contract names. Match a Forge-style key to a
+      // Hardhat FQN only when a single current result has that bare key.
+      if (unqualifiedKeyCount === 1) {
+        previousKey = unqualifiedKey;
+        previous = previousSnapshotsMap.get(previousKey);
+      } else if (
+        unqualifiedKeyCount > 1 &&
+        previousSnapshotsMap.has(unqualifiedKey)
+      ) {
+        const matchingContracts = currentSnapshots
+          .filter(({ contractNameOrFqn, functionSig }) => {
+            return (
+              parseName(contractNameOrFqn).contractName === contractName &&
+              functionSig === current.functionSig
+            );
+          })
+          .map(({ contractNameOrFqn }) => contractNameOrFqn)
+          .join(", ");
+
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .AMBIGUOUS_SNAPSHOT_CONTRACT_NAME,
+          {
+            contractName,
+            functionSig: current.functionSig,
+            matchingContracts,
+          },
+        );
+      }
+    }
     const currentKind = current.gasUsage.kind;
     const previousKind = previous?.gasUsage.kind;
 
@@ -308,7 +404,7 @@ export function compareFunctionGasSnapshots(
         changed.push(change);
       }
     }
-    previousSnapshotsMap.delete(key);
+    previousSnapshotsMap.delete(previousKey);
   }
 
   const removed = Array.from(previousSnapshotsMap.values());

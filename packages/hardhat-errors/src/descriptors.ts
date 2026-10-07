@@ -1468,6 +1468,13 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
 
 Declare it under \`test.solidity.profiles\`, or select one of the profiles you already declared.`,
       },
+      AMBIGUOUS_SNAPSHOT_CONTRACT_NAME: {
+        number: 823,
+        messageTemplate: `The gas snapshot entry {contractName}:{functionSig} is ambiguous because it matches multiple contracts: {matchingContracts}. Regenerate the snapshot with Hardhat so fully qualified contract names are recorded.`,
+        websiteTitle: "Ambiguous gas snapshot contract name",
+        websiteDescription:
+          "A gas snapshot with a bare contract name matches multiple contracts in the project. Regenerate the snapshot with Hardhat so the entries use fully qualified contract names.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

@@ -12,6 +12,7 @@ import {
   exists,
   readJsonFile,
   readUtf8File,
+  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
@@ -321,6 +322,30 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
+      });
+
+      it("should pass without rewriting an unchanged Forge gas snapshot", async () => {
+        const suiteResults = [
+          createSuiteResult("MyContract", [
+            createStandardTestResult("testA()", 10000n),
+          ]),
+        ];
+        const forgeSnapshot = "MyContract:testA() (gas: 10000)";
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        await writeUtf8File(snapshotPath, forgeSnapshot);
+
+        const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+          tmp.path,
+          suiteResults,
+          0,
+        );
+
+        assert.equal(functionGasSnapshotsCheck.passed, true);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
+        assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
+        assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
+        assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
+        assert.equal(await readUtf8File(snapshotPath), forgeSnapshot);
       });
 
       it("should fail when function gas changes", async () => {
