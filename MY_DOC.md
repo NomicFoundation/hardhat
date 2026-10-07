@@ -6,12 +6,12 @@ Ledger's developer news states that in **September 2026** the Ethereum app drops
 
 # Product & user impact
 
-No configuration changes. Every method that worked before still works, with the same config, the same error codes and the same derivation-path cache file. Only two retry messages changed: they no longer tell you to open the Ethereum app, because it now opens itself. The plugin also prints what the device is waiting for: unlocking it, confirming that the Ethereum app opens, reviewing the transaction, message or typed data, or answering the Transaction Check opt-in.
+No configuration changes. Every method that worked before still works, with the same config, the same error codes and the same derivation-path cache file. Only three retry messages changed: two no longer tell you to open the Ethereum app, because it now opens itself, and a device that drops mid-request and does not come back is reported as not reconnecting, instead of the user being told to plug it in and enter the PIN. The plugin also prints what the device is waiting for: unlocking it, confirming that the Ethereum app opens, reviewing the transaction, message or typed data, or answering the Transaction Check opt-in.
 
 Three things behave differently:
 
 - **The plugin now talks to Ledger's servers** On every transaction and typed-data signature the DMK asks Ledger for display metadata and reports each signing event to Ledger's analytics endpoint; the old plugin only asked Ledger for typed-data display filters, and Ledger refuses that request today anyway. Without an origin token (see next section for more details [LINK_LINK]), which the plugin does not have, the visible effects are: ERC-20 and NFT transfers show the token or collection and the amount instead of raw data, recipients with an ENS name show that name, and every device except the Nano S shows the network name, with its icon on touchscreen devices. Everything else looks as it does today. Behaviors to be aware of lists what is sent and what an origin token would add.
-- **The Ethereum app opens itself** Before, if the device was on its home screen or in another app, the request failed and Hardhat retried until the user opened the Ethereum app by hand. Now the DMK opens it as the first step of each request, closing any other app first; at most the device asks the user to confirm. A locked device still has to be unlocked by the user.
+- **The Ethereum app opens itself** Before, if the device was on its home screen or in another app, the request failed and Hardhat retried until the user opened the Ethereum app by hand. Now the DMK opens it as the first step of each request, closing any other app first; at most the device asks the user to confirm. Opening it makes the device reconnect over USB. A locked device still has to be unlocked by the user.
 - **Hardhat no longer exits on its own after using the Ledger** Today Hardhat exits as soon as the script ends: the old library holds nothing while idle, so the connection never needs closing. The DMK keeps the USB session to the device open, and Node cannot exit while it is. Scripts must end with `await connection.close()`, as the README explains. Hardhat Ignition's tasks close the connection for you, so update `hardhat-ignition` together with `hardhat-ledger`. [LINK_LINK] Technical Design explains why, and Alternatives considered what else was tried.
 
 # Behaviors to be aware of
@@ -58,7 +58,7 @@ Three things behave differently:
 - Keep every supported JSON-RPC method working on current and future Ledger Ethereum app versions: `eth_accounts`, `personal_sign`, `eth_sign`, `eth_signTypedData_v4`, `eth_sendTransaction`.
 - Replace all `@ledgerhq/hw-*` dependencies with the DMK stack.
 - Never return a signature over something other than what the caller asked for.
-- Preserve the user-facing config, error messages and retry behaviour.
+- Preserve the user-facing config, error messages and retry behaviour, except that a reconnect waits 10 seconds for the device instead of 3.
 
 # Non-goals
 
@@ -68,11 +68,13 @@ Three things behave differently:
 
 # Technical Design
 
-All Ledger-specific code sits behind one seam, before and after the migration: nothing outside the signing handler and its helpers knows which Ledger library is in use. Every old call has a direct DMK equivalent, so the migration is mechanical except for four parts.
+All Ledger-specific code sits behind one seam, before and after the migration: nothing outside the signing handler and its helpers knows which Ledger library is in use. Every old call has a direct DMK equivalent, so the migration is mechanical except for five parts.
 
 **Observables instead of promises.** Every DMK signer call returns a stream of device-action states instead of a promise that resolves or rejects. A small adapter turns each stream back into a promise, so the handler's retry logic is unchanged. The pending states also say what the device is waiting for, which is how we can print "Review and approve the transaction on your Ledger device".
 
 **Errors are tagged objects, not `Error`s.** The DMK reports a failure as an object with a tag string that does not extend `Error`. The plugin wraps it and classifies by tag into three sets: retry the connection, device not ready, device not connected. One trap: one DMK error is exported under one name and tagged with another, so both spellings are matched. "Ethereum app not open" is no longer an error at all, because the DMK opens the app itself.
+
+**Device discovery polls.** The DMK's node-hid transport misses a device that reconnects over USB, which happens whenever the Ethereum app opens: it lists the HID devices as soon as the USB device appears, finds none yet, and never updates its device list. The plugin asks for the list again every 500 ms. The DMK waits 6 seconds for a reconnecting device before dropping its session, and slower USB stacks take longer, so after a session drops mid-request the plugin waits 10 seconds for the device instead of the usual 3.
 
 **Typed data is verified after the device signs it.** The DMK encodes typed data itself, and falls back to an ethers encoder when it cannot, or when the device returns an error. Both encoders silently mis-encode some valid-looking inputs, so the device signs a different message than the caller sent, and the user cannot see the difference. Instead of predicting every such input, the handler recovers the signer from the signature and the caller's own data, using a hashing library the plugin already depends on. If the device signed anything else, the recovered address is not the user's account and the signature is refused. That catches every mis-encoding, known or not, and any future regression in the DMK.
 
@@ -92,11 +94,11 @@ The last row is nearly the only validation left before the device is asked: pars
 
 Closing is therefore explicit, in three pieces:
 
-1. Closing the network connection releases everything: the plugin cancels any device action still running (the DMK does not stop it when its session closes, and the request that started it then fails with the closed-connection error), closes the device session and, once no other open connection is using it, destroys the transport. A connection attempt that gives up ("no Ledger plugged in") releases the kit too, and neither a pending retry wait nor an in-flight request can keep the process alive past the close.
+1. Closing the network connection releases everything: the plugin cancels any device action still running (the DMK does not stop it when its session closes, and the request that started it then fails with the closed-connection error), closes the device session and, once no other open connection is using it, destroys the transport. A connection attempt that gives up ("no Ledger plugged in") releases the kit too, and neither a pending retry wait nor an in-flight request can keep the process alive past the close, except that a device search already under way runs to its timeout (at most 10 seconds).
 2. The README tells scripts to end with `await connection.close()`. The plugin prints no reminder, because it would show on every connection, including in scripts that already close it.
 3. Hardhat Ignition's deploy, track-tx and verify tasks close their connection when they finish. Adding the call to the Hardhat templates' scripts is a follow-up. No peer dependency ties `hardhat-ledger` to `hardhat-ignition`, so both changesets say to update them together.
 
-On the device this is exactly the current release: connect once, sign, reconnect only after a device error. A script that forgets to close the connection hangs until Ctrl+C.
+On the device this is exactly the current release: connect once, sign, reconnect only after a device error, such as a session lost while the Ethereum app opens. A script that forgets to close the connection hangs until Ctrl+C.
 
 **Dependencies.** The six LedgerJS packages are replaced by four DMK packages: the kit, the Ethereum signer, the node-hid transport and the context module, the last one only because the signer declares it as a peer dependency. `rxjs` becomes a direct dependency pinned to exactly `7.8.2`, not a range: the kit and the transport declare it as a peer dependency at that exact version, so a range would drift off the peer as soon as a newer `rxjs` is published and leave pnpm warning or installing a second copy. The plugin's own code imports `rxjs` only for its types. `node-gyp` stays, for `node-hid`.
 
