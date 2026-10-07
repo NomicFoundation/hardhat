@@ -21,6 +21,7 @@ import {
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
 import type {
   CommandVariant,
+  Scenario,
   ScenarioDefinition,
   StepsVariant,
 } from "../end-to-end/types.ts";
@@ -29,6 +30,7 @@ import {
   matchesAny,
   parseGlobList,
   planCommands,
+  type PlannedCommand,
 } from "./helpers/plan.ts";
 import {
   CommandFailedError,
@@ -516,46 +518,53 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  return withReportDir(
-    `hardhat-regression-${scenario.id}-`,
-    async (scenarioTmpDir) => {
-      const entries: BenchmarkEntry[] = [];
-
-      for (const planned of plan) {
-        if ("run" in planned) {
-          entries.push(
-            ...(await runStepsPhase(
-              scenario.id,
-              scenarioTmpDir,
-              loaded.workingDir,
-              loaded.definition.env,
-              planned.name,
-              planned.cfg,
-              new Set(planned.run),
-              new Set(planned.once),
-              new Set(planned.emit),
-              peakRssMethod,
-            )),
-          );
-        } else {
-          entries.push(
-            ...(await runCommandPhase(
-              scenario.id,
-              scenarioTmpDir,
-              loaded.workingDir,
-              loaded.definition.env,
-              planned.name,
-              planned.cfg,
-              planned.emit,
-              peakRssMethod,
-            )),
-          );
-        }
-      }
-
-      return entries;
-    },
+  return withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
+    runPhases(scenario.id, scenarioTmpDir, loaded, plan, peakRssMethod),
   );
+}
+
+async function runPhases(
+  scenarioId: string,
+  scenarioTmpDir: string,
+  loaded: Scenario,
+  plan: PlannedCommand[],
+  peakRssMethod: PeakRssMethod,
+): Promise<BenchmarkEntry[]> {
+  const entries: BenchmarkEntry[] = [];
+
+  for (const planned of plan) {
+    if ("run" in planned) {
+      entries.push(
+        ...(await runStepsPhase(
+          scenarioId,
+          scenarioTmpDir,
+          loaded.workingDir,
+          loaded.definition.env,
+          planned.name,
+          planned.cfg,
+          new Set(planned.run),
+          new Set(planned.once),
+          new Set(planned.emit),
+          peakRssMethod,
+        )),
+      );
+    } else {
+      entries.push(
+        ...(await runCommandPhase(
+          scenarioId,
+          scenarioTmpDir,
+          loaded.workingDir,
+          loaded.definition.env,
+          planned.name,
+          planned.cfg,
+          planned.emit,
+          peakRssMethod,
+        )),
+      );
+    }
+  }
+
+  return entries;
 }
 
 /**
