@@ -49,7 +49,7 @@ import {
   readJsonFile,
   remove,
   writeJsonFile,
-  writeJsonFileAsStream,
+  writeLargeJsonFile,
   writeUtf8File,
   readdirOrEmpty,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -1000,10 +1000,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             contract,
           );
 
-          await writeUtf8File(
-            contractArtifactPath,
-            JSON.stringify(artifact, undefined, 2),
-          );
+          await writeJsonFile(contractArtifactPath, artifact);
 
           paths.push(contractArtifactPath);
           artifacts.push(artifact);
@@ -1083,12 +1080,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           compilerOutput,
         );
 
-        // NOTE: We use writeJsonFileAsStream here because the build info output might exceed
+        // NOTE: We use writeLargeJsonFile here because the build info output might exceed
         // the maximum string length.
         // TODO: Earlier in the build process, very similar files are created on disk by the
         // Compiler.  Instead of creating them again, we should consider copying/moving them.
         // This would require changing the format of the build info output file.
-        await writeJsonFileAsStream(buildInfoOutputCachePath, buildInfoOutput);
+        await writeLargeJsonFile(buildInfoOutputCachePath, buildInfoOutput);
       })(),
     ]);
 
