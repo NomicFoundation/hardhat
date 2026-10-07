@@ -1,6 +1,5 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
@@ -22,6 +21,7 @@ import {
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
 import type {
   CommandVariant,
+  Scenario,
   ScenarioDefinition,
   StepsVariant,
 } from "../end-to-end/types.ts";
@@ -30,6 +30,7 @@ import {
   matchesAny,
   parseGlobList,
   planCommands,
+  type PlannedCommand,
 } from "./helpers/plan.ts";
 import {
   CommandFailedError,
@@ -41,6 +42,7 @@ import {
   runPrepare,
   runSeries,
   reportPathsIn,
+  withReportDir,
   type MeasuredRun,
   type ReportPaths,
 } from "./helpers/runner.ts";
@@ -498,9 +500,6 @@ async function runScenario(
     return [];
   }
 
-  const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
-  mkdirSync(scenarioTmpDir, { recursive: true });
-
   logStep("Initializing scenario");
   await e2eInit(
     args.e2eCloneDirectory,
@@ -519,13 +518,25 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
+  return withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
+    runPhases(scenario.id, scenarioTmpDir, loaded, plan, peakRssMethod),
+  );
+}
+
+async function runPhases(
+  scenarioId: string,
+  scenarioTmpDir: string,
+  loaded: Scenario,
+  plan: PlannedCommand[],
+  peakRssMethod: PeakRssMethod,
+): Promise<BenchmarkEntry[]> {
   const entries: BenchmarkEntry[] = [];
 
   for (const planned of plan) {
     if ("run" in planned) {
       entries.push(
         ...(await runStepsPhase(
-          scenario.id,
+          scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
@@ -540,7 +551,7 @@ async function runScenario(
     } else {
       entries.push(
         ...(await runCommandPhase(
-          scenario.id,
+          scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
