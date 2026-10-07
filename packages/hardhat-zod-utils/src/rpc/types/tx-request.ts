@@ -33,6 +33,7 @@ export interface RpcTransactionRequest {
     r: Uint8Array;
     s: Uint8Array;
   }>;
+  type?: bigint;
 }
 
 export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
@@ -50,4 +51,5 @@ export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
   blobs: optional(z.array(rpcData)),
   blobVersionedHashes: optional(z.array(rpcHash)),
   authorizationList: optional(rpcAuthorizationList),
+  type: optional(rpcQuantity),
 });

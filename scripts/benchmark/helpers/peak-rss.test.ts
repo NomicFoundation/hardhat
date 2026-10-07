@@ -163,43 +163,23 @@ describe("resolvePeakRssMethod", () => {
 });
 
 describe("parsePeakRssMethod", () => {
-  it("maps each CLI spelling to its method", () => {
-    assert.equal(
-      parsePeakRssMethod(["--peak-rss", "gnu-time"]),
-      PeakRssMethod.GnuTime,
-    );
-    assert.equal(
-      parsePeakRssMethod(["--runs", "3", "--peak-rss", "sampler"]),
-      PeakRssMethod.Sampler,
-    );
+  it("maps each documented value to its method", () => {
+    assert.equal(parsePeakRssMethod("gnu-time"), PeakRssMethod.GnuTime);
+    assert.equal(parsePeakRssMethod("sampler"), PeakRssMethod.Sampler);
   });
 
-  it("passes an absent flag through for the caller's default", () => {
-    assert.equal(parsePeakRssMethod([]), undefined);
-    assert.equal(parsePeakRssMethod(["--runs", "3"]), undefined);
+  it("returns undefined when the option was not given", () => {
+    assert.equal(parsePeakRssMethod(undefined), undefined);
   });
 
-  it("rejects a flag without a value instead of applying the default", () => {
+  it("rejects an unknown value, naming the accepted ones", () => {
     assert.throws(
-      () => parsePeakRssMethod(["--peak-rss"]),
-      /--peak-rss requires a value/,
+      () => parsePeakRssMethod("auto"),
+      /--peak-rss must be one of gnu-time, sampler \(got "auto"\)/,
     );
-  });
-
-  it("rejects an unknown spelling and names the accepted ones", () => {
-    assert.throws(
-      () => parsePeakRssMethod(["--peak-rss", "auto"]),
-      /gnu-time, sampler.*"auto"/,
-    );
-    assert.throws(() => parsePeakRssMethod(["--peak-rss", ""]));
-    // Wrong case is a distinct spelling, not an alias.
-    assert.throws(() => parsePeakRssMethod(["--peak-rss", "GNU-TIME"]));
-  });
-
-  it("rejects Object.prototype keys", () => {
-    for (const raw of ["constructor", "toString", "__proto__"]) {
-      assert.throws(() => parsePeakRssMethod(["--peak-rss", raw]));
-    }
+    assert.throws(() => parsePeakRssMethod(""));
+    assert.throws(() => parsePeakRssMethod("GNU-TIME"));
+    assert.throws(() => parsePeakRssMethod("constructor"));
   });
 });
 

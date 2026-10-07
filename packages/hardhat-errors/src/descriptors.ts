@@ -1240,6 +1240,42 @@ Please double check your transactions' parameters.`,
         websiteDescription:
           "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
       },
+      BLOB_TX_CANNOT_BE_SIGNED_LOCALLY: {
+        number: 725,
+        messageTemplate:
+          "Blob transactions (EIP-4844) can't be signed with locally managed accounts.",
+        websiteTitle: "Blob transactions can't be signed locally",
+        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. Your transaction has type 0x3, blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
+
+Please sign the transaction yourself and send it with eth_sendRawTransaction, or send it from an account managed by your node.`,
+      },
+      EIP7702_TX_CANNOT_CREATE_CONTRACT: {
+        number: 726,
+        messageTemplate: `The "to" field is missing from an EIP-7702 transaction being signed locally. EIP-7702 transactions can't create contracts, so "to" is required.`,
+        websiteTitle: "EIP-7702 transactions can't create contracts",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and it has an "authorizationList" but no "to" field. Transactions with an "authorizationList" are EIP-7702 transactions, which can't create contracts, so the "to" field is required.
+
+Please double check your transactions' parameters.`,
+      },
+      EMPTY_EIP7702_AUTHORIZATION_LIST: {
+        number: 727,
+        messageTemplate: `The "authorizationList" of an EIP-7702 transaction being signed locally is empty. It must contain at least one authorization.`,
+        websiteTitle: "Empty EIP-7702 authorization list",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and its "authorizationList" is empty. EIP-7702 transactions must contain at least one authorization.
+
+Please double check your transactions' parameters.`,
+      },
+      INVALID_TX_PARAMS_TO_SIGN_LOCALLY: {
+        number: 728,
+        messageTemplate: `Tried to sign a transaction locally, but some of its fields are invalid:
+{errors}`,
+        websiteTitle: "Invalid transaction parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and some of its fields didn't pass the validation done before signing it. The error message lists each invalid field and the reason.
+
+This validation happens locally, so it can reject transactions that your network would accept. For example, the initcode of a contract deployment is limited to 512 KiB, even if your network allows unlimited contract sizes.
+
+Please double check your transactions' parameters.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {

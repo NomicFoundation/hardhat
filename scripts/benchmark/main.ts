@@ -1,6 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
+import { writeFileSync } from "node:fs";
 
 import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -18,6 +16,7 @@ import {
   formatOutput,
   reportPathsIn,
   runSeries,
+  withReportDir,
 } from "./helpers/runner.ts";
 import {
   PEAK_RSS_METHOD_NAMES,
@@ -42,7 +41,8 @@ DESCRIPTION
   the command from.
 
 OPTIONS
-  --scenario <path>     Scenario folder or scenario.json (required)
+  --scenario <path>     Scenario folder or scenario.json (required unless
+                        $E2E_SCENARIO is set)
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
   --init                Force (re-)initialization of the scenario even if it is
                         already set up. Without this flag, an existing setup is
@@ -155,16 +155,8 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     `Warm-up runs: ${warmup}, measured runs: ${runs}, peak RSS: ${peakRssName}`,
   );
 
-  // A private directory per invocation, so concurrent benchmarks of one
-  // scenario cannot delete or read each other's reports.
-  const scenarioTmpDir = mkdtempSync(
-    path.join(tmpdir(), `hardhat-bench-${scenario.id}-`),
-  );
-
-  const measured = await runSeries(
-    benchCommand,
-    reportPathsIn(scenarioTmpDir, "bench"),
-    {
+  const measured = await withReportDir(`hardhat-bench-${scenario.id}-`, (dir) =>
+    runSeries(benchCommand, reportPathsIn(dir, "bench"), {
       cwd: scenario.workingDir,
       env: scenario.definition.env,
       peakRssMethod,
@@ -177,8 +169,8 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
         log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
       onRunCompleted: (run, i, total) =>
         log(`  run ${runCounter(i, total)}: ${formatRun(run)}`),
-    },
-  ).finally(() => rmSync(scenarioTmpDir, { recursive: true, force: true }));
+    }),
+  );
 
   const summary = summarize(measured);
 
