@@ -1,11 +1,13 @@
 import type * as JsonStreamStringify from "json-stream-stringify";
 import type { FileHandle } from "node:fs/promises";
 
+import { constants as bufferConstants } from "node:buffer";
 import fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 
+import { parseJsonBytes } from "./bytes.js";
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
 import {
   FileNotFoundError,
@@ -22,6 +24,10 @@ import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
 } from "./internal/fs.js";
+import {
+  hasHeapHeadroomFor,
+  READ_HEAP_BYTES_PER_JSON_BYTE,
+} from "./internal/json.js";
 
 // We don't load json-stream-stringify on startup because it's only
 // used by writeJsonFileAsStream for very large JSON objects.
@@ -386,26 +392,10 @@ export async function isDirectory(absolutePath: string): Promise<boolean> {
 /**
  * Reads a JSON file and parses it. The encoding used is "utf8".
  *
- * @param absolutePathToFile The path to the file.
- * @returns The parsed JSON object.
- * @throws FileNotFoundError if the file doesn't exist.
- * @throws InvalidFileFormatError if the file is not a valid JSON file.
- * @throws IsDirectoryError if the path is a directory instead of a file.
- * @throws FileSystemAccessError for any other error.
- */
-export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
-  const content = await readUtf8File(absolutePathToFile);
-  try {
-    return JSON.parse(content.toString());
-  } catch (e) {
-    ensureError(e);
-    throw new InvalidFileFormatError(absolutePathToFile, e);
-  }
-}
-
-/**
- * Reads a JSON file as a stream and parses it. The encoding used is "utf8".
- * This function should be used when parsing very large JSON files.
+ * Files of any size are supported. The file is parsed with `JSON.parse`,
+ * which is much faster, when its text fits in a single string and the heap has
+ * room for it. Otherwise, it's parsed as a stream, which never holds the whole
+ * text as one string. Both give the same result.
  *
  * @param absolutePathToFile The path to the file.
  * @returns The parsed JSON object.
@@ -414,15 +404,27 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
  * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
-export async function readJsonFileAsStream<T>(
-  absolutePathToFile: string,
-): Promise<T> {
+export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
   let fileHandle: FileHandle | undefined;
 
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "r");
 
-    return await parseJsonStream<T>(fileHandle.createReadStream());
+    // Each UTF-8 byte decodes to at most one character, so the file's size
+    // tells us whether its text could fit in a string. If it can't, or the
+    // heap has no room for it right now, we stream it from disk instead of
+    // reading it all into memory.
+    const { size } = await fileHandle.stat();
+    if (
+      size > bufferConstants.MAX_STRING_LENGTH ||
+      !hasHeapHeadroomFor(size * READ_HEAP_BYTES_PER_JSON_BYTE)
+    ) {
+      return await parseJsonStream<T>(fileHandle.createReadStream());
+    }
+
+    // The bytes are stored outside of the heap. parseJsonBytes checks the heap
+    // again, as other code may have used it while we were reading.
+    return await parseJsonBytes<T>(await fileHandle.readFile());
   } catch (e) {
     ensureError(e);
 
@@ -438,7 +440,7 @@ export async function readJsonFileAsStream<T>(
 
       // If the code is defined, we assume the error to be related to the file system
       if (e.code !== undefined) {
-        throw new FileSystemAccessError(absolutePathToFile, e);
+        throw new FileSystemAccessError(e.message, e);
       }
     }
 
@@ -448,6 +450,24 @@ export async function readJsonFileAsStream<T>(
     // Explicitly closing the file handle to fully release the underlying resources
     await fileHandle?.close();
   }
+}
+
+/**
+ * Reads a JSON file and parses it. The encoding used is "utf8".
+ *
+ * @param absolutePathToFile The path to the file.
+ * @returns The parsed JSON object.
+ * @throws FileNotFoundError if the file doesn't exist.
+ * @throws InvalidFileFormatError if the file is not a valid JSON file.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
+ * @throws FileSystemAccessError for any other error.
+ * @deprecated Use {@link readJsonFile} instead, which supports files of any
+ * size.
+ */
+export async function readJsonFileAsStream<T>(
+  absolutePathToFile: string,
+): Promise<T> {
+  return await readJsonFile<T>(absolutePathToFile);
 }
 
 /**
