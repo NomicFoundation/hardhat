@@ -7,8 +7,10 @@ export const DEFAULT_CLONE_DIR = "/tmp/end-to-end";
 export const CLONE_DIR_FLAG = "--e2e-clone-dir";
 
 /** The clone directory the user asked for, by flag or E2E_CLONE_DIR. */
-export function givenCloneDirectory(args: string[]): string | undefined {
-  return getArgValue(args, CLONE_DIR_FLAG) ?? process.env.E2E_CLONE_DIR;
+export function givenCloneDirectory(
+  fromFlag: string | undefined,
+): string | undefined {
+  return fromFlag ?? process.env.E2E_CLONE_DIR;
 }
 
 /** The clone directory to use, DEFAULT_CLONE_DIR when none was given. */
@@ -48,7 +50,7 @@ export function resolveAndValidateArgs(args: string[]) {
     ? ForcePublish.Yes
     : ForcePublish.No;
 
-  const givenCloneDir = givenCloneDirectory(args);
+  const givenCloneDir = givenCloneDirectory(getArgValue(args, CLONE_DIR_FLAG));
 
   const commandFlagCount = [initFlag, execFlag, cleanFlag].filter(
     (f) => f,

@@ -19,23 +19,23 @@ describe("givenCloneDirectory", () => {
 
   it("prefers the flag over E2E_CLONE_DIR", () => {
     assert.equal(
-      withEnv({ E2E_CLONE_DIR: ENV_DIR }, () =>
-        givenCloneDirectory([CLONE_DIR_FLAG, FLAG_DIR]),
-      ),
+      withEnv({ E2E_CLONE_DIR: ENV_DIR }, () => givenCloneDirectory(FLAG_DIR)),
       FLAG_DIR,
     );
   });
 
   it("falls back to E2E_CLONE_DIR without the flag", () => {
     assert.equal(
-      withEnv({ E2E_CLONE_DIR: ENV_DIR }, () => givenCloneDirectory([])),
+      withEnv({ E2E_CLONE_DIR: ENV_DIR }, () => givenCloneDirectory(undefined)),
       ENV_DIR,
     );
   });
 
   it("returns undefined when neither the flag nor E2E_CLONE_DIR is set", () => {
     assert.equal(
-      withEnv({ E2E_CLONE_DIR: undefined }, () => givenCloneDirectory([])),
+      withEnv({ E2E_CLONE_DIR: undefined }, () =>
+        givenCloneDirectory(undefined),
+      ),
       undefined,
     );
   });

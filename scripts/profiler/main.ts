@@ -10,12 +10,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
-  CLONE_DIR_FLAG,
   DEFAULT_CLONE_DIR,
-  getArgValue,
   givenCloneDirectory,
   resolveCloneDirectory,
 } from "../end-to-end/helpers/args.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
 import {
   normalizeScenarioPath,
   resolveInvocationPath,
@@ -37,11 +36,9 @@ import type { Scenario } from "../end-to-end/types.ts";
 
 import {
   DEFAULT_SAMPLE_RATE_HZ,
-  getAllArgValues,
   Mode,
   parseEnvPairs,
   parseMode,
-  parsePositionalArgs,
   parseSampleRate,
 } from "./helpers/args.ts";
 import { PERF_SCRIPT_OUTPUT_FILENAME } from "./helpers/flamegraph.ts";
@@ -184,76 +181,64 @@ interface RunRecord {
   symbolized?: boolean;
 }
 
-const VALUE_FLAGS = [
-  "--scenario",
-  "--command",
-  "--prepare",
-  "--mode",
-  "--sample-rate",
-  "--out-dir",
-  "--env",
-  CLONE_DIR_FLAG,
-];
-
-const BOOLEAN_FLAGS = [
-  "--init",
-  "--use-local",
-  "--force-checkout",
-  "--force-publish",
-  "--show-output",
-  "--keep-perf-data",
-];
-
 export function resolveAndValidateArgs(
   args: string[],
 ): ProfileArgs | undefined {
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  const cli = {
+    command: "pnpm profiler",
+    options: {
+      scenario: { type: "string", multiple: true },
+      command: { type: "string" },
+      prepare: { type: "string" },
+      mode: { type: "string" },
+      "sample-rate": { type: "string" },
+      "out-dir": { type: "string" },
+      env: { type: "string", multiple: true },
+      init: { type: "boolean" },
+      "use-local": { type: "boolean" },
+      "force-checkout": { type: "boolean" },
+      "force-publish": { type: "boolean" },
+      "show-output": { type: "boolean" },
+      "keep-perf-data": { type: "boolean" },
+      "e2e-clone-dir": { type: "string" },
+    },
+  } as const;
+  const parsed = parseCliArgs(args, cli);
+
+  if (parsed === undefined) {
     return undefined;
   }
 
-  const stray = parsePositionalArgs(args, VALUE_FLAGS, BOOLEAN_FLAGS);
-
-  if (stray.length > 0) {
-    throw new Error(`unexpected argument: ${stray[0]}`);
-  }
-
-  const scenarioPaths = getAllArgValues(args, "--scenario").map(
-    normalizeScenarioPath,
-  );
+  const { values } = parsed;
+  const scenarioPaths = (values.scenario ?? []).map(normalizeScenarioPath);
 
   if (scenarioPaths.length === 0) {
-    throw new Error(
-      "--scenario is required (run pnpm profiler with no arguments for usage)",
-    );
+    throw cliError(cli, "--scenario is required");
   }
 
-  const commandOrName = getArgValue(args, "--command");
-
-  if (commandOrName === undefined) {
-    throw new Error(
-      "--command is required (run pnpm profiler with no arguments for usage)",
-    );
+  if (values.command === undefined) {
+    throw cliError(cli, "--command is required");
   }
 
   return {
     scenarioPaths,
-    commandOrName,
-    prepareOrName: getArgValue(args, "--prepare"),
-    mode: parseMode(getArgValue(args, "--mode")),
-    sampleRateHz: parseSampleRate(getArgValue(args, "--sample-rate")),
-    outDir: resolveInvocationPath(getArgValue(args, "--out-dir")),
-    env: parseEnvPairs(getAllArgValues(args, "--env")),
-    init: args.includes("--init"),
-    useLocal: args.includes("--use-local") ? UseLocal.Yes : UseLocal.No,
-    forceCheckout: args.includes("--force-checkout")
-      ? ForceCheckout.Yes
-      : ForceCheckout.No,
-    forcePublish: args.includes("--force-publish")
-      ? ForcePublish.Yes
-      : ForcePublish.No,
-    showOutput: args.includes("--show-output"),
-    keepPerfData: args.includes("--keep-perf-data"),
-    e2eCloneDirectory: resolveCloneDirectory(givenCloneDirectory(args)),
+    commandOrName: values.command,
+    prepareOrName: values.prepare,
+    mode: parseMode(values.mode),
+    sampleRateHz: parseSampleRate(values["sample-rate"]),
+    outDir: resolveInvocationPath(values["out-dir"]),
+    env: parseEnvPairs(values.env ?? []),
+    init: values.init === true,
+    useLocal: values["use-local"] === true ? UseLocal.Yes : UseLocal.No,
+    forceCheckout:
+      values["force-checkout"] === true ? ForceCheckout.Yes : ForceCheckout.No,
+    forcePublish:
+      values["force-publish"] === true ? ForcePublish.Yes : ForcePublish.No,
+    showOutput: values["show-output"] === true,
+    keepPerfData: values["keep-perf-data"] === true,
+    e2eCloneDirectory: resolveCloneDirectory(
+      givenCloneDirectory(values["e2e-clone-dir"]),
+    ),
   };
 }
 

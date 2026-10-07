@@ -159,23 +159,14 @@ export const PEAK_RSS_METHOD_NAMES: Readonly<Record<PeakRssMethod, string>> =
   ) as Record<PeakRssMethod, string>;
 
 /**
- * Parse the `--peak-rss` flag out of `argv`. An absent flag returns
- * undefined, so each CLI applies its own default. A flag without a value, or
- * with an unknown one, throws.
+ * Map a `--peak-rss` value to its method. Undefined passes through, so each
+ * CLI applies its own default, and an unknown value throws.
  */
-export function parsePeakRssMethod(argv: string[]): PeakRssMethod | undefined {
-  const flagIndex = argv.indexOf(PEAK_RSS_FLAG);
-
-  if (flagIndex === -1) {
-    return undefined;
-  }
-
-  const raw = argv[flagIndex + 1];
-
+export function parsePeakRssMethod(
+  raw: string | undefined,
+): PeakRssMethod | undefined {
   if (raw === undefined) {
-    throw new Error(
-      `${PEAK_RSS_FLAG} requires a value: one of ${PEAK_RSS_METHOD_LIST}`,
-    );
+    return undefined;
   }
 
   // Object.hasOwn: a plain index would also find Object.prototype keys, so

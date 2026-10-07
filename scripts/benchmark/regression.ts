@@ -4,10 +4,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
-  getArgValue,
   givenCloneDirectory,
   resolveCloneDirectory,
 } from "../end-to-end/helpers/args.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import {
   loadScenario,
@@ -334,52 +334,57 @@ async function main(): Promise<void> {
 }
 
 export function resolveArgs(argv: string[]): RegressionArgs | undefined {
-  const output = getArgValue(argv, "--output");
+  const cli = {
+    command: "pnpm bench:regression",
+    options: {
+      output: { type: "string" },
+      scenarios: { type: "string" },
+      tag: { type: "string" },
+      benchmarks: { type: "string" },
+      "use-local": { type: "boolean" },
+      "force-checkout": { type: "boolean" },
+      "force-publish": { type: "boolean" },
+      "e2e-clone-dir": { type: "string" },
+      "fail-fast": { type: "boolean" },
+      "peak-rss": { type: "string" },
+    },
+  } as const;
+  const parsed = parseCliArgs(argv, cli);
 
-  if (output === undefined) {
+  if (parsed === undefined) {
     return undefined;
   }
 
-  const scenariosRaw = getArgValue(argv, "--scenarios");
+  const { values } = parsed;
+
+  if (values.output === undefined) {
+    throw cliError(cli, "--output is required");
+  }
+
   const scenarios =
-    scenariosRaw !== undefined
-      ? scenariosRaw
+    values.scenarios !== undefined
+      ? values.scenarios
           .split(",")
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : undefined;
 
-  const tag = getArgValue(argv, "--tag");
-
-  const benchmarks = parseGlobList(getArgValue(argv, "--benchmarks"));
-
-  const useLocal = argv.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
-
-  const forceCheckout = argv.includes("--force-checkout")
-    ? ForceCheckout.Yes
-    : ForceCheckout.No;
-
-  const forcePublish = argv.includes("--force-publish")
-    ? ForcePublish.Yes
-    : ForcePublish.No;
-
-  const failFast = argv.includes("--fail-fast");
-
-  const peakRssMethod = parsePeakRssMethod(argv) ?? PeakRssMethod.GnuTime;
-
-  const e2eCloneDirectory = resolveCloneDirectory(givenCloneDirectory(argv));
-
   return {
-    output: resolveInvocationPath(output),
+    output: resolveInvocationPath(values.output),
     scenarios,
-    tag,
-    benchmarks,
-    useLocal,
-    forceCheckout,
-    forcePublish,
-    e2eCloneDirectory,
-    failFast,
-    peakRssMethod,
+    tag: values.tag,
+    benchmarks: parseGlobList(values.benchmarks),
+    useLocal: values["use-local"] === true ? UseLocal.Yes : UseLocal.No,
+    forceCheckout:
+      values["force-checkout"] === true ? ForceCheckout.Yes : ForceCheckout.No,
+    forcePublish:
+      values["force-publish"] === true ? ForcePublish.Yes : ForcePublish.No,
+    e2eCloneDirectory: resolveCloneDirectory(
+      givenCloneDirectory(values["e2e-clone-dir"]),
+    ),
+    failFast: values["fail-fast"] === true,
+    peakRssMethod:
+      parsePeakRssMethod(values["peak-rss"]) ?? PeakRssMethod.GnuTime,
   };
 }
 
