@@ -27,10 +27,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     LedgerHandlerT
   > = new WeakMap();
 
-  // Connections whose `closeConnection` has already run. A request that was
-  // still loading the handler when that happened must not build a new one: it
-  // would open a device session for a connection that is going away, and
-  // nothing would ever close it.
+  // Connections whose `closeConnection` has already run.
   const closedConnections: WeakSet<NetworkConnection<ChainType | string>> =
     new WeakSet();
 
@@ -105,9 +102,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (ledgerHandler === undefined) {
         // The connection was closed while this request was starting. Serving it
-        // would open a device session nothing will ever close, and forwarding
-        // it would silently drop the Ledger accounts from `eth_accounts` or
-        // send a transaction the Ledger never signed.
+        // would open a device session nothing will ever close.
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
           { error: new LedgerConnectionClosedError(), transportId: "" },
@@ -167,14 +162,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       const ledgerHandler = ledgerHandlerPerConnection.get(networkConnection);
 
       if (ledgerHandler !== undefined) {
-        // The Device Management Kit keeps USB hotplug listeners registered for
-        // the lifetime of the process, so the connection has to be torn down
-        // explicitly or Hardhat never exits.
         await ledgerHandler.close();
-
-        // Dropped only once it is closed. A request arriving while we await
-        // would otherwise find no handler, build a fresh one, and open a device
-        // session on a connection that is already going away.
         ledgerHandlerPerConnection.delete(networkConnection);
       }
 
