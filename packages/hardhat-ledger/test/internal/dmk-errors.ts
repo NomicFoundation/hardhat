@@ -62,8 +62,7 @@ describe("dmk-errors", () => {
 
   describe("classification", () => {
     it("should classify the tag the DMK actually gives its connection-opening error", () => {
-      // Exported as `OpeningConnectionError`, but tagged
-      // `ConnectionOpeningError`. A device held by Ledger Live fails with it.
+      // This class is exported under a different name from its tag.
       const opening = new OpeningConnectionError(new Error("in use"));
 
       assert.equal(
@@ -88,8 +87,7 @@ describe("dmk-errors", () => {
     });
 
     it("should classify lost devices as reconnectable", () => {
-      // The transport's own error, when a write fails before the DMK sees the
-      // device detach.
+      // A transport write can fail before the DMK sees the detach.
       const transportWriteFailure = new NodeHidSendReportError(
         new Error("write failed"),
       );

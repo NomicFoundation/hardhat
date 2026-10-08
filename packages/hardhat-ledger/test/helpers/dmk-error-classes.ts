@@ -4,8 +4,7 @@ import type * as NodeHidT from "@ledgerhq/device-transport-kit-node-hid";
 import { createRequire } from "node:module";
 
 /**
- * The Device Management Kit's own error classes, required through CommonJS as
- * in `src/internal/dmk-imports.ts`.
+ * DMK error classes loaded through the same CommonJS workaround as production.
  */
 
 const require = createRequire(import.meta.url);

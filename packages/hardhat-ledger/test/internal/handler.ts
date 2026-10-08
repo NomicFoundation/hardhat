@@ -1,3 +1,4 @@
+import type { Signature } from "../../src/internal/dmk-imports.js";
 import type { LedgerDeviceFactory } from "../../src/internal/types.js";
 import type {
   MethodsConfig,
@@ -45,8 +46,7 @@ import {
 } from "../helpers/ledger-device-mock.js";
 
 /**
- * The key behind the third Ledger address, so that a test can produce the
- * signature a real device would over the typed data it is sent.
+ * Lets tests sign typed data for the third Ledger address.
  */
 const TYPED_DATA_SIGNER_KEY = `0x${"11".repeat(32)}`;
 
@@ -107,7 +107,7 @@ const typedMessage = {
     contents: "Hello, Bob!",
   },
 };
-const rsv = {
+const rsv: Signature = {
   v: 55,
   r: "0x4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d",
   s: "0x7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd0",
@@ -131,7 +131,7 @@ const typedDataSignature = signTyped(
   TYPED_DATA_SIGNER_KEY,
   false,
 );
-const typedDataRsv = {
+const typedDataRsv: Signature = {
   r: `0x${typedDataSignature.slice(2, 66)}`,
   s: `0x${typedDataSignature.slice(66, 130)}`,
   v: parseInt(typedDataSignature.slice(130), 16),
@@ -236,8 +236,7 @@ describe("LedgerHandler", () => {
 
   describe("init", () => {
     it("should open a single session when two requests race", async () => {
-      // Hardhat does not serialize requests, and a leaked session keeps the
-      // process alive.
+      // Concurrent requests must share one session.
       const state = createDeviceFactoryState();
       const [deviceFactory] = getLedgerDeviceMock(
         {},
@@ -307,8 +306,7 @@ describe("LedgerHandler", () => {
     });
 
     it("should not start a retry wait once the handler is closed", async () => {
-      // `close()` can land while the retry message is displayed, before the
-      // real retry timer is armed.
+      // `close()` can run while the retry message is displayed.
       const [deviceFactory] = getLedgerDeviceMock({
         getAddress: findAccountAt(derPath),
         signMessage: {
@@ -385,9 +383,7 @@ describe("LedgerHandler", () => {
     });
 
     it("should cancel a device action still running when closed", async () => {
-      // The Device Management Kit leaves a running action alone when its
-      // session is closed, so a request signing at that moment would outlive
-      // the connection and keep the process alive.
+      // Closing a DMK session does not cancel its running action.
       const state = createDeviceFactoryState();
       const [deviceFactory, calls] = getLedgerDeviceMock(
         {
@@ -626,8 +622,7 @@ describe("LedgerHandler", () => {
       });
 
       it("should reject a signature that is not over the requested typed data", async () => {
-        // Whatever the device or the signer kit did to the data, a signature
-        // over anything else recovers to another address.
+        // A signature over different data recovers to another address.
         const [deviceFactory, calls] = getLedgerDeviceMock({
           getAddress: findAccountAt(derPath, typedDataSigner),
           signTypedData: { result: rsv },
@@ -652,8 +647,7 @@ describe("LedgerHandler", () => {
       });
 
       it("should reject typed data that cannot be hashed faithfully", async () => {
-        // A duplicate field name: the signer kit keeps only the last one, and
-        // our own hasher refuses to guess.
+        // The signer keeps only the last duplicate field.
         const [deviceFactory] = getLedgerDeviceMock({
           getAddress: findAccountAt(derPath, typedDataSigner),
           signTypedData: { result: typedDataRsv },
@@ -702,7 +696,7 @@ describe("LedgerHandler", () => {
       });
 
       describe("all transaction types", () => {
-        const txRsv = {
+        const txRsv: Signature = {
           v: 0xf4f5,
           r: "0x4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
           s: "0x3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
@@ -978,9 +972,7 @@ describe("LedgerHandler", () => {
   describe("device error recovery", () => {
     describe("during signing (#withConfirmation)", () => {
       it("should reconnect when the signer throws because the session was dropped", async () => {
-        // The device was unplugged between requests, or another connection to
-        // the same device closed the shared USB link. The signer then throws a
-        // raw object before any action starts, instead of emitting an error.
+        // A lost session throws a raw object before the action starts.
         const state = createDeviceFactoryState();
         const [deviceFactory] = getLedgerDeviceMock(
           {
@@ -1123,8 +1115,7 @@ describe("LedgerHandler", () => {
       });
 
       it("should give a disconnected device longer to come back, without asking to plug it in", async () => {
-        // Opening the Ethereum app makes the device re-enumerate, which can take
-        // longer than a first connection waits for it.
+        // Re-enumeration can take longer than the initial connection timeout.
         const [mockedDeviceFactory] = getLedgerDeviceMock({
           getAddress: findAccountAt(derPath),
           signMessage: {

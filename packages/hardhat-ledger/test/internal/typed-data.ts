@@ -62,8 +62,7 @@ describe("toTypedData", () => {
 
     const typedData = toTypedData(data);
 
-    // The signer kit adds to the `types` it is handed; the copy keeps that off
-    // the caller's object.
+    // The signer mutates `types`; the copy protects the caller's object.
     typedData.types.EIP712Domain = [];
 
     assert.deepEqual(data, before);
@@ -140,8 +139,7 @@ describe("toTypedData", () => {
   });
 
   it("should reject an integer that has already lost precision", () => {
-    // `JSON.parse` rounded it before anyone could tell, so the device would
-    // sign the rounded value and nothing would report it.
+    // `JSON.parse` rounds this before validation sees it.
     assertInvalid(
       JSON.stringify(withField("uint256", 0)).replace(
         '"field":0',
@@ -177,8 +175,7 @@ describe("toTypedData", () => {
   });
 
   it("should reject a string that is not well-formed text", () => {
-    // UTF-8 has no encoding for a lone surrogate, so every encoder substitutes
-    // something of its own and no two agree on what was signed.
+    // Encoders can replace lone surrogates with different values.
     for (const data of [
       withField("string", "\ud800"),
       withField("string", "\udc00"),
@@ -201,7 +198,7 @@ describe("toTypedData", () => {
     const message: Record<string, unknown> = { contents: "Hello, Bob!" };
     message.self = message;
 
-    // Neither a hang nor a stack overflow: the walk skips what it has seen.
+    // The walk skips objects it has already seen.
     assert.equal(toTypedData({ ...DATA, message }).message, message);
   });
 });

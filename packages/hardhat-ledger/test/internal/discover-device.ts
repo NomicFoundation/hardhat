@@ -21,8 +21,7 @@ const NO_POLLING_MS = 60_000;
 
 describe("discoverFirstDevice", () => {
   it("should resolve with a device the stream replays during subscribe", async () => {
-    // The DMK's device list replays synchronously, during `subscribe`, on every
-    // reconnect.
+    // The DMK replays its device list during `subscribe`.
     const availableDevices = new BehaviorSubject<TestDevice[]>([DEVICE]);
 
     assert.equal(
@@ -82,8 +81,7 @@ describe("discoverFirstDevice", () => {
   });
 
   it("should list the devices again until one shows up", async () => {
-    // The DMK's stream misses a device that re-enumerates: only listing the
-    // devices again reports it.
+    // Relisting finds devices missed while they re-enumerate.
     const listings: Array<BehaviorSubject<TestDevice[]>> = [];
 
     const listen = (): BehaviorSubject<TestDevice[]> => {

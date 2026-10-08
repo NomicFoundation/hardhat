@@ -1,12 +1,10 @@
-/**
- * Mock of the `LedgerDeviceFactory` the handler connects through. Like the real
- * signer, it reports failures as `Error` states carrying a `DmkError`.
- */
-
-import type { DmkError, TypedData } from "../../src/internal/dmk-imports.js";
+import type {
+  DmkError,
+  Signature,
+  TypedData,
+} from "../../src/internal/dmk-imports.js";
 import type { DeviceAction } from "../../src/internal/run-device-action.js";
 import type {
-  DeviceSignature,
   LedgerDevice,
   LedgerDeviceFactory,
   LedgerSigner,
@@ -21,6 +19,10 @@ import { Observable, of } from "rxjs";
 
 import { LedgerDeviceError } from "../../src/internal/dmk-errors.js";
 import { DeviceActionStatus } from "../../src/internal/dmk-imports.js";
+
+/**
+ * A `LedgerDeviceFactory` mock that reports failures like the real signer.
+ */
 
 export const DEVICE_LOCKED_ERROR: DmkError = {
   _tag: "DeviceLockedError",
@@ -46,7 +48,7 @@ export const REFUSED_BY_USER_ERROR: DmkError = {
   _tag: "RefusedByUserDAError",
   message: "Refused by the user",
 };
-/** What the real signer throws, as a plain object, once the kit dropped the session. */
+/** The plain object thrown by the signer after its session is lost. */
 export const DEVICE_SESSION_NOT_FOUND_ERROR: DmkError = {
   _tag: "DeviceSessionNotFound",
   originalError: new Error("Device session not found"),
@@ -66,15 +68,15 @@ export interface MethodsConfig {
     result: (searchedPath: string) => { address: string; publicKey: string };
   };
   signMessage?: MethodConfig & {
-    result: DeviceSignature;
+    result: Signature;
     expectedParams?: { path: string; data: string };
   };
   signTypedData?: MethodConfig & {
-    result: DeviceSignature;
+    result: Signature;
     expectedParams?: { path: string; typedData: TypedData };
   };
   signTransaction?: MethodConfig & {
-    result: DeviceSignature;
+    result: Signature;
     expectedParams?: { path: string; rawTxHex: string };
   };
 }
@@ -87,19 +89,16 @@ interface MockCallState {
 export type MockCalls = Record<keyof LedgerSigner, MockCallState>;
 
 export interface DeviceFactoryState {
-  /** How many times the handler asked for a connection. */
   connectCount: number;
-  /** How many times a device session was closed. */
   closeCount: number;
-  /** How many running device actions were cancelled. */
   cancelCount: number;
 }
 
 interface DeviceFactoryOptions {
   state?: DeviceFactoryState;
   /**
-   * Errors to fail consecutive connection attempts with. A `DmkError` is
-   * wrapped the way the real connection wraps it.
+   * Errors for consecutive connection attempts. Raw DMK errors are wrapped as
+   * they are in production.
    */
   connectionErrors?: Array<Error | DmkError>;
   /** How long opening a session takes. */
@@ -111,8 +110,7 @@ export function createDeviceFactoryState(): DeviceFactoryState {
 }
 
 /**
- * Returns a device factory whose signer is driven by `methodsConfig`, and the
- * log of the calls made to that signer.
+ * Returns a configured device factory and a log of its signer calls.
  */
 export function getLedgerDeviceMock(
   methodsConfig: MethodsConfig = {},
@@ -351,7 +349,7 @@ function completedAction<Output>(
 
   return {
     observable,
-    // Like the real thing: a cancelled action ends in the `Stopped` state.
+    // The real DMK also reports cancelled actions as `Stopped`.
     cancel: () => {
       onCancel?.();
       clearTimeout(timer);
@@ -377,8 +375,7 @@ function errorAction<Output>(error: DmkError): DeviceAction<Output> {
 }
 
 /**
- * Asserts that the path reached the device without the `m/` prefix the DMK
- * rejects, and returns it in the `m/...` form the tests use.
+ * Checks the DMK path and restores the `m/` prefix used by the tests.
  */
 function assertDevicePath(derivationPath: string): string {
   assert.ok(
