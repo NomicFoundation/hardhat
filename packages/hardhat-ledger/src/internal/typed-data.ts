@@ -4,14 +4,8 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
- * Parses the `eth_signTypedData_v4` data parameter into the shape the Device
- * Management Kit's Ethereum signer expects, which takes the typed data as-is
- * and does the hashing itself.
- *
- * Only the shape is checked here, plus the two values no later check can catch
- * (see `assertValuesSurvivedParsing`). Whether the device actually signed what
- * the caller sent is checked afterwards, in the handler, by recovering the
- * signer from the signature and the caller's own data.
+ * Parses and validates `eth_signTypedData_v4` input for the DMK. The handler
+ * verifies the final signature against the original data.
  *
  * @param data The `data` parameter, either a JSON string or an object.
  *
@@ -35,13 +29,11 @@ export function toTypedData(data: string | object): TypedData {
 
   if (
     !isObject(domain) ||
-    !isObject(types) ||
+    !isTypeDefinitions(types) ||
     !isObject(message) ||
     typeof primaryType !== "string" ||
-    // `Object.hasOwn`: the signer kit resolves the primary type through
-    // `Object.prototype` too, so a name like `toString` would look declared.
-    !Object.hasOwn(types, primaryType) ||
-    !Object.values(types).every(isFieldList)
+    // Block inherited type names such as `toString`.
+    !Object.hasOwn(types, primaryType)
   ) {
     throwInvalidDataParam();
   }
@@ -49,53 +41,45 @@ export function toTypedData(data: string | object): TypedData {
   assertValuesSurvivedParsing(message);
   assertValuesSurvivedParsing(domain);
 
-  // The domain is passed through as-is, apart from the chain id, so that a
-  // field the caller declared in `types.EIP712Domain` is never dropped.
+  // Preserve every domain field; only normalize the chain ID.
   const normalizedDomain: Record<string, unknown> = { ...domain };
 
   if (normalizedDomain.chainId !== undefined) {
     normalizedDomain.chainId = toChainId(normalizedDomain.chainId);
   }
 
-  /* eslint-disable @typescript-eslint/consistent-type-assertions -- `types` is
-  checked field by field above. The copies matter: the signer kit adds an
-  `EIP712Domain` entry to the `types` it is given, and the caller's object must
-  not be mutated. */
+  // Copy `types` because the signer kit mutates it.
   return {
-    domain: normalizedDomain as TypedData["domain"],
-    types: { ...types } as TypedData["types"],
+    domain: normalizedDomain,
+    types: { ...types },
     primaryType,
     message,
   };
-  /* eslint-enable @typescript-eslint/consistent-type-assertions */
 }
 
-/** Whether the value is a list of `{ name, type }` field definitions. */
-function isFieldList(fields: unknown): boolean {
+/** Whether every entry is a list of `{ name, type }` field definitions. */
+function isTypeDefinitions(types: unknown): types is TypedData["types"] {
   return (
-    Array.isArray(fields) &&
-    fields.every(
-      (field) =>
-        isObject(field) &&
-        typeof field.name === "string" &&
-        typeof field.type === "string",
+    isObject(types) &&
+    Object.values(types).every(
+      (fields) =>
+        Array.isArray(fields) &&
+        fields.every(
+          (field) =>
+            isObject(field) &&
+            typeof field.name === "string" &&
+            typeof field.type === "string",
+        ),
     )
   );
 }
 
 /**
- * Rejects the two values that reach us already damaged. No check after signing
- * can catch them, because the device and our own hasher agree on them.
- *
- * `JSON.parse` turns an integer literal past 2^53 into the nearest double, so
- * the device would sign the rounded value; big integers must be passed as
- * strings. And a lone surrogate is not text: UTF-8 has no encoding for it, so
- * every encoder substitutes something of its own and no two agree on what was
- * signed.
+ * Rejects unsafe integers and lone UTF-16 surrogates. Both lose information
+ * before signing, so signature verification cannot detect the change.
  */
 function assertValuesSurvivedParsing(value: unknown): void {
   const pending: unknown[] = [value];
-  // A value referenced twice is walked once, and a cycle cannot loop forever.
   const seen = new Set<object>();
 
   while (pending.length > 0) {
@@ -114,6 +98,7 @@ function assertValuesSurvivedParsing(value: unknown): void {
     }
 
     seen.add(current);
+
     pending.push(
       ...(Array.isArray(current) ? current : Object.values(current)),
     );
@@ -121,13 +106,8 @@ function assertValuesSurvivedParsing(value: unknown): void {
 }
 
 /**
- * The DMK types `domain.chainId` as a number, but a JSON-RPC caller may send it
- * as a decimal or hexadecimal string.
- *
- * Anything that does not survive the round trip exactly is rejected rather than
- * rounded, because the device would otherwise hash a different chain id than
- * the one it was asked to sign for. That includes values at or above 2^53,
- * which EIP-2294 puts out of range anyway.
+ * Converts a decimal, hexadecimal, or bigint chain ID to the safe number the
+ * DMK requires. Lossy values are rejected.
  */
 function toChainId(chainId: unknown): number {
   if (typeof chainId === "number" && Number.isSafeInteger(chainId)) {

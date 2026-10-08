@@ -1,7 +1,7 @@
-import type { DeviceActionState, DmkError } from "./dmk-imports.js";
-import type { Observable, Subscription } from "rxjs";
+import type { DmkError, ExecuteDeviceActionReturnType } from "./dmk-imports.js";
 
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
+import { takeWhile } from "rxjs";
 
 import {
   LedgerDeviceActionStoppedError,
@@ -11,25 +11,18 @@ import { DeviceActionStatus } from "./dmk-imports.js";
 
 const log = createDebug("hardhat:ledger:run-device-action");
 
-/**
- * The shape returned by every DMK device action. Declared structurally, rather
- * than imported, so that tests can supply a plain object.
- */
-export interface DeviceAction<Output> {
-  readonly observable: Observable<
-    DeviceActionState<Output, DmkError, IntermediateValue>
-  >;
-  cancel(): void;
-}
+/** A DMK device action with the generic error type, which is easy to mock. */
+export type DeviceAction<Output> = ExecuteDeviceActionReturnType<
+  Output,
+  DmkError,
+  IntermediateValue
+>;
 
 interface IntermediateValue {
   readonly requiredUserInteraction: string;
 }
 
-/**
- * What the user has to do on the device, in plain words, keyed by the
- * interaction the DMK reports in a device action's `Pending` states.
- */
+/** Messages for each user interaction reported by the DMK. */
 const USER_INTERACTION_MESSAGES: Record<string, string> = {
   "unlock-device": "Unlock your Ledger device to continue",
   "confirm-open-app": "Confirm opening the Ethereum app on your Ledger device",
@@ -45,11 +38,7 @@ const USER_INTERACTION_MESSAGES: Record<string, string> = {
 };
 
 /**
- * Runs a DMK device action and resolves with its output.
- *
- * Device actions emit a stream of states and never reject. This bridges them
- * back to a promise, so the handler can keep its `try`/`catch` retry logic, and
- * reports what the device is waiting for as it goes.
+ * Runs a DMK device action as a promise and reports new user interactions.
  *
  * @param action The device action to run.
  * @param displayMessage Called whenever the device starts waiting on a
@@ -63,23 +52,27 @@ export async function runDeviceAction<Output>(
     let lastInteraction: string | undefined;
     let settled = false;
 
-    // A synchronous observable emits its terminal state *during* the
-    // `subscribe` call, before `subscription` is assigned. Unsubscribing is
-    // therefore deferred to `settle`, which runs again below once it is bound.
-    // eslint-disable-next-line prefer-const -- assigned below, but read by `settle` during a synchronous subscribe
-    let subscription: Subscription | undefined;
-
     const settle = (report: () => void): void => {
       if (settled) {
         return;
       }
 
       settled = true;
+
       report();
-      subscription?.unsubscribe();
     };
 
-    subscription = action.observable.subscribe({
+    // Completing on the first terminal state unsubscribes from the source.
+    const states = action.observable.pipe(
+      takeWhile(
+        (state) =>
+          state.status === DeviceActionStatus.Pending ||
+          state.status === DeviceActionStatus.NotStarted,
+        true,
+      ),
+    );
+
+    states.subscribe({
       next: (state) => {
         switch (state.status) {
           case DeviceActionStatus.Pending: {
@@ -94,9 +87,7 @@ export async function runDeviceAction<Output>(
             const message = USER_INTERACTION_MESSAGES[interaction];
 
             if (message !== undefined) {
-              // The message is informational, so a failure to display it must
-              // neither fail the device action nor crash the process as an
-              // unhandled rejection.
+              // Display failures must not fail the action or go unhandled.
               displayMessage(message).catch(log);
             }
 
@@ -119,8 +110,7 @@ export async function runDeviceAction<Output>(
           }
         }
       },
-      // A device action is not supposed to error the observable itself, but we
-      // must not hang if it does.
+      // An unexpected observable error must not leave the promise pending.
       error: (error: unknown) => {
         settle(() =>
           reject(
@@ -134,13 +124,9 @@ export async function runDeviceAction<Output>(
         );
       },
       complete: () => {
-        // Completing without a terminal state would leave the promise pending.
+        // Completion without a terminal state must not leave the promise pending.
         settle(() => reject(new LedgerDeviceActionStoppedError()));
       },
     });
-
-    if (settled) {
-      subscription.unsubscribe();
-    }
   });
 }

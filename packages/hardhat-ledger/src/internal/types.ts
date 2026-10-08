@@ -1,4 +1,4 @@
-import type { TypedData } from "./dmk-imports.js";
+import type { Signature, TypedData } from "./dmk-imports.js";
 import type { DeviceAction } from "./run-device-action.js";
 
 export type DerivationFunction = (index: number) => string;
@@ -8,23 +8,11 @@ export interface LedgerOptions {
   derivationFunction: DerivationFunction | undefined;
 }
 
-export type Paths = Record<string, string>; // { address: 0x-string }
+export type Paths = Record<string, string>; // address -> derivation path
 
 /**
- * A signature as the Device Management Kit reports it, with `r` and `s`
- * `0x`-prefixed.
- */
-export interface DeviceSignature {
-  r: string;
-  s: string;
-  v: number;
-}
-
-/**
- * The part of the DMK's `SignerEth` that we use. Declaring the subset ourselves
- * keeps the handler decoupled from the signer kit's internal device-action
- * types, and lets tests supply a mock without implementing the methods we never
- * call (`verifySafeAddress`, `signDelegationAuthorization`).
+ * The part of `SignerEth` used by the handler. Keeping it small also simplifies
+ * test mocks.
  */
 export interface LedgerSigner {
   getAddress(
@@ -35,34 +23,26 @@ export interface LedgerSigner {
   signMessage(
     derivationPath: string,
     message: string | Uint8Array,
-  ): DeviceAction<DeviceSignature>;
+  ): DeviceAction<Signature>;
 
   signTypedData(
     derivationPath: string,
     typedData: TypedData,
-  ): DeviceAction<DeviceSignature>;
+  ): DeviceAction<Signature>;
 
   signTransaction(
     derivationPath: string,
     transaction: Uint8Array,
-  ): DeviceAction<DeviceSignature>;
+  ): DeviceAction<Signature>;
 }
 
-/**
- * A connected Ledger device: a signer bound to an open device session, plus the
- * teardown for that session.
- */
+/** A signer bound to an open Ledger session. */
 export interface LedgerDevice {
   signer: LedgerSigner;
 
-  /**
-   * Closes the device session and releases the USB handles. This must be called
-   * before the process exits; see the comment in `connect-device.ts`.
-   */
+  /** Closes the session and releases its USB handles. */
   close(): Promise<void>;
 }
 
-/**
- * Opens a connection to a Ledger device. Injected so that tests never touch USB.
- */
+/** An injectable device factory that lets tests avoid USB. */
 export type LedgerDeviceFactory = (timeoutMs: number) => Promise<LedgerDevice>;
