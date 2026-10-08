@@ -19,6 +19,7 @@ import {
   measureShellSpawnOverhead,
   NO_SPAWN_OVERHEAD,
   parseCpuTiming,
+  readCpuTiming,
   reportPathsIn,
   runMeasured,
   runSeries,
@@ -92,6 +93,15 @@ describe("wrapWithCpuTiming", () => {
   it("keeps shell operators inside the timed subshell", () => {
     const wrapped = wrapWithCpuTiming("a && b >> log", "/tmp/cpu.txt");
     assert.match(wrapped, /time \{ \( a && b >> log\n\) ; \}/);
+  });
+});
+
+describe("readCpuTiming", () => {
+  it("reports a missing report without its path", () => {
+    assert.throws(
+      () => readCpuTiming(path.join(measuredTmp.dir, "missing-cpu.txt")),
+      { message: "bash time wrote no report" },
+    );
   });
 });
 

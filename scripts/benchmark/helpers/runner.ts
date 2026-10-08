@@ -371,8 +371,25 @@ function netOfOverhead(measured: number, overhead: number): number {
 }
 
 /** Read the CPU report a wrapped run wrote to `timingPath`. */
-function readCpuTiming(timingPath: string): { user: number; system: number } {
-  return parseCpuTiming(readFileSync(timingPath, "utf-8"));
+export function readCpuTiming(timingPath: string): {
+  user: number;
+  system: number;
+} {
+  let raw: string;
+
+  try {
+    raw = readFileSync(timingPath, "utf-8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+
+    // The path is inside a report directory that is gone by the time the
+    // message is read.
+    throw new Error("bash time wrote no report");
+  }
+
+  return parseCpuTiming(raw);
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
