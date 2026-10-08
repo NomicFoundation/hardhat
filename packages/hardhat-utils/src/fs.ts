@@ -456,24 +456,6 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
 }
 
 /**
- * Reads a JSON file and parses it. The encoding used is "utf8".
- *
- * @param absolutePathToFile The path to the file.
- * @returns The parsed JSON object.
- * @throws FileNotFoundError if the file doesn't exist.
- * @throws InvalidFileFormatError if the file is not a valid JSON file.
- * @throws IsDirectoryError if the path is a directory instead of a file.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link readJsonFile} instead, which supports files of any
- * size.
- */
-export async function readJsonFileAsStream<T>(
-  absolutePathToFile: string,
-): Promise<T> {
-  return await readJsonFile<T>(absolutePathToFile);
-}
-
-/**
  * Writes an object to a JSON file. The encoding used is "utf8" and the file is overwritten.
  * If part of the path doesn't exist, it will be created.
  *
@@ -570,25 +552,6 @@ export async function writeLargeJsonFile<T>(
     // Streaming uses little memory, so it doesn't need to take turns.
     await streamJsonToFile(absolutePathToFile, object);
   }
-}
-
-/**
- * Writes an object to a JSON file, supporting objects whose JSON is too large
- * to be held in a single string. The JSON is compact (not indented), the
- * encoding used is "utf8", and the file is overwritten. If part of the path
- * doesn't exist, it will be created.
- *
- * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
- * @param object The object to write.
- * @throws JsonSerializationError if the object can't be serialized to JSON.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link writeLargeJsonFile} instead.
- */
-export async function writeJsonFileAsStream<T>(
-  absolutePathToFile: string,
-  object: T,
-): Promise<void> {
-  await writeLargeJsonFile(absolutePathToFile, object);
 }
 
 /**

@@ -37,8 +37,6 @@ import {
   readBinaryFile,
   getAccessTime,
   getFileSize,
-  readJsonFileAsStream,
-  writeJsonFileAsStream,
   writeLargeJsonFile,
   mkdtemp,
   readdirOrEmpty,
@@ -1240,20 +1238,6 @@ describe("File system utils", () => {
     });
   });
 
-  describe("readJsonFileAsStream", () => {
-    it("Should read and parse a JSON file, like readJsonFile", async () => {
-      const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, JSON.stringify(expectedObject));
-
-      assert.deepEqual(await readJsonFileAsStream(filePath), expectedObject);
-      expectTypeOf(await readJsonFileAsStream(filePath)).toBeUnknown();
-      expectTypeOf(
-        await readJsonFileAsStream<{ a: number; b: number }>(filePath),
-      ).toEqualTypeOf<{ a: number; b: number }>();
-    });
-  });
-
   describe("writeLargeJsonFile", () => {
     for (const { name, availableHeap } of JSON_PATHS) {
       describe(`When the object is ${name}`, () => {
@@ -1520,20 +1504,6 @@ describe("File system utils", () => {
         assert.equal(await readUtf8File(filePath), '{"a":1}');
         assert.equal(writeFile.mock.callCount(), 0);
       });
-    });
-  });
-
-  describe("writeJsonFileAsStream", () => {
-    it("Should write an object to a JSON file, like writeLargeJsonFile", async () => {
-      const object = { a: 1, b: 2 };
-      const filePath = path.join(tmp.path, "file.json");
-
-      await writeJsonFileAsStream(filePath, object);
-
-      assert.equal(await readUtf8File(filePath), JSON.stringify(object));
-      expectTypeOf(writeJsonFileAsStream<{ a: number; b: number }>)
-        .parameter(1)
-        .toEqualTypeOf<{ a: number; b: number }>();
     });
   });
 
