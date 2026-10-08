@@ -26,6 +26,7 @@ import {
   MineOrdering,
   opHardforkToString,
 } from "@nomicfoundation/edr";
+import { min } from "@nomicfoundation/hardhat-utils/bigint";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -38,6 +39,7 @@ import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   EIP_7825_TRANSACTION_GAS_CAP,
+  EIP_8037_MAX_TRANSACTION_GAS_LIMIT,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
 import { hardforkGte, L1HardforkName } from "../types/hardfork.js";
@@ -217,11 +219,18 @@ export async function hardhatForkingConfigToEdrForkConfig(
 
 /**
  * Resolves the default transaction gas limit used by RPC call and
- * transaction requests that omit a `gas` field.
+ * transaction requests that omit a `gas` field. This includes
+ * `eth_estimateGas`: when the request doesn't specify `gas`, EDR uses this
+ * value as the upper bound of the estimation, so it should be the most gas a
+ * transaction can use.
  *
- * When `transactionGasCap` is a bigint, that value wins. When it is
- * `false`, the per-transaction cap is disabled and the block gas limit is
- * used. When it is undefined, the hardfork-specific default applies:
+ * From L1's Amsterdam hardfork onwards, EIP-8037 limits `transactionGasCap`
+ * to execution gas, and a transaction can use up to the minimum of the block
+ * gas limit or 2^32 - 1, no matter what `transactionGasCap` is.
+ *
+ * Before Amsterdam, when `transactionGasCap` is a bigint, that value wins.
+ * When it is `false`, the per-transaction cap is disabled and the block gas
+ * limit is used. When it is undefined, the hardfork-specific default applies:
  * from L1's Osaka hardfork onwards, the EIP-7825 transaction gas cap of
  * 16,777,216; otherwise the block gas limit.
  */
@@ -232,6 +241,13 @@ export function resolveDefaultTransactionGasLimit(params: {
   transactionGasCap: bigint | false | undefined;
 }): bigint {
   const { chainType, hardfork, blockGasLimit, transactionGasCap } = params;
+
+  if (
+    chainType !== OPTIMISM_CHAIN_TYPE &&
+    hardforkGte(hardfork, L1HardforkName.AMSTERDAM, chainType)
+  ) {
+    return min(blockGasLimit, EIP_8037_MAX_TRANSACTION_GAS_LIMIT);
+  }
 
   if (typeof transactionGasCap === "bigint") {
     return transactionGasCap;

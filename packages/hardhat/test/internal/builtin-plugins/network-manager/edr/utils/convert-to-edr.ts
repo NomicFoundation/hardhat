@@ -149,6 +149,82 @@ describe("resolveDefaultTransactionGasLimit", () => {
       );
     });
   });
+
+  describe("from L1 Amsterdam, where the EIP-7825 cap binds only execution gas (EIP-8037)", () => {
+    const MAX_TRANSACTION_GAS_LIMIT = 4_294_967_295n;
+
+    it("returns the block gas limit when transactionGasCap is unset", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: L1_CHAIN_TYPE,
+          hardfork: L1HardforkName.AMSTERDAM,
+          blockGasLimit: ARBITRARY_BLOCK_GAS_LIMIT,
+          transactionGasCap: undefined,
+        }),
+        ARBITRARY_BLOCK_GAS_LIMIT,
+      );
+    });
+
+    it("returns the block gas limit when transactionGasCap is false", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: L1_CHAIN_TYPE,
+          hardfork: L1HardforkName.AMSTERDAM,
+          blockGasLimit: ARBITRARY_BLOCK_GAS_LIMIT,
+          transactionGasCap: false,
+        }),
+        ARBITRARY_BLOCK_GAS_LIMIT,
+      );
+    });
+
+    it("returns the block gas limit, not the user-set cap, when transactionGasCap is a bigint", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: L1_CHAIN_TYPE,
+          hardfork: L1HardforkName.AMSTERDAM,
+          blockGasLimit: ARBITRARY_BLOCK_GAS_LIMIT,
+          transactionGasCap: 1_000_000n,
+        }),
+        ARBITRARY_BLOCK_GAS_LIMIT,
+      );
+    });
+
+    it("caps the default at 2^32 - 1 when the block gas limit is higher", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: L1_CHAIN_TYPE,
+          hardfork: L1HardforkName.AMSTERDAM,
+          blockGasLimit: 5_000_000_000n,
+          transactionGasCap: undefined,
+        }),
+        MAX_TRANSACTION_GAS_LIMIT,
+      );
+    });
+
+    it("applies to the generic chain type too", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: GENERIC_CHAIN_TYPE,
+          hardfork: L1HardforkName.AMSTERDAM,
+          blockGasLimit: ARBITRARY_BLOCK_GAS_LIMIT,
+          transactionGasCap: undefined,
+        }),
+        ARBITRARY_BLOCK_GAS_LIMIT,
+      );
+    });
+
+    it("doesn't apply to OP, where a user-set cap still wins", () => {
+      assert.equal(
+        resolveDefaultTransactionGasLimit({
+          chainType: OPTIMISM_CHAIN_TYPE,
+          hardfork: getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+          blockGasLimit: ARBITRARY_BLOCK_GAS_LIMIT,
+          transactionGasCap: 1_000_000n,
+        }),
+        1_000_000n,
+      );
+    });
+  });
 });
 
 describe("hardhatGasEstimationModeToEdrGasEstimationMode", () => {
