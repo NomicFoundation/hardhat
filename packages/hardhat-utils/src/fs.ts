@@ -353,25 +353,6 @@ export async function getAllDirectoriesMatching(
 }
 
 /**
- * Determines the true case path of a given relative path from a specified
- * directory, without resolving symbolic links, and returns it.
- *
- * @param from The absolute path of the directory to start the search from.
- * @param relativePath The relative path to get the true case of.
- * @returns The true case of the relative path.
- * @throws FileNotFoundError if the starting directory or the relative path doesn't exist.
- * @throws NotADirectoryError if the starting directory is not a directory.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link TrueCasePathResolver} instead.
- */
-export async function getFileTrueCase(
-  from: string,
-  relativePath: string,
-): Promise<string> {
-  return await new TrueCasePathResolver().getFileTrueCase(from, relativePath);
-}
-
-/**
  * Checks if a given path is a directory.
  *
  * @param absolutePath The path to check.
