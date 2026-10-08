@@ -286,8 +286,7 @@ async function main(): Promise<void> {
         const entries = await runScenario(scenario, args, peakRssMethod);
         results.push(...entries);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logError(`Scenario "${scenario.id}" failed: ${message}`);
+        logError(scenarioFailureMessage(scenario.id, error));
         failures.push(scenario.id);
 
         if (args.failFast) {
@@ -731,6 +730,24 @@ async function runStepsPhase(
   return [...samples].flatMap(([stepName, stepRuns]) =>
     measuredRunsToEntries(scenarioId, stepName, stepRuns, peakRssMethod),
   );
+}
+
+/**
+ * A failure that `benchmarkError` wrapped already carries its output in
+ * the message. One that arrives unwrapped, like the spawn-overhead
+ * calibration's, still holds it in its `CommandFailedError` fields.
+ */
+export function scenarioFailureMessage(
+  scenarioId: string,
+  error: unknown,
+): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const output =
+    error instanceof CommandFailedError
+      ? formatOutput({ stdout: error.stdout, stderr: error.stderr })
+      : "";
+
+  return `Scenario "${scenarioId}" failed: ${message}${output === "" ? "" : `\n${output}`}`;
 }
 
 // Contextualize a failed benchmark command: first line of the failure, a

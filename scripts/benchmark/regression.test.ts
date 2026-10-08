@@ -2,7 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 
-import { resolveArgs } from "./regression.ts";
+import { resolveArgs, scenarioFailureMessage } from "./regression.ts";
+import { CommandFailedError } from "./helpers/runner.ts";
 import { PeakRssMethod } from "./helpers/peak-rss.ts";
 import {
   ForceCheckout,
@@ -94,6 +95,35 @@ describe("resolveArgs", () => {
     assert.throws(
       () => resolveArgs(["--output", "x", "--fail-fast", "stray"]),
       /Unexpected argument 'stray'/,
+    );
+  });
+});
+
+describe("scenarioFailureMessage", () => {
+  it("appends a failed command's captured output", () => {
+    const message = scenarioFailureMessage(
+      "ens",
+      new CommandFailedError(
+        "Spawn-overhead calibration failed: exit 127",
+        "",
+        "bash: time: not found",
+      ),
+    );
+
+    assert.equal(
+      message,
+      'Scenario "ens" failed: Spawn-overhead calibration failed: exit 127\n  --- stderr ---\nbash: time: not found',
+    );
+  });
+
+  it("names the scenario and the message for any other error", () => {
+    assert.equal(
+      scenarioFailureMessage("ens", new Error("boom")),
+      'Scenario "ens" failed: boom',
+    );
+    assert.equal(
+      scenarioFailureMessage("ens", "boom"),
+      'Scenario "ens" failed: boom',
     );
   });
 });
