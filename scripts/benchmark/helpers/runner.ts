@@ -37,8 +37,8 @@ const CALIBRATION_RUNS = 20;
 const STREAM_DRAIN_GRACE_MS = 5_000;
 
 /**
- * Where a measured run's wrappers write their reports. Callers pass paths in
- * their own temp dir, so a crashed run leaves diagnosable state behind.
+ * Where a measured run's wrappers write their reports, inside a directory
+ * from `withReportDir`.
  */
 export interface ReportPaths {
   /** bash's `time` builtin report, "<user> <system>" in seconds. */
@@ -56,6 +56,24 @@ export function reportPathsIn(dir: string, stem: string): ReportPaths {
     cpuTimingPath: path.join(dir, `${stem}-cpu.txt`),
     peakRssPath: path.join(dir, `${stem}-mem.txt`),
   };
+}
+
+/**
+ * Run `fn` with a fresh directory for its report files, removed once `fn`
+ * settles. No two calls share a directory, so concurrent callers cannot
+ * delete or read each other's reports.
+ */
+export async function withReportDir<T>(
+  prefix: string,
+  fn: (dir: string) => Promise<T>,
+): Promise<T> {
+  const dir = mkdtempSync(path.join(tmpdir(), prefix));
+
+  try {
+    return await fn(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 export interface RunOptions {
@@ -359,10 +377,9 @@ export class CommandFailedError extends Error {
 export async function measureShellSpawnOverhead(
   peakRssMethod: PeakRssMethod | undefined,
 ): Promise<SpawnOverhead> {
-  const dir = mkdtempSync(path.join(tmpdir(), "bench-calibration-"));
-  const reports = reportPathsIn(dir, "noop");
+  return withReportDir("bench-calibration-", async (dir) => {
+    const reports = reportPathsIn(dir, "noop");
 
-  try {
     const walls: number[] = [];
     const users: number[] = [];
     const systems: number[] = [];
@@ -394,9 +411,7 @@ export async function measureShellSpawnOverhead(
       user: mean(users),
       system: mean(systems),
     };
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  });
 }
 
 // Resolves once the child exited and its output streams closed; the wall

@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import {
   CommandFailedError,
   formatOutput,
@@ -18,6 +19,7 @@ import {
   reportPathsIn,
   runMeasured,
   runSeries,
+  withReportDir,
   wrapWithCpuTiming,
   type MeasuredRun,
   type ReportPaths,
@@ -325,6 +327,49 @@ describe(
     );
   },
 );
+
+describe("withReportDir", () => {
+  const prefix = "runner-report-dir-test-";
+
+  it("names each call's directory with the prefix and never shares it", async () => {
+    const dirs = await withReportDir(prefix, async (outer) =>
+      withReportDir(prefix, async (inner) => [outer, inner]),
+    );
+
+    for (const dir of dirs) {
+      assert.ok(path.basename(dir).startsWith(prefix), dir);
+    }
+
+    assert.notEqual(dirs[0], dirs[1]);
+  });
+
+  it("keeps the directory until fn settles, then removes it", async () => {
+    const dir = await withReportDir(prefix, async (created) => {
+      await delay(0);
+      assert.ok(existsSync(created));
+
+      return created;
+    });
+
+    assert.equal(existsSync(dir), false);
+  });
+
+  it("removes the directory when fn rejects and propagates the rejection", async () => {
+    let created: string | undefined;
+
+    await assert.rejects(
+      withReportDir(prefix, async (dir) => {
+        created = dir;
+        writeFileSync(path.join(dir, "run-cpu.txt"), "");
+        throw new Error("phase failed");
+      }),
+      /phase failed/,
+    );
+
+    assert.notEqual(created, undefined);
+    assert.equal(existsSync(created), false);
+  });
+});
 
 describe("measureShellSpawnOverhead (subprocess)", { skip: !HAS_BASH }, () => {
   it("reports a finite, non-negative wall, user and system overhead", async () => {

@@ -56,7 +56,7 @@ describe("resolveArgs", () => {
   it("rejects unknown options", () => {
     assert.throws(
       () => resolveArgs(["render", "/run-dir", "--titel", "x"]),
-      /unknown option: --titel/,
+      /Unknown option '--titel'/,
     );
   });
 });
