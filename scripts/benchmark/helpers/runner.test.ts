@@ -563,6 +563,16 @@ describe("calibrationFailure", () => {
     );
     assert.equal(failure.cause, cause);
   });
+
+  it("wraps a thrown non-Error value as text, keeping it as the cause", () => {
+    const failure = calibrationFailure("bash: time: not found");
+
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: bash: time: not found",
+    );
+    assert.equal(failure.cause, "bash: time: not found");
+  });
 });
 
 describe("measureShellSpawnOverhead (subprocess)", { skip: !HAS_BASH }, () => {
