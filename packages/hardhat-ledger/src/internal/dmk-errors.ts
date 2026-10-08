@@ -4,10 +4,7 @@ import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
- * Wraps a `DmkError`, which is a plain object (`{ _tag, originalError?,
- * message? }`) and not an `Error`, so that the handler can keep using
- * `try`/`catch`, `ensureError` and the `cause` chain. The `tag` is what we
- * classify on, replacing the `instanceof` checks of `@ledgerhq/errors`.
+ * Wraps a plain-object `DmkError` so Error-based code can classify it by tag.
  */
 export class LedgerDeviceError extends CustomError {
   public readonly tag: string;
@@ -24,40 +21,24 @@ export class LedgerDeviceError extends CustomError {
   }
 }
 
-/**
- * Thrown when a device action ends without producing a result or an error.
- */
 export class LedgerDeviceActionStoppedError extends CustomError {
   constructor() {
     super("The Ledger device action was stopped before it completed");
   }
 }
 
-/**
- * Thrown while connecting, when no Ledger device is plugged in. The DMK reports
- * that as an empty device list rather than an error, so we produce it ourselves.
- */
 export class LedgerNoDeviceFoundError extends CustomError {
   constructor() {
     super("No Ledger device was found");
   }
 }
 
-/**
- * Thrown when a request needs the device after the network connection that owns
- * the handler has been closed. Reconnecting then would leave a session that
- * nothing will ever close.
- */
 export class LedgerConnectionClosedError extends CustomError {
   constructor() {
     super("The Ledger connection was closed");
   }
 }
 
-/**
- * Thrown when the device session is dropped between opening it and using it,
- * which happens when a concurrent request on the same connection reconnects.
- */
 export class LedgerSessionLostError extends CustomError {
   constructor() {
     super(
@@ -67,11 +48,9 @@ export class LedgerSessionLostError extends CustomError {
 }
 
 /**
- * Tags meaning the device went away mid-operation. Recoverable: we drop the
- * session and connect again.
+ * Errors that indicate the device disconnected and needs a new session.
  *
- * `NodeHidSendReportError` is the transport's own write failure, which is what
- * surfaces when a write fails before the DMK sees the USB detach event.
+ * `NodeHidSendReportError` may occur before the DMK notices the disconnect.
  */
 const RECONNECTABLE_ERROR_TAGS = new Set([
   "DeviceDisconnectedBeforeSendingApdu",
@@ -84,11 +63,9 @@ const RECONNECTABLE_ERROR_TAGS = new Set([
 ]);
 
 /**
- * Tags meaning the device is reachable but not ready, i.e. at the PIN screen or
- * busy. Recoverable by waiting for the user.
+ * Errors that can be resolved by unlocking the device or waiting.
  *
- * There is no "Ethereum app is not open" tag: the signer opens the app itself,
- * so the `0x6511` status word we used to check for never reaches us.
+ * The signer opens the Ethereum app itself, so there is no app-not-open tag.
  */
 const DEVICE_NOT_READY_ERROR_TAGS = new Set([
   "DeviceBusyError",
@@ -96,11 +73,10 @@ const DEVICE_NOT_READY_ERROR_TAGS = new Set([
 ]);
 
 /**
- * Tags meaning we could not reach a device at all while connecting.
+ * Errors raised when no device can be reached.
  *
  * The DMK exports `OpeningConnectionError` but tags it `ConnectionOpeningError`.
- * We classify on the tag; the class name is listed too, in case Ledger ever
- * aligns the two.
+ * Include both names in case Ledger aligns them later.
  */
 const DEVICE_NOT_CONNECTED_ERROR_TAGS = new Set([
   "ConnectionOpeningError",
@@ -138,20 +114,13 @@ export function isDeviceNotConnectedError(error: Error): boolean {
     : false;
 }
 
-/**
- * The tag to show in the connection error message. It plays the role that
- * `TransportError#id` used to play with the old Ledger packages.
- */
+/** Returns the DMK tag to show in connection errors. */
 export function getErrorTag(error: Error): string {
   return error instanceof LedgerDeviceError ? error.tag : "";
 }
 
 /**
- * Normalizes anything a DMK call rejects with into an `Error`.
- *
- * `DeviceManagementKit#connect()` rejects with a raw `DmkError`, a plain object
- * that `ensureError` would rethrow untouched, leaving the handler unable to
- * classify or wrap it. Everything crossing the DMK boundary goes through here.
+ * Converts any DMK rejection to an `Error` so the handler can classify it.
  */
 export function toLedgerError(thrown: unknown): Error {
   if (thrown instanceof Error) {

@@ -5,16 +5,8 @@ import { LedgerNoDeviceFoundError, toLedgerError } from "./dmk-errors.js";
 /**
  * Resolves with the first device the given stream reports.
  *
- * The DMK reports "no device plugged in" as an empty list rather than an error,
- * and the stream stays open forever, so the timeout is ours. Generic over the
- * device type so that it can be tested without a Device Management Kit.
- *
- * The devices are listed again every `pollIntervalMs`, because the stream can
- * miss a device that comes back. The Node HID transport lists the HID devices
- * as soon as the USB device is attached, and when the HID device is not there
- * yet it drops the event and never updates the stream. Only a new
- * `listenToAvailableDevices` call lists them again. A device is attached that
- * way whenever it re-enumerates, e.g. because it opened the Ethereum app.
+ * The DMK reports no device as an empty list and leaves the stream open, so we
+ * add a timeout. Polling also catches devices missed while re-enumerating.
  *
  * @param listenToAvailableDevices Lists the reachable devices, as the DMK's
  * `listenToAvailableDevices` does.
@@ -31,16 +23,8 @@ export async function discoverFirstDevice<DeviceT>(
   return await new Promise<DeviceT>((resolve, reject) => {
     let settled = false;
 
-    // `listenToAvailableDevices` is backed by a `BehaviorSubject`, so it
-    // replays known devices *during* the `subscribe` call, before any of these
-    // is assigned. `settle` therefore tears down only what is bound, and
-    // `listen` and the code after its first call check `settled` afterwards.
-    /* eslint-disable prefer-const -- assigned below, read by `settle` during a
-    synchronous emission */
+    // The stream may emit during `subscribe`, before this is assigned.
     let subscription: Subscription | undefined;
-    let timeout: NodeJS.Timeout | undefined;
-    let poll: NodeJS.Timeout | undefined;
-    /* eslint-enable prefer-const */
 
     const settle = (report: () => void): void => {
       if (settled) {
@@ -48,9 +32,12 @@ export async function discoverFirstDevice<DeviceT>(
       }
 
       settled = true;
+
       report();
+
       clearTimeout(timeout);
       clearInterval(poll);
+
       subscription?.unsubscribe();
     };
 
@@ -68,8 +55,7 @@ export async function discoverFirstDevice<DeviceT>(
         settle(() => reject(toLedgerError(error)));
       },
       complete: () => {
-        // The DMK completes the stream only when it has no transport to list
-        // devices on, and listing them again would not change that.
+        // A completed stream cannot discover more devices.
         settle(() => reject(new LedgerNoDeviceFoundError()));
       },
     };
@@ -80,8 +66,7 @@ export async function discoverFirstDevice<DeviceT>(
       const listening = listenToAvailableDevices().subscribe(observer);
 
       if (settled) {
-        // A replayed device settled the promise before `subscription` was
-        // assigned.
+        // A replayed device settled before `subscription` was assigned.
         listening.unsubscribe();
 
         return;
@@ -90,16 +75,13 @@ export async function discoverFirstDevice<DeviceT>(
       subscription = listening;
     };
 
-    listen();
-
-    if (settled) {
-      return;
-    }
-
-    poll = setInterval(listen, pollIntervalMs);
-
-    timeout = setTimeout(() => {
+    // Armed before the first `listen`, which may settle synchronously and
+    // must find them to clear them.
+    const poll = setInterval(listen, pollIntervalMs);
+    const timeout = setTimeout(() => {
       settle(() => reject(new LedgerNoDeviceFoundError()));
     }, timeoutMs);
+
+    listen();
   });
 }
