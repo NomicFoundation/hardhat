@@ -11,56 +11,36 @@ import { discoverFirstDevice } from "./discover-device.js";
 import { toLedgerError } from "./dmk-errors.js";
 import {
   DeviceManagementKitBuilder,
+  NodeHidTransport,
   nodeHidTransportFactory,
   SignerEthBuilder,
 } from "./dmk-imports.js";
 
 const log = createDebug("hardhat:ledger:connect-device");
 
-/**
- * How often discovery lists the devices again. Each listing enumerates the HID
- * devices, which is cheap, and a device that re-enumerated is picked up within
- * this long of reappearing.
- */
 const DISCOVERY_POLL_INTERVAL_MS = 500;
-
-/**
- * The transport the DMK built for us.
- *
- * `DeviceManagementKit#close()` does *not* release the USB hotplug listeners
- * `NodeHidTransport` registers, so a process that ever built a DMK never exits;
- * `NodeHidTransport#destroy()` is what frees the event loop. The DMK exposes no
- * way to reach the transport, so we wrap the factory to capture it.
- */
-interface CapturedTransport {
-  destroy?: () => void;
-}
 
 type ExitListener = Parameters<typeof process.off>[1];
 
 /**
- * The DMK is expensive to build and is meant to be long-lived, so we build it
- * once per process and reuse it across connections.
+ * Creating the DMK is expensive, so reuse it across connections.
  */
 let deviceManagementKit: DeviceManagementKit | undefined;
-let capturedTransport: CapturedTransport | undefined;
 
 /**
- * The `process.on("exit")` listeners the transport registered when it was built.
- * `destroy()` leaves them behind, and the kit is rebuilt whenever a connection
- * is opened after the previous one was closed, so Node warns about a leak once
- * ten have piled up.
+ * A reference to the DMK's hidden transport, used to release its USB listeners.
+ */
+let capturedTransport: InstanceType<typeof NodeHidTransport> | undefined;
+
+/**
+ * `destroy()` leaves the transport's exit listeners behind. Track them so we
+ * can remove them ourselves.
  */
 let capturedExitListeners: ExitListener[] = [];
 
 /**
- * How many device sessions are open or being opened.
- *
- * The kit and its transport are process-wide but are torn down from
- * per-connection code, and Hardhat supports several connections at once.
- * Without this count, closing one would destroy the transport out from under
- * another. Sessions being opened count too: the transport is in use from the
- * moment discovery starts.
+ * Sessions using the shared transport, including sessions still opening. The
+ * transport can only be destroyed when this reaches zero.
  */
 let liveDeviceSessions = 0;
 
@@ -76,11 +56,9 @@ function getDeviceManagementKit(): DeviceManagementKit {
           .listeners("exit")
           .filter((listener) => !exitListenersBefore.has(listener));
 
-        /* eslint-disable @typescript-eslint/consistent-type-assertions --
-        `destroy` is part of the concrete `NodeHidTransport` class but not of the
-        `Transport` interface the factory is typed to return. */
-        capturedTransport = transport as unknown as CapturedTransport;
-        /* eslint-enable @typescript-eslint/consistent-type-assertions */
+        if (transport instanceof NodeHidTransport) {
+          capturedTransport = transport;
+        }
 
         return transport;
       })
@@ -91,16 +69,15 @@ function getDeviceManagementKit(): DeviceManagementKit {
 }
 
 /**
- * Connects to the first Ledger device the Node HID transport can see, and
- * returns an Ethereum signer bound to its session.
+ * Connects to the first available Ledger device and returns an Ethereum signer
+ * for its session.
  *
  * @param timeoutMs How long to wait for a device to show up.
  */
 export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
   const dmk = getDeviceManagementKit();
 
-  // Counted before the session exists: the transport is in use from here on,
-  // and `openedDevice` takes the count over once the session is open.
+  // Discovery uses the transport before the session opens.
   liveDeviceSessions++;
 
   let sessionId: DeviceSessionId | undefined;
@@ -124,17 +101,13 @@ export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
       await disconnectSession(dmk, sessionId);
     }
 
-    // Decremented only once the disconnect is done, so that another connection
-    // cannot destroy the transport while this one is still using it.
+    // Disconnect before allowing the shared transport to be destroyed.
     liveDeviceSessions--;
 
-    // The kit is deliberately left in place for the caller to retry against:
-    // rebuilding the transport per attempt would register another exit listener
-    // each time. `LedgerHandler#init` closes it once it gives up.
+    // Keep the DMK for retries. Creating a new one would add more listeners.
+    // `LedgerHandler#init` closes it after the final attempt.
 
-    // The DMK rejects with raw `DmkError` values, which are not `Error`
-    // instances, and the handler can only classify and wrap `Error`s. Bound to
-    // a variable first because only rethrowing one is allowed here.
+    // The DMK may reject with a non-Error value. Normalize it before rethrowing.
     const error = toLedgerError(thrown);
 
     throw error;
@@ -151,8 +124,7 @@ function openedDevice(
   return {
     signer,
     close: async () => {
-      // `close` can be reached twice for the same session: by a reconnect
-      // resetting it, and by the network hook closing the connection.
+      // A reconnect and the network hook can both close the same session.
       if (closed) {
         return;
       }
@@ -161,8 +133,7 @@ function openedDevice(
 
       await disconnectSession(dmk, sessionId);
 
-      // Decremented only once the disconnect is done, so that another
-      // connection cannot destroy the transport from under it.
+      // Disconnect before allowing the shared transport to be destroyed.
       liveDeviceSessions--;
     },
   };
@@ -175,16 +146,14 @@ async function disconnectSession(
   try {
     await dmk.disconnect({ sessionId });
   } catch (error) {
-    // Disconnecting a device that is already gone is not an error we can act
-    // on, and it must not mask the error that led us here.
+    // There is nothing else to clean up if disconnecting fails.
     log("Failed to disconnect the Ledger device session");
     log(error);
   }
 }
 
 /**
- * Releases every process-wide resource the DMK holds. Without this, a Hardhat
- * run that touched a Ledger never exits.
+ * Releases the process-wide resources that otherwise keep Hardhat running.
  */
 export function closeDeviceManagementKit(): void {
   if (deviceManagementKit === undefined) {
@@ -206,10 +175,9 @@ export function closeDeviceManagementKit(): void {
     log(error);
   }
 
-  // Must come after `close()`: the DMK instantiates the transport lazily, so
-  // closing it is what makes the transport exist in the first place.
+  // Closing may create the lazy transport. Destroy it afterward.
   try {
-    capturedTransport?.destroy?.();
+    capturedTransport?.destroy();
   } catch (error) {
     log("Failed to destroy the Node HID transport");
     log(error);
