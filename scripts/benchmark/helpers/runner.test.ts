@@ -382,13 +382,15 @@ describe("withReportDir on termination (subprocess)", () => {
 
   /**
    * Source for a child that holds two nested report directories. It prints
-   * both, waits `holdMs`, then prints whether they still exist. `setup`
-   * runs inside the inner callback, after the handlers are installed.
+   * both, waits `holdMs`, then prints whether they still exist. `before`
+   * runs ahead of the first `withReportDir` call, `setup` inside the inner
+   * callback, after the handlers are installed.
    */
-  function holdReportDirs(setup: string, holdMs: number): string {
+  function holdReportDirs(setup: string, holdMs: number, before = ""): string {
     return `
       const { existsSync } = await import("node:fs");
       const { withReportDir } = await import(${JSON.stringify(runnerUrl.href)});
+      ${before}
       await withReportDir(${JSON.stringify(prefix)}, (outer) =>
         withReportDir(${JSON.stringify(prefix)}, async (inner) => {
           ${setup}
@@ -485,6 +487,21 @@ describe("withReportDir on termination (subprocess)", () => {
     );
 
     assert.equal(ended.code, 7);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+
+  it("defers to a one-shot listener installed earlier that swallows the signal", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        "",
+        300,
+        'process.once("SIGINT", () => console.log("swallowed"));',
+      ),
+      "SIGINT",
+    );
+
+    assert.equal(ended.code, 0);
+    assert.deepEqual(ended.lines.slice(2), ["swallowed", "true true"]);
     assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
   });
 

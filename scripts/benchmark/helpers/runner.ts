@@ -110,7 +110,9 @@ function installTerminationCleanup(): void {
       }
     };
 
-    process.on(signal, onSignal);
+    // Run first, so a one-shot listener installed earlier is still counted
+    // when this one decides.
+    process.prependListener(signal, onSignal);
   }
 }
 
