@@ -18,7 +18,6 @@ cbor
 CBOR
 cbranch
 Ccip
-cesu
 chainid
 CHAINID
 choco
@@ -148,8 +147,6 @@ unparseable
 Unpayable
 unpublishing
 unreconciliable
-unref
-Stax
 unrs
 Unstarted
 UNSTARTED
@@ -174,4 +171,3 @@ zkevm
 zksync
 zoey
 zora
-Cyvers

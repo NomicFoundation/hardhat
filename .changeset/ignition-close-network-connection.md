@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-ignition": patch
 ---
 
-The `deploy`, `track-tx` and `verify` tasks now close their network connection when they finish. Plugins can hold resources open on a connection until it is closed, and `@nomicfoundation/hardhat-ledger` keeps the USB session to the device open, which would otherwise keep Hardhat running after the task ended. Update it together with `@nomicfoundation/hardhat-ledger`.
+Updated the `ignition deploy`, `ignition track-tx` and `ignition verify` tasks to close their network connection when they finish, so Hardhat exits after using `@nomicfoundation/hardhat-ledger`.
