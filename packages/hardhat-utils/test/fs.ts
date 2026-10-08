@@ -21,7 +21,6 @@ import {
   getAllFilesMatching,
   getAllDirectoriesMatching,
   getChangeTime,
-  getFileTrueCase,
   getRealPath,
   TrueCasePathResolver,
   isDirectory,
@@ -528,121 +527,6 @@ describe("File system utils", () => {
     });
   });
 
-  describe("getFileTrueCase", () => {
-    it("Should return the true case of files and dirs", async () => {
-      const mixedCaseFilePath = path.join(tmp.path, "mixedCaseFile");
-      const mixedCaseDirPath = path.join(tmp.path, "mixedCaseDir");
-      const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
-
-      await createFile(mixedCaseFilePath);
-      await mkdir(mixedCaseDirPath);
-      await createFile(mixedCaseFile2Path);
-
-      // We test mixedCaseFilePath from tmpdir
-      assert.equal(
-        await getFileTrueCase(tmp.path, "mixedCaseFile"),
-        path.relative(tmp.path, mixedCaseFilePath),
-      );
-      assert.equal(
-        await getFileTrueCase(tmp.path, "mixedcasefile"),
-        path.relative(tmp.path, mixedCaseFilePath),
-      );
-      assert.equal(
-        await getFileTrueCase(tmp.path, "MIXEDCASEFILE"),
-        path.relative(tmp.path, mixedCaseFilePath),
-      );
-
-      // We test mixedCaseDirPath from tmpdir
-      assert.equal(
-        await getFileTrueCase(tmp.path, "mixedCaseDir"),
-        path.relative(tmp.path, mixedCaseDirPath),
-      );
-      assert.equal(
-        await getFileTrueCase(tmp.path, "mixedcasedir"),
-        path.relative(tmp.path, mixedCaseDirPath),
-      );
-      assert.equal(
-        await getFileTrueCase(tmp.path, "MIXEDCASEDIR"),
-        path.relative(tmp.path, mixedCaseDirPath),
-      );
-
-      // We test mixedCaseFilePath2 from tmpdir
-      assert.equal(
-        await getFileTrueCase(
-          tmp.path,
-          path.join("mixedCaseDir", "mixedCaseFile2"),
-        ),
-        path.relative(tmp.path, mixedCaseFile2Path),
-      );
-      assert.equal(
-        await getFileTrueCase(
-          tmp.path,
-          path.join("mixedcasedir", "MIXEDCASEFILE2"),
-        ),
-        path.relative(tmp.path, mixedCaseFile2Path),
-      );
-      assert.equal(
-        await getFileTrueCase(
-          tmp.path,
-          path.join("MIXEDCASEDIR", "mixedcasefile2"),
-        ),
-        path.relative(tmp.path, mixedCaseFile2Path),
-      );
-
-      // We test mixedCaseFilePath2 from mixedCaseDir
-      assert.equal(
-        await getFileTrueCase(mixedCaseDirPath, "mixedCaseFile2"),
-        path.relative(mixedCaseDirPath, mixedCaseFile2Path),
-      );
-      assert.equal(
-        await getFileTrueCase(mixedCaseDirPath, "MIXEDCASEFILE2"),
-        path.relative(mixedCaseDirPath, mixedCaseFile2Path),
-      );
-      assert.equal(
-        await getFileTrueCase(mixedCaseDirPath, "mixedcasefile2"),
-        path.relative(mixedCaseDirPath, mixedCaseFile2Path),
-      );
-    });
-
-    it("Should NOT resolve symlinks", async () => {
-      const actualPath = path.join(tmp.path, "mixedCasingFile");
-      await createFile(actualPath);
-
-      const linkPath = path.join(tmp.path, "lInK");
-      await fsPromises.symlink(actualPath, linkPath);
-
-      assert.equal(await getFileTrueCase(tmp.path, "link"), "lInK");
-    });
-
-    it("Should throw FileNotFoundError if not found", async () => {
-      const actualPath = path.join(tmp.path, "not-exists");
-
-      await assert.rejects(getFileTrueCase(tmp.path, "not-exists"), {
-        name: "FileNotFoundError",
-        message: `File ${actualPath} not found`,
-      });
-    });
-
-    it("Should throw NotADirectoryError if the starting directory is not a directory", async () => {
-      const filePath = path.join(tmp.path, "file");
-      await createFile(filePath);
-
-      await assert.rejects(getFileTrueCase(filePath, "asd"), {
-        name: "NotADirectoryError",
-        message: `Path ${filePath} is not a directory`,
-      });
-    });
-
-    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const linkPath = path.join(tmp.path, "link");
-      await fsPromises.symlink(linkPath, linkPath);
-
-      await assert.rejects(getFileTrueCase(linkPath, "file"), {
-        name: "FileSystemAccessError",
-      });
-    });
-  });
-
   describe("TrueCasePathResolver", () => {
     it("Should return the true case of files and directories", async () => {
       const mixedCaseFilePath = path.join(tmp.path, "mixedCaseFile");
@@ -655,21 +539,72 @@ describe("File system utils", () => {
 
       const resolver = new TrueCasePathResolver();
 
-      assert.equal(
-        await resolver.getFileTrueCase(tmp.path, "mixedcasefile"),
+      // We test mixedCaseFilePath from tmpdir
+      for (const spelling of [
         "mixedCaseFile",
-      );
-      assert.equal(
-        await resolver.getFileTrueCase(tmp.path, "MIXEDCASEDIR"),
-        "mixedCaseDir",
-      );
-      assert.equal(
-        await resolver.getFileTrueCase(
-          tmp.path,
-          path.join("mixedcasedir", "MIXEDCASEFILE2"),
-        ),
+        "mixedcasefile",
+        "MIXEDCASEFILE",
+      ]) {
+        assert.equal(
+          await resolver.getFileTrueCase(tmp.path, spelling),
+          "mixedCaseFile",
+        );
+      }
+
+      // We test mixedCaseDirPath from tmpdir
+      for (const spelling of ["mixedCaseDir", "mixedcasedir", "MIXEDCASEDIR"]) {
+        assert.equal(
+          await resolver.getFileTrueCase(tmp.path, spelling),
+          "mixedCaseDir",
+        );
+      }
+
+      // We test mixedCaseFile2Path from tmpdir
+      for (const spelling of [
         path.join("mixedCaseDir", "mixedCaseFile2"),
-      );
+        path.join("mixedcasedir", "MIXEDCASEFILE2"),
+        path.join("MIXEDCASEDIR", "mixedcasefile2"),
+      ]) {
+        assert.equal(
+          await resolver.getFileTrueCase(tmp.path, spelling),
+          path.join("mixedCaseDir", "mixedCaseFile2"),
+        );
+      }
+
+      // We test mixedCaseFile2Path from mixedCaseDir
+      for (const spelling of [
+        "mixedCaseFile2",
+        "MIXEDCASEFILE2",
+        "mixedcasefile2",
+      ]) {
+        assert.equal(
+          await resolver.getFileTrueCase(mixedCaseDirPath, spelling),
+          "mixedCaseFile2",
+        );
+      }
+    });
+
+    it("Should NOT resolve symlinks", async () => {
+      const actualPath = path.join(tmp.path, "mixedCasingFile");
+      await createFile(actualPath);
+
+      const linkPath = path.join(tmp.path, "lInK");
+      await fsPromises.symlink(actualPath, linkPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(await resolver.getFileTrueCase(tmp.path, "link"), "lInK");
+    });
+
+    it("Should throw FileNotFoundError if not found", async () => {
+      const actualPath = path.join(tmp.path, "not-exists");
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(tmp.path, "not-exists"), {
+        name: "FileNotFoundError",
+        message: `File ${actualPath} not found`,
+      });
     });
 
     it("Should return an empty path when resolving the starting directory itself", async () => {
@@ -900,6 +835,7 @@ describe("File system utils", () => {
 
       await assert.rejects(resolver.getFileTrueCase(filePath, "asd"), {
         name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
       });
     });
 
