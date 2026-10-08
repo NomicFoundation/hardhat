@@ -219,8 +219,9 @@ export async function hardhatForkingConfigToEdrForkConfig(
 
 /**
  * Resolves the default transaction gas limit used by RPC call and
- * transaction requests that omit a `gas` field. EDR also uses it as the
- * upper bound of `eth_estimateGas`, so it should be the most gas a
+ * transaction requests that omit a `gas` field. This includes
+ * `eth_estimateGas`: when the request doesn't specify `gas`, EDR uses this
+ * value as the upper bound of the estimation, so it should be the most gas a
  * transaction can use.
  *
  * From L1's Amsterdam hardfork onwards, EIP-8037 limits `transactionGasCap`
