@@ -201,14 +201,14 @@ describe("createPeakRssRecorder", () => {
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      /GNU time wrote no report/,
+      { message: "GNU time wrote no report" },
     );
 
     writeFileSync(memPath, "");
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      /GNU time left an empty report/,
+      { message: "GNU time left an empty report" },
     );
   });
 
