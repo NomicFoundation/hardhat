@@ -373,7 +373,11 @@ describe("withReportDir", () => {
   });
 });
 
-describe("withReportDir on termination (subprocess)", () => {
+// child.kill() on Windows ends the child without running its signal
+// handlers.
+const WINDOWS = process.platform === "win32";
+
+describe("withReportDir on termination (subprocess)", { skip: WINDOWS }, () => {
   const prefix = "runner-signal-test-";
   const runnerUrl = pathToFileURL(path.join(import.meta.dirname, "runner.ts"));
   // A handler that never fires would hang the child, which must fail the test
