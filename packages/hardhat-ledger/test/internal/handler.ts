@@ -38,6 +38,7 @@ import {
   DEVICE_DISCONNECTED_BEFORE_SENDING_ERROR,
   DEVICE_DISCONNECTED_ERROR,
   DEVICE_LOCKED_ERROR,
+  DEVICE_SESSION_NOT_FOUND_ERROR,
   getLedgerDeviceMock,
   NO_ACCESSIBLE_DEVICE_ERROR,
   REFUSED_BY_USER_ERROR,
@@ -976,6 +977,41 @@ describe("LedgerHandler", () => {
 
   describe("device error recovery", () => {
     describe("during signing (#withConfirmation)", () => {
+      it("should reconnect when the signer throws because the session was dropped", async () => {
+        // The device was unplugged between requests, or another connection to
+        // the same device closed the shared USB link. The signer then throws a
+        // raw object before any action starts, instead of emitting an error.
+        const state = createDeviceFactoryState();
+        const [deviceFactory] = getLedgerDeviceMock(
+          {
+            getAddress: findAccountAt(derPath),
+            signMessage: {
+              result: rsv,
+              errorsToThrow: [DEVICE_SESSION_NOT_FOUND_ERROR],
+            },
+          },
+          { state },
+        );
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        mockedDisplayInfo.clear();
+
+        assert.deepEqual(
+          await ledgerHandler.handle(personalSignRequest),
+          signatureResponse,
+        );
+
+        assert.equal(state.connectCount, 2);
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "The reconnection should be displayed",
+        );
+      });
+
       it("should give up and display failure message after reconnection also fails", async () => {
         const state = createDeviceFactoryState();
         const [deviceFactory] = getLedgerDeviceMock(

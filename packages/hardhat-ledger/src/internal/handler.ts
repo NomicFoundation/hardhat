@@ -50,6 +50,7 @@ import {
   isReconnectableError,
   LedgerConnectionClosedError,
   LedgerSessionLostError,
+  toLedgerError,
 } from "./dmk-errors.js";
 import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
@@ -594,10 +595,22 @@ export class LedgerHandler {
       );
     }
 
-    const deviceAction = action(
-      device.signer,
-      toDeviceDerivationPath(derivationPath),
-    );
+    let deviceAction: DeviceAction<Output>;
+
+    try {
+      deviceAction = action(
+        device.signer,
+        toDeviceDerivationPath(derivationPath),
+      );
+    } catch (thrown) {
+      // The signer throws a raw `DeviceSessionNotFound` object, not an `Error`,
+      // when the kit already dropped the session (device unplugged, or another
+      // connection to the same device closed the shared USB link). Bound to a
+      // variable first because only rethrowing one is allowed here.
+      const error = toLedgerError(thrown);
+
+      throw error;
+    }
 
     // Registered so that `close()` can stop it.
     const cancel = (): void => deviceAction.cancel();

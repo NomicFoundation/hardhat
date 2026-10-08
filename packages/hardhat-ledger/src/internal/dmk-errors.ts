@@ -77,6 +77,7 @@ const RECONNECTABLE_ERROR_TAGS = new Set([
   "DeviceDisconnectedBeforeSendingApdu",
   "DeviceDisconnectedWhileSendingError",
   "DeviceNotInitializedError",
+  "DeviceSessionNotFound",
   "DisconnectError",
   "NodeHidSendReportError",
   "ReconnectionFailedError",

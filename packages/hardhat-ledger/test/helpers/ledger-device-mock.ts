@@ -46,10 +46,17 @@ export const REFUSED_BY_USER_ERROR: DmkError = {
   _tag: "RefusedByUserDAError",
   message: "Refused by the user",
 };
+/** What the real signer throws, as a plain object, once the kit dropped the session. */
+export const DEVICE_SESSION_NOT_FOUND_ERROR: DmkError = {
+  _tag: "DeviceSessionNotFound",
+  originalError: new Error("Device session not found"),
+};
 
 interface MethodConfig {
   /** Errors to emit on consecutive calls, before succeeding. */
   errorSequenceToEmit?: DmkError[];
+  /** Errors to throw synchronously on consecutive calls, before succeeding. */
+  errorsToThrow?: DmkError[];
   /** Keeps the action pending this long, like a user taking time to approve. */
   delayMs?: number;
 }
@@ -293,6 +300,12 @@ function recordCall(
 
   callState.totalCalls++;
   callState.args.push(args);
+
+  const errorToThrow = config.errorsToThrow?.[callState.totalCalls - 1];
+
+  if (errorToThrow !== undefined) {
+    throw errorToThrow;
+  }
 
   return config.errorSequenceToEmit?.[callState.totalCalls - 1];
 }
