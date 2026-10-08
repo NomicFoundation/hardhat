@@ -1,0 +1,5 @@
+{
+  "format_version": 1,
+  "description": "Committed smoke subset of the Sourcify 0.8.34 (evmVersion >= cancun) corpus, one contract per fixture-generation class. See sourcify-sweep/README.md.",
+  "contract_count": 10
+}
