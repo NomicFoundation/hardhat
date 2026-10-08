@@ -1,7 +1,6 @@
-import type { TypedData } from "./dmk-imports.js";
+import type { Signature, TypedData } from "./dmk-imports.js";
 import type { DeviceAction } from "./run-device-action.js";
 import type {
-  DeviceSignature,
   LedgerDevice,
   LedgerDeviceFactory,
   LedgerOptions,
@@ -62,8 +61,8 @@ const log = createDebug("hardhat:ledger:handler");
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
-let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
 let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
+let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
 
 interface RetryState {
   reconnection: number;
@@ -73,12 +72,7 @@ interface RetryState {
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
-  /**
-   * How long to look for the device after its session was lost. The device is
-   * usually re-enumerating, e.g. after opening the Ethereum app, and the Device
-   * Management Kit waits 6 seconds for it before giving up. A slower USB stack
-   * takes longer than that: WSL, through usbipd, takes about 8 seconds.
-   */
+  /* Allows slow USB stacks, to rediscover a device while it re-enumerates. */
   public static readonly RECONNECTION_TIMEOUT = 10_000;
   public static readonly MAX_RECONNECTION_ATTEMPTS = 2;
   public static readonly RECONNECTION_DELAY_SECONDS = 0.5;
@@ -92,16 +86,11 @@ export class LedgerHandler {
   readonly #delayBeforeRetry: (seconds: number) => Promise<void>;
   readonly #maxDeviceNotReadyRetries: number;
   readonly #initializationMutex = new AsyncMutex();
-  /**
-   * Ends the retry waits currently in flight. Their timers are referenced, so
-   * without this `close()` resolves and the process still waits out the
-   * remaining delay, which is half a minute.
-   */
+  /** Lets `close()` cancel retry timers that would keep the process alive. */
   readonly #retryWaits = new Set<() => void>();
   /**
-   * Cancels the device actions currently running. The Device Management Kit
-   * leaves a running action alone when its session is closed, so `close()` has
-   * to stop it itself, or the request that started it outlives the connection.
+   * Lets `close()` cancel DMK actions, which keep running after their session
+   * closes.
    */
   readonly #runningActions = new Set<() => void>();
 
@@ -118,7 +107,7 @@ export class LedgerHandler {
     options: LedgerOptions,
     displayMessage: (interruptor: string, message: string) => Promise<void>,
     customConfig?: {
-      // Allows passing a custom config, primarily used for testing
+      // Test overrides.
       deviceFactory?: LedgerDeviceFactory;
       cachePath?: string;
       delayBeforeRetry?: (seconds: number) => Promise<void>;
@@ -279,12 +268,8 @@ export class LedgerHandler {
   }
 
   /**
-   * Opens a device session, if there isn't one already, and loads the
-   * derivation-path cache.
-   *
-   * Serialized, because opening a session is a check-then-assign across awaits:
-   * two concurrent requests would otherwise open two sessions and leak one, and
-   * a leaked session keeps the Device Management Kit, and the process, alive.
+   * Opens a device session and loads the derivation-path cache. Calls are
+   * serialized to prevent concurrent requests from opening duplicate sessions.
    */
   public async init(retryAttempts: number = 0): Promise<void> {
     await this.#initializationMutex.exclusiveRun(
@@ -301,10 +286,8 @@ export class LedgerHandler {
     }
 
     if (this.#closed) {
-      // `close()` ran before or during the connection. A session opened now
-      // would outlive the network connection that owns this handler, and
-      // `close()` is refused the kit while one is still being opened, so
-      // whoever gets here last has to release both.
+      // `close()` ran while the session was opening. Release the session and
+      // the shared DMK now that opening has finished.
       await this.#resetConnection();
 
       closeDeviceManagementKit();
@@ -325,9 +308,8 @@ export class LedgerHandler {
   }
 
   /**
-   * @param reconnecting Whether the device was connected until it went away
-   * mid-request. It usually comes back by itself, so it gets longer to do so,
-   * and asking the user to plug it in or to enter the PIN would be misleading.
+   * @param reconnecting Whether a connected device disappeared mid-request.
+   * Re-enumeration gets a longer timeout and no initial setup prompt.
    */
   async #connect(retryAttempts: number, reconnecting: boolean): Promise<void> {
     try {
@@ -343,9 +325,7 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // Retry if device not connected and we have retries left, but not once
-      // the connection is gone: this loop runs for half an hour, and it would
-      // keep the process alive and keep prompting long after `close()`.
+      // Stop retrying after `close()`; this loop can otherwise run for 30 minutes.
       if (
         isDeviceNotConnectedError(error) &&
         retryAttempts < this.#maxDeviceNotReadyRetries &&
@@ -362,20 +342,14 @@ export class LedgerHandler {
         );
         await this.#delayBeforeRetry(delay);
 
-        // `close()` typically lands inside that wait, and another attempt would
-        // rebuild the kit and its USB listeners for a connection that is gone.
+        // Do not rebuild the transport if `close()` ran during the wait.
         if (!this.#closed) {
           return await this.#connect(retryAttempts + 1, reconnecting);
         }
       }
 
-      // Give up - either not a retryable error or exhausted retries
-
-      // This connection never opened a session, but the Device Management Kit
-      // built its Node HID transport while looking for a device, and that alone
-      // keeps the process alive. This is the most common failure there is,
-      // since it covers "no Ledger plugged in". Another connection's session
-      // still wins: the kit refuses to close while one is in use.
+      // Discovery creates the transport even if no session opens. Release it
+      // before reporting the connection failure.
       closeDeviceManagementKit();
 
       await this.#displayMessage("Connection error");
@@ -413,8 +387,7 @@ export class LedgerHandler {
         );
 
         const wallet = await this.#runOnDevice(path, (signer, devicePath) =>
-          // The address is only used to find the right derivation path, so it
-          // must not ask the user to confirm it on the device.
+          // Path lookup does not need on-device address confirmation.
           signer.getAddress(devicePath, { checkOnDevice: false }),
         );
         const address = wallet.address.toLowerCase();
@@ -432,7 +405,6 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // Check if we should attempt reconnection
       if (
         isReconnectableError(error) &&
         retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
@@ -448,9 +420,7 @@ export class LedgerHandler {
         });
       }
 
-      // Retry if device not ready and we have retries left, but not once the
-      // connection is gone: the wait is skipped then, so the loop would spin
-      // through its whole budget against a device nobody is watching.
+      // Without the `#closed` check, skipped waits would make retries spin.
       if (
         isDeviceNotReadyError(error) &&
         retryState.deviceNotReady < this.#maxDeviceNotReadyRetries &&
@@ -470,7 +440,6 @@ export class LedgerHandler {
         });
       }
 
-      // Give up - either exhausted retries or other error
       await this.#displayMessage("Derivation failure");
 
       if (isDeviceNotReadyError(error)) {
@@ -509,16 +478,12 @@ export class LedgerHandler {
   }
 
   /**
-   * Waits before retrying, or until the handler is closed.
-   *
-   * `sleep` from `hardhat-utils` would do, but its timer cannot be cleared, and
-   * a pending one keeps the process alive after the connection is gone.
+   * Waits for the retry delay or until the handler closes. The timer must be
+   * clearable so it does not keep the process alive.
    */
   async #waitBeforeRetry(seconds: number): Promise<void> {
-    // Checked here rather than only at the call sites: each of them displays a
-    // message first, and `close()` lands inside that await often enough. From
-    // here to the registration below is synchronous, so there is no window
-    // left in which a wait can be armed and then missed by `close()`.
+    // Retry messages are async, so check again immediately before adding the
+    // timer that `close()` cancels.
     if (this.#closed) {
       return;
     }
@@ -552,13 +517,8 @@ export class LedgerHandler {
   }
 
   /**
-   * Runs a device action on the connected signer, reporting what the device is
-   * waiting for as it goes.
-   *
-   * Every call into the Device Management Kit goes through here, so this is
-   * also where derivation paths are converted to the form the DMK accepts: the
-   * `action` callback is handed the converted path and must use it rather than
-   * the one it closed over.
+   * Runs a device action on the connected signer. The callback must use the
+   * converted `devicePath` argument.
    *
    * @param derivationPath The path to sign with, in the `m/...` form used
    * everywhere else in the handler.
@@ -573,16 +533,13 @@ export class LedgerHandler {
     ) => DeviceAction<Output>,
   ): Promise<Output> {
     if (this.#device === undefined) {
-      // A concurrent request on this connection can be reconnecting after a
-      // device error; `init` waits for it and shares the new session.
+      // Another request may be reconnecting. `init()` waits for its session.
       await this.init();
     }
 
     const device = this.#device;
 
-    // `init` either opened a session or threw, so the only way there is none
-    // is that it was dropped in between: the connection was closed, or a
-    // concurrent request on it reconnected.
+    // The connection closed or another request replaced the session after init.
     if (device === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
@@ -603,16 +560,13 @@ export class LedgerHandler {
         toDeviceDerivationPath(derivationPath),
       );
     } catch (thrown) {
-      // The signer throws a raw `DeviceSessionNotFound` object, not an `Error`,
-      // when the kit already dropped the session (device unplugged, or another
-      // connection to the same device closed the shared USB link). Bound to a
-      // variable first because only rethrowing one is allowed here.
+      // The signer may throw a plain object when its session has disappeared.
       const error = toLedgerError(thrown);
 
       throw error;
     }
 
-    // Registered so that `close()` can stop it.
+    // Let `close()` cancel the action.
     const cancel = (): void => deviceAction.cancel();
 
     this.#runningActions.add(cancel);
@@ -622,10 +576,7 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // The connection was closed while the device was busy with this action:
-      // `close()` cancelled it, or the session went away under it. The closed
-      // connection is what the caller needs to know about, and it must not
-      // trigger a reconnection.
+      // Report the closed connection instead of retrying its cancelled action.
       if (this.#closed) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
@@ -641,30 +592,19 @@ export class LedgerHandler {
   }
 
   /**
-   * Cancels any device action still running, closes the device session, if
-   * any, and releases every process-wide resource the Device Management Kit
-   * holds.
-   *
-   * This must be called when the network connection is closed: the Node HID
-   * transport keeps USB hotplug listeners registered, and `node-hid` keeps a
-   * read handle on the open device, so a process that does not release them
-   * never exits. Nothing else releases them: Hardhat never closes a connection
-   * on its own, and the plugin cannot tell when a script is done, which is why
-   * scripts must call `connection.close()`.
+   * Cancels retries and actions, then releases the session and shared DMK.
+   * Scripts must call `connection.close()` so USB resources do not keep the
+   * process alive.
    */
   public async close(): Promise<void> {
     this.#closed = true;
 
-    // A retry is waiting on a timer that would hold the process open long after
-    // this resolves. Ending it lets the retry see `#closed` and give up.
+    // Wake retries so they can observe `#closed`.
     for (const endWait of this.#retryWaits) {
       endWait();
     }
 
-    // A device action still running would outlive the connection: the Device
-    // Management Kit does not stop it when its session is closed. Cancelling
-    // ends it in the `Stopped` state, and `#runOnDevice` reports that to the
-    // caller as a closed connection.
+    // The DMK does not cancel actions when their session closes.
     for (const cancel of this.#runningActions) {
       try {
         cancel();
@@ -679,10 +619,7 @@ export class LedgerHandler {
     closeDeviceManagementKit();
   }
 
-  /**
-   * Replaces a session the device dropped mid-request with a new one, opened
-   * under the same lock as `init` opens one.
-   */
+  /** Replaces a lost session under the same lock used by `init()`. */
   async #reconnect(): Promise<void> {
     await this.#displayMessage("Reconnecting to Ledger...");
     await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
@@ -692,11 +629,7 @@ export class LedgerHandler {
     );
   }
 
-  /**
-   * Resets the Ledger connection by closing the device session and clearing the
-   * device instance. This allows the next init() call to create a fresh
-   * connection.
-   */
+  /** Closes the current session so the next `init()` opens a new one. */
   async #resetConnection(): Promise<void> {
     const device = this.#device;
 
@@ -729,7 +662,6 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // Check if we should attempt reconnection
       if (
         isReconnectableError(error) &&
         retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
@@ -745,9 +677,7 @@ export class LedgerHandler {
         });
       }
 
-      // Retry if device not ready and we have retries left, but not once the
-      // connection is gone: the wait is skipped then, so the loop would spin
-      // through its whole budget against a device nobody is watching.
+      // Without the `#closed` check, skipped waits would make retries spin.
       if (
         isDeviceNotReadyError(error) &&
         retryState.deviceNotReady < this.#maxDeviceNotReadyRetries &&
@@ -767,7 +697,6 @@ export class LedgerHandler {
         });
       }
 
-      // Give up - either exhausted retries or other error
       await this.#displayMessage("Confirmation failure");
 
       if (isDeviceNotReadyError(error)) {
@@ -781,7 +710,7 @@ export class LedgerHandler {
     }
   }
 
-  async #toRpcSig(sig: DeviceSignature): Promise<string> {
+  async #toRpcSig(sig: Signature): Promise<string> {
     if (microEthSignerUtils === undefined) {
       microEthSignerUtils = await import("micro-eth-signer/utils");
     }
@@ -851,9 +780,7 @@ export class LedgerHandler {
       );
     }
 
-    // The signer takes the typed data as-is: it does the EIP-712 hashing and
-    // the clear-signing lookups itself, and falls back to signing the hashed
-    // message on its own, so we no longer need our own fallback.
+    // The DMK handles EIP-712 hashing and its fallback internally.
     const typedData = toTypedData(data);
 
     const path = await this.#derivePath(address);
@@ -873,15 +800,8 @@ export class LedgerHandler {
   }
 
   /**
-   * Checks that the signature is over the typed data the caller sent.
-   *
-   * The signer kit encodes the typed data for the device itself, and falls
-   * back to hashing it with ethers when the device cannot take it. Both
-   * mis-encode some inputs, such as a field name made of digits only or a
-   * `__proto__` key, and the device then signs a different message with nothing
-   * reporting it. Recovering the signer from the caller's own data catches
-   * every such case, known or not: a signature over anything else recovers to
-   * another address.
+   * Verifies that the device signed the exact typed data requested. Recovering
+   * the address from the original data catches DMK encoding mismatches.
    */
   async #assertSignedAsRequested(
     rpcSignature: string,
@@ -898,16 +818,14 @@ export class LedgerHandler {
       signedAsRequested = microEthSignerTypedData.verifyTyped(
         rpcSignature,
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- micro-eth-signer types the message and domain against the literal
-        `types`, which the signer kit's `TypedData` cannot express. */
+        -- The DMK type cannot express micro-eth-signer's linked field types. */
         typedData as any,
         bytesToHexString(address),
       );
     } catch (error) {
       ensureError(error);
 
-      // Our own hasher refuses what it cannot hash faithfully either, such as
-      // a duplicate field name or a `bytes32` of the wrong length.
+      // Treat data our verifier cannot hash exactly as invalid.
       log(`The typed data could not be hashed: ${error.message}`);
 
       signedAsRequested = false;
