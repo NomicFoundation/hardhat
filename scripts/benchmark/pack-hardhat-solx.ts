@@ -13,24 +13,24 @@ import path from "node:path";
 
 const USAGE = `
 scripts/benchmark/pack-hardhat-solx.ts — Wire the monorepo's
-hardhat-slang-solx into a scenario checkout
+hardhat-slang-solx and hardhat-slang into a scenario checkout
 
 DESCRIPTION
-  hardhat-slang-solx is \`private\` and excluded from the Verdaccio publish
-  set, so it never reaches the registry. This script packs it instead (pack ignores
-  \`private\`) and wires the tarball into the target package as a file:
-  devDependency. Solx scenario preinstall scripts (any end-to-end/ dir with a
+  hardhat-slang-solx and hardhat-slang are \`private\` and excluded from the
+  Verdaccio publish set, so they never reach the registry. This script packs
+  them instead (pack ignores \`private\`) and wires each tarball into the
+  target package as a file: devDependency. Solx scenario preinstall scripts (any end-to-end/ dir with a
   hardhat.config.solx.ts, conventionally named <project>-solx) run it
   inside the cloned repo checkout. Concretely, it:
 
-  - packs packages/hardhat-slang-solx with \`pnpm pack\` — not \`npm pack\` —
+  - packs each plugin's package with \`pnpm pack\` — not \`npm pack\` —
     so the plugin's \`workspace:\` deps are rewritten to real version ranges and its
     own dependencies (hardhat-errors/utils/zod-utils, peer hardhat) still
     resolve from the registry like every other scenario dependency;
   - starts from an empty <target-dir>/.solx, so the tarball just produced is
     the only thing that can be there (a stale one from a prior run would
     make the rename ambiguous);
-  - names the tarball by content hash (hardhat-slang-solx-<12-hex>.tgz): npm
+  - names each tarball by content hash (<plugin>-<12-hex>.tgz): npm
     never re-reads a changed \`file:\` tarball when the spec and the packed version
     are unchanged (this froze aave's shipped plugin at a stale version map
     on the persistent runner), so a content change must change the spec;
@@ -38,10 +38,11 @@ DESCRIPTION
     involved — running inside the target dir so the spec stays relative to
     the declaring package, which is how pnpm resolves file: deps in a
     workspace;
-  - copies the plugin's dist/src to <target-dir>/.solx/expected-dist-src,
-    the freshness oracle for the scenarios' "assert fresh hardhat-slang-solx"
-    prime step (the installed plugin must match this monorepo build
-    byte-for-byte).
+  - copies each plugin's dist/src to <target-dir>/.solx/<oracle>, the
+    freshness oracle for the scenarios' "assert fresh <plugin>" prime steps
+    (the installed plugin must match this monorepo build byte-for-byte):
+    expected-dist-src for hardhat-slang-solx, expected-slang-dist-src for
+    hardhat-slang.
 
 OPTIONS
   --target-dir <dir>  Required. The package dir that consumes the plugin:
@@ -93,61 +94,87 @@ function main(): void {
   }
 
   const monorepoRoot = path.resolve(import.meta.dirname, "..", "..");
-  const solxPkg = path.join(monorepoRoot, "packages", "hardhat-slang-solx");
+  const plugins = PLUGINS.map((plugin) => ({
+    ...plugin,
+    pkgDir: path.join(monorepoRoot, "packages", plugin.name),
+  }));
 
-  if (!existsSync(path.join(solxPkg, "dist", "src"))) {
-    console.error(
-      `hardhat-slang-solx dist not found at ${solxPkg}/dist/src — run 'pnpm build' before benchmarking.`,
-    );
-    process.exit(1);
+  for (const { name, pkgDir } of plugins) {
+    if (!existsSync(path.join(pkgDir, "dist", "src"))) {
+      console.error(
+        `${name} dist not found at ${pkgDir}/dist/src — run 'pnpm build' before benchmarking.`,
+      );
+      process.exit(1);
+    }
   }
 
   const solxDir = path.join(targetDir, ".solx");
   rmSync(solxDir, { recursive: true, force: true });
   mkdirSync(solxDir, { recursive: true });
 
-  execFileSync("pnpm", ["pack", "--pack-destination", solxDir], {
-    cwd: solxPkg,
+  for (const { name, pkgDir, oracleDir } of plugins) {
+    packPlugin(targetDir, solxDir, name, pkgDir, oracleDir);
+  }
+}
+
+// Each plugin's tarball and freshness oracle land in <target-dir>/.solx.
+const PLUGINS = [
+  { name: "hardhat-slang-solx", oracleDir: "expected-dist-src" },
+  { name: "hardhat-slang", oracleDir: "expected-slang-dist-src" },
+];
+
+function packPlugin(
+  targetDir: string,
+  solxDir: string,
+  name: string,
+  pkgDir: string,
+  oracleDir: string,
+): void {
+  // A scratch dir per plugin keeps "exactly one tarball" true even though
+  // both end up in .solx.
+  const packDir = path.join(solxDir, `.pack-${name}`);
+  mkdirSync(packDir, { recursive: true });
+
+  execFileSync("pnpm", ["pack", "--pack-destination", packDir], {
+    cwd: pkgDir,
     stdio: "inherit",
   });
 
-  const tarballs = readdirSync(solxDir).filter(
-    (name) =>
-      name.startsWith("nomicfoundation-hardhat-slang-solx-") &&
-      name.endsWith(".tgz"),
+  const tarballs = readdirSync(packDir).filter(
+    (file) =>
+      file.startsWith(`nomicfoundation-${name}-`) && file.endsWith(".tgz"),
   );
   if (tarballs.length !== 1) {
     console.error(
-      `pack-hardhat-solx: expected exactly one packed tarball in ${solxDir}, found ${tarballs.length}`,
+      `pack-hardhat-solx: expected exactly one packed ${name} tarball in ${packDir}, found ${tarballs.length}`,
     );
     process.exit(1);
   }
 
   const hash = createHash("sha256")
-    .update(readFileSync(path.join(solxDir, tarballs[0])))
+    .update(readFileSync(path.join(packDir, tarballs[0])))
     .digest("hex")
     .slice(0, 12);
-  const tarballName = `hardhat-slang-solx-${hash}.tgz`;
-  renameSync(path.join(solxDir, tarballs[0]), path.join(solxDir, tarballName));
+  const tarballName = `${name}-${hash}.tgz`;
+  renameSync(path.join(packDir, tarballs[0]), path.join(solxDir, tarballName));
+  rmSync(packDir, { recursive: true });
 
   execFileSync(
     "npm",
     [
       "pkg",
       "set",
-      `devDependencies.@nomicfoundation/hardhat-slang-solx=file:./.solx/${tarballName}`,
+      `devDependencies.@nomicfoundation/${name}=file:./.solx/${tarballName}`,
     ],
     { cwd: targetDir, stdio: "inherit" },
   );
 
-  cpSync(
-    path.join(solxPkg, "dist", "src"),
-    path.join(solxDir, "expected-dist-src"),
-    { recursive: true },
-  );
+  cpSync(path.join(pkgDir, "dist", "src"), path.join(solxDir, oracleDir), {
+    recursive: true,
+  });
 
   console.log(
-    `pack-hardhat-solx: wired @nomicfoundation/hardhat-slang-solx as file:./.solx/${tarballName} into ${targetDir}`,
+    `pack-hardhat-solx: wired @nomicfoundation/${name} as file:./.solx/${tarballName} into ${targetDir}`,
   );
 }
 
