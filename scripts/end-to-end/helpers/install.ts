@@ -86,8 +86,11 @@ function runPackageManager(
  * ("Failed to replace env in config") where npm and pnpm only warn, so every
  * yarn-Classic scenario died on `yarn add`. Scenario installs take their
  * registry from the config this harness writes, so ambient user config has
- * nothing to contribute. NODE_AUTH_TOKEN is defined too — empty unless the
- * caller already has it — for repos whose own committed .npmrc names it.
+ * nothing to contribute. NODE_AUTH_TOKEN is defined too — the scenario env
+ * wins, then the ambient value, else empty — for repos whose own committed
+ * .npmrc names it (and for setup-node ≥v7, which registers a
+ * $RUNNER_TEMP/.npmrc above the CI clone dir but no longer exports a
+ * placeholder value for the variable it references).
  */
 export function buildPackageManagerEnv(
   packageManager: ScenarioDefinition["packageManager"],
@@ -98,16 +101,6 @@ export function buildPackageManagerEnv(
     ...baseEnv,
     ...scenarioEnv,
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
-    // actions/setup-node (with `registry-url`) writes $RUNNER_TEMP/.npmrc
-    // with an `_authToken` referencing ${NODE_AUTH_TOKEN}, and the CI clone
-    // dir ($RUNNER_TEMP/hardhat-e2e-clones) lives right under it. Yarn
-    // Classic registers every .npmrc in the cwd's ancestor directories and
-    // hard-fails on any unset variable in a config it reads (npm only
-    // warns). The variable is only set in publish jobs; setup-node ≤v6
-    // exported a placeholder that kept the substitution working, v7
-    // stopped, so provide the fallback here. The registry these installs
-    // actually use is unaffected: the Verdaccio config outranks any
-    // ambient npmrc.
     NODE_AUTH_TOKEN:
       scenarioEnv?.NODE_AUTH_TOKEN ?? baseEnv.NODE_AUTH_TOKEN ?? "",
     ...(packageManager === "pnpm"

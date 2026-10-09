@@ -30,7 +30,7 @@ for f in "${ITHACA_FILES[@]}"; do
   rm "$f"
 done
 
-# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
 # into ./.solx and wire it in as a content-hash-named file: devDependency,
 # plus the freshness oracle at .solx/expected-dist-src — see
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why.

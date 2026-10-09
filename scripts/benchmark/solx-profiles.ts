@@ -41,14 +41,14 @@
 // Settings hygiene: every profile gets an independent structuredClone of the
 // seed settings, so the solx profiles can't bleed into the solc ones. The
 // solx optimization level (-O1) and DWARF debug info both come from the
-// hardhat-solx plugin defaults. The optimizer is intentionally not overridden
-// so the benchmark measures the realistic plugin-default config.
+// hardhat-slang-solx plugin defaults. The optimizer is intentionally not
+// overridden so the benchmark measures the realistic plugin-default config.
 //
 // Source mapping is NOT equivalent between the two compilers, and the timed
 // cells inherit that asymmetry. solx 0.1.4 and later leave the standard-JSON
 // `sourceMap` empty and ship DWARF in `debugInfo` instead (see
-// packages/hardhat-solx/src/type-extensions.ts). Every profile still requests
-// the same `outputSelection`, so the two compilers are asked for the same
+// packages/hardhat-slang-solx/src/type-extensions.ts). Every profile still
+// requests the same `outputSelection`, so the two compilers are asked for the same
 // artifacts, but solc generates and pays for sourceMaps while solx returns
 // them empty and pays for DWARF instead. Treat compile-time deltas on the
 // timed cells as including that difference rather than as like-for-like work,
@@ -104,8 +104,8 @@ export interface SolxProfilesOptions {
   ballastCompilers?: Array<Record<string, unknown>>;
 }
 
-// 0.8.34 is the only version in hardhat-solx's Solidity→solx map, so it's
-// the version every cell compiles the subject sources at. Exported for the
+// 0.8.34 is the only version in hardhat-slang-solx's Solidity→solx map, so
+// it's the version every cell compiles the subject sources at. Exported for the
 // test-execution evaluation (test-under-solx.ts), which scopes its build-info
 // provenance assert to this version.
 export const BENCHMARK_SOLC_VERSION = "0.8.34";
@@ -253,17 +253,24 @@ export function buildSolxProfiles(
     { name: "solx-via-ir", type: SOLX_COMPILER_TYPE, version, viaIR: true },
     {
       name: "solx-0.1.8",
-      type: "solx",
+      type: SOLX_COMPILER_TYPE,
       path: PINNED_SOLX_PATH,
       version,
       viaIR: false,
     },
     {
       name: "solx-0.1.8-via-ir",
-      type: "solx",
+      type: SOLX_COMPILER_TYPE,
       path: PINNED_SOLX_PATH,
       version,
       viaIR: true,
+    },
+    // The guard profile, last: same compiler and settings as "solx".
+    {
+      name: MANDATORY_PROFILE,
+      type: SOLX_COMPILER_TYPE,
+      version,
+      viaIR: false,
     },
   ];
 

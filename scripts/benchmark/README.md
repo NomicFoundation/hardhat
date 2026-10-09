@@ -17,7 +17,7 @@ file mostly composes helpers with parameters:
 
 1. **`scenario.json`** — repo/commit pin, package manager, env, and the
    benchmark commands (copy a similar scenario's; keep the
-   `assert fresh hardhat-solx` prime step).
+   `assert fresh hardhat-slang-solx` prime step).
 2. **`preinstall.sh`** — runs inside the cloned checkout with
    `E2E_TEST_DIR` pointing at the scenario dir. It composes:
    - `source scripts/benchmark/pinned-tool-versions.sh` — the solx/forge
@@ -25,7 +25,7 @@ file mostly composes helpers with parameters:
    - `scripts/benchmark/relax-pragmas.ts` — only if the repo pins exact
      `pragma solidity x.y.z;` versions;
    - `scripts/benchmark/pack-hardhat-solx.ts` — wires the monorepo's
-     hardhat-solx build into the checkout as a `file:` dependency;
+     hardhat-slang-solx build into the checkout as a `file:` dependency;
    - `scripts/benchmark/download-solx.ts` / `download-forge.ts` — provision
      the pinned binaries;
    - the config swap: rename the repo's `hardhat.config.ts` to
