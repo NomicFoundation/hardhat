@@ -26,6 +26,10 @@
             "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
+          "assert fresh hardhat-slang": {
+            "command": "diff -rq .solx/expected-slang-dist-src node_modules/@nomicfoundation/hardhat-slang/dist/src",
+            "measure": false
+          },
           "download solc and warm caches": {
             "command": "npx hardhat compile --build-profile solc-via-ir && npx hardhat clean",
             "measure": false
@@ -45,6 +49,17 @@
         ],
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile slang": {
+        "runs": 5,
+        "dependsOn": [
+          "relax dependency pragmas",
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile slang"
       },
       "cold compile forge-1.7.1 via-ir": {
         "runs": 5,
