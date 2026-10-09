@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.4.1
+
+### Patch Changes
+
+- [#8695](https://github.com/NomicFoundation/hardhat/pull/8695) [`38041a8`](https://github.com/NomicFoundation/hardhat/commit/38041a8200553583bbdf228956b48de2edb0cf5a) Thanks [@kanej](https://github.com/kanej)! - Reduced the startup time and memory use of Hardhat commands that make no network request.
+
 ## 4.4.0
 
 ### Minor Changes
