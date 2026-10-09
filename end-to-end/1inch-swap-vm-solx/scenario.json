@@ -50,17 +50,6 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solc-via-ir"
       },
-      "cold compile slang": {
-        "runs": 5,
-        "dependsOn": [
-          "relax dependency pragmas",
-          "assert fresh hardhat-slang-solx",
-          "assert fresh hardhat-slang",
-          "download solc and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile slang"
-      },
       "cold compile forge-1.7.1 via-ir": {
         "runs": 5,
         "dependsOn": ["relax dependency pragmas", "warm forge solc cache"],
