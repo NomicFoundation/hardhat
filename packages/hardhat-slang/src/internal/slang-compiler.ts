@@ -23,12 +23,6 @@ export const SLANG_DEBUG_SYMBOLS_SELECTORS: readonly string[] = [
 export interface SlangCompilerOptions {
   /** The release table row of the slang binary being driven. */
   release: SlangRelease;
-  /**
-   * The Solidity version Hardhat selected for the compilation job. slang
-   * compiles a range of Solidity versions, so the job's version is passed to
-   * the binary through the release's `targetVersionFlag`, when it has one.
-   */
-  targetSolidityVersion: string;
   /** Intended for tests. */
   spawnCompile?: typeof defaultSpawnCompile;
 }
@@ -49,22 +43,12 @@ export class SlangCompiler implements Compiler {
     compilerPath: string,
     options: SlangCompilerOptions,
   ) {
-    const {
-      release,
-      targetSolidityVersion,
-      spawnCompile = defaultSpawnCompile,
-    } = options;
+    const { release, spawnCompile = defaultSpawnCompile } = options;
 
     this.version = slangVersion;
     this.longVersion = `${slangVersion}+slang`;
     this.compilerPath = compilerPath;
-    this.args = [
-      "--standard-json",
-      ...release.extraArgs,
-      ...(release.targetVersionFlag !== undefined
-        ? [release.targetVersionFlag, targetSolidityVersion]
-        : []),
-    ];
+    this.args = ["--standard-json", ...release.extraArgs];
     this.#spawnCompile = spawnCompile;
   }
 

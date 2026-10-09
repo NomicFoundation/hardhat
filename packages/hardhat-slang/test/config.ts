@@ -366,6 +366,7 @@ describe("hardhat-slang plugin config resolution", () => {
       resolvedConfig.solidity.profiles.slang.compilers;
     for (const compiler of [first, second]) {
       assert.equal(compiler.settings.optimizer.mode, "1");
+      assert.equal(compiler.settings.solidityVersion, compiler.version);
       const wildcardSelectors = compiler.settings.outputSelection["*"][
         "*"
       ] as string[];

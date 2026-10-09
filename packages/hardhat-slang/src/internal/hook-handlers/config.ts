@@ -369,7 +369,11 @@ async function augmentSlangOutputSelectionInProfiles(
 // `CommonSolidityCompilerConfig`), so we use the same here — narrowing
 // would require type assertions that the repo's eslint config forbids.
 async function augmentIfSlang<
-  T extends { type?: string; settings?: Record<string, unknown> },
+  T extends {
+    type?: string;
+    version: string;
+    settings?: Record<string, unknown>;
+  },
 >(entry: T): Promise<T> {
   if (entry.type !== SLANG_COMPILER_TYPE) {
     return entry;
@@ -383,7 +387,9 @@ async function augmentIfSlang<
     settings: {
       ...settings,
       // Defaults added here instead of in SlangCompiler.compile so this reaches
-      // the solcInput and hence the build-id hash.
+      // the solcInput and hence the build-id hash. One slang binary compiles a
+      // range of Solidity versions, so the entry's version is part of it too.
+      solidityVersion: entry.version,
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
