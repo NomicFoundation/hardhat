@@ -15,6 +15,10 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
  * @throws If `v` is not one of the recognized encodings above.
  */
 export function getYParity(v: number): number {
+  // A `v` past the safe integer range has already lost the parity bit, which
+  // happens for a legacy transaction on an implausibly large chain id.
+  assertHardhatInvariant(Number.isSafeInteger(v), `Unexpected "v" value: ${v}`);
+
   if (v === 27 || v === 28) {
     return v - 27;
   }

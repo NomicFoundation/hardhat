@@ -3,25 +3,28 @@ import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
+import { LedgerConnectionClosedError } from "../dmk-errors.js";
 import { isFailedJsonRpcResponse, isJsonRpcResponse } from "../rpc-helpers.js";
 
-// The ledger packages have been problematic in the past, leading to errors
-// and slowdowns, even when not being used, so we lazy load them now.
+// Ledger packages are slow to load and are not always needed.
 let LedgerHandler: typeof LedgerHandlerT | undefined;
 
 export default async (): Promise<Partial<NetworkHooks>> => {
-  // This map is essential for managing multiple network connections in Hardhat V3.
-  // Since Hardhat V3 supports multiple connections, we use this map to track each one
-  // and associate it with the corresponding handlers array.
-  // When a connection is closed, its associated handler is removed from the map.
-  // See the "closeConnection" function at the end of the file for more details.
+  // Each network connection owns its Ledger handler.
   const ledgerHandlerPerConnection: WeakMap<
     NetworkConnection<ChainType | string>,
     LedgerHandlerT
   > = new WeakMap();
+
+  // Connections whose `closeConnection` has already run.
+  const closedConnections: WeakSet<NetworkConnection<ChainType | string>> =
+    new WeakSet();
 
   const initializationMutex = new AsyncMutex();
 
@@ -36,9 +39,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
-      // Skip the entire hook handler if there are no ledger accounts.
-      // This avoids having to load the implementation of the handler unless
-      // it's actually needed.
+      // Avoid loading the handler when this network has no Ledger accounts.
       if (networkConnection.networkConfig.ledgerAccounts.length === 0) {
         return await next(context, networkConnection, jsonRpcRequest);
       }
@@ -48,8 +49,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         jsonRpcRequest.method === "eth_getTransactionCount" ||
         jsonRpcRequest.method === "eth_sendRawTransaction"
       ) {
-        // Allow these methods to pass through untouched.
-        // The ledger handler calls them directly, so intercepting them here would lead to infinite recursion.
+        // The handler sends these requests directly. Intercepting them recurses.
         return await next(context, networkConnection, jsonRpcRequest);
       }
 
@@ -63,6 +63,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           ledgerHandlerPerConnection.get(networkConnection);
 
         if (handlerPerConnection === undefined) {
+          if (closedConnections.has(networkConnection)) {
+            return undefined;
+          }
+
           assertHardhatInvariant(
             LedgerHandler !== undefined,
             "LedgerHandler should have been imported",
@@ -88,6 +92,15 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         return handlerPerConnection;
       });
 
+      if (ledgerHandler === undefined) {
+        // The connection closed while this request was starting. A new device
+        // session would have no owner to close it.
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+          { error: new LedgerConnectionClosedError(), transportId: "" },
+        );
+      }
+
       if (jsonRpcRequest.method === "eth_accounts") {
         const accountsResponse = await next(
           context,
@@ -96,8 +109,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         );
 
         if (isFailedJsonRpcResponse(accountsResponse)) {
-          // If the RPC node doesn't support eth_accounts,
-          // return only the Ledger accounts instead of propagating the error.
+          // Fall back to Ledger accounts if the node lacks `eth_accounts`.
           return {
             jsonrpc: "2.0",
             id: jsonRpcRequest.id,
@@ -136,7 +148,12 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ): Promise<void> {
-      if (ledgerHandlerPerConnection.has(networkConnection) === true) {
+      closedConnections.add(networkConnection);
+
+      const ledgerHandler = ledgerHandlerPerConnection.get(networkConnection);
+
+      if (ledgerHandler !== undefined) {
+        await ledgerHandler.close();
         ledgerHandlerPerConnection.delete(networkConnection);
       }
 
