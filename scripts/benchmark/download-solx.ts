@@ -18,7 +18,8 @@ DESCRIPTION
   Downloads the solx release binary for --version from GitHub releases,
   verifies it against the release's .sha256 sidecar, and installs it at --out
   (executable). Scenario preinstall scripts use this to provision solx
-  versions other than the one the hardhat-solx plugin ships, wiring them into
+  versions other than the one the hardhat-slang-solx plugin ships, wiring
+  them into
   build profiles via the plugin's \`path\` compiler option.
 
   Downloads are cached under ~/.cache/hardhat-solx-benchmark (re-verified on
@@ -35,7 +36,8 @@ EXAMPLE
 const RELEASES_BASE_URL = "https://github.com/matter-labs/solx/releases";
 
 /**
- * Mirrors the release asset naming in hardhat-solx's platform.ts. Windows is
+ * Mirrors the release asset naming in hardhat-slang-solx's platform.ts.
+ * Windows is
  * deliberately unsupported: the benchmark only runs on Linux/macOS.
  */
 function getAssetName(version: string): string {

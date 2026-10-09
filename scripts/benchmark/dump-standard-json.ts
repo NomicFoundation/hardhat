@@ -31,7 +31,8 @@ DESCRIPTION
   per-scenario subdirectory of --out, so multiple scenarios share one artifact
   without collision.
 
-  A manifest.json with provenance (hardhat commit, CI run URL, hardhat-solx
+  A manifest.json with provenance (hardhat commit, CI run URL,
+  hardhat-slang-solx
   version, scenario pins, per-file sha256) is written to --out LAST, so its
   presence marks a complete dump set — consumers (the corpus publish step,
   downstream solx benchmarks) must treat a dump directory without it as
@@ -94,8 +95,8 @@ function variantsFor(definition: ScenarioDefinition): readonly Variant[] {
 
 // Variants a scenario is known not to compile, keyed `<scenario>|<file>` and
 // mirroring render-solx-tables' CELL_NOTES: lidofinance-core-solx's vaults tree
-// is IR-only, so the plugin-mandated legacy "solx" profile can never build.
-// Every other compile failure is a regression and aborts the run.
+// is IR-only, so its legacy "solx" profile can never build. Every other
+// compile failure is a regression and aborts the run.
 const EXPECTED_DUMP_FAILURES: Record<string, string> = {
   "lidofinance-core-solx|solx-legacy-dwarf.json":
     "the vaults tree is IR-only: stack-too-deep in SRLib, plus RefSlotCache's " +
@@ -151,7 +152,7 @@ function writeManifest(
         : null,
     hardhatSolxVersion: JSON.parse(
       readFileSync(
-        path.join(REPO_ROOT, "packages", "hardhat-solx", "package.json"),
+        path.join(REPO_ROOT, "packages", "hardhat-slang-solx", "package.json"),
         "utf8",
       ),
     ).version,

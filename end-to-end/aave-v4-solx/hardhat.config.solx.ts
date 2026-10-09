@@ -15,7 +15,7 @@
 // configuration no user ships. The via-IR cells compile everything via-IR
 // and need no overrides. Everything else (plugins, paths, networks, test) is
 // preserved from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import {

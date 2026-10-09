@@ -33,7 +33,8 @@ OPTIONS
                        Kept an explicit subset: replaying every dump would
                        roughly double the benchmark's compile work.
   --solx <path>        solx binary (default: newest solx-v* in the
-                       hardhat-nodejs compiler cache, where the hardhat-solx
+                       hardhat-nodejs compiler cache, where the
+                       hardhat-slang-solx
                        plugin downloads it)
   --solx-version <v>   Resolve the binary for exactly this version from the
                        compiler cache instead of the newest one. CI passes the
@@ -74,7 +75,8 @@ function getArgOccurrences(flag: string): string[] {
 }
 
 /**
- * A solx the hardhat-solx plugin has downloaded — the exact `version` when
+ * A solx the hardhat-slang-solx plugin has downloaded — the exact `version`
+ * when
  * given, the newest cached one otherwise (fine locally, where the cache holds
  * whatever the plugin just used).
  */

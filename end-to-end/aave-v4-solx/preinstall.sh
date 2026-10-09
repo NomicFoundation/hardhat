@@ -14,7 +14,7 @@ source "$MONOREPO_ROOT/scripts/benchmark/pinned-tool-versions.sh"
 # ranges, and editing them would break the harness's re-init submodule update.
 node "$MONOREPO_ROOT/scripts/benchmark/relax-pragmas.ts" --scenario aave-v4-solx --from 0.8.28 --skip-dir lib
 
-# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
 # into ./.solx and wire it in as a content-hash-named file: devDependency,
 # plus the freshness oracle at .solx/expected-dist-src — see
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why. The package.json

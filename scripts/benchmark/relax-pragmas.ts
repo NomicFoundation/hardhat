@@ -8,7 +8,8 @@ DESCRIPTION
   Rewrites every \`pragma solidity <x.y.z>;\` in .sol files under the current
   working directory to \`pragma solidity ^<x.y.z>;\`, so sources pinned to an
   older solc also compile at the version the solx benchmark profiles pin
-  (0.8.34, the only version in hardhat-solx's Solidity→solx map). Scenario
+  (0.8.34, the only version in hardhat-slang-solx's Solidity→solx map).
+  Scenario
   preinstall scripts (any end-to-end/ dir with a hardhat.config.solx.ts,
   conventionally named <project>-solx) run it inside the cloned repo
   checkout.
