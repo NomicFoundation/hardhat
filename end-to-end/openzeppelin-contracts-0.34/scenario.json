@@ -120,6 +120,16 @@
         "prepare": "npx hardhat compile --build-profile solx-0.1.8",
         "command": "npx hardhat test solidity --build-profile solx-0.1.8"
       },
+      "warm test slang": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat compile --build-profile slang",
+        "command": "npx hardhat test solidity --build-profile slang"
+      },
       "warm test solx-0.1.8 via-ir": {
         "runs": 3,
         "dependsOn": [
@@ -230,6 +240,16 @@
         ],
         "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile solx-0.1.8",
         "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity --build-profile solx-0.1.8"
+      },
+      "warm test slang parity": {
+        "runs": 3,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "rm -rf contracts-exposed && OZ_BENCH_NO_EXPOSE=1 npx hardhat compile --build-profile slang",
+        "command": "OZ_BENCH_NO_EXPOSE=1 npx hardhat test solidity --build-profile slang"
       },
       "cold compile solc via-ir parity": {
         "runs": 5,

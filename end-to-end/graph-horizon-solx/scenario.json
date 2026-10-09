@@ -125,6 +125,17 @@
         "prepare": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8",
         "command": "cd packages/horizon && npx hardhat test solidity --build-profile solx-0.1.8"
       },
+      "warm test slang": {
+        "runs": 3,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat compile --build-profile slang",
+        "command": "cd packages/horizon && npx hardhat test solidity --build-profile slang"
+      },
       "warm test solx-0.1.8 via-ir": {
         "runs": 3,
         "dependsOn": [
