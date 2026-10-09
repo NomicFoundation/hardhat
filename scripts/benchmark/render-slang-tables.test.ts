@@ -58,4 +58,20 @@ describe("renderSlangTables", () => {
     assert.match(quick, /\| cold compile solc \| 17\.0† \|/);
     assert.match(quick, /† measured in \[the baseline run\]/);
   });
+
+  it("compares a forge-scope cell with slang's forge-scope cell", () => {
+    const oz = renderSlangTables([
+      wall("openzeppelin-contracts-0.34 / cold compile slang", 23),
+      wall("openzeppelin-contracts-0.34 / cold compile slang parity", 9),
+      wall(
+        "openzeppelin-contracts-0.34 / cold compile solx-0.1.8 parity",
+        13.5,
+      ),
+    ]);
+    assert.match(
+      oz,
+      /\| cold compile solx-0\.1\.8 parity \| 13\.5 \|.*\| 1\.5x \|/,
+    );
+    assert.match(oz, /\| cold compile slang parity \| 9\.0 \|.*\| {2}\|/);
+  });
 });

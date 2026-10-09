@@ -118,6 +118,17 @@ function cellRow(
   } | ${r.runs} | ${vs} |`;
 }
 
+// The slang cell a cell is compared with: the same kind over the same
+// sources (OZ's forge-scope "parity" set, lido-vaults' "upgrade" tree).
+function slangCounterpart(label: string, prefix: string): string | undefined {
+  const cell = label.slice(prefix.length);
+  if (cell.startsWith(SLANG)) {
+    return undefined;
+  }
+  const scope = / (parity|upgrade)$/.exec(cell)?.[0] ?? "";
+  return prefix + SLANG + scope;
+}
+
 function summaryTable(
   report: SlangReport,
   prefix: string,
@@ -218,8 +229,10 @@ export function renderSlangTables(
     );
     for (const label of labels) {
       const kind = KINDS[kindOf(label)];
+      const counterpart =
+        kind === undefined ? undefined : slangCounterpart(label, kind.prefix);
       const slang =
-        kind === undefined ? undefined : cells.get(kind.prefix + SLANG);
+        counterpart === undefined ? undefined : cells.get(counterpart);
       lines.push(cellRow(label, cells.get(label)!, slang));
     }
     for (const [key, note] of Object.entries(CELL_NOTES)) {
