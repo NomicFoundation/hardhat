@@ -28,6 +28,10 @@ node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORK
 # (the plain "solx" profiles keep measuring the version the plugin ships).
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$WORKDIR/.solx/solx-v$SOLX_PINNED_VERSION"
 
+# The slang compiler under test, for the wrapper config's "slang" profile
+# (hardhat-slang's `path` option). A local build until slang has a release.
+node "$MONOREPO_ROOT/scripts/benchmark/provision-slang.ts" --out "$WORKDIR/.solx/slang"
+
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
 # At 1.7.1 forge's codegen is solc (solar is lint-only), so with
 # FOUNDRY_SOLC=0.8.34 the compiler matches the hardhat cells. (FOUNDRY_SOLC,
