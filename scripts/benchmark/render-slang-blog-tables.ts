@@ -50,7 +50,7 @@ const REPOS: Record<string, string> = {
 const OZ_SUBSET = "openzeppelin-contracts (forge-compatible subset)";
 
 // Why a cell has no number, keyed "<scenario>|<column>" with column one of
-// solc, slang, forge; "*" matches every scenario. Checked per pipeline.
+// solc, slang, forge, per pipeline.
 const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   "via-IR": {
     "1inch-swap-vm-solx|slang": "does not compile",
@@ -58,6 +58,19 @@ const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   },
   legacy: {
     [`${OZ}|forge`]: "incompatible",
+  },
+};
+
+// Additional reasons in the tables that include the Solidity tests.
+const TEST_NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
+  "via-IR": {
+    "aave-v4-solx|solc": "tests do not compile",
+    "aave-v4-solx|forge": "tests do not compile",
+    "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",
+    "lidofinance-core-solx|slang": "tests do not compile",
+  },
+  legacy: {
+    "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",
   },
 };
 
@@ -127,7 +140,9 @@ function buildRows(
     if (cells === undefined || (pipeline === "legacy" && VIA_IR_ONLY.has(id))) {
       continue;
     }
-    const note = (column: string) => NOTES[pipeline][`${id}|${column}`];
+    const note = (column: string) =>
+      (tests ? TEST_NOTES[pipeline][`${id}|${column}`] : undefined) ??
+      NOTES[pipeline][`${id}|${column}`];
     rows.push({
       repo,
       solc: pick(cells, `solc${suffix}`),
@@ -163,18 +178,17 @@ function renderTable(rows: Row[], title: string): string[] {
   const slangTotal = both.reduce((t, r) => t + r.slang!.wall, 0);
 
   const lines = [`### ${title}`, ""];
-  if (both.length === 0) {
-    lines.push(
-      "No repo has both a solc and a slang number in this report.",
-      "",
-    );
+  if (rows.length === 0) {
+    lines.push("No repo in this report.", "");
     return lines;
   }
   lines.push(
-    `Building all ${both.length} repos one after another takes solc ` +
-      `${solcTotal.toFixed(0)}s in total, and it takes slang ` +
-      `${slangTotal.toFixed(0)}s. **A ${(solcTotal / slangTotal).toFixed(1)}x ` +
-      "overall improvement.**",
+    both.length === 0
+      ? "No repo has both a solc and a slang number in this report."
+      : `Building all ${both.length} repos one after another takes solc ` +
+          `${solcTotal.toFixed(0)}s in total, and it takes slang ` +
+          `${slangTotal.toFixed(0)}s. **A ${(solcTotal / slangTotal).toFixed(1)}x ` +
+          "overall improvement.**",
     "",
     "| Repo | Hardhat solc | Hardhat slang | Improvement vs Hardhat solc | forge solc | Improvement vs forge solc |",
     "| --- | --- | --- | --- | --- | --- |",

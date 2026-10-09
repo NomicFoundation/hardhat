@@ -81,6 +81,21 @@ describe("renderSlangBlogTables", () => {
     );
   });
 
+  it("says why a repo's slang test cell is missing", () => {
+    const tested = renderSlangBlogTables([
+      wall("aave-v4-solx / cold compile solc", 5),
+      wall("aave-v4-solx / cold compile slang", 3),
+      wall("aave-v4-solx / warm test solc", 190),
+    ]);
+    assert.match(
+      section(
+        tested,
+        "slang vs solc in legacy mode (without --via-ir) including Solidity tests",
+      ),
+      /\| Aave v4 \| 195\.0s \| not run \(EIP-712 cheatcodes\) \|/,
+    );
+  });
+
   it("adds warm test to cold compile, or takes a measured cold test", () => {
     const tested = renderSlangBlogTables([
       ...entries,
