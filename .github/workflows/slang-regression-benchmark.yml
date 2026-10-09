@@ -123,6 +123,11 @@ jobs:
           pkill -f 'verdaccio/server.ts' || true
           # bench:regression's default --e2e-clone-dir
           rm -rf /tmp/end-to-end/*/node_modules
+          # A clone a cancelled run left half-made is no git checkout, and
+          # init's re-init path would fail fetching into it; clone it afresh.
+          for dir in /tmp/end-to-end/*/; do
+            [ -d "$dir/.git" ] || rm -rf "$dir"
+          done
 
       # Each scenario's preinstall downloads the slang release pinned in
       # scripts/benchmark/pinned-tool-versions.sh. This runs inside
