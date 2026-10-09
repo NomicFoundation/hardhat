@@ -1,15 +1,6 @@
-import { createHash } from "node:crypto";
-import {
-  chmodSync,
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
 import os from "node:os";
-import path from "node:path";
+
+import { installVerifiedReleaseAsset } from "./helpers/release-download.ts";
 
 const USAGE = `
 scripts/benchmark/download-solx.ts — Provision a pinned solx release binary
@@ -56,28 +47,6 @@ function getAssetName(version: string): string {
   throw new Error(`No solx release asset for ${platform}/${arch}`);
 }
 
-async function fetchOk(url: string): Promise<Response> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`GET ${url} failed: ${response.status}`);
-  }
-  return response;
-}
-
-async function fetchExpectedSha256(url: string): Promise<string> {
-  const body = await (await fetchOk(url)).text();
-  // Sidecar format: "<hex digest>  <filename>"
-  const digest = body.trim().split(/\s+/)[0];
-  if (!/^[0-9a-f]{64}$/.test(digest)) {
-    throw new Error(`Malformed sha256 sidecar at ${url}: "${body.trim()}"`);
-  }
-  return digest;
-}
-
-function sha256(filePath: string): string {
-  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
-}
-
 async function main(): Promise<void> {
   const getArg = (flag: string): string | undefined => {
     const i = process.argv.indexOf(flag);
@@ -95,35 +64,8 @@ async function main(): Promise<void> {
 
   const assetName = getAssetName(version);
   const assetUrl = `${RELEASES_BASE_URL}/download/${version}/${assetName}`;
-  const cachedPath = path.join(
-    os.homedir(),
-    ".cache",
-    "hardhat-solx-benchmark",
-    assetName,
-  );
+  await installVerifiedReleaseAsset(assetUrl, out);
 
-  const expectedSha256 = await fetchExpectedSha256(`${assetUrl}.sha256`);
-
-  if (existsSync(cachedPath) && sha256(cachedPath) === expectedSha256) {
-    console.log(`Using cached ${assetName} from ${cachedPath}`);
-  } else {
-    console.log(`Downloading ${assetUrl}`);
-    const body = await (await fetchOk(assetUrl)).arrayBuffer();
-    mkdirSync(path.dirname(cachedPath), { recursive: true });
-    writeFileSync(cachedPath, Buffer.from(body));
-
-    const actual = sha256(cachedPath);
-    if (actual !== expectedSha256) {
-      rmSync(cachedPath);
-      throw new Error(
-        `sha256 mismatch for ${assetName}: expected ${expectedSha256}, got ${actual}`,
-      );
-    }
-  }
-
-  mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
-  copyFileSync(cachedPath, out);
-  chmodSync(out, 0o755);
   console.log(`Installed solx ${version} at ${out}`);
 }
 
