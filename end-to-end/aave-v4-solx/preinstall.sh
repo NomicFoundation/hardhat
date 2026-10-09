@@ -27,6 +27,10 @@ node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORK
 # (the plain "solx" profiles keep measuring the version the plugin ships).
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$WORKDIR/.solx/solx-v$SOLX_PINNED_VERSION"
 
+# The slang compiler under test, for the wrapper config's "slang" profile
+# (hardhat-slang's `path` option). A local build until slang has a release.
+node "$MONOREPO_ROOT/scripts/benchmark/provision-slang.ts" --out "$WORKDIR/.solx/slang"
+
 # forge 1.7.1 rejects the pinned commit's `optimizer_runs = 444444444444`
 # (foundry-rs/foundry#14354 caps it at u32::MAX). Apply upstream's own fix,
 # aave/aave-v4@dd26d09547 (#1280), which shrank every occurrence to 44444444 —
