@@ -84,8 +84,10 @@ console.log("openzeppelin preinstall: renamed BlockhashTest#testFuzzHistoryBlock
 # Measured: OZ warm compile 3.9s solx vs 1.1s solc on the runner; a plain
 # solc profile with runs=201 shows the same penalty, so this is the fork's
 # plugin, not solx. One-line upstream fix, applied here until the fork
-# re-pins (see /workspace/hardhat-solx-footnote-research.md). Fail loudly if
-# the anchor moved.
+# re-pins (see /workspace/hardhat-solx-footnote-research.md). The slang
+# profile is the exception: hardhat-exposed reads solc's AST and slang emits
+# its own, so under slang the task keeps the default profile, as upstream
+# does. Fail loudly if the anchor moved.
 node -e '
 const fs = require("fs");
 const p = "hardhat/hardhat-exposed/tasks/generate-exposed-contracts.ts";
@@ -95,6 +97,6 @@ if (s.split(anchor).length !== 2) {
   console.error("openzeppelin preinstall: expected exactly one getCompilationJobs call in " + p + " — the pinned commit may have changed");
   process.exit(1);
 }
-fs.writeFileSync(p, s.replace(anchor, "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force, buildProfile: hre.globalOptions.buildProfile })"));
-console.log("openzeppelin preinstall: hardhat-exposed now passes the active build profile to getCompilationJobs");
+fs.writeFileSync(p, s.replace(anchor, "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force, buildProfile: hre.globalOptions.buildProfile === \"slang\" ? undefined : hre.globalOptions.buildProfile })"));
+console.log("openzeppelin preinstall: hardhat-exposed now passes the active build profile (except slang) to getCompilationJobs");
 '
