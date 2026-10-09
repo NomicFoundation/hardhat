@@ -148,6 +148,8 @@ OPTIONS
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
   --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
+  --runs <n>            Measure every selected entry n times instead of its
+                        configured "runs"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -195,6 +197,7 @@ interface RegressionArgs {
   e2eCloneDirectory: string;
   failFast: boolean;
   peakRssMethod: PeakRssMethod;
+  runs: number | undefined;
 }
 
 interface ScenarioEntry {
@@ -378,6 +381,12 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
   const peakRssMethod = parsePeakRssMethod(argv) ?? PeakRssMethod.GnuTime;
 
+  const runsRaw = getArgValue(argv, "--runs");
+  const runs = runsRaw === undefined ? undefined : Number(runsRaw);
+  if (runs !== undefined && (!Number.isInteger(runs) || runs < 1)) {
+    throw new Error(`--runs must be a positive integer, got "${runsRaw}"`);
+  }
+
   const e2eCloneDirectory = resolveCloneDirectory(givenCloneDirectory(argv));
 
   return {
@@ -391,6 +400,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
     e2eCloneDirectory,
     failFast,
     peakRssMethod,
+    runs,
   };
 }
 
@@ -552,7 +562,7 @@ async function runScenario(
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, args.runs),
           new Set(planned.run),
           new Set(planned.once),
           new Set(planned.emit),
@@ -567,13 +577,20 @@ async function runScenario(
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, args.runs),
           planned.emit,
           peakRssMethod,
         )),
       );
     }
   }
+}
+
+function withRuns<T extends { runs: number }>(
+  cfg: T,
+  runs: number | undefined,
+): T {
+  return runs === undefined ? cfg : { ...cfg, runs };
 }
 
 /**
