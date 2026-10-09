@@ -39,6 +39,7 @@
 // hook would time an unrelated post-compile pass in every cell, so it's
 // disabled. Everything else (plugins, tasks, test, warnings) is preserved
 // from the base.
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -102,7 +103,7 @@ function vaultHubOverride(cell: SolxProfileCell) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSlangSolx],
+  plugins: [...base.plugins, hardhatSlangSolx, hardhatSlang],
   // The plugin only allows type: "slang-solx" in the profile named
   // "slang-solx"; this benchmark's solx cells live in profiles named after the
   // compiler version they measure, so opt out of that guard. Throwaway

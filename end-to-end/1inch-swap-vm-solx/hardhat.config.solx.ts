@@ -13,6 +13,7 @@
 // parses and ignores them (its LLVM pipeline replaces Yul optimization) —
 // each compiler measured at its realistic pipeline. Everything else (paths,
 // test) is preserved from the base.
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -26,7 +27,7 @@ const base = baseConfig as unknown as {
 
 export default {
   ...base,
-  plugins: [...(base.plugins ?? []), hardhatSlangSolx],
+  plugins: [...(base.plugins ?? []), hardhatSlangSolx, hardhatSlang],
   // The plugin only allows type: "slang-solx" in the profile named
   // "slang-solx"; this benchmark's solx cells live in profiles named after the
   // compiler version they measure, so opt out of that guard. Throwaway

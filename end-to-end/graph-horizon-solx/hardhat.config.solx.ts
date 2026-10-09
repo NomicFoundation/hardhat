@@ -20,6 +20,7 @@
 // `solc-no-opt`. npmFilesToBuild (the two OZ proxy roots) is part of
 // upstream's build and is kept in every profile. Everything else (plugins,
 // tasks, networks, paths, typechain) is preserved from the base.
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -45,7 +46,7 @@ if (baseSettings === undefined) {
 
 export default {
   ...base,
-  plugins: [...base.plugins, hardhatSlangSolx],
+  plugins: [...base.plugins, hardhatSlangSolx, hardhatSlang],
   // The plugin only allows type: "slang-solx" in the profile named
   // "slang-solx"; this benchmark's solx cells live in profiles named after the
   // compiler version they measure, so opt out of that guard. Throwaway

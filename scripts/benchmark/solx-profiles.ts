@@ -21,6 +21,8 @@
 //   solx-via-ir        solx, via-IR
 //   solx-0.1.8         pinned solx, legacy
 //   solx-0.1.8-via-ir  pinned solx, via-IR
+//   slang              the slang compiler (hardhat-slang), one pipeline; also
+//                      the profile name hardhat-slang requires
 //   slang-solx         alias of "solx" — the plugin refuses to load without a
 //                      profile of exactly this name (see MANDATORY_PROFILE)
 //
@@ -33,6 +35,8 @@
 // Solidity→solx version map). The "solx-0.1.8" profiles pin a release under
 // comparison via the plugin's `path` compiler option; preinstall.sh downloads
 // the binary to ./.solx/solx-v0.1.8 (see scripts/benchmark/download-solx.ts).
+// The "slang" profile likewise points at ./.solx/slang, which preinstall.sh
+// installs (see scripts/benchmark/provision-slang.ts).
 // The pinned names and path are deliberate literals — workflow and
 // scenario.json cells refer to the profile names — and must stay in lockstep
 // with SOLX_PINNED_VERSION in scripts/benchmark/pinned-tool-versions.sh;
@@ -70,9 +74,9 @@ export type CompilerSettings = Record<string, unknown>;
 export interface SolxProfileCell {
   /** Profile name, e.g. "solc-no-opt" or "solx-0.1.8-via-ir". */
   name: string;
-  /** "slang-solx" on the solx cells; undefined on the solc cells. */
-  type?: "slang-solx";
-  /** Pinned solx binary path — only set on the "solx-0.1.8*" cells. */
+  /** The plugin's compiler type; undefined on the solc cells. */
+  type?: "slang-solx" | "slang";
+  /** Compiler binary path — set on the "solx-0.1.8*" and "slang" cells. */
   path?: string;
   /** The solc version every cell compiles at (0.8.34). */
   version: string;
@@ -127,10 +131,14 @@ export const SOLX_COMPILER_TYPE = "slang-solx";
  */
 export const MANDATORY_PROFILE = "slang-solx";
 
+/** The compiler type the hardhat-slang plugin registers. */
+export const SLANG_COMPILER_TYPE = "slang";
+
 // This file sits next to the wrapper config in the checkout (or in the
 // workspace package for monorepo scenarios), so the pinned binary preinstall
 // downloaded is a sibling .solx directory away.
 const PINNED_SOLX_PATH = path.join(import.meta.dirname, ".solx", "solx-v0.1.8");
+const SLANG_PATH = path.join(import.meta.dirname, ".solx", "slang");
 
 /**
  * A compiler entry (for `overrides` maps) that follows the cell's compiler:
@@ -225,7 +233,7 @@ export function withPinnedFuzzSeed(baseTest: unknown): Record<string, unknown> {
   return { ...test, solidity: pinProfile(solidity) };
 }
 
-/** Build the benchmark's 8-profile map. See the header for the matrix. */
+/** Build the benchmark's profile map. See the header for the matrix. */
 export function buildSolxProfiles(
   options: SolxProfilesOptions,
 ): Record<string, unknown> {
@@ -264,6 +272,15 @@ export function buildSolxProfiles(
       path: PINNED_SOLX_PATH,
       version,
       viaIR: true,
+    },
+    // slang has a single pipeline and ignores viaIR, so there is no via-IR
+    // twin.
+    {
+      name: "slang",
+      type: SLANG_COMPILER_TYPE,
+      path: SLANG_PATH,
+      version,
+      viaIR: false,
     },
     // The guard profile, last: same compiler and settings as "solx".
     {
