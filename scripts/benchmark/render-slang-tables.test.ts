@@ -45,4 +45,17 @@ describe("renderSlangTables", () => {
     assert.match(output, /\| warm test solc \| 7\.5 \|.*\| 1\.2x \|/);
     assert.match(output, /\| cold compile solc \| 17\.0 \|.*\| 1\.3x \|/);
   });
+
+  it("marks values borrowed from the baseline", () => {
+    const quick = renderSlangTables(
+      [wall("uniswap-v4-core-solx / cold compile slang", 13)],
+      {
+        baseline: [wall("uniswap-v4-core-solx / cold compile solc", 17)],
+        baselineUrl: "https://example.test/run/1",
+      },
+    );
+    assert.match(quick, /\| uniswap-v4-core-solx \| 13\.0 \| 1\.3x† \|/);
+    assert.match(quick, /\| cold compile solc \| 17\.0† \|/);
+    assert.match(quick, /† measured in \[the baseline run\]/);
+  });
 });

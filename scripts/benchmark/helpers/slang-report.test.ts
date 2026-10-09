@@ -70,3 +70,30 @@ describe("parseReport", () => {
     );
   });
 });
+
+describe("parseReport with a baseline", () => {
+  function wallEntry(name: string, value: number) {
+    return {
+      name,
+      unit: "s",
+      value,
+      range: "± 0",
+      extra: JSON.stringify({ times: [value] }),
+    };
+  }
+
+  it("keeps the run's own cells and borrows only the missing ones", () => {
+    const { report } = parseReport(
+      [wallEntry("aave-v4-solx / cold compile slang", 3)],
+      [
+        wallEntry("aave-v4-solx / cold compile slang", 99),
+        wallEntry("aave-v4-solx / cold compile solc", 5),
+      ],
+    );
+    const cells = report.get("aave-v4-solx")!;
+    assert.equal(cells.get("cold compile slang")?.wall, 3);
+    assert.equal(cells.get("cold compile slang")?.fromBaseline, undefined);
+    assert.equal(cells.get("cold compile solc")?.wall, 5);
+    assert.equal(cells.get("cold compile solc")?.fromBaseline, true);
+  });
+});
