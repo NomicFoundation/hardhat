@@ -28,6 +28,9 @@ OPTIONS
   --head-sha <sha>   Commit the run measured
   --status <status>  Producing job status; anything but "success" adds a
                      partial-results warning
+  --baseline <path>  Report of an earlier full run; cells this report lacks
+                     are taken from it and marked †
+  --baseline-url <url>  Link to the run that produced --baseline
 
 EXAMPLE
   node scripts/benchmark/render-slang-tables.ts --report slang-regression-report.json
@@ -96,13 +99,21 @@ function seconds(n: number | undefined): string {
   return n === undefined ? "—" : n.toFixed(1);
 }
 
+// Marks a value measured in the baseline run rather than this one.
+function mark(...results: Array<CellResult | undefined>): string {
+  return results.some((r) => r?.fromBaseline === true) ? "†" : "";
+}
+
 function cellRow(
   label: string,
   r: CellResult,
   slang: CellResult | undefined,
 ): string {
-  const vs = slang === undefined || slang === r ? "" : speedup(r, slang);
-  return `| ${label} | ${seconds(r.wall)} | ${seconds(r.cpu)} | ${
+  const vs =
+    slang === undefined || slang === r
+      ? ""
+      : `${speedup(r, slang)}${mark(r, slang)}`;
+  return `| ${label} | ${seconds(r.wall)}${mark(r)} | ${seconds(r.cpu)} | ${
     r.peakRssMb === undefined ? "—" : r.peakRssMb.toFixed(0)
   } | ${r.runs} | ${vs} |`;
 }
@@ -136,10 +147,14 @@ function summaryTable(
       if (base === undefined) {
         return note(b) ?? "—";
       }
-      return slang === undefined ? "—" : speedup(base, slang);
+      return slang === undefined
+        ? "—"
+        : `${speedup(base, slang)}${mark(base, slang)}`;
     });
     const slangText =
-      slang === undefined ? (note(SLANG) ?? "—") : seconds(slang.wall);
+      slang === undefined
+        ? (note(SLANG) ?? "—")
+        : `${seconds(slang.wall)}${mark(slang)}`;
     lines.push(`| ${id} | ${slangText} | ${vs.join(" | ")} |`);
   }
   lines.push("");
@@ -148,9 +163,15 @@ function summaryTable(
 
 export function renderSlangTables(
   entries: BenchmarkEntry[],
-  opts: { runUrl?: string; headSha?: string; status?: string } = {},
+  opts: {
+    runUrl?: string;
+    headSha?: string;
+    status?: string;
+    baseline?: BenchmarkEntry[];
+    baselineUrl?: string;
+  } = {},
 ): string {
-  const { report, unparsed } = parseReport(entries);
+  const { report, unparsed } = parseReport(entries, opts.baseline);
 
   const lines: string[] = [COMMENT_MARKER, "## slang benchmarks", ""];
   if (opts.status !== undefined && opts.status !== "success") {
@@ -215,6 +236,18 @@ export function renderSlangTables(
   }
 
   lines.push(...FOOTNOTES.map((f) => `${f}\n`));
+  const borrowed = [...report.values()].some((cells) =>
+    [...cells.values()].some((r) => r.fromBaseline === true),
+  );
+  if (borrowed) {
+    lines.push(
+      `† measured in ${
+        opts.baselineUrl === undefined
+          ? "the baseline run"
+          : `[the baseline run](${opts.baselineUrl})`
+      }, not this one.\n`,
+    );
+  }
 
   if (unparsed.length > 0) {
     lines.push(
@@ -246,14 +279,16 @@ function main(): void {
     process.exit(1);
   }
 
-  const entries = JSON.parse(
-    readFileSync(reportPath, "utf8"),
-  ) as BenchmarkEntry[];
+  const read = (p: string) =>
+    JSON.parse(readFileSync(p, "utf8")) as BenchmarkEntry[];
+  const baselinePath = getArg("--baseline");
   process.stdout.write(
-    renderSlangTables(entries, {
+    renderSlangTables(read(reportPath), {
       runUrl: getArg("--run-url"),
       headSha: getArg("--head-sha"),
       status: getArg("--status"),
+      baseline: baselinePath === undefined ? undefined : read(baselinePath),
+      baselineUrl: getArg("--baseline-url"),
     }),
   );
 }

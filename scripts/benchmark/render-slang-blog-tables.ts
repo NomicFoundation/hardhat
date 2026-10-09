@@ -26,6 +26,9 @@ DESCRIPTION
 
 OPTIONS
   --report <path>   Required. Report JSON to render
+  --baseline <path> Report of an earlier full run; cells the report lacks are
+                    taken from it and marked †
+  --baseline-url <url>  Link to the run that produced --baseline
 
 EXAMPLE
   node scripts/benchmark/render-slang-blog-tables.ts --report slang-regression-report.json
@@ -93,9 +96,14 @@ interface Row {
   inTotal: boolean;
 }
 
+// Marks a value measured in the baseline run rather than this one.
+function mark(...results: Array<CellResult | undefined>): string {
+  return results.some((r) => r?.fromBaseline === true) ? "†" : "";
+}
+
 function wallText(r: CellResult | undefined, note: string | undefined): string {
   if (r !== undefined) {
-    return `${r.wall.toFixed(1)}s`;
+    return `${r.wall.toFixed(1)}s${mark(r)}`;
   }
   return note ?? "not measured";
 }
@@ -108,6 +116,7 @@ function sum(a?: CellResult, b?: CellResult): CellResult | undefined {
     wall: a.wall + b.wall,
     wallStddev: a.wallStddev + b.wallStddev,
     runs: Math.min(a.runs, b.runs),
+    fromBaseline: a.fromBaseline === true || b.fromBaseline === true,
   };
 }
 
@@ -197,7 +206,7 @@ function renderTable(rows: Row[], title: string): string[] {
     const vs = (base: CellResult | undefined) =>
       base === undefined || r.slang === undefined
         ? "-"
-        : speedup(base, r.slang);
+        : `${speedup(base, r.slang)}${mark(base, r.slang)}`;
     lines.push(
       `| ${r.repo} | ${wallText(r.solc, r.notes.solc)} | ${wallText(
         r.slang,
@@ -211,13 +220,29 @@ function renderTable(rows: Row[], title: string): string[] {
   return lines;
 }
 
-export function renderSlangBlogTables(entries: BenchmarkEntry[]): string {
-  const { report } = parseReport(entries);
+export function renderSlangBlogTables(
+  entries: BenchmarkEntry[],
+  opts: { baseline?: BenchmarkEntry[]; baselineUrl?: string } = {},
+): string {
+  const { report } = parseReport(entries, opts.baseline);
+  const borrowed = [...report.values()].some((cells) =>
+    [...cells.values()].some((r) => r.fromBaseline === true),
+  );
   const lines: string[] = [
     'Wall-clock seconds, mean over each cell\'s runs; "parity" means the ' +
       "difference is within the two cells' run-to-run spread.",
     "",
   ];
+  if (borrowed) {
+    lines.push(
+      `† measured in ${
+        opts.baselineUrl === undefined
+          ? "the baseline run"
+          : `[the baseline run](${opts.baselineUrl})`
+      }, not this one.`,
+      "",
+    );
+  }
 
   const sections: Array<[Pipeline, boolean, string]> = [
     ["via-IR", false, "slang vs solc --via-ir compilation"],
@@ -240,16 +265,26 @@ export function renderSlangBlogTables(entries: BenchmarkEntry[]): string {
 }
 
 function main(): void {
-  const i = process.argv.indexOf("--report");
-  const reportPath = i === -1 ? undefined : process.argv[i + 1];
+  const getArg = (flag: string): string | undefined => {
+    const i = process.argv.indexOf(flag);
+    return i !== -1 && i + 1 < process.argv.length
+      ? process.argv[i + 1]
+      : undefined;
+  };
+  const reportPath = getArg("--report");
   if (reportPath === undefined) {
     console.log(USAGE);
     process.exit(1);
   }
-  const entries = JSON.parse(
-    readFileSync(reportPath, "utf8"),
-  ) as BenchmarkEntry[];
-  process.stdout.write(renderSlangBlogTables(entries));
+  const read = (p: string) =>
+    JSON.parse(readFileSync(p, "utf8")) as BenchmarkEntry[];
+  const baselinePath = getArg("--baseline");
+  process.stdout.write(
+    renderSlangBlogTables(read(reportPath), {
+      baseline: baselinePath === undefined ? undefined : read(baselinePath),
+      baselineUrl: getArg("--baseline-url"),
+    }),
+  );
 }
 
 if (import.meta.main) {

@@ -111,4 +111,32 @@ describe("renderSlangBlogTables", () => {
     assert.match(table, /\| Uniswap v4 \| 85\.0s \| 16\.0s \|/);
     assert.match(table, /\| lido-vaults \| 30\.0s \| 9\.0s \|/);
   });
+
+  it("marks values borrowed from the baseline and links its run", () => {
+    const quick = renderSlangBlogTables(
+      [
+        wall("uniswap-v4-core-solx / cold compile slang", 10),
+        wall("uniswap-v4-core-solx / warm test slang", 6),
+      ],
+      {
+        baseline: [
+          wall("uniswap-v4-core-solx / cold compile solc via-ir", 80),
+          wall("uniswap-v4-core-solx / warm test solc via-ir", 5),
+        ],
+        baselineUrl: "https://example.test/run/1",
+      },
+    );
+    assert.match(
+      quick,
+      /† measured in \[the baseline run\]\(https:\/\/example\.test\/run\/1\)/,
+    );
+    assert.match(
+      section(quick, VIA_IR),
+      /\| Uniswap v4 \| 80\.0s† \| 10\.0s \| 8\.0x† \|/,
+    );
+    assert.match(
+      section(quick, "slang vs solc --via-ir including Solidity tests"),
+      /\| Uniswap v4 \| 85\.0s† \| 16\.0s \|/,
+    );
+  });
 });
