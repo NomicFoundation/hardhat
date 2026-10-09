@@ -63,3 +63,20 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINN
 mv hardhat.config.ts hardhat.config.base.ts
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" hardhat.config.ts
 cp "$MONOREPO_ROOT/scripts/benchmark/solx-profiles.ts" solx-profiles.ts
+
+# Drop the one inline test config Hardhat rejects (HHE821: invalid key
+# "default.disable_block_gas_limit"), identically for every toolchain: without
+# it the whole `hardhat test solidity` run aborts before any test executes.
+# The suite passes under Hardhat without it. Fail loudly if the anchor moved.
+node -e '
+const fs = require("fs");
+const p = "tests/unit/Hub/Hub.Rounding.t.sol";
+const s = fs.readFileSync(p, "utf8");
+const anchor = "/// forge-config: default.disable_block_gas_limit = true\n";
+if (s.split(anchor).length !== 2) {
+  console.error("aave preinstall: expected exactly one disable_block_gas_limit forge-config in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, ""));
+console.log("aave preinstall: dropped the disable_block_gas_limit forge-config from " + p);
+'
