@@ -29,6 +29,7 @@ import {
   BENCHMARK_SOLC_VERSION,
   FUZZ_SEED_ENV_VAR,
   PINNED_FUZZ_SEED,
+  SOLX_COMPILER_TYPE,
 } from "./solx-profiles.ts";
 
 const USAGE = `
@@ -709,9 +710,9 @@ export function evaluateProvenance(
     }
     subjectCount++;
     if (side === "solx") {
-      if (compilerType !== "solx") {
+      if (compilerType !== SOLX_COMPILER_TYPE) {
         problems.push(
-          `${name}: solcVersion ${solcVersion} has compilerType "${compilerType}", expected "solx"`,
+          `${name}: solcVersion ${solcVersion} has compilerType "${compilerType}", expected "${SOLX_COMPILER_TYPE}"`,
         );
       }
       if (
@@ -2667,9 +2668,9 @@ function captureEnvironment(
       projectDir,
       "@nomicfoundation/edr",
     ),
-    "@nomicfoundation/hardhat-solx": installedVersion(
+    "@nomicfoundation/hardhat-slang-solx": installedVersion(
       projectDir,
-      "@nomicfoundation/hardhat-solx",
+      "@nomicfoundation/hardhat-slang-solx",
     ),
     "@nomicfoundation/hardhat-vendored": installedVersion(
       projectDir,
@@ -3357,7 +3358,7 @@ export function diffSharedFailures(
 }
 
 /**
- * Assert the packed hardhat-solx in the checkout matches this monorepo's
+ * Assert the packed hardhat-slang-solx in the checkout matches this monorepo's
  * build byte-for-byte, so no run measures a stale plugin.
  */
 function assertFreshHardhatSolx(
@@ -3369,13 +3370,13 @@ function assertFreshHardhatSolx(
     [
       "-rq",
       ".solx/expected-dist-src",
-      "node_modules/@nomicfoundation/hardhat-solx/dist/src",
+      "node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
     ],
     { cwd: projectDir, env, encoding: "utf8" },
   );
   if (result.status !== 0) {
     throw new Error(
-      `stale hardhat-solx in ${projectDir}: ${result.stdout} ${result.stderr} — re-init the scenario`,
+      `stale hardhat-slang-solx in ${projectDir}: ${result.stdout} ${result.stderr} — re-init the scenario`,
     );
   }
 }

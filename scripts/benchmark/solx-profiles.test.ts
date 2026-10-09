@@ -11,9 +11,11 @@ import {
   BENCHMARK_SOLC_VERSION,
   buildSolxProfiles,
   FUZZ_SEED_ENV_VAR,
+  MANDATORY_PROFILE,
   overrideEntry,
   PINNED_FUZZ_SEED,
   resolveFuzzSeed,
+  SOLX_COMPILER_TYPE,
   withPinnedFuzzSeed,
 } from "./solx-profiles.ts";
 import { isNoOptProfile } from "./test-under-solx.ts";

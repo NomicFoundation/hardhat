@@ -15,8 +15,9 @@ test = 'test'
 cache_path = 'cache_forge'
 fs_permissions = [{ access = "read", path = "./" }]
 # Kept at the vendored value, but every forge cell overrides it with
-# FOUNDRY_SOLC=0.8.34 — the only version in hardhat-solx's Solidity→solx
-# map, so the hardhat cells compile there too (see scenario.json).
+# FOUNDRY_SOLC=0.8.34 — the only version in hardhat-slang-solx's
+# Solidity→solx map, so the hardhat cells compile there too (see
+# scenario.json).
 solc_version = '0.8.35'
 evm_version = 'cancun'
 # Suppress solc warnings emitted from third-party code we don't control

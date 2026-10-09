@@ -95,7 +95,7 @@ fs.writeFileSync('pnpm-workspace.yaml', stripped.join('\n'));
 # local version, so no further patching is needed.
 rm -f pnpm-lock.yaml
 
-# Pack the monorepo's hardhat-solx (private, never published to Verdaccio)
+# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
 # and wire it in as a content-hash-named file: devDependency, plus the
 # freshness oracle at .solx/expected-dist-src — see
 # scripts/benchmark/pack-hardhat-solx.ts for the how and why. The plugin bits

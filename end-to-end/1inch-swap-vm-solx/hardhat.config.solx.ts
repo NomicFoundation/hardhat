@@ -13,7 +13,7 @@
 // parses and ignores them (its LLVM pipeline replaces Yul optimization) —
 // each compiler measured at its realistic pipeline. Everything else (paths,
 // test) is preserved from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import { buildSolxProfiles, withPinnedFuzzSeed } from "./solx-profiles.ts";

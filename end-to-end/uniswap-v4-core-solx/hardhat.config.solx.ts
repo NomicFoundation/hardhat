@@ -12,7 +12,7 @@
 // `metadata.bytecodeHash: "none"` carry over to every cell. The base's
 // `debug` profile is dropped. Everything else (paths, test) is preserved
 // from the base.
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
 import { buildSolxProfiles, withPinnedFuzzSeed } from "./solx-profiles.ts";
