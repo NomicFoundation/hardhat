@@ -150,6 +150,8 @@ OPTIONS
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
   --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
+  --runs <n>            Measure every selected entry n times instead of its
+                        configured "runs"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -197,6 +199,7 @@ interface RegressionArgs {
   e2eCloneDirectory: string;
   failFast: boolean;
   peakRssMethod: PeakRssMethod;
+  runs: number | undefined;
 }
 
 interface ScenarioEntry {
@@ -359,6 +362,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
       "e2e-clone-dir": { type: "string" },
       "fail-fast": { type: "boolean" },
       "peak-rss": { type: "string" },
+      runs: { type: "string" },
     },
   } as const;
   const parsed = parseCliArgs(argv, cli);
@@ -381,6 +385,11 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
           .filter((s) => s.length > 0)
       : undefined;
 
+  const runs = values.runs === undefined ? undefined : Number(values.runs);
+  if (runs !== undefined && (!Number.isInteger(runs) || runs < 1)) {
+    throw cliError(cli, "--runs must be a positive integer");
+  }
+
   return {
     output: resolveInvocationPath(values.output),
     scenarios,
@@ -397,6 +406,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
     failFast: values["fail-fast"] === true,
     peakRssMethod:
       parsePeakRssMethod(values["peak-rss"]) ?? PeakRssMethod.GnuTime,
+    runs,
   };
 }
 
@@ -553,6 +563,7 @@ async function runScenario(
       loaded,
       plan,
       peakRssMethod,
+      args.runs,
       results,
     ),
   );
@@ -564,6 +575,7 @@ async function runPhases(
   loaded: Scenario,
   plan: PlannedCommand[],
   peakRssMethod: PeakRssMethod,
+  runs: number | undefined,
   results: BenchmarkEntry[],
 ): Promise<void> {
   for (const planned of plan) {
@@ -575,7 +587,7 @@ async function runPhases(
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, runs),
           new Set(planned.run),
           new Set(planned.once),
           new Set(planned.emit),
@@ -590,13 +602,20 @@ async function runPhases(
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, runs),
           planned.emit,
           peakRssMethod,
         )),
       );
     }
   }
+}
+
+function withRuns<T extends { runs: number }>(
+  cfg: T,
+  runs: number | undefined,
+): T {
+  return runs === undefined ? cfg : { ...cfg, runs };
 }
 
 /**
