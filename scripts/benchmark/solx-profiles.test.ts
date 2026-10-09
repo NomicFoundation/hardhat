@@ -5,6 +5,7 @@
 // than a build script. The seed resolution in particular decides whether both
 // sides of a pair see identical fuzz inputs.
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import {
@@ -92,12 +93,30 @@ describe("withPinnedFuzzSeed", () => {
 describe("buildSolxProfiles", () => {
   it("emits the whole matrix at the benchmark solc version", () => {
     const profiles = buildSolxProfiles({ baseSettings: { optimizer: {} } });
-    assert.deepEqual(Object.keys(profiles).length, 9);
+    assert.deepEqual(Object.keys(profiles).length, 10);
     assert.ok("solc-via-ir-no-opt" in profiles);
     for (const profile of Object.values(profiles)) {
       assert.equal(
         (profile as { version: string }).version,
         BENCHMARK_SOLC_VERSION,
+      );
+    }
+  });
+
+  it("emits one slang cell that never enables viaIR", () => {
+    // slang has a single pipeline and only warns about viaIR, so a via-IR-only
+    // seed must not reach it as viaIR: true.
+    for (const viaIR of [false, true]) {
+      const profiles = buildSolxProfiles({
+        baseSettings: { viaIR },
+      }) as Record<string, Record<string, unknown>>;
+      const cell = profiles.slang;
+      assert.equal(cell.type, "slang");
+      assert.ok((cell.path as string).endsWith(path.join(".solx", "slang")));
+      assert.notEqual(
+        (cell.settings as Record<string, unknown>).viaIR,
+        true,
+        `seed viaIR: ${viaIR}`,
       );
     }
   });
