@@ -353,25 +353,6 @@ export async function getAllDirectoriesMatching(
 }
 
 /**
- * Determines the true case path of a given relative path from a specified
- * directory, without resolving symbolic links, and returns it.
- *
- * @param from The absolute path of the directory to start the search from.
- * @param relativePath The relative path to get the true case of.
- * @returns The true case of the relative path.
- * @throws FileNotFoundError if the starting directory or the relative path doesn't exist.
- * @throws NotADirectoryError if the starting directory is not a directory.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link TrueCasePathResolver} instead.
- */
-export async function getFileTrueCase(
-  from: string,
-  relativePath: string,
-): Promise<string> {
-  return await new TrueCasePathResolver().getFileTrueCase(from, relativePath);
-}
-
-/**
  * Checks if a given path is a directory.
  *
  * @param absolutePath The path to check.
@@ -453,24 +434,6 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
     // Explicitly closing the file handle to fully release the underlying resources
     await fileHandle?.close();
   }
-}
-
-/**
- * Reads a JSON file and parses it. The encoding used is "utf8".
- *
- * @param absolutePathToFile The path to the file.
- * @returns The parsed JSON object.
- * @throws FileNotFoundError if the file doesn't exist.
- * @throws InvalidFileFormatError if the file is not a valid JSON file.
- * @throws IsDirectoryError if the path is a directory instead of a file.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link readJsonFile} instead, which supports files of any
- * size.
- */
-export async function readJsonFileAsStream<T>(
-  absolutePathToFile: string,
-): Promise<T> {
-  return await readJsonFile<T>(absolutePathToFile);
 }
 
 /**
@@ -570,25 +533,6 @@ export async function writeLargeJsonFile<T>(
     // Streaming uses little memory, so it doesn't need to take turns.
     await streamJsonToFile(absolutePathToFile, object);
   }
-}
-
-/**
- * Writes an object to a JSON file, supporting objects whose JSON is too large
- * to be held in a single string. The JSON is compact (not indented), the
- * encoding used is "utf8", and the file is overwritten. If part of the path
- * doesn't exist, it will be created.
- *
- * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
- * @param object The object to write.
- * @throws JsonSerializationError if the object can't be serialized to JSON.
- * @throws FileSystemAccessError for any other error.
- * @deprecated Use {@link writeLargeJsonFile} instead.
- */
-export async function writeJsonFileAsStream<T>(
-  absolutePathToFile: string,
-  object: T,
-): Promise<void> {
-  await writeLargeJsonFile(absolutePathToFile, object);
 }
 
 /**
