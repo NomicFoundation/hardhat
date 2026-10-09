@@ -149,11 +149,18 @@ export function overrideEntry(
   cell: SolxProfileCell,
   settings: CompilerSettings,
 ): Record<string, unknown> {
+  // slang has one pipeline and only warns about viaIR, so a per-file via-IR
+  // override has nothing to select there.
+  let cellSettings = settings;
+  if (cell.type === SLANG_COMPILER_TYPE) {
+    const { viaIR: _, ...withoutViaIR } = settings;
+    cellSettings = withoutViaIR;
+  }
   return {
     ...(cell.type === undefined ? {} : { type: cell.type }),
     ...(cell.path === undefined ? {} : { path: cell.path }),
     version: cell.version,
-    settings,
+    settings: cellSettings,
   };
 }
 
