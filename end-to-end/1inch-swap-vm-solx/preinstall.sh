@@ -15,11 +15,11 @@ source "$MONOREPO_ROOT/scripts/benchmark/pinned-tool-versions.sh"
 # prime step (relax-dep-pragmas.cjs, copied below) covers those.
 node "$MONOREPO_ROOT/scripts/benchmark/relax-pragmas.ts" --scenario 1inch-swap-vm-solx --from 0.8.30 --skip-dir lib
 
-# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
-# into ./.solx and wire it in as a content-hash-named file: devDependency,
-# plus the freshness oracle at .solx/expected-dist-src — see
-# scripts/benchmark/pack-hardhat-solx.ts for the how and why.
-node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORKDIR"
+# Declare the monorepo's hardhat-slang-solx and hardhat-slang as
+# devDependencies at their workspace versions, which --use-local publishes to
+# and resolves from Verdaccio, plus the freshness oracles in .solx — see
+# scripts/benchmark/wire-hardhat-plugins.ts.
+node "$MONOREPO_ROOT/scripts/benchmark/wire-hardhat-plugins.ts" --target-dir "$WORKDIR"
 
 # Pinned solx for the version cells: the wrapper config's "solx-0.1.8"
 # profiles point at this binary via the plugin's `path` option. The pinned

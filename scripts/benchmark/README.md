@@ -24,10 +24,11 @@ file mostly composes helpers with parameters:
      version pins (see that file for what it does NOT control);
    - `scripts/benchmark/relax-pragmas.ts` — only if the repo pins exact
      `pragma solidity x.y.z;` versions;
-   - `scripts/benchmark/pack-hardhat-solx.ts` — wires the monorepo's
-     hardhat-slang-solx build into the checkout as a `file:` dependency;
-   - `scripts/benchmark/download-solx.ts` / `download-forge.ts` — provision
-     the pinned binaries;
+   - `scripts/benchmark/wire-hardhat-plugins.ts` — declares the monorepo's
+     hardhat-slang-solx and hardhat-slang as devDependencies, which
+     `--use-local` resolves from Verdaccio;
+   - `scripts/benchmark/download-solx.ts` / `download-forge.ts` /
+     `provision-slang.ts` — provision the pinned binaries;
    - the config swap: rename the repo's `hardhat.config.ts` to
      `hardhat.config.base.ts`, copy the scenario's `hardhat.config.solx.ts`
      in as `hardhat.config.ts`, and copy
