@@ -57,13 +57,13 @@ fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 # Remove lockfile so yarn resolves the latest from Verdaccio instead of the pinned version
 rm -f yarn.lock
 
-# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
-# into ./.solx and wire it in as a content-hash-named file: devDependency,
-# plus the freshness oracle at .solx/expected-dist-src — see
-# scripts/benchmark/pack-hardhat-solx.ts for the how and why. The package.json
-# edit is safe under yarn too; the subsequent `yarn install` resolves the new
-# file: entry.
-node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORKDIR"
+# Declare the monorepo's hardhat-slang-solx and hardhat-slang as
+# devDependencies at their workspace versions, which --use-local publishes to
+# and resolves from Verdaccio, plus the freshness oracles in .solx — see
+# scripts/benchmark/wire-hardhat-plugins.ts.
+# The package.json edit is safe under yarn too; the subsequent `yarn install`
+# resolves the new entries.
+node "$MONOREPO_ROOT/scripts/benchmark/wire-hardhat-plugins.ts" --target-dir "$WORKDIR"
 
 # Pinned solx for the version-comparison cells: the wrapper config's
 # "solx-0.1.8" profiles point at this binary via the plugin's `path` option.

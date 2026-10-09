@@ -95,14 +95,13 @@ fs.writeFileSync('pnpm-workspace.yaml', stripped.join('\n'));
 # local version, so no further patching is needed.
 rm -f pnpm-lock.yaml
 
-# Pack the monorepo's hardhat-slang-solx (private, never published to Verdaccio)
-# and wire it in as a content-hash-named file: devDependency, plus the
-# freshness oracle at .solx/expected-dist-src — see
-# scripts/benchmark/pack-hardhat-solx.ts for the how and why. The plugin bits
-# live under packages/horizon — the workspace package that consumes them —
-# not the repo root, so the file: spec stays relative to the declaring
-# package (how pnpm resolves file: deps in a workspace).
-node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$HORIZON"
+# Declare the monorepo's hardhat-slang-solx and hardhat-slang as
+# devDependencies at their workspace versions, which --use-local publishes to
+# and resolves from Verdaccio, plus the freshness oracles in .solx — see
+# scripts/benchmark/wire-hardhat-plugins.ts.
+# They are declared in packages/horizon, the workspace package that
+# consumes them, not at the repo root.
+node "$MONOREPO_ROOT/scripts/benchmark/wire-hardhat-plugins.ts" --target-dir "$HORIZON"
 
 # Pinned solx for the version-comparison cells: the wrapper config's
 # "solx-0.1.8" profiles point at this binary via the plugin's `path` option.
