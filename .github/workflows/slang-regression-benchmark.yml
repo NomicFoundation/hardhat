@@ -1,9 +1,13 @@
 name: Slang Regression Benchmark
 
+# Two tiers. PR and push runs measure only slang and its solx 0.1.8
+# reference, 3 runs each, and take every other cell (solc, forge, tests)
+# from the report of the last full run. A dispatch with the default inputs
+# runs the full matrix; repeat it when solc, forge or the scenarios change,
+# then point BASELINE_RUN_ID below at it.
 on:
-  # Manual trigger for ad-hoc perf runs. The filters allow re-running a
-  # subset (e.g. one scenario's slang cell) without paying for the full
-  # matrix; filtered runs never publish baselines (gated on push events).
+  # Manual trigger for the full matrix, or any subset of it; filtered runs
+  # never publish baselines (gated on push events).
   workflow_dispatch:
     inputs:
       scenario-filter:
@@ -14,6 +18,14 @@ on:
         description: "Glob(s) selecting cells by name (comma-separated, e.g. `cold compile slang*`). Forwarded to bench:regression --benchmarks."
         required: false
         default: "cold compile*,warm test*"
+      runs:
+        description: "Measured runs per cell, overriding each cell's own count. Forwarded to bench:regression --runs; empty keeps the cells' counts."
+        required: false
+        default: ""
+      baseline-run-id:
+        description: "Run whose slang-regression-report fills the cells this run doesn't measure. Empty uses BASELINE_RUN_ID."
+        required: false
+        default: ""
   # Deliberately do not run on merge_group
   push:
     branches:
@@ -36,6 +48,8 @@ jobs:
     environment: github-action-benchmark
     permissions:
       contents: read
+      # Downloads the baseline run's report artifact.
+      actions: read
       # Updates the sticky benchmark-tables comment on labeled PR runs. Fork
       # PRs never reach this job (fork-safety guard below), so the write
       # token is only ever used for same-repo PRs.
@@ -55,12 +69,14 @@ jobs:
         github.event_name == 'workflow_dispatch' ||
         github.repository == github.event.pull_request.head.repo.full_name)
 
-    # The scenarios are the solx-tagged ones; by default their cold compile
-    # cells (5 runs each) and warm test cells (3 runs, 1 on aave and
-    # lido-core) run for solc, solx 0.1.8, slang and forge, plus OZ's
-    # forge-scope parity cells: close to the solx workflow's full matrix,
-    # whose last full run took 4h47m.
+    # A full run (the dispatch default: every solx-tagged scenario's cold
+    # compile and warm test cells, 5 and 3 runs) took ~5h on the runner;
+    # the PR tier takes ~35 min.
     timeout-minutes: 420
+    env:
+      # The last full run; its report supplies the cells a PR run skips.
+      # Empty until a full run has completed.
+      BASELINE_RUN_ID: ${{ inputs.baseline-run-id || '' }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -113,14 +129,22 @@ jobs:
       # bench:regression, not under `sfw`, so no firewall allowlist is needed.
       - name: Run slang regression benchmark
         env:
-          # Empty on push/PR events; the fallbacks keep those runs on the
-          # compile and test matrix.
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
           SCENARIO_FILTER: ${{ inputs.scenario-filter || '*' }}
-          BENCHMARK_FILTER: ${{ inputs.benchmark-filter || 'cold compile*,warm test*' }}
+          DISPATCH_BENCHMARK_FILTER: ${{ inputs.benchmark-filter }}
+          DISPATCH_RUNS: ${{ inputs.runs }}
         run: |
+          if [ "$IS_DISPATCH" = true ]; then
+            BENCHMARK_FILTER="$DISPATCH_BENCHMARK_FILTER"
+            RUNS="$DISPATCH_RUNS"
+          else
+            BENCHMARK_FILTER="cold compile slang*,cold compile solx-0.1.8"
+            RUNS=3
+          fi
           pnpm bench:regression --use-local --force-checkout --tag solx \
             --scenarios "$SCENARIO_FILTER" \
             --benchmarks "$BENCHMARK_FILTER" \
+            ${RUNS:+--runs "$RUNS"} \
             --output slang-regression-report.json
 
       - name: Validate scenarios used the local Hardhat build
@@ -169,6 +193,16 @@ jobs:
           path: slang-regression-report.json
           if-no-files-found: warn
 
+      # A missing baseline only costs the tables their borrowed cells.
+      - name: Download baseline report
+        if: ${{ !cancelled() && env.BASELINE_RUN_ID != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "$BASELINE_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name slang-regression-report --dir baseline \
+            || echo "::warning::No slang-regression-report in run $BASELINE_RUN_ID; tables show this run's cells only"
+
       # The blog post's tables, generated from the report on every run; they
       # land in the job summary and as an artifact for pasting.
       - name: Render blog tables
@@ -178,8 +212,13 @@ jobs:
             echo "::warning::No report produced — skipping the blog tables"
             exit 0
           fi
+          BASELINE_ARGS=()
+          if [ -f baseline/slang-regression-report.json ]; then
+            BASELINE_ARGS=(--baseline baseline/slang-regression-report.json \
+              --baseline-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${BASELINE_RUN_ID}")
+          fi
           node scripts/benchmark/render-slang-blog-tables.ts \
-            --report slang-regression-report.json > slang-blog-tables.md
+            --report slang-regression-report.json "${BASELINE_ARGS[@]}" > slang-blog-tables.md
           cat slang-blog-tables.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload blog tables
@@ -203,8 +242,13 @@ jobs:
             echo "::warning::No report produced — skipping the tables comment"
             exit 0
           fi
+          BASELINE_ARGS=()
+          if [ -f baseline/slang-regression-report.json ]; then
+            BASELINE_ARGS=(--baseline baseline/slang-regression-report.json \
+              --baseline-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${BASELINE_RUN_ID}")
+          fi
           node scripts/benchmark/render-slang-tables.ts \
-            --report slang-regression-report.json \
+            --report slang-regression-report.json "${BASELINE_ARGS[@]}" \
             --run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
             --head-sha "$HEAD_SHA" \
             --status "$JOB_STATUS" > slang-bench-comment.md
