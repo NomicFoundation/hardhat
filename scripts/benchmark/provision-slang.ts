@@ -1,48 +1,89 @@
 import { chmodSync, copyFileSync, existsSync, mkdirSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
+
+import { installVerifiedReleaseAsset } from "./helpers/release-download.ts";
 
 const USAGE = `
 scripts/benchmark/provision-slang.ts — Put the slang compiler under test into
 a scenario checkout
 
 DESCRIPTION
-  Copies the slang binary named by $HARDHAT_SLANG_BENCH_BINARY to --out. The
-  wrapper configs' "slang" profile points at that path through
-  hardhat-slang's \`path\` compiler option. There is no slang release to
-  download yet, so the binary is a local build.
+  Installs the slang binary at --out, where the wrapper configs' "slang"
+  profile points through hardhat-slang's \`path\` compiler option.
+
+  By default it downloads the release asset for --tag from
+  NomicFoundation/solx's GitHub releases, verified against its .sha256
+  sidecar and cached like download-solx.ts. When $HARDHAT_SLANG_BENCH_BINARY
+  is set, that local build is copied instead, so an unreleased compiler can
+  be benchmarked.
 
 OPTIONS
-  --out <path>  Required. Where to install the binary.
+  --tag <tag>             Required. Release tag (e.g. b74af542)
+  --asset-suffix <sfx>    Required. Asset name suffix after the platform
+                          (e.g. slang-2026-10-01)
+  --out <path>            Required. Where to install the binary
 
 EXAMPLE
-  HARDHAT_SLANG_BENCH_BINARY=~/.cache/hardhat-slang-benchmark/slang-cc66c013 \\
-    node scripts/benchmark/provision-slang.ts --out "$PWD/.solx/slang"
+  node scripts/benchmark/provision-slang.ts --tag b74af542 \\
+    --asset-suffix slang-2026-10-01 --out "$PWD/.solx/slang"
 `;
 
-function main(): void {
-  const argv = process.argv.slice(2);
-  if (argv.length !== 2 || argv[0] !== "--out") {
-    console.error(USAGE);
-    process.exit(1);
-  }
-  const out = path.resolve(argv[1]);
+const RELEASES_BASE_URL = "https://github.com/NomicFoundation/solx/releases";
 
-  const binary = process.env.HARDHAT_SLANG_BENCH_BINARY;
-  if (binary === undefined || binary === "") {
-    console.error(
-      "provision-slang: HARDHAT_SLANG_BENCH_BINARY is not set; point it at a slang build",
-    );
-    process.exit(1);
-  }
-  if (!existsSync(binary)) {
-    console.error(`provision-slang: no file at ${binary}`);
-    process.exit(1);
-  }
+/**
+ * Mirrors the release asset naming in hardhat-slang's platform.ts. Windows is
+ * deliberately unsupported: the benchmark only runs on Linux/macOS.
+ */
+function getAssetName(assetSuffix: string): string {
+  const platform = os.platform();
+  const arch = os.arch();
 
-  mkdirSync(path.dirname(out), { recursive: true });
-  copyFileSync(binary, out);
-  chmodSync(out, 0o755);
-  console.log(`provision-slang: installed ${binary} at ${out}`);
+  if (platform === "linux" && arch === "x64") {
+    return `solx-linux-amd64-gnu-${assetSuffix}`;
+  }
+  if (platform === "linux" && arch === "arm64") {
+    return `solx-linux-arm64-gnu-${assetSuffix}`;
+  }
+  if (platform === "darwin") {
+    return `solx-macosx-${assetSuffix}`;
+  }
+  throw new Error(`No slang release asset for ${platform}/${arch}`);
 }
 
-main();
+async function main(): Promise<void> {
+  const getArg = (flag: string): string | undefined => {
+    const i = process.argv.indexOf(flag);
+    return i !== -1 && i + 1 < process.argv.length
+      ? process.argv[i + 1]
+      : undefined;
+  };
+
+  const tag = getArg("--tag");
+  const assetSuffix = getArg("--asset-suffix");
+  const out = getArg("--out");
+  if (tag === undefined || assetSuffix === undefined || out === undefined) {
+    console.log(USAGE);
+    process.exit(1);
+  }
+
+  const localBinary = process.env.HARDHAT_SLANG_BENCH_BINARY;
+  if (localBinary !== undefined && localBinary !== "") {
+    if (!existsSync(localBinary)) {
+      throw new Error(
+        `HARDHAT_SLANG_BENCH_BINARY points at ${localBinary}, which does not exist`,
+      );
+    }
+    mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+    copyFileSync(localBinary, out);
+    chmodSync(out, 0o755);
+    console.log(`Installed local slang ${localBinary} at ${out}`);
+    return;
+  }
+
+  const assetUrl = `${RELEASES_BASE_URL}/download/${tag}/${getAssetName(assetSuffix)}`;
+  await installVerifiedReleaseAsset(assetUrl, out);
+  console.log(`Installed slang ${tag} at ${out}`);
+}
+
+await main();
