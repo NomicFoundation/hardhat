@@ -197,6 +197,25 @@ describe("buildSolxProfiles", () => {
 });
 
 describe("overrideEntry", () => {
+  it("drops viaIR for slang cells only", () => {
+    const slang = overrideEntry(
+      {
+        name: "slang",
+        type: "slang",
+        path: "/tmp/slang",
+        version: "0.8.34",
+        viaIR: false,
+      },
+      { viaIR: true, optimizer: { runs: 100 } },
+    );
+    assert.deepEqual(slang.settings, { optimizer: { runs: 100 } });
+    const solc = overrideEntry(
+      { name: "default", version: "0.8.34", viaIR: false },
+      { viaIR: true, optimizer: { runs: 100 } },
+    );
+    assert.deepEqual(solc.settings, { viaIR: true, optimizer: { runs: 100 } });
+  });
+
   it("follows the cell's compiler", () => {
     assert.deepEqual(
       overrideEntry({ name: "default", version: "0.8.34", viaIR: false }, {}),
