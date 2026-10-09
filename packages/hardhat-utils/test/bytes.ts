@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
@@ -12,6 +12,12 @@ import {
   bytesIncludesUtf8String,
   parseJsonBytes,
 } from "../src/bytes.js";
+import {
+  HEAP_MARGIN_BYTES,
+  READ_HEAP_BYTES_PER_JSON_BYTE,
+} from "../src/internal/json.js";
+
+import { JSON_PATHS, mockAvailableHeap } from "./helpers/heap.js";
 
 describe("bytes", () => {
   describe("isBytes", () => {
@@ -219,43 +225,75 @@ describe("bytes", () => {
   });
 
   describe("parseJsonBytes", () => {
-    it("Should parse JSON bytes", async () => {
+    for (const { name, availableHeap } of JSON_PATHS) {
+      describe(`When the bytes are ${name}`, () => {
+        beforeEach((t) => {
+          assert.ok(
+            "mock" in t,
+            "beforeEach hooks should receive a test context",
+          );
+          mockAvailableHeap(t, availableHeap);
+        });
+
+        it("Should parse JSON bytes", async (t) => {
+          const expectedObject = { a: 1, b: 2 };
+          const bytes = new TextEncoder().encode(
+            JSON.stringify(expectedObject),
+          );
+
+          const jsonParse = t.mock.method(JSON, "parse");
+
+          assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
+          assert.equal(jsonParse.mock.callCount(), name === "buffered" ? 1 : 0);
+          expectTypeOf(await parseJsonBytes(bytes)).toBeUnknown();
+          expectTypeOf(
+            await parseJsonBytes<{ a: number; b: number }>(bytes),
+          ).toEqualTypeOf<{ a: number; b: number }>();
+        });
+
+        it("Should skip a leading byte order mark", async () => {
+          const expectedObject = { a: 1, b: 2 };
+          const bytes = new TextEncoder().encode(
+            `﻿${JSON.stringify(expectedObject)}`,
+          );
+
+          assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
+        });
+
+        it("Should throw if the bytes are not valid JSON", async () => {
+          const bytes = new TextEncoder().encode("not-json");
+
+          await assert.rejects(parseJsonBytes(bytes));
+        });
+      });
+    }
+
+    it("Should use JSON.parse if the heap has exactly enough room", async (t) => {
       const expectedObject = { a: 1, b: 2 };
       const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
-
-      assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
-      expectTypeOf(await parseJsonBytes(bytes)).toBeUnknown();
-      expectTypeOf(
-        await parseJsonBytes<{ a: number; b: number }>(bytes),
-      ).toMatchTypeOf<{ a: number; b: number }>();
-    });
-
-    it("Should fall back to stream parsing when the payload is too large for a single string", async (t) => {
-      const expectedObject = { a: 1, b: 2 };
-      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
-
-      // Simulate a payload too large to be decoded into a single string:
-      // `TextDecoder.decode` throws only in that case, so this exercises the
-      // stream-parsing fallback without allocating a multi-gigabyte buffer.
-      const originalDecode = TextDecoder.prototype.decode;
-      t.mock.method(
-        TextDecoder.prototype,
-        "decode",
-        function (
-          this: InstanceType<typeof TextDecoder>,
-          ...args: Parameters<typeof TextDecoder.prototype.decode>
-        ) {
-          if (args[0] === bytes) {
-            throw new RangeError(
-              "Cannot create a string longer than 0x1fffffe8 characters",
-            );
-          }
-
-          return originalDecode.call(this, args[0], args[1]);
-        },
+      mockAvailableHeap(
+        t,
+        bytes.length * READ_HEAP_BYTES_PER_JSON_BYTE + HEAP_MARGIN_BYTES,
       );
 
+      const jsonParse = t.mock.method(JSON, "parse");
+
       assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
+      assert.equal(jsonParse.mock.callCount(), 1);
+    });
+
+    it("Should parse the bytes as a stream if the heap is one byte short", async (t) => {
+      const expectedObject = { a: 1, b: 2 };
+      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
+      mockAvailableHeap(
+        t,
+        bytes.length * READ_HEAP_BYTES_PER_JSON_BYTE + HEAP_MARGIN_BYTES - 1,
+      );
+
+      const jsonParse = t.mock.method(JSON, "parse");
+
+      assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
+      assert.equal(jsonParse.mock.callCount(), 0);
     });
   });
 });

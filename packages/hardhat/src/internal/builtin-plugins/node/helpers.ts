@@ -8,10 +8,7 @@ import type * as MicroEthSignerT from "micro-eth-signer";
 import path from "node:path";
 import { styleText } from "node:util";
 
-import {
-  readJsonFile,
-  readJsonFileAsStream,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
@@ -103,10 +100,9 @@ export function createBuildInfoUploadHandlerFrom(
       const buildInfo: BuildInfo = await readJsonFile(
         path.join(buildInfoDirPath, `${buildId}.json`),
       );
-      const buildInfoOutput: SolidityBuildInfoOutput =
-        await readJsonFileAsStream(
-          path.join(buildInfoDirPath, `${buildId}.output.json`),
-        );
+      const buildInfoOutput: SolidityBuildInfoOutput = await readJsonFile(
+        path.join(buildInfoDirPath, `${buildId}.output.json`),
+      );
 
       await provider.addCompilationResult(
         buildInfo.solcVersion,

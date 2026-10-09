@@ -23,7 +23,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fast-semver";
 import {
   mkdtemp,
-  readJsonFileAsStream,
+  readJsonFile,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
@@ -91,7 +91,7 @@ export async function spawnCompile(
           return reject(new Error(`Subprocess exited with code ${code}`));
         }
 
-        resolve(await readJsonFileAsStream(stdoutPath));
+        resolve(await readJsonFile(stdoutPath));
       });
 
       assertHardhatInvariant(

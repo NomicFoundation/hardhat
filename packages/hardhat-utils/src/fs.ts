@@ -1,11 +1,11 @@
-import type * as JsonStreamStringify from "json-stream-stringify";
 import type { FileHandle } from "node:fs/promises";
 
+import { constants as bufferConstants } from "node:buffer";
 import fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { pipeline } from "node:stream/promises";
 
+import { parseJsonBytes } from "./bytes.js";
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
 import {
   FileNotFoundError,
@@ -21,11 +21,20 @@ import { parseJsonStream } from "./internal/bytes.js";
 import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
+  streamJsonToFile,
 } from "./internal/fs.js";
+import {
+  hasHeapHeadroomFor,
+  READ_HEAP_BYTES_PER_JSON_BYTE,
+  WRITE_HEAP_BYTES_PER_JSON_BYTE,
+} from "./internal/json.js";
+import { AsyncMutex } from "./synchronization.js";
 
-// We don't load json-stream-stringify on startup because it's only
-// used by writeJsonFileAsStream for very large JSON objects.
-let jsonStreamStringify: typeof JsonStreamStringify | undefined;
+// Lets only one call of writeLargeJsonFile use JSON.stringify at a time, so
+// that their strings don't use up each other's heap headroom.
+// NOTE: Created on first use: synchronization.ts imports this file, so
+// AsyncMutex may not be initialized yet while this file is first loading.
+let bufferedWriteMutex: AsyncMutex | undefined;
 
 const AMBIGUOUS_CASING_DIR_ENTRY = Symbol("ambiguous");
 
@@ -386,26 +395,10 @@ export async function isDirectory(absolutePath: string): Promise<boolean> {
 /**
  * Reads a JSON file and parses it. The encoding used is "utf8".
  *
- * @param absolutePathToFile The path to the file.
- * @returns The parsed JSON object.
- * @throws FileNotFoundError if the file doesn't exist.
- * @throws InvalidFileFormatError if the file is not a valid JSON file.
- * @throws IsDirectoryError if the path is a directory instead of a file.
- * @throws FileSystemAccessError for any other error.
- */
-export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
-  const content = await readUtf8File(absolutePathToFile);
-  try {
-    return JSON.parse(content.toString());
-  } catch (e) {
-    ensureError(e);
-    throw new InvalidFileFormatError(absolutePathToFile, e);
-  }
-}
-
-/**
- * Reads a JSON file as a stream and parses it. The encoding used is "utf8".
- * This function should be used when parsing very large JSON files.
+ * Files of any size are supported. The file is parsed with `JSON.parse`,
+ * which is much faster, when its text fits in a single string and the heap has
+ * room for it. Otherwise, it's parsed as a stream, which never holds the whole
+ * text as one string. Both give the same result.
  *
  * @param absolutePathToFile The path to the file.
  * @returns The parsed JSON object.
@@ -414,15 +407,27 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
  * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
-export async function readJsonFileAsStream<T>(
-  absolutePathToFile: string,
-): Promise<T> {
+export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
   let fileHandle: FileHandle | undefined;
 
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "r");
 
-    return await parseJsonStream<T>(fileHandle.createReadStream());
+    // Each UTF-8 byte decodes to at most one character, so the file's size
+    // tells us whether its text could fit in a string. If it can't, or the
+    // heap has no room for it right now, we stream it from disk instead of
+    // reading it all into memory.
+    const { size } = await fileHandle.stat();
+    if (
+      size > bufferConstants.MAX_STRING_LENGTH ||
+      !hasHeapHeadroomFor(size * READ_HEAP_BYTES_PER_JSON_BYTE)
+    ) {
+      return await parseJsonStream<T>(fileHandle.createReadStream());
+    }
+
+    // The bytes are stored outside of the heap. parseJsonBytes checks the heap
+    // again, as other code may have used it while we were reading.
+    return await parseJsonBytes<T>(await fileHandle.readFile());
   } catch (e) {
     ensureError(e);
 
@@ -438,7 +443,7 @@ export async function readJsonFileAsStream<T>(
 
       // If the code is defined, we assume the error to be related to the file system
       if (e.code !== undefined) {
-        throw new FileSystemAccessError(absolutePathToFile, e);
+        throw new FileSystemAccessError(e.message, e);
       }
     }
 
@@ -448,6 +453,24 @@ export async function readJsonFileAsStream<T>(
     // Explicitly closing the file handle to fully release the underlying resources
     await fileHandle?.close();
   }
+}
+
+/**
+ * Reads a JSON file and parses it. The encoding used is "utf8".
+ *
+ * @param absolutePathToFile The path to the file.
+ * @returns The parsed JSON object.
+ * @throws FileNotFoundError if the file doesn't exist.
+ * @throws InvalidFileFormatError if the file is not a valid JSON file.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
+ * @throws FileSystemAccessError for any other error.
+ * @deprecated Use {@link readJsonFile} instead, which supports files of any
+ * size.
+ */
+export async function readJsonFileAsStream<T>(
+  absolutePathToFile: string,
+): Promise<T> {
+  return await readJsonFile<T>(absolutePathToFile);
 }
 
 /**
@@ -475,60 +498,97 @@ export async function writeJsonFile<T>(
 }
 
 /**
- * Writes an object to a JSON file as stream. The encoding used is "utf8" and the file is overwritten.
- * If part of the path doesn't exist, it will be created.
- * This function should be used when stringifying very large JSON objects.
+ * Writes an object to a JSON file, supporting objects whose JSON is too large
+ * to be held in a single string. The JSON is compact (not indented), the
+ * encoding used is "utf8", and the file is overwritten. If part of the path
+ * doesn't exist, it will be created.
+ *
+ * Use this function for objects whose JSON can be very large, like solc's
+ * output, and {@link writeJsonFile} for everything else.
+ *
+ * The object is serialized with `JSON.stringify`, which is much faster, when
+ * the heap has room for the longest string it could build. Otherwise, or if
+ * its JSON doesn't fit in a single string, it's serialized as a stream, which
+ * never holds the whole JSON as one string. Only one call uses
+ * `JSON.stringify` at a time: concurrent calls take turns.
+ *
+ * Both write the same JSON, except for objects that contain a BigInt, a
+ * Promise, or a `toJSON` method that throws. `JSON.stringify` throws a
+ * `JsonSerializationError` for a BigInt or a throwing `toJSON`, and writes a
+ * Promise as `{}`. The stream writes a BigInt as a plain number, writes a
+ * Promise's resolved value, and crashes the process if a `toJSON` throws.
  *
  * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
  * @param object The object to write.
  * @throws JsonSerializationError if the object can't be serialized to JSON.
  * @throws FileSystemAccessError for any other error.
  */
+export async function writeLargeJsonFile<T>(
+  absolutePathToFile: string,
+  object: T,
+): Promise<void> {
+  bufferedWriteMutex ??= new AsyncMutex();
+
+  const written = await bufferedWriteMutex.exclusiveRun(async () => {
+    // We can't know the JSON's length before building it, so we require room
+    // for the longest string V8 can build. JSON.stringify throws a RangeError
+    // instead of going past it, so with this much heap free, it can't run out.
+    if (
+      !hasHeapHeadroomFor(
+        bufferConstants.MAX_STRING_LENGTH * WRITE_HEAP_BYTES_PER_JSON_BYTE,
+      )
+    ) {
+      return false;
+    }
+
+    let json: string;
+    try {
+      json = JSON.stringify(object);
+    } catch (e) {
+      ensureError(e);
+
+      // The JSON is too long for a string, or the object is nested too deeply
+      // for JSON.stringify. Streaming handles both.
+      if (e instanceof RangeError) {
+        return false;
+      }
+
+      // Anything else isn't about size, so streaming wouldn't help:
+      // - A circular object (TypeError): streaming detects it too.
+      // - A BigInt (TypeError): streaming writes it as a plain number, which
+      //   is read back as a rounded number if it's too large. Failing is safer.
+      // - An error thrown by a toJSON method: streaming can't report it, and
+      //   crashes the process instead.
+      throw new JsonSerializationError(absolutePathToFile, e);
+    }
+
+    await writeUtf8File(absolutePathToFile, json);
+    return true;
+  });
+
+  if (!written) {
+    // Streaming uses little memory, so it doesn't need to take turns.
+    await streamJsonToFile(absolutePathToFile, object);
+  }
+}
+
+/**
+ * Writes an object to a JSON file, supporting objects whose JSON is too large
+ * to be held in a single string. The JSON is compact (not indented), the
+ * encoding used is "utf8", and the file is overwritten. If part of the path
+ * doesn't exist, it will be created.
+ *
+ * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
+ * @param object The object to write.
+ * @throws JsonSerializationError if the object can't be serialized to JSON.
+ * @throws FileSystemAccessError for any other error.
+ * @deprecated Use {@link writeLargeJsonFile} instead.
+ */
 export async function writeJsonFileAsStream<T>(
   absolutePathToFile: string,
   object: T,
 ): Promise<void> {
-  const dirPath = path.dirname(absolutePathToFile);
-  const dirExists = await exists(dirPath);
-  if (!dirExists) {
-    await mkdir(dirPath);
-  }
-
-  let fileHandle: FileHandle | undefined;
-
-  try {
-    fileHandle = await fsPromises.open(absolutePathToFile, "w");
-
-    if (jsonStreamStringify === undefined) {
-      jsonStreamStringify = await import("json-stream-stringify");
-    }
-
-    const jsonStream = new jsonStreamStringify.JsonStreamStringify(object);
-    const fileWriteStream = fileHandle.createWriteStream();
-
-    await pipeline(jsonStream, fileWriteStream);
-  } catch (e) {
-    ensureError(e);
-    // if the directory was created, we should remove it
-    if (dirExists === false) {
-      try {
-        await remove(dirPath);
-        // we don't want to override the original error
-      } catch (_error) {}
-    }
-
-    // If the code is defined, we assume the error to be related to the file system
-    if ("code" in e && e.code !== undefined) {
-      throw new FileSystemAccessError(e.message, e);
-    }
-
-    // Otherwise, we assume the error to be related to the file formatting
-    throw new JsonSerializationError(absolutePathToFile, e);
-  } finally {
-    // NOTE: Historically, not closing the file handle caused issues on Windows,
-    // for example, when trying to move the file previously written to by this function
-    await fileHandle?.close();
-  }
+  await writeLargeJsonFile(absolutePathToFile, object);
 }
 
 /**

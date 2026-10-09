@@ -1,10 +1,13 @@
 // cSpell:ignore APFS ambig AMBIG Ambig
 import type { Dirent } from "node:fs";
+import type { FileHandle } from "node:fs/promises";
 
 import assert from "node:assert/strict";
+import { constants as bufferConstants } from "node:buffer";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
+import v8 from "node:v8";
 
 import { expectTypeOf } from "expect-type";
 
@@ -36,11 +39,32 @@ import {
   getFileSize,
   readJsonFileAsStream,
   writeJsonFileAsStream,
+  writeLargeJsonFile,
   mkdtemp,
   readdirOrEmpty,
 } from "../src/fs.js";
+import {
+  HEAP_MARGIN_BYTES,
+  READ_HEAP_BYTES_PER_JSON_BYTE,
+  WRITE_HEAP_BYTES_PER_JSON_BYTE,
+} from "../src/internal/json.js";
+import { sleep } from "../src/lang.js";
 
 import { createTmpDir } from "./helpers/fs.js";
+import { JSON_PATHS, mockAvailableHeap } from "./helpers/heap.js";
+
+/**
+ * Returns the prototype shared by every FileHandle, so tests can spy on its
+ * methods.
+ */
+async function getFileHandlePrototype(filePath: string): Promise<FileHandle> {
+  const fileHandle = await fsPromises.open(filePath, "r");
+  try {
+    return Object.getPrototypeOf(fileHandle);
+  } finally {
+    await fileHandle.close();
+  }
+}
 
 function withUnknownDirentType(dirent: Dirent): Dirent {
   const cloned: Dirent = Object.create(dirent);
@@ -959,42 +983,209 @@ describe("File system utils", () => {
   });
 
   describe("readJsonFile", () => {
-    it("Should read and parse a JSON file", async () => {
+    for (const { name, availableHeap } of JSON_PATHS) {
+      describe(`When the file is ${name}`, () => {
+        beforeEach((t) => {
+          assert.ok(
+            "mock" in t,
+            "beforeEach hooks should receive a test context",
+          );
+          mockAvailableHeap(t, availableHeap);
+        });
+
+        it("Should read and parse a JSON file", async (t) => {
+          const expectedObject = { a: 1, b: 2 };
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, JSON.stringify(expectedObject));
+
+          const jsonParse = t.mock.method(JSON, "parse");
+
+          assert.deepEqual(await readJsonFile(filePath), expectedObject);
+          assert.equal(jsonParse.mock.callCount(), name === "buffered" ? 1 : 0);
+          expectTypeOf(await readJsonFile(filePath)).toBeUnknown();
+          expectTypeOf(
+            await readJsonFile<{ a: number; b: number }>(filePath),
+          ).toEqualTypeOf<{ a: number; b: number }>();
+        });
+
+        it("Should read and parse a JSON file with characters outside of Latin-1", async () => {
+          const expectedObject = { a: "spender’s → ∪ —", b: "😀" };
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, JSON.stringify(expectedObject));
+
+          assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        });
+
+        it("Should skip a leading byte order mark", async () => {
+          const expectedObject = { a: 1, b: 2 };
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, `﻿${JSON.stringify(expectedObject)}`);
+
+          assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        });
+
+        it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, "not-json");
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "InvalidFileFormatError",
+            message: `Invalid file format: ${filePath}`,
+          });
+        });
+
+        it("Should throw InvalidFileFormatError if the file is empty", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, "");
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "InvalidFileFormatError",
+            message: `Invalid file format: ${filePath}`,
+          });
+        });
+
+        it("Should throw InvalidFileFormatError if the file has multiple JSON values", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, '{"a":1}{"b":2}');
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "InvalidFileFormatError",
+            message: `Invalid file format: ${filePath}`,
+          });
+        });
+
+        it("Should read and parse a JSON file with surrounding whitespace", async () => {
+          const expectedObject = { a: 1, b: 2 };
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(
+            filePath,
+            ` \n${JSON.stringify(expectedObject)}\n `,
+          );
+
+          assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        });
+
+        it("Should throw FileNotFoundError if the file doesn't exist", async () => {
+          const filePath = path.join(tmp.path, "not-exists.json");
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "FileNotFoundError",
+            message: `File ${filePath} not found`,
+          });
+        });
+
+        it("Should throw IsDirectoryError if the file is a directory", async () => {
+          const filePath = path.join(tmp.path);
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "IsDirectoryError",
+            message: `Path ${filePath} is a directory`,
+          });
+        });
+
+        it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+          const invalidPath = "\0";
+
+          await assert.rejects(readJsonFile(invalidPath), {
+            name: "FileSystemAccessError",
+          });
+        });
+      });
+    }
+
+    describe("Choosing whether to read the file into memory", () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, JSON.stringify(expectedObject));
+      const json = JSON.stringify(expectedObject);
 
-      assert.deepEqual(await readJsonFile(filePath), expectedObject);
-      expectTypeOf(await readJsonFile(filePath)).toBeUnknown();
-      expectTypeOf(
-        await readJsonFile<{ a: number; b: number }>(filePath),
-      ).toMatchTypeOf<{ a: number; b: number }>();
-    });
+      it("Should read it if the heap has exactly enough room", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        await writeUtf8File(filePath, json);
+        mockAvailableHeap(
+          t,
+          json.length * READ_HEAP_BYTES_PER_JSON_BYTE + HEAP_MARGIN_BYTES,
+        );
 
-    it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, "not-json");
+        const fileHandlePrototype = await getFileHandlePrototype(filePath);
+        const readFile = t.mock.method(fileHandlePrototype, "readFile");
+        const createReadStream = t.mock.method(
+          fileHandlePrototype,
+          "createReadStream",
+        );
+        const jsonParse = t.mock.method(JSON, "parse");
 
-      await assert.rejects(readJsonFile(filePath), {
-        name: "InvalidFileFormatError",
-        message: `Invalid file format: ${filePath}`,
+        assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        assert.equal(readFile.mock.callCount(), 1);
+        assert.equal(createReadStream.mock.callCount(), 0);
+        assert.equal(jsonParse.mock.callCount(), 1);
       });
-    });
 
-    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(tmp.path, "not-exists.json");
+      it("Should stream it from disk if the heap is one byte short", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        await writeUtf8File(filePath, json);
+        mockAvailableHeap(
+          t,
+          json.length * READ_HEAP_BYTES_PER_JSON_BYTE + HEAP_MARGIN_BYTES - 1,
+        );
 
-      await assert.rejects(readJsonFile(filePath), {
-        name: "FileNotFoundError",
-        message: `File ${filePath} not found`,
+        const fileHandlePrototype = await getFileHandlePrototype(filePath);
+        const readFile = t.mock.method(fileHandlePrototype, "readFile");
+        const createReadStream = t.mock.method(
+          fileHandlePrototype,
+          "createReadStream",
+        );
+
+        assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        assert.equal(readFile.mock.callCount(), 0);
+        assert.equal(createReadStream.mock.callCount(), 1);
       });
-    });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const invalidPath = "\0";
+      it("Should stream it from disk if it's too large to be held in a single string", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        await writeUtf8File(filePath, json);
+        mockAvailableHeap(t, Number.MAX_SAFE_INTEGER);
 
-      await assert.rejects(readJsonFile(invalidPath), {
-        name: "FileSystemAccessError",
+        // Simulate a file too large for a string, without creating one
+        const fileHandlePrototype = await getFileHandlePrototype(filePath);
+        const originalStat = fileHandlePrototype.stat;
+        t.mock.method(
+          fileHandlePrototype,
+          "stat",
+          async function (this: FileHandle) {
+            const stats = await originalStat.call(this);
+            stats.size = bufferConstants.MAX_STRING_LENGTH + 1;
+            return stats;
+          },
+        );
+        const readFile = t.mock.method(fileHandlePrototype, "readFile");
+        const createReadStream = t.mock.method(
+          fileHandlePrototype,
+          "createReadStream",
+        );
+
+        assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        assert.equal(readFile.mock.callCount(), 0);
+        assert.equal(createReadStream.mock.callCount(), 1);
+      });
+
+      it("Should stream the bytes already read if the heap has no room left after reading them", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        await writeUtf8File(filePath, json);
+
+        // Enough room before reading, but none after
+        const getRealHeapStatistics = v8.getHeapStatistics;
+        let calls = 0;
+        t.mock.method(v8, "getHeapStatistics", () => ({
+          ...getRealHeapStatistics(),
+          total_available_size: calls++ === 0 ? Number.MAX_SAFE_INTEGER : 0,
+        }));
+
+        const fileHandlePrototype = await getFileHandlePrototype(filePath);
+        const readFile = t.mock.method(fileHandlePrototype, "readFile");
+        const jsonParse = t.mock.method(JSON, "parse");
+
+        assert.deepEqual(await readJsonFile(filePath), expectedObject);
+        assert.equal(readFile.mock.callCount(), 1);
+        assert.equal(jsonParse.mock.callCount(), 0);
       });
     });
   });
@@ -1050,7 +1241,7 @@ describe("File system utils", () => {
   });
 
   describe("readJsonFileAsStream", () => {
-    it("Should read and parse a JSON file", async () => {
+    it("Should read and parse a JSON file, like readJsonFile", async () => {
       const expectedObject = { a: 1, b: 2 };
       const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, JSON.stringify(expectedObject));
@@ -1059,136 +1250,290 @@ describe("File system utils", () => {
       expectTypeOf(await readJsonFileAsStream(filePath)).toBeUnknown();
       expectTypeOf(
         await readJsonFileAsStream<{ a: number; b: number }>(filePath),
-      ).toMatchTypeOf<{ a: number; b: number }>();
+      ).toEqualTypeOf<{ a: number; b: number }>();
     });
+  });
 
-    it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, "not-json");
+  describe("writeLargeJsonFile", () => {
+    for (const { name, availableHeap } of JSON_PATHS) {
+      describe(`When the object is ${name}`, () => {
+        beforeEach((t) => {
+          assert.ok(
+            "mock" in t,
+            "beforeEach hooks should receive a test context",
+          );
+          mockAvailableHeap(t, availableHeap);
+        });
 
-      await assert.rejects(readJsonFileAsStream(filePath), {
-        name: "InvalidFileFormatError",
-        message: `Invalid file format: ${filePath}`,
+        it("Should write an object to a JSON file", async (t) => {
+          const expectedObject = { a: 1, b: 2 };
+          const filePath = path.join(tmp.path, "file.json");
+
+          const writeFile = t.mock.method(fsPromises, "writeFile");
+
+          await writeLargeJsonFile(filePath, expectedObject);
+
+          assert.deepEqual(
+            JSON.parse(await readUtf8File(filePath)),
+            expectedObject,
+          );
+          assert.equal(writeFile.mock.callCount(), name === "buffered" ? 1 : 0);
+          expectTypeOf(writeLargeJsonFile<{ a: number; b: number }>)
+            .parameter(1)
+            .toEqualTypeOf<{ a: number; b: number }>();
+        });
+
+        it("Should write the same compact JSON as JSON.stringify", async () => {
+          const object = { a: "spender’s → ∪ —", b: [1, { c: null }], d: "😀" };
+          const filePath = path.join(tmp.path, "file.json");
+
+          await writeLargeJsonFile(filePath, object);
+
+          assert.equal(await readUtf8File(filePath), JSON.stringify(object));
+        });
+
+        it("Should overwrite an existing file", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          await writeUtf8File(filePath, JSON.stringify({ a: "x".repeat(100) }));
+
+          await writeLargeJsonFile(filePath, { a: 1 });
+
+          assert.equal(await readUtf8File(filePath), '{"a":1}');
+        });
+
+        it("Should write an object to a JSON file even if part of the path doesn't exist", async () => {
+          const expectedObject = { a: 1, b: 2 };
+          const filePath = path.join(tmp.path, "not-exists", "file.json");
+
+          await writeLargeJsonFile(filePath, expectedObject);
+
+          assert.deepEqual(
+            JSON.parse(await readUtf8File(filePath)),
+            expectedObject,
+          );
+        });
+
+        it("Should write deeply nested objects", async () => {
+          // Deeper than JSON.stringify can handle on some versions of Node
+          // (about 4,000 levels on Node 22), where it throws a RangeError and
+          // this streams even with enough heap
+          const depth = 10_000;
+          let object: unknown[] = [];
+          for (let i = 1; i < depth; i++) {
+            object = [object];
+          }
+          const filePath = path.join(tmp.path, "file.json");
+
+          await writeLargeJsonFile(filePath, object);
+
+          assert.equal(
+            await readUtf8File(filePath),
+            "[".repeat(depth) + "]".repeat(depth),
+          );
+        });
+
+        it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          // create an object with a circular reference
+          const circularObject: { self?: {} } = {};
+          circularObject.self = circularObject;
+
+          await assert.rejects(writeLargeJsonFile(filePath, circularObject), {
+            name: "JsonSerializationError",
+            message: `Error serializing JSON file ${filePath}`,
+          });
+        });
+
+        it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+          // Use a path that will cause a file system error (invalid characters in filename)
+          const filePath = path.join(tmp.path, "invalid\0filename.json");
+
+          await assert.rejects(writeLargeJsonFile(filePath, {}), {
+            name: "FileSystemAccessError",
+          });
+        });
+
+        it("Should remove the part of the path that didn't exist before if an error is thrown", async () => {
+          const dirPath = path.join(tmp.path, "not-exists");
+          const filePath = path.join(dirPath, "protected-file.json");
+          // create an object with a circular reference
+          const circularObject: { self?: {} } = {};
+          circularObject.self = circularObject;
+
+          await assert.rejects(writeLargeJsonFile(filePath, circularObject), {
+            name: "JsonSerializationError",
+            message: `Error serializing JSON file ${filePath}`,
+          });
+
+          assert.ok(!(await exists(dirPath)), "The directory should not exist");
+        });
       });
-    });
+    }
 
-    it("Should throw InvalidFileFormatError if the file is empty", async () => {
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, "");
-
-      await assert.rejects(readJsonFileAsStream(filePath), {
-        name: "InvalidFileFormatError",
-        message: `Invalid file format: ${filePath}`,
+    describe("When using JSON.stringify", () => {
+      beforeEach((t) => {
+        assert.ok(
+          "mock" in t,
+          "beforeEach hooks should receive a test context",
+        );
+        mockAvailableHeap(t, Number.MAX_SAFE_INTEGER);
       });
-    });
 
-    it("Should throw InvalidFileFormatError if the file has multiple JSON values", async () => {
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, '{"a":1}{"b":2}');
+      it("Should throw JsonSerializationError if the object contains a BigInt", async () => {
+        const filePath = path.join(tmp.path, "file.json");
 
-      await assert.rejects(readJsonFileAsStream(filePath), {
-        name: "InvalidFileFormatError",
-        message: `Invalid file format: ${filePath}`,
+        await assert.rejects(writeLargeJsonFile(filePath, { a: 1n }), {
+          name: "JsonSerializationError",
+          message: `Error serializing JSON file ${filePath}`,
+        });
       });
-    });
 
-    it("Should read and parse a JSON file with surrounding whitespace", async () => {
-      const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(tmp.path, "file.json");
-      await writeUtf8File(filePath, ` \n${JSON.stringify(expectedObject)}\n `);
+      // The stream crashes the process in this case, so it's only tested here
+      it("Should throw JsonSerializationError if a toJSON method throws", async () => {
+        const filePath = path.join(tmp.path, "file.json");
+        const object = {
+          a: {
+            toJSON() {
+              throw new TypeError("toJSON failed");
+            },
+          },
+        };
 
-      assert.deepEqual(await readJsonFileAsStream(filePath), expectedObject);
-    });
-
-    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(tmp.path, "not-exists.json");
-
-      await assert.rejects(readJsonFileAsStream(filePath), {
-        name: "FileNotFoundError",
-        message: `File ${filePath} not found`,
+        await assert.rejects(writeLargeJsonFile(filePath, object), {
+          name: "JsonSerializationError",
+          message: `Error serializing JSON file ${filePath}`,
+        });
       });
-    });
 
-    it("Should throw IsDirectoryError if the file is a directory", async () => {
-      const filePath = path.join(tmp.path);
+      it("Should stream the object if JSON.stringify throws a RangeError", async (t) => {
+        const object = { a: 1, b: [2, 3] };
+        const expectedJson = JSON.stringify(object);
+        const filePath = path.join(tmp.path, "file.json");
 
-      await assert.rejects(readJsonFileAsStream(filePath), {
-        name: "IsDirectoryError",
-        message: `Path ${filePath} is a directory`,
+        const writeFile = t.mock.method(fsPromises, "writeFile");
+        // Only once: the stream calls JSON.stringify for each primitive value
+        t.mock.method(
+          JSON,
+          "stringify",
+          () => {
+            throw new RangeError("Invalid string length");
+          },
+          { times: 1 },
+        );
+
+        await writeLargeJsonFile(filePath, object);
+
+        assert.equal(await readUtf8File(filePath), expectedJson);
+        assert.equal(writeFile.mock.callCount(), 0);
       });
+
+      it(
+        "Should let only one call use JSON.stringify at a time",
+        { timeout: 10_000 },
+        async (t) => {
+          const originalWriteFile = fsPromises.writeFile;
+          let writesInProgress = 0;
+          let maxWritesInProgress = 0;
+          t.mock.method(fsPromises, "writeFile", async (...args: any[]) => {
+            writesInProgress++;
+            maxWritesInProgress = Math.max(
+              maxWritesInProgress,
+              writesInProgress,
+            );
+            try {
+              // Gives the other calls a chance to start writing too
+              await sleep(0.01);
+              return await Reflect.apply(originalWriteFile, fsPromises, args);
+            } finally {
+              writesInProgress--;
+            }
+          });
+
+          const objects = Array.from({ length: 5 }, (_, i) => ({ i }));
+          await Promise.all(
+            objects.map((object) =>
+              writeLargeJsonFile(
+                path.join(tmp.path, `file-${object.i}.json`),
+                object,
+              ),
+            ),
+          );
+
+          assert.equal(maxWritesInProgress, 1);
+          for (const object of objects) {
+            assert.equal(
+              await readUtf8File(path.join(tmp.path, `file-${object.i}.json`)),
+              JSON.stringify(object),
+            );
+          }
+        },
+      );
+
+      it(
+        "Should let the next call use JSON.stringify after one fails",
+        { timeout: 10_000 },
+        async (t) => {
+          const filePath = path.join(tmp.path, "file.json");
+          const writeFile = t.mock.method(fsPromises, "writeFile");
+
+          await assert.rejects(writeLargeJsonFile(filePath, { a: 1n }), {
+            name: "JsonSerializationError",
+          });
+          await writeLargeJsonFile(filePath, { a: 1 });
+
+          assert.equal(await readUtf8File(filePath), '{"a":1}');
+          assert.equal(writeFile.mock.callCount(), 1);
+        },
+      );
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const invalidPath = "\0";
+    describe("Choosing whether to use JSON.stringify", () => {
+      it("Should use it if the heap has exactly enough room for the longest possible string", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        mockAvailableHeap(
+          t,
+          bufferConstants.MAX_STRING_LENGTH * WRITE_HEAP_BYTES_PER_JSON_BYTE +
+            HEAP_MARGIN_BYTES,
+        );
 
-      await assert.rejects(readJsonFileAsStream(invalidPath), {
-        name: "FileSystemAccessError",
+        const writeFile = t.mock.method(fsPromises, "writeFile");
+
+        await writeLargeJsonFile(filePath, { a: 1 });
+
+        assert.equal(await readUtf8File(filePath), '{"a":1}');
+        assert.equal(writeFile.mock.callCount(), 1);
+      });
+
+      it("Should stream the object if the heap is one byte short", async (t) => {
+        const filePath = path.join(tmp.path, "file.json");
+        mockAvailableHeap(
+          t,
+          bufferConstants.MAX_STRING_LENGTH * WRITE_HEAP_BYTES_PER_JSON_BYTE +
+            HEAP_MARGIN_BYTES -
+            1,
+        );
+
+        const writeFile = t.mock.method(fsPromises, "writeFile");
+
+        await writeLargeJsonFile(filePath, { a: 1 });
+
+        assert.equal(await readUtf8File(filePath), '{"a":1}');
+        assert.equal(writeFile.mock.callCount(), 0);
       });
     });
   });
 
   describe("writeJsonFileAsStream", () => {
-    it("Should write an object to a JSON file", async () => {
-      const expectedObject = { a: 1, b: 2 };
+    it("Should write an object to a JSON file, like writeLargeJsonFile", async () => {
+      const object = { a: 1, b: 2 };
       const filePath = path.join(tmp.path, "file.json");
 
-      await writeJsonFileAsStream(filePath, expectedObject);
+      await writeJsonFileAsStream(filePath, object);
 
-      assert.deepEqual(
-        JSON.parse(await readUtf8File(filePath)),
-        expectedObject,
-      );
-      expectTypeOf(
-        writeJsonFile<{ a: number; b: number }>(filePath, expectedObject),
-      );
-    });
-
-    it("Should write an object tto a JSON file even if part of the path doesn't exist", async () => {
-      const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(tmp.path, "not-exists", "file.json");
-
-      await writeJsonFileAsStream(filePath, expectedObject);
-
-      assert.deepEqual(
-        JSON.parse(await readUtf8File(filePath)),
-        expectedObject,
-      );
-    });
-
-    it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
-      const filePath = path.join(tmp.path, "file.json");
-      // create an object with a circular reference
-      const circularObject: { self?: {} } = {};
-      circularObject.self = circularObject;
-
-      await assert.rejects(writeJsonFileAsStream(filePath, circularObject), {
-        name: "JsonSerializationError",
-        message: `Error serializing JSON file ${filePath}`,
-      });
-    });
-
-    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      // Use a path that will cause a file system error (invalid characters in filename)
-      const filePath = path.join(tmp.path, "invalid\0filename.json");
-
-      await assert.rejects(writeJsonFileAsStream(filePath, {}), {
-        name: "FileSystemAccessError",
-      });
-    });
-
-    it("Should remove the part of the path that didn't exist before if an error is thrown", async () => {
-      const dirPath = path.join(tmp.path, "not-exists");
-      const filePath = path.join(dirPath, "protected-file.json");
-      // create an object with a circular reference
-      const circularObject: { self?: {} } = {};
-      circularObject.self = circularObject;
-
-      await assert.rejects(writeJsonFileAsStream(filePath, circularObject), {
-        name: "JsonSerializationError",
-        message: `Error serializing JSON file ${filePath}`,
-      });
-
-      assert.ok(!(await exists(dirPath)), "The directory should not exist");
+      assert.equal(await readUtf8File(filePath), JSON.stringify(object));
+      expectTypeOf(writeJsonFileAsStream<{ a: number; b: number }>)
+        .parameter(1)
+        .toEqualTypeOf<{ a: number; b: number }>();
     });
   });
 
@@ -1199,7 +1544,7 @@ describe("File system utils", () => {
       await writeUtf8File(filePath, content);
 
       assert.equal(await readUtf8File(filePath), content);
-      expectTypeOf(await readUtf8File(filePath)).toMatchTypeOf<string>();
+      expectTypeOf(await readUtf8File(filePath)).toEqualTypeOf<string>();
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
@@ -1300,7 +1645,7 @@ describe("File system utils", () => {
       const binaryContent = encoder.encode(content);
 
       assert.deepEqual(await readBinaryFile(filePath), binaryContent);
-      expectTypeOf(await readBinaryFile(filePath)).toMatchTypeOf<Uint8Array>();
+      expectTypeOf(await readBinaryFile(filePath)).toEqualTypeOf<Uint8Array>();
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
