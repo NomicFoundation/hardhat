@@ -13,7 +13,7 @@ on:
       benchmark-filter:
         description: "Glob(s) selecting cells by name (comma-separated, e.g. `cold compile slang*`). Forwarded to bench:regression --benchmarks."
         required: false
-        default: "cold compile*"
+        default: "cold compile*,warm test*"
   # Deliberately do not run on merge_group
   push:
     branches:
@@ -55,10 +55,12 @@ jobs:
         github.event_name == 'workflow_dispatch' ||
         github.repository == github.event.pull_request.head.repo.full_name)
 
-    # The scenarios are the solx-tagged ones; by default only their cold
-    # compile cells run (solc, solx 0.1.8, slang and forge, plus OZ's
-    # forge-scope parity cells), 5 runs each.
-    timeout-minutes: 300
+    # The scenarios are the solx-tagged ones; by default their cold compile
+    # cells (5 runs each) and warm test cells (3 runs, 1 on aave and
+    # lido-core) run for solc, solx 0.1.8, slang and forge, plus OZ's
+    # forge-scope parity cells: close to the solx workflow's full matrix,
+    # whose last full run took 4h47m.
+    timeout-minutes: 420
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -112,9 +114,9 @@ jobs:
       - name: Run slang regression benchmark
         env:
           # Empty on push/PR events; the fallbacks keep those runs on the
-          # cold-compile matrix.
+          # compile and test matrix.
           SCENARIO_FILTER: ${{ inputs.scenario-filter || '*' }}
-          BENCHMARK_FILTER: ${{ inputs.benchmark-filter || 'cold compile*' }}
+          BENCHMARK_FILTER: ${{ inputs.benchmark-filter || 'cold compile*,warm test*' }}
         run: |
           pnpm bench:regression --use-local --force-checkout --tag solx \
             --scenarios "$SCENARIO_FILTER" \
