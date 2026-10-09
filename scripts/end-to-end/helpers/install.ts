@@ -82,7 +82,7 @@ function runPackageManager(
  * Drops NPM_CONFIG_USERCONFIG. On GitHub CI setup-node writes a user-level
  * .npmrc holding `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` and
  * points that variable at it. This job never publishes, so the token is
- * unset. Yarn Classic treats an unexpandable `${VAR}` in npm config as fatal
+ * unset. Yarn Classic treats a `${VAR}` it cannot expand in npm config as fatal
  * ("Failed to replace env in config") where npm and pnpm only warn, so every
  * yarn-Classic scenario died on `yarn add`. Scenario installs take their
  * registry from the config this harness writes, so ambient user config has

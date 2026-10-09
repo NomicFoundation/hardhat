@@ -257,6 +257,7 @@ describe("parsePair", () => {
     // A mistyped subject profile otherwise surfaces only after a full build,
     // as an invalid-provenance row hours into a sweep.
     assert.throws(
+      // cspell:disable-next-line
       () => parsePair("slox-via-ir:default"),
       /--pair expects a solx subject profile/,
     );
