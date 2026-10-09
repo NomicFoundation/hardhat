@@ -7,8 +7,9 @@ import { beforeEach, describe, it } from "node:test";
 import { SLANG_RELEASES } from "../src/internal/constants.js";
 import {
   SLANG_DEBUG_INFO_SELECTORS,
+  SLANG_DEBUG_SYMBOLS_SELECTORS,
   SlangCompiler,
-  addSlangDebugInfoSelectors,
+  addSlangStackTraceSelectors,
 } from "../src/internal/slang-compiler.js";
 
 const PINNED_VERSION = "0.1.0-pre.2026-10-01";
@@ -169,44 +170,54 @@ describe("SlangCompiler", () => {
   });
 });
 
-describe("addSlangDebugInfoSelectors", () => {
-  it("populates the wildcard slot when the input is empty", async () => {
-    const result = await addSlangDebugInfoSelectors({});
+describe("addSlangStackTraceSelectors", () => {
+  it("populates the wildcard slots when the input is empty", async () => {
+    const result = await addSlangStackTraceSelectors({});
     assert.deepEqual(result, {
-      "*": { "*": [...SLANG_DEBUG_INFO_SELECTORS] },
+      "*": {
+        "*": [...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
     });
   });
 
   it("appends to an existing wildcard selector list without removing user entries", async () => {
-    const result = await addSlangDebugInfoSelectors({
+    const result = await addSlangStackTraceSelectors({
       "*": { "*": ["abi", "metadata"] },
     });
     assert.deepEqual(result, {
-      "*": { "*": ["abi", "metadata", ...SLANG_DEBUG_INFO_SELECTORS] },
+      "*": {
+        "*": ["abi", "metadata", ...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
     });
   });
 
-  it('preserves the file-level `[*][""]` slot for outputs like ast', async () => {
-    const result = await addSlangDebugInfoSelectors({
+  it('appends debugSymbols to the file-level `[*][""]` slot, keeping outputs like ast', async () => {
+    const result = await addSlangStackTraceSelectors({
       "*": { "": ["ast"] },
     });
-    // The file-level slot must round-trip unchanged. Selectors are added at
-    // the per-contract slot `["*"]["*"]` instead.
     assert.ok(result !== undefined, "result should not be undefined");
-    assert.deepEqual(result["*"][""], ["ast"]);
+    assert.deepEqual(result["*"][""], [
+      "ast",
+      ...SLANG_DEBUG_SYMBOLS_SELECTORS,
+    ]);
   });
 
   it("does not mutate the input object", async () => {
     const input2 = { "*": { "*": ["abi"] } };
     const before = JSON.stringify(input2);
-    await addSlangDebugInfoSelectors(input2);
+    await addSlangStackTraceSelectors(input2);
     assert.equal(JSON.stringify(input2), before);
   });
 
-  it("accepts undefined input (sets up the wildcard slot)", async () => {
-    const result = await addSlangDebugInfoSelectors(undefined);
+  it("accepts undefined input (sets up the wildcard slots)", async () => {
+    const result = await addSlangStackTraceSelectors(undefined);
     assert.deepEqual(result, {
-      "*": { "*": [...SLANG_DEBUG_INFO_SELECTORS] },
+      "*": {
+        "*": [...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
     });
   });
 });

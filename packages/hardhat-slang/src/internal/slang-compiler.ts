@@ -14,6 +14,12 @@ export const SLANG_DEBUG_INFO_SELECTORS: readonly string[] = [
   "evm.deployedBytecode.debugInfo",
 ] as const;
 
+// File-level selectors for the per-source symbol table EDR reads in place of
+// the solc AST
+export const SLANG_DEBUG_SYMBOLS_SELECTORS: readonly string[] = [
+  "debugSymbols",
+] as const;
+
 export interface SlangCompilerOptions {
   /** The release table row of the slang binary being driven. */
   release: SlangRelease;
@@ -69,10 +75,11 @@ export class SlangCompiler implements Compiler {
 
 /**
  * Returns a new outputSelection with the slang debugInfo selectors at
- * `["*"]["*"]`. Existing user selectors are preserved; downstream
- * `#dedupeAndSortOutputSelection` removes duplicates.
+ * `["*"]["*"]` and the debugSymbols selectors at `["*"][""]`, the two outputs
+ * EDR builds slang stack traces from. Existing user selectors are preserved;
+ * downstream `#dedupeAndSortOutputSelection` removes duplicates.
  */
-export async function addSlangDebugInfoSelectors(
+export async function addSlangStackTraceSelectors(
   outputSelection: unknown,
 ): Promise<NonNullable<CompilerInput["settings"]>["outputSelection"]> {
   const seed: Record<
@@ -87,11 +94,13 @@ export async function addSlangDebugInfoSelectors(
   );
 
   // Hardhat normalizes outputSelection to populate `["*"]["*"]` upstream, but
-  // unit tests construct the input directly with `{}`, so make sure the slot
-  // exists before we push.
+  // unit tests construct the input directly with `{}`, so make sure the slots
+  // exist before we push.
   cloned["*"] ??= {};
   cloned["*"]["*"] ??= [];
   cloned["*"]["*"].push(...SLANG_DEBUG_INFO_SELECTORS);
+  cloned["*"][""] ??= [];
+  cloned["*"][""].push(...SLANG_DEBUG_SYMBOLS_SELECTORS);
 
   return cloned;
 }

@@ -33,7 +33,7 @@ import {
   SUPPORTED_SLANG_EVM_VERSIONS,
   SUPPORTED_SLANG_OPTIMIZER_MODES,
 } from "../constants.js";
-import { addSlangDebugInfoSelectors } from "../slang-compiler.js";
+import { addSlangStackTraceSelectors } from "../slang-compiler.js";
 
 const log = createDebug("hardhat:slang:hook-handlers:config");
 
@@ -310,8 +310,8 @@ export async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
-  // Add slang debugInfo selectors so the cached solcInput, build-info,
-  // and build-ID hash all include them.
+  // Add the slang debugInfo and debugSymbols selectors so the cached
+  // solcInput, build-info, and build-ID hash all include them.
   const profiles = await augmentSlangOutputSelectionInProfiles(
     resolvedConfig.solidity.profiles,
   );
@@ -337,7 +337,8 @@ export async function resolveUserConfig(
 
 /**
  * For each compiler entry whose `type === "slang"`, augments
- * `settings.outputSelection` with the slang debugInfo selectors.
+ * `settings.outputSelection` with the slang debugInfo and debugSymbols
+ * selectors.
  * Non-slang entries pass through unchanged.
  */
 async function augmentSlangOutputSelectionInProfiles(
@@ -387,7 +388,7 @@ async function augmentIfSlang<
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
       },
-      outputSelection: await addSlangDebugInfoSelectors(
+      outputSelection: await addSlangStackTraceSelectors(
         entry.settings?.outputSelection,
       ),
     },
