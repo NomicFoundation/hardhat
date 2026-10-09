@@ -12,6 +12,7 @@
 // inherits Hardhat's default for solc 0.8.34 (osaka) — which also matches
 // forge 1.7.1's default for the cross-tool cell. Everything else (paths,
 // test) is preserved from the base.
+import hardhatSlang from "@nomicfoundation/hardhat-slang";
 import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -25,7 +26,7 @@ const base = baseConfig as unknown as {
 
 export default {
   ...base,
-  plugins: [...(base.plugins ?? []), hardhatSlangSolx],
+  plugins: [...(base.plugins ?? []), hardhatSlangSolx, hardhatSlang],
   // The plugin only allows type: "slang-solx" in the profile named
   // "slang-solx"; this benchmark's solx cells live in profiles named after the
   // compiler version they measure, so opt out of that guard. Throwaway
