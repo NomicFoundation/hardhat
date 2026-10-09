@@ -22,6 +22,10 @@
             "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
+          "assert fresh hardhat-slang": {
+            "command": "diff -rq .solx/expected-slang-dist-src node_modules/@nomicfoundation/hardhat-slang/dist/src",
+            "measure": false
+          },
           "download solc + solx and warm caches": {
             "command": "npx hardhat compile --build-profile solc-via-ir --no-tests && npx hardhat compile --build-profile solx-via-ir --no-tests && npx hardhat clean",
             "measure": false
@@ -41,6 +45,16 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
       },
+      "cold compile slang": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile slang --no-tests"
+      },
       "cold compile solx-0.1.8 via-ir upgrade": {
         "runs": 5,
         "dependsOn": [
@@ -49,6 +63,16 @@
         ],
         "prepare": "npx hardhat clean",
         "command": "LIDO_BENCH_SOURCES=upgrade npx hardhat compile --build-profile solx-0.1.8-via-ir --no-tests"
+      },
+      "cold compile slang upgrade": {
+        "runs": 5,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "LIDO_BENCH_SOURCES=upgrade npx hardhat compile --build-profile slang --no-tests"
       },
       "cold compile solc via-ir": {
         "runs": 5,

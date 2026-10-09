@@ -28,6 +28,10 @@
             "command": "cd packages/horizon && diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-slang-solx/dist/src",
             "measure": false
           },
+          "assert fresh hardhat-slang": {
+            "command": "cd packages/horizon && diff -rq .solx/expected-slang-dist-src node_modules/@nomicfoundation/hardhat-slang/dist/src",
+            "measure": false
+          },
           "download solc + solx and warm caches": {
             "command": "cd packages/horizon && npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
             "measure": false
@@ -47,6 +51,17 @@
         ],
         "prepare": "cd packages/horizon && npx hardhat clean",
         "command": "cd packages/horizon && npx hardhat compile --build-profile solx-0.1.8"
+      },
+      "cold compile slang": {
+        "runs": 5,
+        "dependsOn": [
+          "build workspace deps",
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "cd packages/horizon && npx hardhat clean",
+        "command": "cd packages/horizon && npx hardhat compile --build-profile slang"
       },
       "cold compile solx-0.1.8 via-ir": {
         "runs": 5,
