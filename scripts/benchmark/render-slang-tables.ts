@@ -40,7 +40,7 @@ export const COMMENT_MARKER = "<!-- slang-bench-tables -->";
 
 const SLANG = "slang";
 
-// The kinds of cell summarised, by name prefix, in the order shown.
+// The kinds of cell summarized, by name prefix, in the order shown.
 const KINDS = [
   { prefix: "cold compile ", title: "Cold compile" },
   { prefix: "warm test ", title: "Solidity tests over a warm build" },
@@ -76,7 +76,7 @@ export const CELL_NOTES: Record<string, string> = {
 };
 
 const FOOTNOTES = [
-  "¹ LLVM cannot stackify SwapVM's recursive `runLoop`: it reports a " +
+  "¹ LLVM's stackification fails on SwapVM's recursive `runLoop`: it reports a " +
     "stackification failure for a recursive function with stack-too-deep " +
     "errors, under slang and solx alike. The repo is via-IR only, so solc " +
     "via-IR is its only number.",

@@ -97,8 +97,8 @@ function groupEntries(entries: BenchmarkEntry[]): {
 /**
  * How many times faster `subject` is than `baseline` on wall-clock, or
  * "parity" when the difference is within run-to-run noise: the two cells'
- * stddevs added, and at least `floorSeconds` so single-run cells don't call
- * a few milliseconds of jitter a speedup.
+ * standard deviations added, and at least `floorSeconds` so single-run cells
+ * don't call a few milliseconds of jitter a speedup.
  */
 export function speedup(
   baseline: CellResult,

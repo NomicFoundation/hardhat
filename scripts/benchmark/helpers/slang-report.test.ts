@@ -12,11 +12,11 @@ describe("speedup", () => {
     assert.equal(speedup(cell(30, 0.5), cell(10, 0.5)), "3.0x");
   });
 
-  it("calls a gap within the two stddevs parity", () => {
+  it("calls a gap within the two standard deviations parity", () => {
     assert.equal(speedup(cell(10.4, 0.3), cell(10, 0.2)), "parity");
   });
 
-  it("does not call a gap just beyond the two stddevs parity", () => {
+  it("does not call a gap just beyond the two standard deviations parity", () => {
     assert.equal(speedup(cell(10.6, 0.3), cell(10, 0.2)), "1.1x");
   });
 
