@@ -42,8 +42,9 @@ node "$MONOREPO_ROOT/scripts/benchmark/pack-hardhat-solx.ts" --target-dir "$WORK
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version "$SOLX_PINNED_VERSION" --out "$WORKDIR/.solx/solx-v$SOLX_PINNED_VERSION"
 
 # The slang compiler under test, for the wrapper config's "slang" profile
-# (hardhat-slang's `path` option). A local build until slang has a release.
-node "$MONOREPO_ROOT/scripts/benchmark/provision-slang.ts" --out "$WORKDIR/.solx/slang"
+# (hardhat-slang's `path` option): the pinned release, or the local build
+# named by HARDHAT_SLANG_BENCH_BINARY.
+node "$MONOREPO_ROOT/scripts/benchmark/provision-slang.ts" --tag "$SLANG_PINNED_TAG" --asset-suffix "$SLANG_PINNED_ASSET_SUFFIX" --out "$WORKDIR/.solx/slang"
 
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
 # At 1.7.1 forge's codegen is solc (solar is lint-only), so with
