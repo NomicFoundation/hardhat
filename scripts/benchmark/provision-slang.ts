@@ -19,34 +19,35 @@ DESCRIPTION
   be benchmarked.
 
 OPTIONS
-  --tag <tag>             Required. Release tag (e.g. b74af542)
+  --tag <tag>             Required. Release tag (e.g. cc66c013)
   --asset-suffix <sfx>    Required. Asset name suffix after the platform
-                          (e.g. slang-2026-10-01)
+                          (e.g. slang-debug-symbols)
   --out <path>            Required. Where to install the binary
 
 EXAMPLE
-  node scripts/benchmark/provision-slang.ts --tag b74af542 \\
-    --asset-suffix slang-2026-10-01 --out "$PWD/.solx/slang"
+  node scripts/benchmark/provision-slang.ts --tag cc66c013 \\
+    --asset-suffix slang-debug-symbols --out "$PWD/.solx/slang"
 `;
 
 const RELEASES_BASE_URL = "https://github.com/NomicFoundation/solx/releases";
 
 /**
- * Mirrors the release asset naming in hardhat-slang's platform.ts. Windows is
- * deliberately unsupported: the benchmark only runs on Linux/macOS.
+ * The slang release workflow's asset naming, slang-<platform>-<suffix>.
+ * Windows is deliberately unsupported: the benchmark only runs on
+ * Linux/macOS.
  */
 function getAssetName(assetSuffix: string): string {
   const platform = os.platform();
   const arch = os.arch();
 
   if (platform === "linux" && arch === "x64") {
-    return `solx-linux-amd64-gnu-${assetSuffix}`;
+    return `slang-linux-amd64-gnu-${assetSuffix}`;
   }
   if (platform === "linux" && arch === "arm64") {
-    return `solx-linux-arm64-gnu-${assetSuffix}`;
+    return `slang-linux-arm64-gnu-${assetSuffix}`;
   }
   if (platform === "darwin") {
-    return `solx-macosx-${assetSuffix}`;
+    return `slang-macosx-${assetSuffix}`;
   }
   throw new Error(`No slang release asset for ${platform}/${arch}`);
 }
