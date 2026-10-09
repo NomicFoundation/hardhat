@@ -11,7 +11,10 @@ import {
   validateResolvedConfig,
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
-import { SLANG_DEBUG_INFO_SELECTORS } from "../src/internal/slang-compiler.js";
+import {
+  SLANG_DEBUG_INFO_SELECTORS,
+  SLANG_DEBUG_SYMBOLS_SELECTORS,
+} from "../src/internal/slang-compiler.js";
 
 const PINNED_VERSION = "0.1.0-pre.2026-10-01";
 const { minSolidity: PINNED_MIN, maxSolidity: PINNED_MAX } =
@@ -224,7 +227,7 @@ describe("hardhat-slang plugin config resolution", () => {
     assert.deepEqual(profileNames, ["default"]);
   });
 
-  it("adds slang debugInfo selectors to slang-typed compilers in resolved config", async () => {
+  it("adds slang stack-trace selectors to slang-typed compilers in resolved config", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -258,6 +261,15 @@ describe("hardhat-slang plugin config resolution", () => {
       wildcardSelectors.includes("abi"),
       "user-provided selectors must be preserved alongside the augmentation",
     );
+    const fileSelectors = slangCompiler.settings.outputSelection["*"][
+      ""
+    ] as string[];
+    for (const selector of SLANG_DEBUG_SYMBOLS_SELECTORS) {
+      assert.ok(
+        fileSelectors.includes(selector),
+        `expected resolved slang compiler config to include file-level "${selector}", got: ${fileSelectors.join(", ")}`,
+      );
+    }
   });
 
   it("does NOT add slang selectors to non-slang compilers", async () => {
@@ -287,6 +299,14 @@ describe("hardhat-slang plugin config resolution", () => {
       assert.ok(
         !wildcardSelectors.includes(selector),
         `solc-typed compiler must NOT receive slang selector "${selector}"; got: ${wildcardSelectors.join(", ")}`,
+      );
+    }
+    const fileSelectors: string[] =
+      solcCompiler.settings.outputSelection["*"][""] ?? [];
+    for (const selector of SLANG_DEBUG_SYMBOLS_SELECTORS) {
+      assert.ok(
+        !fileSelectors.includes(selector),
+        `solc-typed compiler must NOT receive slang selector "${selector}"; got: ${fileSelectors.join(", ")}`,
       );
     }
   });
@@ -346,6 +366,7 @@ describe("hardhat-slang plugin config resolution", () => {
       resolvedConfig.solidity.profiles.slang.compilers;
     for (const compiler of [first, second]) {
       assert.equal(compiler.settings.optimizer.mode, "1");
+      assert.equal(compiler.settings.solidityVersion, compiler.version);
       const wildcardSelectors = compiler.settings.outputSelection["*"][
         "*"
       ] as string[];

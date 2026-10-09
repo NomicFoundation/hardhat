@@ -49,11 +49,6 @@ export interface SlangRelease {
   /** CLI arguments passed on every compile, after `--standard-json`. */
   extraArgs: readonly string[];
   /**
-   * The CLI flag that receives the compilation job's Solidity version, e.g.
-   * `--solidity-version`. Absent when the release doesn't accept one.
-   */
-  targetVersionFlag?: string;
-  /**
    * Where to download the release from, when it isn't served by the mirror
    * under the standard `v${version}` asset naming.
    */
