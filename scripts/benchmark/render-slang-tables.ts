@@ -5,6 +5,7 @@ import {
   parseReport,
   speedup,
   type CellResult,
+  type SlangReport,
 } from "./helpers/slang-report.ts";
 
 const USAGE = `
@@ -12,11 +13,11 @@ scripts/benchmark/render-slang-tables.ts — Render the slang benchmark report a
 
 DESCRIPTION
   Reads a bench:regression report (the file slang-regression-benchmark.yml
-  produces) and prints markdown to stdout: a summary of slang's cold-compile
-  speedup per scenario against solc and the pinned solx, then one table per
-  scenario with every cold-compile cell (wall / total CPU / peak RSS). Cells
-  of other kinds (warm compile, tests) go to an "other entries" table rather
-  than being dropped.
+  produces) and prints markdown to stdout: summaries of slang's speedup per
+  scenario against solc and the pinned solx, for cold compile and for the
+  Solidity test suite over a warm build, then one table per scenario with
+  every cell (wall / total CPU / peak RSS). Entries the report parser can't
+  place go to an "other entries" table rather than being dropped.
 
   The output embeds the ${"<!-- slang-bench-tables -->"} marker so CI can
   upsert it as a single sticky PR comment.
@@ -34,11 +35,16 @@ EXAMPLE
 
 export const COMMENT_MARKER = "<!-- slang-bench-tables -->";
 
-const COLD = "cold compile ";
 const SLANG = "slang";
 
-// The cells slang is compared against in the summary, by cell name after
-// "cold compile ".
+// The kinds of cell summarised, by name prefix, in the order shown.
+const KINDS = [
+  { prefix: "cold compile ", title: "Cold compile" },
+  { prefix: "warm test ", title: "Solidity tests over a warm build" },
+] as const;
+
+// The cells slang is compared against in the summaries, by cell name after
+// the kind's prefix.
 const BASELINES = [
   "solc",
   "solc via-ir",
@@ -46,18 +52,24 @@ const BASELINES = [
   "solx-0.1.8 via-ir",
 ] as const;
 
-// Cells that legitimately have no number: the failure is the datum.
-// Keyed "<scenario>|<cell>" with the cell name after "cold compile ".
+// Cells that legitimately have no number, keyed "<kind prefix><scenario>|<cell>"
+// with the cell name after the prefix.
 export const CELL_NOTES: Record<string, string> = {
-  "1inch-swap-vm-solx|solc": "n/a³",
-  "1inch-swap-vm-solx|solx-0.1.8": "n/a³",
-  "lidofinance-core-solx|solc": "n/a³",
-  "lidofinance-core-solx|solx-0.1.8": "n/a³",
-  "lidofinance-vaults-solx|solc": "n/a³",
-  "lidofinance-vaults-solx|solx-0.1.8": "n/a³",
-  "1inch-swap-vm-solx|slang": "✗ does not compile¹",
-  "1inch-swap-vm-solx|solx-0.1.8 via-ir": "✗ does not compile¹",
-  "lidofinance-vaults-solx|solc via-ir upgrade": "✗ does not compile²",
+  "cold compile 1inch-swap-vm-solx|solc": "n/a³",
+  "cold compile 1inch-swap-vm-solx|solx-0.1.8": "n/a³",
+  "cold compile lidofinance-core-solx|solc": "n/a³",
+  "cold compile lidofinance-core-solx|solx-0.1.8": "n/a³",
+  "cold compile lidofinance-vaults-solx|solc": "n/a³",
+  "cold compile lidofinance-vaults-solx|solx-0.1.8": "n/a³",
+  "cold compile 1inch-swap-vm-solx|slang": "✗ does not compile¹",
+  "cold compile 1inch-swap-vm-solx|solx-0.1.8 via-ir": "✗ does not compile¹",
+  "cold compile lidofinance-vaults-solx|solc via-ir upgrade":
+    "✗ does not compile²",
+  "warm test lidofinance-core-solx|solc": "n/a³",
+  "warm test lidofinance-core-solx|solx-0.1.8": "n/a³",
+  "warm test lidofinance-core-solx|slang": "✗ tests do not compile⁴",
+  "warm test aave-v4-solx|slang": "not run⁵",
+  "warm test aave-v4-solx|solc via-ir": "✗ tests do not compile⁶",
 };
 
 const FOOTNOTES = [
@@ -69,17 +81,69 @@ const FOOTNOTES = [
     "on, at every optimizer setting; slang compiles it.",
   "³ The repo builds via-IR only (its sources don't compile on the legacy " +
     "pipeline), so it has no legacy cells.",
+  "⁴ slang rejects lido-core's test sources: a storage fixed-size array of " +
+    "structs does not bind to an attached library function's `memory` " +
+    "parameter (NomicFoundation/slang#2251); solc accepts it.",
+  "⁵ 149 of aave's 1559 tests use the `vm.eip712HashStruct` / " +
+    "`vm.eip712HashType` cheatcodes, whose type table Hardhat builds from the " +
+    "solc AST; a slang build info has none, so those tests fail. The cell " +
+    "is left out until slang's output carries struct definitions.",
+  "⁶ solc via-IR cannot compile aave's Foundry test sources (a Yul " +
+    "stack-too-deep in its vendored assembly), so the suite cannot run.",
 ];
 
 function seconds(n: number | undefined): string {
   return n === undefined ? "—" : n.toFixed(1);
 }
 
-function cellRow(name: string, r: CellResult, slang?: CellResult): string {
-  const vs = slang === undefined || name === SLANG ? "" : speedup(r, slang);
-  return `| ${name} | ${seconds(r.wall)} | ${seconds(r.cpu)} | ${
+function cellRow(
+  label: string,
+  r: CellResult,
+  slang: CellResult | undefined,
+): string {
+  const vs = slang === undefined || slang === r ? "" : speedup(r, slang);
+  return `| ${label} | ${seconds(r.wall)} | ${seconds(r.cpu)} | ${
     r.peakRssMb === undefined ? "—" : r.peakRssMb.toFixed(0)
   } | ${r.runs} | ${vs} |`;
+}
+
+function summaryTable(
+  report: SlangReport,
+  prefix: string,
+  title: string,
+): string[] {
+  const ids = [...report.keys()]
+    .filter((id) =>
+      [...report.get(id)!.keys()].some((label) => label.startsWith(prefix)),
+    )
+    .sort();
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const lines = [
+    `### ${title}`,
+    "",
+    `| scenario | slang wall s | ${BASELINES.map((b) => `vs ${b}`).join(" | ")} |`,
+    `|---|---|${BASELINES.map(() => "---").join("|")}|`,
+  ];
+  for (const id of ids) {
+    const cells = report.get(id)!;
+    const note = (cell: string) => CELL_NOTES[`${prefix}${id}|${cell}`];
+    const slang = cells.get(prefix + SLANG);
+    const vs = BASELINES.map((b) => {
+      const base = cells.get(prefix + b);
+      if (base === undefined) {
+        return note(b) ?? "—";
+      }
+      return slang === undefined ? "—" : speedup(base, slang);
+    });
+    const slangText =
+      slang === undefined ? (note(SLANG) ?? "—") : seconds(slang.wall);
+    lines.push(`| ${id} | ${slangText} | ${vs.join(" | ")} |`);
+  }
+  lines.push("");
+  return lines;
 }
 
 export function renderSlangTables(
@@ -87,11 +151,8 @@ export function renderSlangTables(
   opts: { runUrl?: string; headSha?: string; status?: string } = {},
 ): string {
   const { report, unparsed } = parseReport(entries);
-  const other: string[] = unparsed.map(
-    (e) => `| ${e.name} | ${e.value} ${e.unit} |`,
-  );
 
-  const lines: string[] = [COMMENT_MARKER, "## slang compile benchmarks", ""];
+  const lines: string[] = [COMMENT_MARKER, "## slang benchmarks", ""];
   if (opts.status !== undefined && opts.status !== "success") {
     lines.push(
       "> [!WARNING]",
@@ -108,81 +169,60 @@ export function renderSlangTables(
     .filter(Boolean)
     .join(" ");
   lines.push(
-    "Cold compile. slang has a single pipeline, so its one cell is compared " +
-      "against both of solc's and solx's. Speedup = baseline wall / slang " +
-      `wall; "parity" means within run-to-run noise${
+    "slang has a single pipeline, so its one cell is compared against both " +
+      "of solc's and solx's. Speedup = baseline wall / slang wall; " +
+      `"parity" means within run-to-run noise${
         provenance === "" ? "" : `; ${provenance}`
       }.`,
     "",
   );
 
-  const scenarioIds = [...report.keys()].sort();
-
-  lines.push(
-    `| scenario | slang wall s | ${BASELINES.map((b) => `vs ${b}`).join(" | ")} |`,
-    `|---|---|${BASELINES.map(() => "---").join("|")}|`,
-  );
-  for (const id of scenarioIds) {
-    const cells = report.get(id)!;
-    const slang = cells.get(COLD + SLANG);
-    const vs = BASELINES.map((b) => {
-      const base = cells.get(COLD + b);
-      const note = CELL_NOTES[`${id}|${b}`];
-      if (base === undefined) {
-        return note ?? "—";
-      }
-      return slang === undefined ? "—" : speedup(base, slang);
-    });
-    const slangText =
-      slang === undefined
-        ? (CELL_NOTES[`${id}|${SLANG}`] ?? "—")
-        : seconds(slang.wall);
-    lines.push(`| ${id} | ${slangText} | ${vs.join(" | ")} |`);
+  for (const { prefix, title } of KINDS) {
+    lines.push(...summaryTable(report, prefix, title));
   }
-  lines.push("");
 
-  for (const id of scenarioIds) {
+  for (const id of [...report.keys()].sort()) {
     const cells = report.get(id)!;
-    const slang = cells.get(COLD + SLANG);
-    const cold = [...cells.entries()]
-      .filter(([label]) => label.startsWith(COLD))
-      .map(([label, r]) => [label.slice(COLD.length), r] as const)
-      .sort(([a], [b]) => a.localeCompare(b));
-    const runs = cold[0]?.[1].runs;
-
+    const runs = [...cells.values()][0]?.runs;
     lines.push(
       `### ${id}${runs === undefined ? "" : ` <sub>(${runs} run${runs === 1 ? "" : "s"}/cell)</sub>`}`,
       "",
-      "| cold compile | wall s | CPU s | peak RSS MB | runs | slang speedup |",
+      "| cell | wall s | CPU s | peak RSS MB | runs | slang speedup |",
       "|---|---|---|---|---|---|",
     );
-    for (const [name, r] of cold) {
-      lines.push(cellRow(name, r, slang));
+    const kindOf = (label: string) =>
+      KINDS.findIndex((k) => label.startsWith(k.prefix));
+    const labels = [...cells.keys()].sort(
+      (a, b) => kindOf(a) - kindOf(b) || a.localeCompare(b),
+    );
+    for (const label of labels) {
+      const kind = KINDS[kindOf(label)];
+      const slang =
+        kind === undefined ? undefined : cells.get(kind.prefix + SLANG);
+      lines.push(cellRow(label, cells.get(label)!, slang));
     }
     for (const [key, note] of Object.entries(CELL_NOTES)) {
-      const [noteId, name] = key.split("|");
-      if (noteId === id && !cells.has(COLD + name)) {
-        lines.push(`| ${name} | ${note} | | | | |`);
+      const kind = KINDS.find((k) => key.startsWith(k.prefix + id + "|"));
+      if (kind === undefined) {
+        continue;
+      }
+      const cell = key.slice(kind.prefix.length + id.length + 1);
+      if (!cells.has(kind.prefix + cell)) {
+        lines.push(`| ${kind.prefix}${cell} | ${note} | | | | |`);
       }
     }
     lines.push("");
-
-    for (const [label, r] of cells) {
-      if (!label.startsWith(COLD)) {
-        other.push(`| ${id} / ${label} | ${seconds(r.wall)} s |`);
-      }
-    }
   }
 
   lines.push(...FOOTNOTES.map((f) => `${f}\n`));
 
-  if (other.length > 0) {
+  if (unparsed.length > 0) {
     lines.push(
       "<details><summary>Other entries</summary>",
       "",
       "| entry | value |",
       "|---|---|",
-      ...other,
+      ...unparsed.map((e) => `| ${e.name} | ${e.value} ${e.unit} |`),
       "",
       "</details>",
       "",
