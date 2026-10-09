@@ -8,6 +8,8 @@ export interface CellResult {
   runs: number;
   cpu?: number;
   peakRssMb?: number;
+  /** Taken from the baseline report because the run didn't measure it. */
+  fromBaseline?: boolean;
 }
 
 /** scenario id -> cell label (e.g. "cold compile slang") -> result */
@@ -20,8 +22,33 @@ const ENTRY_NAME =
  * Groups a report's entries by scenario and cell. Entries whose name doesn't
  * have the "<scenario> / <cell>" shape are returned separately so a renderer
  * can still show them.
+ *
+ * A cell the report lacks is taken from `baseline` when that has it, marked
+ * `fromBaseline`: a quick run measures only a few cells and borrows the rest
+ * from the last full run.
  */
-export function parseReport(entries: BenchmarkEntry[]): {
+export function parseReport(
+  entries: BenchmarkEntry[],
+  baseline: BenchmarkEntry[] = [],
+): {
+  report: SlangReport;
+  unparsed: BenchmarkEntry[];
+} {
+  const own = groupEntries(entries);
+  const base = groupEntries(baseline);
+  for (const [scenario, cells] of base.report) {
+    const ownCells = own.report.get(scenario) ?? new Map<string, CellResult>();
+    own.report.set(scenario, ownCells);
+    for (const [cell, result] of cells) {
+      if (!ownCells.has(cell)) {
+        ownCells.set(cell, { ...result, fromBaseline: true });
+      }
+    }
+  }
+  return own;
+}
+
+function groupEntries(entries: BenchmarkEntry[]): {
   report: SlangReport;
   unparsed: BenchmarkEntry[];
 } {
