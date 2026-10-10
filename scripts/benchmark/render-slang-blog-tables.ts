@@ -35,6 +35,7 @@ EXAMPLE
 `;
 
 const FORGE = "forge-1.7.1";
+const SOLX = "solx-0.1.8";
 const OZ = "openzeppelin-contracts-0.34";
 
 // Report scenario id -> repo name as the post prints it.
@@ -53,10 +54,11 @@ const REPOS: Record<string, string> = {
 const OZ_SUBSET = "openzeppelin-contracts (forge-compatible subset)";
 
 // Why a cell has no number, keyed "<scenario>|<column>" with column one of
-// solc, slang, forge, per pipeline.
+// solc, solx, slang, forge, per pipeline.
 const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   "via-IR": {
     "1inch-swap-vm-solx|slang": "does not compile",
+    "1inch-swap-vm-solx|solx": "does not compile",
     [`${OZ}|forge`]: "incompatible",
   },
   legacy: {
@@ -89,9 +91,10 @@ type Pipeline = "via-IR" | "legacy";
 interface Row {
   repo: string;
   solc?: CellResult;
+  solx?: CellResult;
   slang?: CellResult;
   forge?: CellResult;
-  notes: { solc?: string; slang?: string; forge?: string };
+  notes: { solc?: string; solx?: string; slang?: string; forge?: string };
   // Rows that sum into the headline: OpenZeppelin once, as the entire repo.
   inTotal: boolean;
 }
@@ -155,15 +158,22 @@ function buildRows(
     rows.push({
       repo,
       solc: pick(cells, `solc${suffix}`),
+      solx: pick(cells, `${SOLX}${suffix}`),
       slang: pick(cells, "slang"),
       forge: id === OZ ? undefined : pick(cells, `${FORGE}${suffix}`),
-      notes: { solc: note("solc"), slang: note("slang"), forge: note("forge") },
+      notes: {
+        solc: note("solc"),
+        solx: note("solx"),
+        slang: note("slang"),
+        forge: note("forge"),
+      },
       inTotal: true,
     });
     if (id === OZ) {
       rows.push({
         repo: OZ_SUBSET,
         solc: pick(cells, `solc${suffix} parity`),
+        solx: pick(cells, `${SOLX}${suffix} parity`),
         slang: pick(cells, "slang parity"),
         forge: pick(cells, `${FORGE}${suffix}`),
         notes: {},
@@ -179,7 +189,7 @@ function buildRows(
   return rows.sort((a, b) => ratio(b) - ratio(a));
 }
 
-function renderTable(rows: Row[], title: string): string[] {
+function renderTable(rows: Row[], title: string, solx: boolean): string[] {
   const both = rows.filter(
     (r) => r.inTotal && r.solc !== undefined && r.slang !== undefined,
   );
@@ -199,22 +209,34 @@ function renderTable(rows: Row[], title: string): string[] {
           `${slangTotal.toFixed(0)}s. **A ${(solcTotal / slangTotal).toFixed(1)}x ` +
           "overall improvement.**",
     "",
-    "| Repo | Hardhat solc | Hardhat slang | Improvement vs Hardhat solc | forge solc | Improvement vs forge solc |",
-    "| --- | --- | --- | --- | --- | --- |",
+    solx
+      ? `| Repo | Hardhat solc | Hardhat ${SOLX} | Hardhat slang | vs Hardhat solc | vs ${SOLX} | forge solc | vs forge solc |`
+      : "| Repo | Hardhat solc | Hardhat slang | Improvement vs Hardhat solc | forge solc | Improvement vs forge solc |",
+    `|${" --- |".repeat(solx ? 8 : 6)}`,
   );
   for (const r of rows) {
     const vs = (base: CellResult | undefined) =>
       base === undefined || r.slang === undefined
         ? "-"
         : `${speedup(base, r.slang)}${mark(base, r.slang)}`;
-    lines.push(
-      `| ${r.repo} | ${wallText(r.solc, r.notes.solc)} | ${wallText(
-        r.slang,
-        r.notes.slang,
-      )} | ${vs(r.solc)} | ${wallText(r.forge, r.notes.forge)} | ${vs(
-        r.forge,
-      )} |`,
-    );
+    const cols = solx
+      ? [
+          wallText(r.solc, r.notes.solc),
+          wallText(r.solx, r.notes.solx),
+          wallText(r.slang, r.notes.slang),
+          vs(r.solc),
+          vs(r.solx),
+          wallText(r.forge, r.notes.forge),
+          vs(r.forge),
+        ]
+      : [
+          wallText(r.solc, r.notes.solc),
+          wallText(r.slang, r.notes.slang),
+          vs(r.solc),
+          wallText(r.forge, r.notes.forge),
+          vs(r.forge),
+        ];
+    lines.push(`| ${r.repo} | ${cols.join(" | ")} |`);
   }
   lines.push("");
   return lines;
@@ -244,6 +266,17 @@ export function renderSlangBlogTables(
     );
   }
 
+  lines.push(...renderBlogSections(report));
+  return lines.join("\n");
+}
+
+// The post's four tables; `solx` adds Hardhat solx 0.1.8 and slang's speedup
+// over it.
+export function renderBlogSections(
+  report: SlangReport,
+  opts: { solx?: boolean } = {},
+): string[] {
+  const lines: string[] = [];
   const sections: Array<[Pipeline, boolean, string]> = [
     ["via-IR", false, "slang vs solc --via-ir compilation"],
     [
@@ -259,9 +292,15 @@ export function renderSlangBlogTables(
     ],
   ];
   for (const [pipeline, tests, title] of sections) {
-    lines.push(...renderTable(buildRows(report, pipeline, tests), title));
+    lines.push(
+      ...renderTable(
+        buildRows(report, pipeline, tests),
+        title,
+        opts.solx === true,
+      ),
+    );
   }
-  return lines.join("\n");
+  return lines;
 }
 
 function main(): void {
