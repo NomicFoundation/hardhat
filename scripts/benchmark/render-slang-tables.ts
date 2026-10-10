@@ -5,18 +5,18 @@ import {
   parseReport,
   speedup,
   type CellResult,
-  type SlangReport,
 } from "./helpers/slang-report.ts";
+import { renderBlogSections } from "./render-slang-blog-tables.ts";
 
 const USAGE = `
 scripts/benchmark/render-slang-tables.ts — Render the slang benchmark report as markdown
 
 DESCRIPTION
   Reads a bench:regression report (the file slang-regression-benchmark.yml
-  produces) and prints markdown to stdout: summaries of slang's speedup per
-  scenario against solc and the pinned solx, for cold compile and for the
-  Solidity test suite over a warm build, then one table per scenario with
-  every cell (wall / total CPU / peak RSS). Entries the report parser can't
+  produces) and prints markdown to stdout: the blog post's four tables
+  (via-IR and legacy, compile and compile plus Solidity tests) with the
+  pinned solx added, then one table per scenario with every cell (wall /
+  total CPU / peak RSS). Entries the report parser can't
   place go to an "other entries" table rather than being dropped.
 
   The output embeds the ${"<!-- slang-bench-tables -->"} marker so CI can
@@ -44,15 +44,6 @@ const SLANG = "slang";
 const KINDS = [
   { prefix: "cold compile ", title: "Cold compile" },
   { prefix: "warm test ", title: "Solidity tests over a warm build" },
-] as const;
-
-// The cells slang is compared against in the summaries, by cell name after
-// the kind's prefix.
-const BASELINES = [
-  "solc",
-  "solc via-ir",
-  "solx-0.1.8",
-  "solx-0.1.8 via-ir",
 ] as const;
 
 // Cells that legitimately have no number, keyed "<kind prefix><scenario>|<cell>"
@@ -129,49 +120,6 @@ function slangCounterpart(label: string, prefix: string): string | undefined {
   return prefix + SLANG + scope;
 }
 
-function summaryTable(
-  report: SlangReport,
-  prefix: string,
-  title: string,
-): string[] {
-  const ids = [...report.keys()]
-    .filter((id) =>
-      [...report.get(id)!.keys()].some((label) => label.startsWith(prefix)),
-    )
-    .sort();
-  if (ids.length === 0) {
-    return [];
-  }
-
-  const lines = [
-    `### ${title}`,
-    "",
-    `| scenario | slang wall s | ${BASELINES.map((b) => `vs ${b}`).join(" | ")} |`,
-    `|---|---|${BASELINES.map(() => "---").join("|")}|`,
-  ];
-  for (const id of ids) {
-    const cells = report.get(id)!;
-    const note = (cell: string) => CELL_NOTES[`${prefix}${id}|${cell}`];
-    const slang = cells.get(prefix + SLANG);
-    const vs = BASELINES.map((b) => {
-      const base = cells.get(prefix + b);
-      if (base === undefined) {
-        return note(b) ?? "—";
-      }
-      return slang === undefined
-        ? "—"
-        : `${speedup(base, slang)}${mark(base, slang)}`;
-    });
-    const slangText =
-      slang === undefined
-        ? (note(SLANG) ?? "—")
-        : `${seconds(slang.wall)}${mark(slang)}`;
-    lines.push(`| ${id} | ${slangText} | ${vs.join(" | ")} |`);
-  }
-  lines.push("");
-  return lines;
-}
-
 export function renderSlangTables(
   entries: BenchmarkEntry[],
   opts: {
@@ -209,9 +157,7 @@ export function renderSlangTables(
     "",
   );
 
-  for (const { prefix, title } of KINDS) {
-    lines.push(...summaryTable(report, prefix, title));
-  }
+  lines.push(...renderBlogSections(report, { solx: true }));
 
   for (const id of [...report.keys()].sort()) {
     const cells = report.get(id)!;
