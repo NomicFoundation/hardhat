@@ -1,3 +1,4 @@
+import type { ResolvedConfigurationVariable } from "../../../../src/types/config.js";
 import type { ConfigurationVariableHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
@@ -16,6 +17,7 @@ import { configVariable } from "../../../../src/config.js";
 import {
   CONFIGURATION_VARIABLE_MARKER,
   FixedValueConfigurationVariable,
+  getPrivateKey,
   LazyResolvedConfigurationVariable,
 } from "../../../../src/internal/core/configuration-variables.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
@@ -300,6 +302,118 @@ describe("ResolvedConfigurationVariable", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
       {
         configVariable: "an inline configuration value",
+      },
+    );
+  });
+});
+
+describe("getPrivateKey", () => {
+  const { setEnvVar } = createTestEnvManager();
+  const privateKey = `0x${"ab".repeat(32)}`;
+  let hre: HardhatRuntimeEnvironment;
+
+  before(async () => {
+    hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
+  });
+
+  it("should return the private key, normalized like getHexString does", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    setEnvVar("foo", ` ${"AB".repeat(32)} `);
+
+    assert.equal(await getPrivateKey(variable), privateKey);
+  });
+
+  for (const value of ["0x1234", `0x${"ab".repeat(33)}`]) {
+    it(`should throw if the private key isn't 32 bytes long (${JSON.stringify(value)})`, async () => {
+      const variable = new LazyResolvedConfigurationVariable(
+        hre.hooks,
+        configVariable("foo"),
+      );
+
+      setEnvVar("foo", value);
+
+      await assertRejectsWithHardhatError(
+        getPrivateKey(variable),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+        {
+          configVariable: `the configuration variable "foo"`,
+        },
+      );
+    });
+  }
+
+  it("should throw if the private key is not a valid hex string", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    setEnvVar("foo", "0xzz");
+
+    await assertRejectsWithHardhatError(
+      getPrivateKey(variable),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
+      {
+        configVariable: `the configuration variable "foo"`,
+      },
+    );
+  });
+
+  it("should not include the private key in its errors", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    setEnvVar("foo", "0x1234");
+
+    let thrownError: Error | undefined;
+
+    try {
+      await getPrivateKey(variable);
+    } catch (error) {
+      ensureError(error);
+      thrownError = error;
+    }
+
+    assert.ok(thrownError !== undefined, "getPrivateKey should have thrown");
+    assert.ok(
+      !thrownError.message.includes("1234"),
+      `The error message must not include the value, but it was: ${thrownError.message}`,
+    );
+  });
+
+  it("should throw if an inline private key isn't 32 bytes long", async () => {
+    const variable = new FixedValueConfigurationVariable("0x1234");
+
+    await assertRejectsWithHardhatError(
+      getPrivateKey(variable),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+      {
+        configVariable: "an inline configuration value",
+      },
+    );
+  });
+
+  it("should describe other implementations of ResolvedConfigurationVariable generically", async () => {
+    const variable: ResolvedConfigurationVariable = {
+      _type: "ResolvedConfigurationVariable",
+      format: CONFIGURATION_VARIABLE_MARKER,
+      get: async () => "0x1234",
+      getUrl: async () => "0x1234",
+      getBigInt: async () => 0x1234n,
+      getHexString: async () => "0x1234",
+    };
+
+    await assertRejectsWithHardhatError(
+      getPrivateKey(variable),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+      {
+        configVariable: "a configuration variable",
       },
     );
   });
