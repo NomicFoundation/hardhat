@@ -44,9 +44,10 @@ export function toRpcQuantity(x: NumberLike): string {
     );
   }
 
-  if (hex === "0x0") {
-    return hex;
-  }
+  const quantity = hex.startsWith("0x")
+    ? hex.replace(/0x0+/, "0x")
+    : `0x${hex}`;
 
-  return hex.startsWith("0x") ? hex.replace(/0x0+/, "0x") : `0x${hex}`;
+  // A zero written with leading zeros, like "0x00", strips down to "0x".
+  return quantity === "0x" ? "0x0" : quantity;
 }
