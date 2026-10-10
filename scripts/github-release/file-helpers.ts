@@ -18,7 +18,7 @@ export async function readPublishSummary(): Promise<{
     console.error(
       "Could not read pnpm-publish-summary.json.\n\n" +
         "It should be generated in the CI, to generate it locally run:\n" +
-        '  pnpm publish --filter "./packages/**" -r --no-git-checks --access public --report-summary --dry-run',
+        '  pnpm publish --filter "./packages/**" --filter "!@nomicfoundation/hardhat-slang" -r --no-git-checks --access public --report-summary --dry-run',
     );
 
     process.exit(1);
