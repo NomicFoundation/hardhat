@@ -268,12 +268,21 @@ export interface RelativeImportClashesWithUserRemappingError {
   userRemapping: UserRemappingReference;
 }
 
-export interface DirectImportToLocalFileError {
-  type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
-  fromFsPath: string;
-  importPath: string;
-  suggestedRemapping: string;
-}
+export type DirectImportToLocalFileError =
+  | {
+      type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
+      fromFsPath: string;
+      importPath: string;
+      suggestedRemapping: string;
+      suggestedRelativeImport?: never;
+    }
+  | {
+      type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
+      fromFsPath: string;
+      importPath: string;
+      suggestedRelativeImport: string;
+      suggestedRemapping?: never;
+    };
 
 export type ImportResolutionError =
   | ImportWithWindowsPathSeparatorsError

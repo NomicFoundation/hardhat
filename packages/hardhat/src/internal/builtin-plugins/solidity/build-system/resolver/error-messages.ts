@@ -151,7 +151,16 @@ If you want to use the remapping, write your import as "${error.directImport}" i
     }
 
     case ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE: {
-      return `You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.
+      const baseMessage =
+        "You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.";
+
+      if (error.suggestedRelativeImport !== undefined) {
+        return `${baseMessage}
+
+Try writing your import as "${error.suggestedRelativeImport}" instead.`;
+      }
+
+      return `${baseMessage}
 
 If you still want to be able to do it, try adding this remapping "${error.suggestedRemapping}" to the "remappings.txt" file in the root of your project.`;
     }
