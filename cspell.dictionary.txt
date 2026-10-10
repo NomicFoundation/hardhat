@@ -7,6 +7,7 @@ anonymization
 APDU
 arrayified
 authorizationify
+avgs
 behaviour
 besu
 Besu
@@ -50,6 +51,7 @@ FQNs
 gcda
 gcmsiv
 gnueabihf
+Ghiglia
 hdkey
 hdpath
 heco
@@ -78,6 +80,7 @@ Linea
 linearization
 linenums
 Listify
+miscompilation
 moreutils
 mprv
 msvc
@@ -85,7 +88,9 @@ myfun
 mykey
 mylib
 mylock
+misparses
 napi
+nebasuke
 niño
 NFKC
 Nomic
@@ -114,6 +119,8 @@ riscv
 sarasa
 schaable
 sokol
+solady
+Solady
 solcjs
 SOLCJS
 solx
@@ -121,6 +128,7 @@ Solx
 sourcify
 Sourcify
 SOURCIFY
+stackification
 ssfi
 Ssfi
 stringifying
@@ -143,6 +151,7 @@ unidici
 unmined
 unpad
 unpadded
+unpair
 unparseable
 Unpayable
 unpublishing

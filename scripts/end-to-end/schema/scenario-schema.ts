@@ -49,6 +49,7 @@ export function isScenarioDefinition(
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
     (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
+    (obj.workdir === undefined || typeof obj.workdir === "string") &&
     (obj.disabled === undefined || obj.disabled === true) &&
     (obj.benchmark === undefined || isBenchmarkConfig(obj.benchmark))
   );
@@ -166,6 +167,7 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     "prepare",
     "command",
     "dependsOn",
+    "ignoreFailure",
   ]);
 
   for (const key of Object.keys(obj)) {
@@ -182,6 +184,8 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
+    (obj.ignoreFailure === undefined ||
+      typeof obj.ignoreFailure === "boolean") &&
     isDependsOn(obj.dependsOn)
   );
 }

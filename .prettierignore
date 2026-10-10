@@ -1,1 +1,3 @@
 docs/.next
+# A CI run's report artifact, kept byte-identical to what the run uploaded
+scripts/benchmark/slang-baseline-report.json

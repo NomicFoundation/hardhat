@@ -1,0 +1,276 @@
+name: Slang Regression Benchmark
+
+# Two tiers. PR and push runs measure only slang and its solx 0.1.8
+# reference, 3 runs each, and take every other cell (solc, forge, tests)
+# from the committed report of the last full run. A dispatch with the
+# default inputs runs the full matrix; repeat it when solc, forge or the
+# scenarios change, copy its slang-regression-report artifact over
+# scripts/benchmark/slang-baseline-report.json and point BASELINE_RUN_URL
+# below at it.
+on:
+  # Manual trigger for the full matrix, or any subset of it; filtered runs
+  # never publish baselines (gated on push events).
+  workflow_dispatch:
+    inputs:
+      scenario-filter:
+        description: "Glob(s) selecting scenarios by directory name (comma-separated). Forwarded to bench:regression --scenarios."
+        required: false
+        default: "*"
+      benchmark-filter:
+        description: "Glob(s) selecting cells by name (comma-separated, e.g. `cold compile slang*`). Forwarded to bench:regression --benchmarks."
+        required: false
+        default: "cold compile*,warm test*"
+      runs:
+        description: "Measured runs per cell, overriding each cell's own count. Forwarded to bench:regression --runs; empty keeps the cells' counts."
+        required: false
+        default: ""
+  # Deliberately do not run on merge_group
+  push:
+    branches:
+      - "main"
+  pull_request:
+    # Include `labeled` so the workflow fires when the `ci:perf-slang`
+    # label is added.
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - "**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  slang-regression-benchmark:
+    name: Slang regression benchmark
+    environment: github-action-benchmark
+    permissions:
+      contents: read
+      # Updates the sticky benchmark-tables comment on labeled PR runs. Fork
+      # PRs never reach this job (fork-safety guard below), so the write
+      # token is only ever used for same-repo PRs.
+      pull-requests: write
+    # Use a self-hosted runner for stable benchmark measurements; the shared
+    # GitHub runners produce noisy results that will generate false positives.
+    runs-on: hardhat-linux-amd64-self-hosted
+    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
+    # `ci:perf-slang` label. The fork-safety guard keeps untrusted forks off
+    # the self-hosted runner; workflow_dispatch always runs a ref of this
+    # repository and only collaborators with write access can dispatch.
+    if: |
+      !cancelled() && !failure() &&
+      (github.event_name != 'pull_request' ||
+        contains(github.event.pull_request.labels.*.name, 'ci:perf-slang')) &&
+      (github.ref == 'refs/heads/main' ||
+        github.event_name == 'workflow_dispatch' ||
+        github.repository == github.event.pull_request.head.repo.full_name)
+
+    # A full run (the dispatch default: every solx-tagged scenario's cold
+    # compile and warm test cells, 5 and 3 runs) took ~5h on the runner;
+    # the PR tier takes ~35 min.
+    timeout-minutes: 420
+    env:
+      # The full run that produced scripts/benchmark/slang-baseline-report.json,
+      # whose cells fill the ones a PR run skips.
+      BASELINE_RUN_URL: https://github.com/NomicFoundation/hardhat/actions/runs/37952638910
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+
+      # cspell:disable-next-line
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install packages
+        run: sfw pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Stamp the hardhat package for validation
+        # Embed a unique per-run marker in the hardhat that gets published to
+        # Verdaccio. Also record the pre-run version so the validation step
+        # can tell whether hardhat was republished at all.
+        run: |
+          echo "BENCH_RUN_STAMP=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "HH_PRE_VER=$(node -p "require('./packages/hardhat/package.json').version")" >> "$GITHUB_ENV"
+          npm pkg set benchRunStamp="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --prefix packages/hardhat
+
+      # pnpm 11 skips creating bin symlinks whose target isn't built at install
+      # time; relink workspace bins (e.g. hardhat) now that the build output
+      # exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
+
+      # Persistent-runner hygiene: a Verdaccio orphaned by a hard-killed job
+      # keeps squatting the port while checkout's clean erases its PID file,
+      # so kill it by process pattern too, and drop the scenarios'
+      # node_modules so installs can't serve stale content. Compiler binaries
+      # and package-manager caches stay: those are content-addressed.
+      - name: Clean stale runner state
+        run: |
+          pnpm verdaccio stop || true
+          pkill -f 'verdaccio/server.ts' || true
+          # bench:regression's default --e2e-clone-dir
+          rm -rf /tmp/end-to-end/*/node_modules
+          # A clone a cancelled run left half-made is no working git checkout
+          # (its .git may exist but be broken), and init's re-init path would
+          # fail fetching into it; clone it afresh.
+          for dir in /tmp/end-to-end/*/; do
+            dir="${dir%/}"
+            [ "$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" = "$dir" ] || rm -rf "$dir"
+          done
+
+      # Each scenario's preinstall downloads the slang release pinned in
+      # scripts/benchmark/pinned-tool-versions.sh. This runs inside
+      # bench:regression, not under `sfw`, so no firewall allowlist is needed.
+      - name: Run slang regression benchmark
+        env:
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+          SCENARIO_FILTER: ${{ inputs.scenario-filter || '*' }}
+          DISPATCH_BENCHMARK_FILTER: ${{ inputs.benchmark-filter }}
+          DISPATCH_RUNS: ${{ inputs.runs }}
+        run: |
+          if [ "$IS_DISPATCH" = true ]; then
+            BENCHMARK_FILTER="$DISPATCH_BENCHMARK_FILTER"
+            RUNS="$DISPATCH_RUNS"
+          else
+            BENCHMARK_FILTER="cold compile slang*,cold compile solx-0.1.8"
+            RUNS=3
+          fi
+          pnpm bench:regression --use-local --force-checkout --tag solx \
+            --scenarios "$SCENARIO_FILTER" \
+            --benchmarks "$BENCHMARK_FILTER" \
+            ${RUNS:+--runs "$RUNS"} \
+            --output slang-regression-report.json
+
+      - name: Validate scenarios used the local Hardhat build
+        # Diagnostic only: verifies each scenario resolved the hardhat
+        # published to Verdaccio by THIS run rather than a stale copy. Emits
+        # warnings instead of errors so it can never regress the benchmark.
+        run: node .github/scripts/validate-local-hardhat-install.ts
+
+      # Persist the (possibly partial) benchmark output in the job log so it
+      # survives cleanup and is available for debugging.
+      - name: Dump regression report on failure
+        if: failure()
+        run: |
+          echo "== slang-regression-report.json =="
+          cat slang-regression-report.json 2>/dev/null \
+            || echo "(no slang-regression-report.json produced)"
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: slang-regression-report.json
+          gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
+          gh-pages-branch: main
+          # Own folder so slang baselines never mix with the solc `hardhat3`
+          # or the `solx` datasets in this repo.
+          benchmark-data-dir-path: slang
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          # Only push baseline on main-branch pushes; PRs only compare, and
+          # workflow_dispatch runs may be filtered to a cell subset — a
+          # partial report must never become the baseline.
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+          alert-threshold: "110%"
+          # slang is experimental — surface regressions in the summary but
+          # never fail the build on them.
+          fail-on-alert: false
+          summary-always: true
+
+      # The report is the single source for the tables below and for
+      # re-rendering offline — upload it even when the bench step failed.
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slang-regression-report
+          path: slang-regression-report.json
+          if-no-files-found: warn
+
+      # The blog post's tables, generated from the report on every run; they
+      # land in the job summary and as an artifact for pasting.
+      - name: Render blog tables
+        if: ${{ !cancelled() }}
+        run: |
+          if [ ! -f slang-regression-report.json ]; then
+            echo "::warning::No report produced — skipping the blog tables"
+            exit 0
+          fi
+          node scripts/benchmark/render-slang-blog-tables.ts \
+            --report slang-regression-report.json \
+            --baseline scripts/benchmark/slang-baseline-report.json \
+            --baseline-url "$BASELINE_RUN_URL" > slang-blog-tables.md
+          cat slang-blog-tables.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload blog tables
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slang-blog-tables
+          path: slang-blog-tables.md
+          if-no-files-found: ignore
+
+      # Sticky PR comment with the full table set, regenerated from the
+      # report on every labeled run — numbers are never hand-transcribed.
+      - name: Render benchmark tables
+        id: render
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          JOB_STATUS: ${{ job.status }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ ! -f slang-regression-report.json ]; then
+            echo "::warning::No report produced — skipping the tables comment"
+            exit 0
+          fi
+          node scripts/benchmark/render-slang-tables.ts \
+            --report slang-regression-report.json \
+            --baseline scripts/benchmark/slang-baseline-report.json \
+            --baseline-url "$BASELINE_RUN_URL" \
+            --run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --head-sha "$HEAD_SHA" \
+            --status "$JOB_STATUS" > slang-bench-comment.md
+          echo "rendered=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upsert benchmark tables comment
+        if: ${{ !cancelled() && steps.render.outputs.rendered == 'true' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("slang-bench-comment.md", "utf8");
+            const marker = "<!-- slang-bench-tables -->";
+            const params = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            };
+            const comments = await github.paginate(github.rest.issues.listComments, params);
+            const existing = comments.find((c) => c.body?.includes(marker));
+            if (existing !== undefined) {
+              await github.rest.issues.updateComment({ ...params, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ ...params, body });
+            }
+
+      - name: Notify failures
+        # Only ping Slack when a commit/merge to main fails
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        with:
+          payload: |
+            {
+              "workflow_name": "${{ github.workflow }}",
+              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}

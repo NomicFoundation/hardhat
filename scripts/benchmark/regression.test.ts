@@ -23,4 +23,20 @@ describe("resolveArgs", () => {
       },
     );
   });
+
+  it("overrides every entry's runs with --runs", () => {
+    const args = resolveArgs(["--output", "out.json", "--runs", "3"]);
+    assert.equal(args?.runs, 3);
+    assert.equal(resolveArgs(["--output", "out.json"])?.runs, undefined);
+  });
+
+  it("rejects a --runs that is not a positive integer", () => {
+    for (const bad of ["0", "-1", "2.5", "many"]) {
+      assert.throws(
+        () => resolveArgs(["--output", "out.json", "--runs", bad]),
+        /--runs must be a positive integer/,
+        bad,
+      );
+    }
+  });
 });
