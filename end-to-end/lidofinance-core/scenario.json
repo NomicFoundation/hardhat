@@ -51,7 +51,7 @@
         "dependsOn": ["cold compile"]
       },
       "test mocha -vvvv": {
-        "runs": 2,
+        "runs": 3,
         "command": "yarn run test --no-compile -vvvv",
         "dependsOn": ["cold compile"]
       }
