@@ -927,21 +927,24 @@ describe("solidity - hooks", () => {
       },
     };
 
-    it("should build a Yul root file in its own compilation job", async () => {
+    it("should build each Yul root file in its own compilation job", async () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [yulPlugin],
         solidity: "0.8.23",
       });
 
-      const yulFile = path.join(
-        process.cwd(),
-        "contracts",
-        "CallSimulator.yul",
-      );
       const solFile = path.join(process.cwd(), "contracts", "A.sol");
+      const yulFiles = {
+        CallSimulator: path.join(
+          process.cwd(),
+          "contracts",
+          "CallSimulator.yul",
+        ),
+        Echo: path.join(process.cwd(), "contracts", "Echo.yul"),
+      };
 
       const roots = await hre.solidity.getRootFilePaths();
-      assert.deepEqual(roots.toSorted(), [solFile, yulFile]);
+      assert.deepEqual(roots.toSorted(), [solFile, ...Object.values(yulFiles)]);
 
       const result = await hre.solidity.build(roots, {
         force: true,
@@ -953,31 +956,41 @@ describe("solidity - hooks", () => {
         "The build should succeed",
       );
 
-      const yulResult = result.get(yulFile);
-      const solResult = result.get(solFile);
-      assert.equal(yulResult?.type, FileBuildResultType.BUILD_SUCCESS);
-      assert.equal(solResult?.type, FileBuildResultType.BUILD_SUCCESS);
-      assert.notEqual(
-        yulResult.compilationJob,
-        solResult.compilationJob,
-        "The Yul file should be compiled in its own compilation job",
+      // solc only accepts a single source per Yul input, so every Yul file
+      // must have its own compilation job
+      const jobs = new Set();
+      for (const root of roots) {
+        const fileResult = result.get(root);
+        assert.equal(fileResult?.type, FileBuildResultType.BUILD_SUCCESS);
+        jobs.add(fileResult.compilationJob);
+      }
+      assert.equal(
+        jobs.size,
+        roots.length,
+        "Each Yul file should be compiled in its own compilation job",
       );
 
-      const artifact = await hre.artifacts.readArtifact(
-        "contracts/CallSimulator.yul:CallSimulator",
-      );
-      assert.deepEqual(artifact.abi, [], "A Yul artifact has an empty ABI");
-      assert.notEqual(artifact.bytecode, "0x", "Bytecode should not be empty");
-      assert.ok(
-        artifact.bytecode.endsWith(artifact.deployedBytecode.slice(2)),
-        "The creation code should embed the runtime code",
-      );
-      assert.ok(
-        artifact.buildInfoId !== undefined &&
-          (await hre.artifacts.getBuildInfoPath(artifact.buildInfoId)) !==
-            undefined,
-        "The artifact should reference an existing build info",
-      );
+      for (const [contractName, yulFile] of Object.entries(yulFiles)) {
+        const artifact = await hre.artifacts.readArtifact(
+          `contracts/${path.basename(yulFile)}:${contractName}`,
+        );
+        assert.deepEqual(artifact.abi, [], "A Yul artifact has an empty ABI");
+        assert.notEqual(
+          artifact.bytecode,
+          "0x",
+          "Bytecode should not be empty",
+        );
+        assert.ok(
+          artifact.bytecode.endsWith(artifact.deployedBytecode.slice(2)),
+          "The creation code should embed the runtime code",
+        );
+        assert.ok(
+          artifact.buildInfoId !== undefined &&
+            (await hre.artifacts.getBuildInfoPath(artifact.buildInfoId)) !==
+              undefined,
+          "The artifact should reference an existing build info",
+        );
+      }
     });
   });
 
