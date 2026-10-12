@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-zod-utils
 
+## 3.0.7
+
+### Patch Changes
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
 ## 3.0.6
 
 ### Patch Changes

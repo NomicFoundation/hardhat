@@ -2,7 +2,11 @@ import { init } from "./subcommands/init.ts";
 import { clean } from "./subcommands/clean.ts";
 import { exec } from "./subcommands/exec.ts";
 import { logError } from "./helpers/log.ts";
-import { resolveAndValidateArgs, DEFAULT_CLONE_DIR } from "./helpers/args.ts";
+import {
+  Command,
+  DEFAULT_CLONE_DIR,
+  resolveAndValidateArgs,
+} from "./helpers/args.ts";
 
 const USAGE = `
 ./scripts/end-to-end/main.ts — Run Hardhat in end-to-end scenarios
@@ -23,7 +27,7 @@ COMMANDS
 OPTIONS
   --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or ${DEFAULT_CLONE_DIR})
   --scenario <path>        The scenario folder or file to work on (default: $E2E_SCENARIO)
-  --command <cmd>          Command to run (optional with \`exec\`, falls back to scenario defaultCommand)
+  --command <cmd>          Command to run with \`exec\`, ignored by init and clean (default: the scenario's defaultCommand)
   --use-local              Detect packages changed since their release tag, bump versions,
                            publish to Verdaccio, and pin scenario deps to the published versions.
                            If Verdaccio is already running, publish is skipped (the existing
@@ -45,40 +49,51 @@ EXAMPLES
 `;
 
 async function main(): Promise<void> {
-  const {
-    initFlag,
-    execFlag,
-    cleanFlag,
-    e2eCloneDirectory,
-    scenarioPath,
-    command,
-    useLocal,
-    forceCheckout,
-    forcePublish,
-  } = resolveAndValidateArgs(process.argv.slice(2));
-
   try {
-    if (initFlag) {
-      await init(
-        e2eCloneDirectory,
-        scenarioPath,
-        useLocal,
-        forceCheckout,
-        forcePublish,
-      );
-    } else if (execFlag) {
-      await exec(
-        e2eCloneDirectory,
-        scenarioPath,
-        command,
-        useLocal,
-        forceCheckout,
-        forcePublish,
-      );
-    } else if (cleanFlag) {
-      clean(e2eCloneDirectory, scenarioPath);
-    } else {
+    const args = resolveAndValidateArgs(process.argv.slice(2));
+
+    if (args === undefined) {
       console.log(USAGE);
+      return;
+    }
+
+    const {
+      command,
+      e2eCloneDirectory,
+      scenarioPath,
+      execCommand,
+      useLocal,
+      forceCheckout,
+      forcePublish,
+    } = args;
+
+    switch (command) {
+      case Command.Init:
+        await init(
+          e2eCloneDirectory,
+          scenarioPath,
+          useLocal,
+          forceCheckout,
+          forcePublish,
+        );
+        break;
+      case Command.Exec:
+        await exec(
+          e2eCloneDirectory,
+          scenarioPath,
+          execCommand,
+          useLocal,
+          forceCheckout,
+          forcePublish,
+        );
+        break;
+      case Command.Clean:
+        clean(e2eCloneDirectory, scenarioPath);
+        break;
+      default: {
+        const unhandled: never = command;
+        throw new Error(`unhandled command: ${String(unhandled)}`);
+      }
     }
   } catch (error) {
     if (!(error instanceof Error)) {

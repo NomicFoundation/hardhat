@@ -3,7 +3,6 @@ import type EventEmitter from "node:events";
 import type * as UndiciT from "undici";
 
 import crypto from "node:crypto";
-import { STATUS_CODES } from "node:http";
 import path from "node:path";
 
 import { mkdir } from "../fs.js";
@@ -376,7 +375,9 @@ function describeResponseError(e: Error): void {
     return;
   }
 
-  const reason = STATUS_CODES[statusCode];
+  // Importing `node:http` loads Node's whole HTTP stack, so we defer
+  // using `process.getBuiltinModule` as a dynamic load.
+  const reason = process.getBuiltinModule("node:http").STATUS_CODES[statusCode];
 
   e.message = `Response status code ${statusCode}${
     reason !== undefined ? `: ${reason}` : ""

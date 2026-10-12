@@ -13,6 +13,10 @@ export const DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT = 60_000_000n;
 // EIP-7825 per-transaction gas cap, enforced from L1's Osaka hardfork onwards
 export const EIP_7825_TRANSACTION_GAS_CAP = 16_777_216n;
 
+// EIP-8037 maximum transaction gas limit (2^32-1), enforced from L1's Amsterdam hardfork
+// onwards, where the EIP-7825 cap bounds only execution gas
+export const EIP_8037_MAX_TRANSACTION_GAS_LIMIT = 4_294_967_295n;
+
 interface EdrNetworkDefaultHDAccountsConfigParams extends DefaultHDAccountsConfigParams {
   mnemonic: string;
   accountsBalance: bigint;

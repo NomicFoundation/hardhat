@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers-chai-matchers
 
+## 3.0.12
+
+### Patch Changes
+
+- [#8649](https://github.com/NomicFoundation/hardhat/pull/8649) [`b274f5f`](https://github.com/NomicFoundation/hardhat/commit/b274f5f3b20177e04bb4ee75779e25fdf1e8e303) Thanks [@spideydotjs](https://github.com/spideydotjs)! - Added validation for the subject of `changeTokenBalance`, `changeTokenBalances`, `changeEtherBalance`, and `changeEtherBalances` to produce a clear error message when the subject is not a transaction response.
+
 ## 3.0.11
 
 ### Patch Changes
