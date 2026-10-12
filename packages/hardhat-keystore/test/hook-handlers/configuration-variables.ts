@@ -8,8 +8,11 @@ import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import {
+  assertRejectsWithHardhatError,
+  createEnvChanges,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   remove,
   writeJsonFile,
@@ -84,28 +87,20 @@ const exampleConfigurationVariable4: ConfigurationVariable = {
 
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
-  let runningInCi: boolean;
 
   // The config variables hook handler short circuits if running in CI
-  // intentionally. In this integration test we check whether we are running
-  // in _our_ CI - Github Actions, and turn off `process.env.GITHUB_ACTIONS`
-  // for the duration of this test suite, then turn it back on again at the end.
-  before(async () => {
-    if (isCi()) {
-      runningInCi = true;
-    }
+  // intentionally, so this integration test turns the CI markers off for the
+  // duration of the suite. They have to stay off for every test in it, so they
+  // are restored manually instead of through createTestEnvManager.
+  const envChanges = createEnvChanges();
 
-    if (runningInCi) {
-      delete process.env.GITHUB_ACTIONS;
-      delete process.env.CI;
-    }
+  before(() => {
+    envChanges.unsetEnvVar("GITHUB_ACTIONS");
+    envChanges.unsetEnvVar("CI");
   });
 
   after(() => {
-    if (runningInCi) {
-      process.env.GITHUB_ACTIONS = "true";
-      process.env.CI = "true";
-    }
+    envChanges.restoreEnvVars();
   });
 
   describe("when there are existing development and production valid keystore files", () => {
@@ -285,12 +280,16 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
     });
 
     describe("when the keystore is in test mode", () => {
+      // This has to stay set for every test in the describe, so it is restored
+      // manually instead of through createTestEnvManager.
+      const testModeEnvChanges = createEnvChanges();
+
       before(() => {
-        process.env.HH_TEST = "true";
+        testModeEnvChanges.setEnvVar("HH_TEST", "true");
       });
 
       after(() => {
-        process.env.HH_TEST = undefined;
+        testModeEnvChanges.restoreEnvVars();
       });
 
       it("should not throw an error if the keystore is executed in test mode and the key is in the development keystore", async () => {
@@ -477,12 +476,13 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       });
 
       describe("with a non-empty value", () => {
+        const { setEnvVar } = createTestEnvManager();
         let resultValue: string;
 
         // `key4-prod` only exists in the production keystore, so resolving it
         // through the keystore would prompt for the production password.
         beforeEach(async () => {
-          process.env["key4-prod"] = "value-from-env";
+          setEnvVar("key4-prod", "value-from-env");
 
           resultValue = await hre.hooks.runHandlerChain(
             "configurationVariables",
@@ -492,10 +492,6 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return process.env[_configVar.name] ?? "unexpected-default-value";
             },
           );
-        });
-
-        afterEach(() => {
-          delete process.env["key4-prod"];
         });
 
         it("should return the environment variable value instead of the keystore value", async () => {
@@ -516,10 +512,11 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       });
 
       describe("with an empty string value", () => {
+        const { setEnvVar } = createTestEnvManager();
         let resultValue: string;
 
         beforeEach(async () => {
-          process.env["key4-prod"] = "";
+          setEnvVar("key4-prod", "");
 
           resultValue = await hre.hooks.runHandlerChain(
             "configurationVariables",
@@ -529,10 +526,6 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return process.env[_configVar.name] ?? "unexpected-default-value";
             },
           );
-        });
-
-        afterEach(() => {
-          delete process.env["key4-prod"];
         });
 
         it("should return the empty environment variable value", async () => {

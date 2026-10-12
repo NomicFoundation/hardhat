@@ -3,6 +3,7 @@ import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
   Artifact,
+  InlineConfigError,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
@@ -15,7 +16,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
 
-import { formatArtifactId } from "./formatters.js";
+import { formatArtifactId, formatInlineConfigErrors } from "./formatters.js";
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -100,6 +101,24 @@ export function run(
     } catch (error) {
       ensureError(error);
 
+      // EDR reports the problems it found in the user's inline test config as
+      // an `inlineConfigErrors` property on the error. Report them as a
+      // dedicated Hardhat error instead of an unhandled EDR error.
+      if (hasInlineConfigErrors(error)) {
+        stream.destroy(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
+            {
+              errors: formatInlineConfigErrors(
+                error.inlineConfigErrors,
+                sourceNameToUserSourceName,
+              ),
+            },
+          ),
+        );
+        return;
+      }
+
       stream.destroy(
         new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS
@@ -113,4 +132,17 @@ export function run(
   })();
 
   return stream;
+}
+
+/**
+ * EDR attaches the structured inline-config problems to the error that rejects
+ * `runSolidityTests`, but as a property of an `Error` rather than a typed
+ * error class, so we have to assert their type here.
+ */
+function hasInlineConfigErrors(
+  error: Error,
+): error is Error & { inlineConfigErrors: InlineConfigError[] } {
+  return (
+    "inlineConfigErrors" in error && Array.isArray(error.inlineConfigErrors)
+  );
 }

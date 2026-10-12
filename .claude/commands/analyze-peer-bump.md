@@ -55,5 +55,5 @@ Do not modify changesets or other code — only update `.peer-bumps.json`.
 
 ## Context
 
-- The Release PR process runs `changeset version`, then reverts all peer dependency changes before using `.peer-bumps.json` to re-add the actual peer dependency bumps via `./scripts/peer-bumps.ts`.
+- The Release PR process runs `changeset version`, then reverts all peer dependency changes before using `.peer-bumps.json` to re-add the actual peer dependency bumps via `./scripts/bump-peers.ts`.
 - CI checks whether `.peer-bumps.json` has been modified or whether the `no peer bump needed` label has been added.

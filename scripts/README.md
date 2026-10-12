@@ -17,6 +17,18 @@ To support the development and maintenance of `./scripts`, the following npm scr
 
 `pnpm lint` and `pnpm lint:fix` at the repo root include `lint:scripts` automatically.
 
+## Scenario tooling layers
+
+The scenario-related scripts are layered, from low-level to high-level; each layer may only import from the layers below it:
+
+1. `end-to-end/` (`pnpm e2e`) — run a command on an e2e scenario.
+2. `profiler/` (`pnpm profiler`, `pnpm profiler:flamegraph`) — run a single e2e command once, for one or more scenarios, while profiling it (system-wide via Linux perf, or JavaScript-level via the JS engine's `--cpu-prof` profiler).
+3. `benchmark/` (`pnpm bench`, `pnpm bench:regression`) — run a command multiple times and report statistics; regression benchmarking runs a predefined harness of benchmark commands.
+
+### Profiler artifacts and trade-offs
+
+`pnpm profiler` writes several views of the same recording with different trade-offs (time-ordering, portability, size). Run `pnpm profiler` and `pnpm profiler:flamegraph` without arguments for the artifact list and how to choose between them.
+
 ## Writing new scripts
 
 **Language and runtime** — Write scripts as `.ts` files. Node 24 strips the types at runtime, so there is no compile step. The `scripts/tsconfig.json` handles type-checking via `pnpm tsc:scripts`.

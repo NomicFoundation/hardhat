@@ -11,9 +11,10 @@
 // Inputs (environment):
 //   BENCH_RUN_STAMP  the stamp embedded before the benchmark
 //   HH_PRE_VER       packages/hardhat version before the benchmark ran; if it
-//                    still equals the post-run version, hardhat had no changes
-//                    since its release and was not republished, so scenarios
-//                    legitimately resolve the (unstamped) registry release
+//                    still equals the post-run version, hardhat was either not
+//                    republished, or republished at the version it already
+//                    carried, so scenarios may legitimately resolve the
+//                    (unstamped) registry release
 //   E2E_CLONE_DIR    scenario clone dir (default: /tmp/end-to-end)
 
 import fs from "node:fs";

@@ -1,4 +1,4 @@
-import type { JsonFragment } from "@ethersproject/abi";
+import type { AbiFragment } from "@nomicfoundation/hardhat-utils/abi";
 import type {
   Interceptable,
   TestDispatcher,
@@ -61,8 +61,17 @@ interface PendingInterceptorInternal {
   timesInvoked?: number;
 }
 
+/**
+ * Sets up a mock agent for tests.
+ *
+ * Use `interceptable` to declare the mocked responses, and `dispatcher` as the
+ * dispatcher passed to the request helpers. They must be kept apart: undici's
+ * interceptors only work when they are composed onto the mock agent, as the
+ * mock pool returned by `MockAgent#get` doesn't support them.
+ */
 export function initializeTestDispatcher(options: InitializeOptions = {}): {
   readonly interceptable: Interceptable;
+  readonly dispatcher: TestDispatcher;
 } {
   const { url = "http://localhost", timeout } = options;
 
@@ -113,6 +122,9 @@ export function initializeTestDispatcher(options: InitializeOptions = {}): {
     get interceptable() {
       return interceptable;
     },
+    get dispatcher() {
+      return mockAgent;
+    },
   };
 }
 
@@ -152,7 +164,7 @@ export async function deployContract(
 
   const encodeConstructorArgsResult = await encodeConstructorArgs(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
-    artifact.abi as JsonFragment[],
+    artifact.abi as AbiFragment[],
     constructorArgs,
     contractName,
   );

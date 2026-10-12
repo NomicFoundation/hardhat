@@ -418,12 +418,14 @@ You can define it using a plugin like hardhat-keystore, or set it as an environm
         websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
       },
       INVALID_URL: {
+        // [DEPRECATED]
         number: 8,
         messageTemplate: "Invalid URL: {url}",
         websiteTitle: "Invalid URL",
         websiteDescription: `Given value was not a valid URL.`,
       },
       INVALID_BIGINT: {
+        // [DEPRECATED]
         number: 9,
         messageTemplate: "Invalid BigInt: {value}",
         websiteTitle: "Invalid BigInt",
@@ -582,6 +584,42 @@ If that command fails with EBADENGINE, update Node.js to its latest patch releas
 This is usually caused by a known npm bug with optional dependencies (https://github.com/npm/cli/issues/4828), which npm fixed in version 11.3.0. Node.js 22 bundles npm 10, which never received the backport, so it can write a lockfile that omits the platform packages.
 
 Updating npm to 11.3.0 or later and regenerating the lockfile fixes it. Note that the npm fix is not retroactive: an already-affected lockfile has to be regenerated at least once. If updating npm fails with an EBADENGINE error, update Node.js to a newer version first, then retry.`,
+      },
+      INVALID_CONFIG_VARIABLE_URL: {
+        number: 28,
+        messageTemplate: `Invalid URL value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable URL",
+        websiteDescription: `The value of a configuration variable was not a valid URL.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
+      },
+      INVALID_CONFIG_VARIABLE_BIGINT: {
+        number: 29,
+        messageTemplate: `Invalid BigInt value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable BigInt",
+        websiteDescription: `The value of a configuration variable was not a valid BigInt.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
+      },
+      INVALID_CONFIG_VARIABLE_HEX_STRING: {
+        number: 30,
+        messageTemplate: `Invalid hex string value for {configVariable}`,
+        websiteTitle: "Invalid configuration variable hex string",
+        websiteDescription: `The value of a configuration variable was not a valid hex string.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
+      },
+      INVALID_PROXY_URL: {
+        number: 31,
+        messageTemplate: `The proxy URL configured in the {envVarName} environment variable is not a valid URL.
+
+Expected format: http://host:port (or https://host:port).`,
+        websiteTitle: "Invalid proxy URL",
+        websiteDescription: `The HTTP or HTTPS proxy set in the environment is not a valid URL.
+
+Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must be an HTTP or HTTPS URL, for example \`http://host:port\` or \`https://host:port\`.
+
+The configured value is not shown, as proxy URLs may contain credentials.`,
       },
     },
     INTERNAL: {
@@ -1001,11 +1039,13 @@ If you need to flatten your project, refactor your Solidity sources to remove th
     NETWORK: {
       INVALID_URL: {
         number: 700,
-        messageTemplate: 'Invalid URL "{value}" for network or forking.',
+        messageTemplate: 'Invalid URL for the network "{networkName}"',
         websiteTitle: "Invalid URL for network or forking",
         websiteDescription: `You are trying to connect to a network with an invalid network or forking URL.
 
-Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.`,
+Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.
+
+The URL is not shown, as it may contain an API key or other secret.`,
       },
       INVALID_REQUEST_PARAMS: {
         number: 701,
@@ -1147,7 +1187,7 @@ Read the [documentation](https://hardhat.org/hd-wallet-config) to learn how to d
       },
       CANT_DERIVE_KEY: {
         number: 718,
-        messageTemplate: `Cannot derive key "{path}" from mnemonic "{mnemonic}". Try using another mnemonic or deriving fewer keys.`,
+        messageTemplate: `Cannot derive key "{path}" from the given mnemonic. Try using another mnemonic or deriving fewer keys.`,
         websiteTitle: "Could not derive an HD key",
         websiteDescription: `One of your HD keys could not be derived.
 
@@ -1199,6 +1239,42 @@ Please double check your transactions' parameters.`,
         websiteTitle: "Unsupported network type for createServer",
         websiteDescription:
           "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
+      },
+      BLOB_TX_CANNOT_BE_SIGNED_LOCALLY: {
+        number: 725,
+        messageTemplate:
+          "Blob transactions (EIP-4844) can't be signed with locally managed accounts.",
+        websiteTitle: "Blob transactions can't be signed locally",
+        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. Your transaction has type 0x3, blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
+
+Please sign the transaction yourself and send it with eth_sendRawTransaction, or send it from an account managed by your node.`,
+      },
+      EIP7702_TX_CANNOT_CREATE_CONTRACT: {
+        number: 726,
+        messageTemplate: `The "to" field is missing from an EIP-7702 transaction being signed locally. EIP-7702 transactions can't create contracts, so "to" is required.`,
+        websiteTitle: "EIP-7702 transactions can't create contracts",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and it has an "authorizationList" but no "to" field. Transactions with an "authorizationList" are EIP-7702 transactions, which can't create contracts, so the "to" field is required.
+
+Please double check your transactions' parameters.`,
+      },
+      EMPTY_EIP7702_AUTHORIZATION_LIST: {
+        number: 727,
+        messageTemplate: `The "authorizationList" of an EIP-7702 transaction being signed locally is empty. It must contain at least one authorization.`,
+        websiteTitle: "Empty EIP-7702 authorization list",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and its "authorizationList" is empty. EIP-7702 transactions must contain at least one authorization.
+
+Please double check your transactions' parameters.`,
+      },
+      INVALID_TX_PARAMS_TO_SIGN_LOCALLY: {
+        number: 728,
+        messageTemplate: `Tried to sign a transaction locally, but some of its fields are invalid:
+{errors}`,
+        websiteTitle: "Invalid transaction parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and some of its fields didn't pass the validation done before signing it. The error message lists each invalid field and the reason.
+
+This validation happens locally, so it can reject transactions that your network would accept. For example, the initcode of a contract deployment is limited to 512 KiB, even if your network allows unlimited contract sizes.
+
+Please double check your transactions' parameters.`,
       },
     },
     SOLIDITY_TESTS: {
@@ -1257,6 +1333,7 @@ Remaining test suites: {suites}`,
           "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
       INLINE_CONFIG_INVALID_KEY: {
+        // [DEPRECATED]
         number: 807,
         messageTemplate: `Invalid inline config key "{key}" in {functionFqn}. Valid keys are: {validKeys}`,
         websiteTitle: "Invalid inline config key",
@@ -1264,6 +1341,7 @@ Remaining test suites: {suites}`,
           "An unrecognized key was used in an inline config comment.",
       },
       INLINE_CONFIG_DUPLICATE_KEY: {
+        // [DEPRECATED]
         number: 808,
         messageTemplate: `Duplicate inline config key "{key}" in {functionFqn}`,
         websiteTitle: "Duplicate inline config key",
@@ -1271,6 +1349,7 @@ Remaining test suites: {suites}`,
           "The same configuration key was specified more than once for the same test function.",
       },
       INLINE_CONFIG_INVALID_VALUE: {
+        // [DEPRECATED]
         number: 809,
         messageTemplate: `Invalid value "{value}" for inline config key "{key}" in {functionFqn}. Expected a {expectedType}.`,
         websiteTitle: "Invalid inline config value",
@@ -1278,6 +1357,7 @@ Remaining test suites: {suites}`,
           "The value provided for an inline config key could not be parsed as the expected type.",
       },
       INLINE_CONFIG_UNSUPPORTED_PROFILE: {
+        // [DEPRECATED]
         number: 810,
         messageTemplate: `Unsupported profile "{profile}" in {functionFqn}. Only the "default" profile (or no profile) is supported.`,
         websiteTitle: "Unsupported profile",
@@ -1285,6 +1365,7 @@ Remaining test suites: {suites}`,
           "An inline config comment used a non-default profile, which is not supported by Hardhat.",
       },
       INLINE_CONFIG_INVALID_SYNTAX: {
+        // [DEPRECATED]
         number: 811,
         messageTemplate: `Malformed inline config in {functionFqn}. Expected "key = value" but found "{line}".`,
         websiteTitle: "Invalid inline config syntax",
@@ -1292,6 +1373,7 @@ Remaining test suites: {suites}`,
           "An inline config comment was found but its syntax could not be parsed.",
       },
       INLINE_CONFIG_UNRESOLVED_SELECTOR: {
+        // [DEPRECATED]
         number: 812,
         messageTemplate: `Inline config found in {functionFqn}, but no matching function selector was found. Only public or external functions can have inline configuration.`,
         websiteTitle: "Unresolved function selector for inline config",
@@ -1299,6 +1381,7 @@ Remaining test suites: {suites}`,
           "An inline config comment was found on a function that does not have a function selector. This usually means the function is internal or private, and therefore cannot be run as a test.",
       },
       INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE: {
+        // [DEPRECATED]
         number: 813,
         messageTemplate: `The inline config key "{key}" in {functionFqn} is not valid for {testType} tests. Valid keys for {testType} tests are: {validKeys}`,
         websiteTitle: "Inline config key not valid for test type",
@@ -1368,6 +1451,23 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
         websiteDescription:
           "The `--tolerance` option expects a non-negative finite number representing the allowed gas drift percentage.",
       },
+      INVALID_INLINE_CONFIG: {
+        number: 821,
+        messageTemplate: `Invalid inline test configuration:
+
+{errors}`,
+        websiteTitle: "Invalid inline test configuration",
+        websiteDescription:
+          "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
+      },
+      TEST_PROFILE_NOT_FOUND: {
+        number: 822,
+        messageTemplate: `The Solidity test profile "{testProfile}" is not defined in your Hardhat config. Declared profiles: {declaredProfiles}`,
+        websiteTitle: "Solidity test profile not defined",
+        websiteDescription: `The Solidity test profile you are trying to use is not defined in your Hardhat config.
+
+Declare it under \`test.solidity.profiles\`, or select one of the profiles you already declared.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
@@ -1417,7 +1517,9 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
         websiteTitle: "`solc` download failed",
         websiteDescription: `Couldn't download \`solc\`.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       VERSION_LIST_DOWNLOAD_FAILED: {
         number: 905,
@@ -1426,7 +1528,9 @@ Please check your internet connection and try again.`,
         websiteTitle: "Couldn't obtain `solc` version list",
         websiteDescription: `Couldn't download \`solc\`'s version list.
 
-Please check your internet connection and try again.`,
+Please check your internet connection and try again.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach https://binaries.soliditylang.org, or add that host to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 906,
@@ -2466,6 +2570,13 @@ Please try again later.`,
         websiteDescription:
           "--grep and the `fgrep` Mocha config option are competing name filters, and Mocha applies only one of them; its own CLI rejects the pair as mutually exclusive. Remove `fgrep` from your config, or run without --grep.",
       },
+      INVALID_GREP_REGEX_LITERAL: {
+        number: 30005,
+        messageTemplate: `The {name} pattern "{pattern}" cannot be used: Mocha reads it as the regular-expression literal /{body}/{flags}, and "{flags}" is not a valid set of regular-expression flags.`,
+        websiteTitle: "Invalid regex literal in a Mocha name filter",
+        websiteDescription:
+          "Mocha reads a name filter of the form `/pattern/flags` as a regular-expression literal: it strips the outer slashes and compiles the rest with the trailing letters as flags. When those letters are not valid regular-expression flags, Mocha cannot compile the pattern at all. This most often happens with a path-like value such as `/contracts/token`, where `token` is read as the flags. Escape the leading slash (`\\/contracts/token`) to match it as plain text, or drop the surrounding slashes.",
+      },
     },
   },
   HARDHAT_VIEM: {
@@ -3046,7 +3157,7 @@ This usually happens when a library is only referenced in the contract's constru
       },
       INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
         number: 80017,
-        messageTemplate: `The value "{value}" for a constructor parameter cannot be encoded.
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" cannot be encoded.
 Reason: {reason}.`,
         websiteTitle: "Invalid constructor argument type",
         websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
@@ -3067,7 +3178,7 @@ Please verify that you pass the exact number of arguments required by the constr
       },
       CONSTRUCTOR_ARGUMENT_OVERFLOW: {
         number: 80019,
-        messageTemplate: `The value "{value}" is out of bounds for its Solidity type and cannot be encoded.`,
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" is out of bounds for the type "{solidityType}" and cannot be encoded.`,
         websiteTitle: "Constructor argument value out of bounds",
         websiteDescription: `One of the arguments passed to the contract's constructor is outside the allowed range for its Solidity type (for example, passing 256 to a uint8 parameter).
 
@@ -3077,7 +3188,7 @@ Please ensure all argument values fit within the valid range for their respectiv
       },
       CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED: {
         number: 80020,
-        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}.`,
+        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}`,
         websiteTitle: "Constructor arguments encoding failed",
         websiteDescription: `The constructor arguments provided for the contract could not be encoded correctly.
 Please review the provided arguments and ensure they match the expected arguments defined in the contract's ABI.`,
@@ -3367,7 +3478,9 @@ solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
         websiteTitle: "solx download failed",
         websiteDescription: `The solx compiler binary could not be downloaded from the solx releases mirror used by Hardhat.
 
-Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.`,
+Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       BINARY_NOT_FOUND: {
         number: 110002,
@@ -3383,7 +3496,9 @@ Verify that the path in your Hardhat config points to a valid solx binary.`,
         websiteTitle: "Couldn't obtain the solx checksum",
         websiteDescription: `Every solx binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
 
-Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment. If you are behind a proxy that intercepts HTTPS traffic, it may be blocking or rewriting the request.`,
+Check your internet connection, and ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
       },
       INVALID_DOWNLOAD: {
         number: 110004,

@@ -16,15 +16,15 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
-import { finished } from "node:stream/promises";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { errorResult, successfulResult } from "../../../utils/result.js";
+import { printErrorMessages } from "../../cli/error-handling/error-handler.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import { getCoverageManager } from "../coverage/helpers/accessors.js";
@@ -40,11 +40,14 @@ import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
+  writeTestRunOutput,
 } from "./helpers.js";
-import { getTestFunctionOverrides } from "./inline-config/index.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
-import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+import {
+  getTestProfile,
+  resolveTestProfileName,
+} from "./select-test-profile.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -53,6 +56,7 @@ interface TestActionArguments {
   grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
+  testProfile?: string;
 }
 
 export interface SolidityTestRunResult extends TestRunResult {
@@ -60,11 +64,22 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, grepExclude, noCompile, testSummaryIndex },
+  {
+    testFiles,
+    chainType,
+    grep,
+    grepExclude,
+    noCompile,
+    testSummaryIndex,
+    testProfile,
+  },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
+
+  const testProfileName = resolveTestProfileName(testProfile);
+  const selectedTestProfile = getTestProfile(hre.config, testProfileName);
 
   const verbosity = hre.globalOptions.verbosity;
 
@@ -198,14 +213,26 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
+  // Maps each test suite's solc source name to its absolute path on disk, so
+  // EDR can read the inline test configuration from the sources. A source
+  // without an entry has no inline configuration collected.
+  //
+  // EDR skips every source that carries no inline config directive, so there's
+  // no need to filter these paths here.
+  const testSourcePaths = Object.fromEntries(
+    testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
+      edrArtifact.id.source,
+      resolveFromRoot(hre.config.paths.root, userSourceName),
+    ]),
+  );
+
   console.log("Running Solidity tests");
   console.log();
 
   let includesFailures = false;
   let includesErrors = false;
 
-  const { eip712Types, ...solidityTestConfig } =
-    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+  const { eip712Types, ...solidityTestConfig } = selectedTestProfile;
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -233,11 +260,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const testFunctionOverrides = await getTestFunctionOverrides(
-    testSuiteArtifacts,
-    allBuildInfosAndOutputs,
-  );
-
   const eip712CanonicalTypes = await collectEip712CanonicalTypes(
     allBuildInfosAndOutputs,
     sourceNameToUserSourceName,
@@ -257,8 +279,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
-      testFunctionOverrides,
       eip712CanonicalTypes,
+      testSourcePaths,
+      testProfile: testProfileName,
+      declaredTestProfiles: Object.keys(hre.config.test.solidity.profiles),
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({
@@ -340,20 +364,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }
     });
 
-  const outputStream = testReporterStream.pipe(
+  const testRunError = await writeTestRunOutput(
+    runStream,
+    testReporterStream,
     createNonClosingWriter(process.stdout),
   );
 
-  try {
-    // NOTE: We're awaiting the original run stream to finish to catch any
-    // errors produced by the runner.
-    await finished(runStream);
-
-    // We also await the output stream to finish, as we want to wait for it
-    // to avoid returning before the whole output was generated.
-    await finished(outputStream);
-  } catch (error) {
-    console.error(error);
+  if (testRunError !== undefined) {
+    ensureError(testRunError);
+    await printErrorMessages(testRunError, hre.globalOptions.showStackTraces);
     includesErrors = true;
   }
 

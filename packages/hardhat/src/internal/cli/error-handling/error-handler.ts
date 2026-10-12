@@ -9,6 +9,7 @@ import {
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../../constants.js";
 
+import { detectInvalidProxyUrl } from "./invalid-proxy-url-error.js";
 import { detectNativeBindingFailure } from "./native-binding-error.js";
 
 // The classifier may import many unrelated things top-level to do its job, so
@@ -146,6 +147,22 @@ export async function printErrorMessages(
 }
 
 async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
+  // The proxy comes from the environment, so we handle it once here
+  // instead of at every call site. Validate first so a wrapper can't hide it.
+  const invalidProxyUrl = detectInvalidProxyUrl(error);
+  if (invalidProxyUrl !== undefined) {
+    return {
+      category: ErrorCategory.HARDHAT,
+      categorizedError: new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_PROXY_URL,
+        {
+          envVarName: invalidProxyUrl.envVarName,
+        },
+        error,
+      ),
+    };
+  }
+
   if (HardhatError.isHardhatError(error)) {
     if (error.pluginId === undefined) {
       return {

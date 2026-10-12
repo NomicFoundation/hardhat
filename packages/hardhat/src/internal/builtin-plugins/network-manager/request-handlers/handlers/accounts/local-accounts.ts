@@ -6,18 +6,19 @@ import type {
 import type { RequestHandler } from "../../types.js";
 import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 import type * as MicroEthSignerT from "micro-eth-signer";
-import type * as MicroEthSignerTypedDataT from "micro-eth-signer/typed-data";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   bytesToHexString,
   hexStringToBigInt,
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   bytesToBigInt,
   bytesToNumber,
@@ -32,7 +33,6 @@ import {
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
-let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
 
 import { getRequestParams } from "../../../json-rpc.js";
 import { ChainId } from "../chain-id/chain-id.js";
@@ -129,19 +129,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData =
-              await import("micro-eth-signer/typed-data");
+          if (microEthSigner === undefined) {
+            microEthSigner = await import("micro-eth-signer");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            microEthSignerTypedData.personal.sign(
-              data,
-              privateKey,
-              EXTRA_ENTROPY,
-            ),
+            microEthSigner.eip191Signer.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -159,19 +154,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData =
-              await import("micro-eth-signer/typed-data");
+          if (microEthSigner === undefined) {
+            microEthSigner = await import("micro-eth-signer");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            microEthSignerTypedData.personal.sign(
-              data,
-              privateKey,
-              EXTRA_ENTROPY,
-            ),
+            microEthSigner.eip191Signer.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -201,17 +191,13 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       // if we don't manage the address, the method is forwarded
       const privateKey = await this.#getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
-        if (microEthSignerTypedData === undefined) {
-          microEthSignerTypedData = await import("micro-eth-signer/typed-data");
+        if (microEthSigner === undefined) {
+          microEthSigner = await import("micro-eth-signer");
         }
 
         return this.#createJsonRpcResponse(
           jsonRpcRequest.id,
-          microEthSignerTypedData.signTyped(
-            typedMessage,
-            privateKey,
-            EXTRA_ENTROPY,
-          ),
+          microEthSigner.signTyped(typedMessage, privateKey, EXTRA_ENTROPY),
         );
       }
     }
@@ -224,6 +210,18 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
     if (jsonRpcRequest.method === "eth_sendTransaction" && params.length > 0) {
       const [txRequest] = validateParams(params, rpcTransactionRequest);
+
+      // We can't sign blob txs (type 3), and signing them as non-blob txs
+      // would drop their blobs silently
+      if (
+        txRequest.type === 3n ||
+        txRequest.blobs !== undefined ||
+        txRequest.blobVersionedHashes !== undefined
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.BLOB_TX_CANNOT_BE_SIGNED_LOCALLY,
+        );
+      }
 
       if (txRequest.gas === undefined) {
         throw new HardhatError(
@@ -254,6 +252,21 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       if (hasGasPrice && hasEip7702Fields) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
+        );
+      }
+
+      if (
+        hasEip7702Fields &&
+        (txRequest.to === undefined || txRequest.to === null)
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.EIP7702_TX_CANNOT_CREATE_CONTRACT,
+        );
+      }
+
+      if (txRequest.authorizationList?.length === 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.EMPTY_EIP7702_AUTHORIZATION_LIST,
         );
       }
 
@@ -431,58 +444,78 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       gasLimit: txData.gasLimit,
     };
 
-    if (authorizationList !== undefined) {
-      assertHardhatInvariant(
-        txData.maxFeePerGas !== undefined,
-        "maxFeePerGas should be defined",
-      );
+    try {
+      if (authorizationList !== undefined) {
+        assertHardhatInvariant(
+          txData.maxFeePerGas !== undefined,
+          "maxFeePerGas should be defined",
+        );
 
-      transaction = Transaction.prepare(
-        {
-          type: "eip7702",
-          ...baseTxParams,
-          maxFeePerGas: txData.maxFeePerGas,
-          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-          accessList: accessList ?? [],
-          authorizationList: authorizationList ?? [],
-        },
-        strictMode,
-      );
-    } else if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare(
-        {
-          type: "eip1559",
-          ...baseTxParams,
-          maxFeePerGas: txData.maxFeePerGas,
-          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-          accessList: accessList ?? [],
-        },
-        strictMode,
-      );
-    } else if (accessList !== undefined) {
-      transaction = Transaction.prepare(
-        {
-          type: "eip2930",
-          ...baseTxParams,
-          gasPrice: txData.gasPrice ?? 0n,
-          accessList,
-        },
-        strictMode,
-      );
-    } else {
-      transaction = Transaction.prepare(
-        {
-          type: "legacy",
-          ...baseTxParams,
-          gasPrice: txData.gasPrice ?? 0n,
-        },
-        strictMode,
-      );
+        transaction = Transaction.prepare(
+          {
+            type: "eip7702",
+            ...baseTxParams,
+            maxFeePerGas: txData.maxFeePerGas,
+            maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+            accessList: accessList ?? [],
+            authorizationList: authorizationList ?? [],
+          },
+          strictMode,
+        );
+      } else if (txData.maxFeePerGas !== undefined) {
+        transaction = Transaction.prepare(
+          {
+            type: "eip1559",
+            ...baseTxParams,
+            maxFeePerGas: txData.maxFeePerGas,
+            maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+            accessList: accessList ?? [],
+          },
+          strictMode,
+        );
+      } else if (accessList !== undefined) {
+        transaction = Transaction.prepare(
+          {
+            type: "eip2930",
+            ...baseTxParams,
+            gasPrice: txData.gasPrice ?? 0n,
+            accessList,
+          },
+          strictMode,
+        );
+      } else {
+        transaction = Transaction.prepare(
+          {
+            type: "legacy",
+            ...baseTxParams,
+            gasPrice: txData.gasPrice ?? 0n,
+          },
+          strictMode,
+        );
+      }
+    } catch (error) {
+      ensureError(error);
+
+      // micro-eth-signer reports invalid fields with a generic message and
+      // keeps the reasons in an `errors` array, so we include them in ours
+      if (isMicroEthSignerValidationError(error)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_TX_PARAMS_TO_SIGN_LOCALLY,
+          {
+            errors: error.errors
+              .map(({ field, error: reason }) => `\t* ${field}: ${reason}`)
+              .join("\n"),
+          },
+          error,
+        );
+      }
+
+      throw error;
     }
 
     const signedTransaction = transaction.signBy(privateKey, EXTRA_ENTROPY);
 
-    return signedTransaction.toRawBytes();
+    return signedTransaction.toBytes();
   }
 
   #createJsonRpcResponse(
@@ -495,4 +528,28 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       result,
     };
   }
+}
+
+/**
+ * Returns true if the error is micro-eth-signer's `AggregatedError`, which it
+ * throws when some of a transaction's fields are invalid. Each item of its
+ * `errors` array has the name of a field and the reason it's invalid.
+ *
+ * micro-eth-signer 0.19 doesn't export `AggregatedError` from its root, so we
+ * detect it structurally instead of using `instanceof`.
+ */
+function isMicroEthSignerValidationError(
+  error: Error,
+): error is Error & { errors: Array<{ field: string; error: string }> } {
+  return (
+    "errors" in error &&
+    Array.isArray(error.errors) &&
+    error.errors.length > 0 &&
+    error.errors.every(
+      (fieldError: unknown) =>
+        isObject(fieldError) &&
+        typeof fieldError.field === "string" &&
+        typeof fieldError.error === "string",
+    )
+  );
 }

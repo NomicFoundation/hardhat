@@ -1,5 +1,8 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  createEnvChanges,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -8,8 +11,17 @@ describe("chainId reconciliation", function () {
 
   useEphemeralIgnitionProject("default-with-new-chain-id");
 
+  // NOTE: This package runs its tests with mocha, so it uses `createEnvChanges`
+  // and restores from mocha's own hook, instead of `createTestEnvManager`, which
+  // registers a `node:test` one.
+  const envChanges = createEnvChanges();
+
+  afterEach(function () {
+    envChanges.restoreEnvVars();
+  });
+
   it("should halt when running a deployment on a different chain", async function () {
-    process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT = "true";
+    envChanges.setEnvVar("HARDHAT_IGNITION_CONFIRM_DEPLOYMENT", "true");
 
     await assertRejectsWithHardhatError(
       this.hre.tasks.getTask(["ignition", "deploy"]).run({
@@ -23,7 +35,5 @@ describe("chainId reconciliation", function () {
         previousChainId: 123,
       },
     );
-
-    delete process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT;
   });
 });

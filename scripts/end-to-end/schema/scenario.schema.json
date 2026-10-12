@@ -95,12 +95,41 @@
                   "runs": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Number of hyperfine runs for this command"
+                    "description": "Number of measured runs for this command"
+                  },
+                  "statistic": {
+                    "description": "Statistic of the measured runs tracked for wall-clock time, CPU time and peak RSS (default \"mean\"), for all three or per metric. Use \"median\" when runs can stall on something outside the code under test, e.g. a remote RPC round trip",
+                    "oneOf": [
+                      { "type": "string", "enum": ["mean", "median"] },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "wall": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          },
+                          "cpu": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          },
+                          "peakRss": {
+                            "type": "string",
+                            "enum": ["mean", "median"]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "warmup": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Optional number of unmeasured runs before the measured ones (default 0), e.g. to fill an on-disk RPC cache"
                   },
                   "prepare": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
+                    "description": "Optional shell snippet to run, unmeasured, before each timed run"
                   },
                   "command": {
                     "type": "string",
@@ -160,7 +189,7 @@
               }
             ]
           },
-          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk. Each entry is either a single hyperfine command or an in-process step sequence."
+          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk. Each entry is either a single command or a step sequence."
         }
       },
       "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"

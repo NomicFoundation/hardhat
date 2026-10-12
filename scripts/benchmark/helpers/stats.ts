@@ -10,18 +10,6 @@ export interface TimingStats {
   times: number[];
 }
 
-/**
- * Statistical summary of a benchmark command, in seconds — the shared shape
- * feeding `toEntry`, produced by both regression.ts paths: the hyperfine export
- * and the in-process steps path. `user`/`system` are mean CPU times: hyperfine
- * exports only the means, so the steps path aggregates its per-run samples to
- * match.
- */
-export interface BenchmarkStats extends TimingStats {
-  user: number;
-  system: number;
-}
-
 export function mean(values: number[]): number {
   if (values.length === 0) {
     throw new Error("mean requires at least one sample");

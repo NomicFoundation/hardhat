@@ -1,5 +1,45 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.4.0
+
+### Minor Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`eb2b13d`](https://github.com/NomicFoundation/hardhat/commit/eb2b13da0a4395006e39bc5927403dd21be13b02) Thanks [@schaable](https://github.com/schaable)! - Added an `abi` module with `encodeAbiParameters()` for ABI-encoding values against a list of Solidity parameter types.
+
+### Patch Changes
+
+- [#8646](https://github.com/NomicFoundation/hardhat/pull/8646) [`ac45dab`](https://github.com/NomicFoundation/hardhat/commit/ac45dab636432dbe98da5eb2909913dab0e202f5) Thanks [@renovate](https://github.com/apps/renovate)! - Updated the `@streamparser/json-node` dependency to 0.0.26.
+
+## 4.3.0
+
+### Minor Changes
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+## 4.2.0
+
+### Minor Changes
+
+- [#8583](https://github.com/NomicFoundation/hardhat/pull/8583) [`2c98fa5`](https://github.com/NomicFoundation/hardhat/commit/2c98fa5b05c3f2b8d06b44aae4ebea88b82ae132) Thanks [@schaable](https://github.com/schaable)! - Updated undici to v7.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
+## 4.1.9
+
+### Patch Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
+## 4.1.8
+
+### Patch Changes
+
+- [#8533](https://github.com/NomicFoundation/hardhat/pull/8533) [`cbe361a`](https://github.com/NomicFoundation/hardhat/commit/cbe361a667804f71fef69e608cf50030221380d2) Thanks [@kanej](https://github.com/kanej)! - Update the `fast-equals` runtime dependency to its latest major version.
+
 ## 4.1.7
 
 ### Patch Changes

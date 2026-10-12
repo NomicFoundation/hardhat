@@ -13,6 +13,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
+import { ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 import { VERIFICATION_PROVIDERS } from "../src/internal/verification-providers.js";
 import {
   verifyContract,
@@ -25,8 +26,7 @@ describe("verification", () => {
   describe("verifyContract", () => {
     describe("base cases", () => {
       useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
-        .origin;
+      const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
       });
@@ -42,8 +42,9 @@ describe("verification", () => {
         await hre.tasks.getTask("build").run();
       });
 
+      let etherscanMock: ReturnType<typeof mockEtherscanRequests>;
       beforeEach(() => {
-        mockEtherscanRequests(testDispatcher.interceptable);
+        etherscanMock = mockEtherscanRequests(testDispatcher.interceptable);
       });
 
       it("should verify a contract with no constructor arguments or libraries", async () => {
@@ -56,7 +57,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -81,11 +82,23 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
         assert.ok(result, "Verification should return true");
+
+        // The encoded arguments are what the explorer matches the creation
+        // transaction against, so assert the payload and not just the outcome.
+        assert.equal(
+          etherscanMock.verifyRequestBody?.get("constructorArguments"),
+          [
+            // _initialX: uint256 (0)
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            // _enabled: bool (true)
+            "0000000000000000000000000000000000000000000000000000000000000001",
+          ].join(""),
+        );
       });
 
       it("should verify a contract with libraries", async () => {
@@ -113,7 +126,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -147,7 +160,7 @@ describe("verification", () => {
           },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -179,7 +192,7 @@ describe("verification", () => {
           },
           localHre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -193,8 +206,7 @@ describe("verification", () => {
 
     describe("retry behavior", () => {
       useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
-        .origin;
+      const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
       });
@@ -226,7 +238,7 @@ describe("verification", () => {
             { address },
             hre,
             () => {},
-            testDispatcher.interceptable,
+            testDispatcher.dispatcher,
             provider,
           ),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
@@ -255,7 +267,7 @@ describe("verification", () => {
           { address },
           hre,
           () => {},
-          testDispatcher.interceptable,
+          testDispatcher.dispatcher,
           provider,
         );
 
@@ -419,7 +431,17 @@ describe("verification", () => {
   });
 });
 
-function mockEtherscanRequests(interceptable: Interceptable) {
+/**
+ * Mocks a successful Etherscan verification flow.
+ *
+ * @returns An accessor for the body sent to `verifysourcecode`, so that tests
+ * can assert on the payload and not just on the outcome.
+ */
+function mockEtherscanRequests(interceptable: Interceptable): {
+  readonly verifyRequestBody: URLSearchParams | undefined;
+} {
+  let verifyRequestBody: URLSearchParams | undefined;
+
   interceptable
     .intercept({
       path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
@@ -431,6 +453,15 @@ function mockEtherscanRequests(interceptable: Interceptable) {
     .intercept({
       path: /^\/(?:v2\/)?api\?action=verifysourcecode&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
       method: "POST",
+      // Always matches; this only captures the body for later assertions.
+      // undici also runs this for requests that don't match the interceptor,
+      // and those have no body, so they are ignored.
+      body: (body: string | undefined) => {
+        if (typeof body === "string") {
+          verifyRequestBody = new URLSearchParams(body);
+        }
+        return true;
+      },
     })
     .reply(200, {
       status: "1",
@@ -447,6 +478,12 @@ function mockEtherscanRequests(interceptable: Interceptable) {
       status: "1",
       result: "Pass - Verified",
     });
+
+  return {
+    get verifyRequestBody() {
+      return verifyRequestBody;
+    },
+  };
 }
 
 // Mocks a full Etherscan verification flow: the initial isVerified() lookup

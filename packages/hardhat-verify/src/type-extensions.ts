@@ -12,6 +12,11 @@ declare module "hardhat/types/config" {
   }
 
   export interface BlockscoutUserConfig {
+    /**
+     * The API key is optional: most Blockscout instances expose a public API
+     * that doesn't require one, but the Pro API does.
+     */
+    apiKey?: SensitiveString;
     enabled?: boolean;
   }
 
@@ -41,6 +46,7 @@ declare module "hardhat/types/config" {
   }
 
   export interface BlockscoutConfig {
+    apiKey?: ResolvedConfigurationVariable;
     enabled: boolean;
   }
 

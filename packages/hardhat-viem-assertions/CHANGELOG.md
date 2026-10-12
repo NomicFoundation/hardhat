@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.1.3
+
+### Patch Changes
+
+- [#8547](https://github.com/NomicFoundation/hardhat/pull/8547) [`b6f1e89`](https://github.com/NomicFoundation/hardhat/commit/b6f1e89e2a75ddfef9ec5ef298be5e96b080c99a) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed `balancesHaveChanged` not adding the gas fee back to the sender's balance when the sender address is passed in its checksummed form.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
 ## 3.1.2
 
 ### Patch Changes

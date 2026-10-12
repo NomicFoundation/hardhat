@@ -8,7 +8,10 @@ import querystring from "node:querystring";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import { Blockscout } from "../src/internal/blockscout.js";
@@ -50,6 +53,7 @@ describe("blockscout", () => {
     const constructorArguments = "";
     /* cspell:disable-next-line */
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
+    const apiKey = "someApiKey";
 
     describe("constructor", () => {
       it("should create an instance with the correct properties", () => {
@@ -58,6 +62,30 @@ describe("blockscout", () => {
         assert.equal(blockscout.name, blockscoutConfig.name);
         assert.equal(blockscout.url, blockscoutConfig.url);
         assert.equal(blockscout.apiUrl, blockscoutConfig.apiUrl);
+        assert.equal(blockscout.apiKey, undefined);
+      });
+
+      it("should create an instance with an apiKey if one is provided", () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+        });
+
+        assert.equal(blockscout.apiKey, apiKey);
+      });
+
+      it("should throw an error if the apiKey is empty", () => {
+        assertThrowsHardhatError(
+          () =>
+            new Blockscout({
+              ...blockscoutConfig,
+              apiKey: "",
+            }),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_API_KEY_EMPTY,
+          {
+            verificationProvider: blockscoutConfig.name,
+          },
+        );
       });
 
       it('should default to "Blockscout" if no name is provided', () => {
@@ -69,32 +97,7 @@ describe("blockscout", () => {
         assert.equal(blockscout.name, "Blockscout");
       });
 
-      it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-
-        const blockscout = new Blockscout(blockscoutConfig);
-
-        assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {
-          proxy: "http://test-proxy:8080",
-        });
-
-        delete process.env.https_proxy;
-      });
-
-      it("should not configure proxy when shouldUseProxy returns false", () => {
-        process.env.https_proxy = "http://test-proxy:8080";
-        process.env.NO_PROXY = "*";
-
-        const blockscout = new Blockscout(blockscoutConfig);
-
-        assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {});
-
-        delete process.env.https_proxy;
-        delete process.env.NO_PROXY;
-      });
-
-      it("should use provided dispatcher instead of auto-configuring proxy", async () => {
-        process.env.https_proxy = "http://test-proxy:8080";
+      it("should use the provided dispatcher", async () => {
         const dispatcher = await getDispatcher(blockscoutApiUrl);
 
         const blockscout = new Blockscout({
@@ -103,11 +106,9 @@ describe("blockscout", () => {
         });
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, dispatcher);
-
-        delete process.env.https_proxy;
       });
 
-      it("should configure no proxy when no environment variables are set", () => {
+      it("should default to empty dispatcher options", () => {
         const blockscout = new Blockscout(blockscoutConfig);
 
         assert.deepEqual(blockscout.dispatcherOrDispatcherOptions, {});
@@ -147,7 +148,7 @@ describe("blockscout", () => {
       it("should return true if the contract is verified", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -172,7 +173,7 @@ describe("blockscout", () => {
       it("should return false if the contract is not verified", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -209,7 +210,7 @@ describe("blockscout", () => {
       it("should throw an error if the request fails", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -253,10 +254,42 @@ describe("blockscout", () => {
         );
       });
 
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "getsourcecode",
+              address,
+              apikey: apiKey,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [
+              {
+                SourceCode: sourceCode,
+              },
+            ],
+          });
+
+        assert.equal(await blockscout.isVerified(address), true);
+      });
+
       it("should throw an error if the response status code is 300-399", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         isVerifiedInterceptor.reply(300, { result: "Redirection error" });
@@ -305,7 +338,7 @@ describe("blockscout", () => {
       it("should return a guid if the verification request was submitted successfully", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -330,10 +363,54 @@ describe("blockscout", () => {
         assert.equal(response, guid);
       });
 
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "POST",
+            query: {
+              module: "contract",
+              action: "verifysourcecode",
+              apikey: apiKey,
+            },
+            body: querystring.stringify({
+              contractaddress: address,
+              sourceCode: JSON.stringify(compilerInput),
+              codeformat: "solidity-standard-json-input",
+              contractname: contract,
+              compilerversion: compilerVersion,
+              constructorArguments,
+            }),
+          })
+          .reply(200, {
+            status: "1",
+            message: "OK",
+            result: guid,
+          });
+
+        const response = await blockscout.verify({
+          contractAddress: address,
+          compilerInput,
+          contractName: contract,
+          compilerVersion,
+          constructorArguments,
+        });
+
+        assert.equal(response, guid);
+      });
+
       it("should throw an error if the request fails", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -398,7 +475,7 @@ describe("blockscout", () => {
       it("should throw an error if the response status code is 300-399", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(300, { result: "Redirection error" });
@@ -425,7 +502,7 @@ describe("blockscout", () => {
       it("should throw an error if Blockscout is unable to locate the contract", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -452,7 +529,7 @@ describe("blockscout", () => {
       it("should throw an error if the contract is already verified", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -478,7 +555,7 @@ describe("blockscout", () => {
       it("should throw an error if the address does not contain a contract", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -504,7 +581,7 @@ describe("blockscout", () => {
       it("should throw an error if the blockscout response status is not 1", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         verifyInterceptor.reply(200, {
@@ -551,7 +628,7 @@ describe("blockscout", () => {
       it("should return the verification status", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -595,7 +672,7 @@ describe("blockscout", () => {
       it("should poll the verification status until it is successful or fails", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         let callCount = 0;
@@ -632,10 +709,44 @@ describe("blockscout", () => {
         assert.equal(callCount, 3);
       });
 
+      it("should send the apiKey as a query param if one is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiKey,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        // The interceptor query is matched exactly, so this only replies if
+        // the apikey query param is sent
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "checkverifystatus",
+              guid,
+              apikey: apiKey,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: "Pass - Verified",
+          });
+
+        const response = await blockscout.pollVerificationStatus(
+          guid,
+          address,
+          contract,
+        );
+
+        assert.equal(response.success, true);
+      });
+
       it("should throw an error if the request fails", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         // Simulate a network error
@@ -684,7 +795,7 @@ describe("blockscout", () => {
       it("should throw an error if the response status code is 300-399", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(300, {
@@ -707,7 +818,7 @@ describe("blockscout", () => {
       it("should throw an error if the contract is already verified", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -727,7 +838,7 @@ describe("blockscout", () => {
       it("should throw an error if the blockscout response status is not 1", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -746,7 +857,7 @@ describe("blockscout", () => {
       it("should throw an error if the blockscout response result is not 'Pass - Verified' or 'Fail - Unable to verify'", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -804,6 +915,44 @@ describe("blockscout", () => {
         result.blockExplorerConfig,
         testChainDescriptor.blockExplorers.blockscout,
       );
+      assert.deepEqual(
+        result.verificationProviderConfig,
+        verificationProvidersConfig.blockscout,
+      );
+    });
+
+    it("should return the blockscout verification provider config, including the apiKey", async () => {
+      const testChainDescriptor: ChainDescriptorConfig = {
+        name: "TestNet",
+        chainType: "l1",
+        blockExplorers: {
+          blockscout: {
+            url: "https://blockscout.test.com",
+            apiUrl: "https://api.blockscout.test.com/api",
+          },
+        },
+      };
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [123n, testChainDescriptor],
+      ]);
+
+      const blockscoutConfig = {
+        enabled: true,
+        apiKey: new MockResolvedConfigurationVariable("blockscout-key"),
+      };
+
+      const result = await Blockscout.resolveConfig({
+        chainId: 123,
+        networkName: "testnet",
+        chainDescriptors,
+        verificationProvidersConfig: {
+          ...verificationProvidersConfig,
+          blockscout: blockscoutConfig,
+        },
+      });
+
+      assert.deepEqual(result.verificationProviderConfig, blockscoutConfig);
     });
 
     it("should fetch from API when chain not in descriptors", async () => {
@@ -839,7 +988,7 @@ describe("blockscout", () => {
         networkName: "testnet",
         chainDescriptors,
         verificationProvidersConfig,
-        dispatcher: testDispatcher.interceptable,
+        dispatcher: testDispatcher.dispatcher,
         shouldUseCache: false,
       });
 
@@ -865,7 +1014,7 @@ describe("blockscout", () => {
           networkName: "unknown",
           chainDescriptors,
           verificationProvidersConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
           shouldUseCache: false,
         }),
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
@@ -919,7 +1068,7 @@ describe("blockscout", () => {
           networkName: "testnet",
           chainDescriptors,
           verificationProvidersConfig,
-          dispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.dispatcher,
           shouldUseCache: false,
         }),
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
@@ -929,6 +1078,38 @@ describe("blockscout", () => {
           chainId: 100,
         },
       );
+    });
+  });
+
+  describe("create", () => {
+    const blockExplorerConfig = {
+      url: "https://blockscout.test.com",
+      apiUrl: "https://blockscout.test.com/api",
+    };
+
+    it("should create an instance with the resolved apiKey", async () => {
+      const blockscout = await Blockscout.create({
+        blockExplorerConfig,
+        verificationProviderConfig: {
+          enabled: true,
+          apiKey: new MockResolvedConfigurationVariable("blockscout-key"),
+        },
+      });
+
+      assert.equal(blockscout.apiKey, "blockscout-key");
+    });
+
+    it("should create an instance without an apiKey when none is configured", async () => {
+      const blockscout = await Blockscout.create({
+        blockExplorerConfig,
+        verificationProviderConfig: {
+          enabled: true,
+        },
+      });
+
+      assert.equal(blockscout.apiKey, undefined);
+      assert.equal(blockscout.url, blockExplorerConfig.url);
+      assert.equal(blockscout.apiUrl, blockExplorerConfig.apiUrl);
     });
   });
 
@@ -968,11 +1149,11 @@ describe("blockscout", () => {
       });
 
       const result1 = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
       );
       // Second call will throw MockNotMatchedError if it tries to make another request
       const result2 = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
       );
 
       assert.equal(result1, result2, "Should return same cached instance");
@@ -1000,7 +1181,7 @@ describe("blockscout", () => {
       });
 
       const chains = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
         false,
       );
 
@@ -1047,7 +1228,7 @@ describe("blockscout", () => {
       });
 
       const chains = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
         false,
       );
 
@@ -1101,7 +1282,7 @@ describe("blockscout", () => {
       });
 
       const chains = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
         false,
       );
 
@@ -1119,7 +1300,7 @@ describe("blockscout", () => {
       getSupportedChainsInterceptor.reply(500, "Internal Server Error");
 
       const chains = await Blockscout.getSupportedChains(
-        testDispatcher.interceptable,
+        testDispatcher.dispatcher,
         false,
       );
 

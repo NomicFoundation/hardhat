@@ -1,55 +1,32 @@
-/* eslint-disable no-restricted-syntax -- hack */
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
   ChainDescriptorsConfig,
+  EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
 import type { GasMeasurement } from "../../../gas-analytics/types.js";
+import type { OpHardforkName } from "../types/hardfork.js";
 import type {
   IntervalRange,
   ChainOverride,
   ForkConfig,
   GasReport,
+  L1Hardfork,
+  OpHardfork,
 } from "@nomicfoundation/edr";
 
 import {
+  GasEstimationMode,
   GasReportExecutionStatus,
+  l1HardforkToString,
   MineOrdering,
-  OpHardfork,
-  SpecId,
-  FRONTIER,
-  HOMESTEAD,
-  DAO_FORK,
-  TANGERINE,
-  SPURIOUS_DRAGON,
-  BYZANTIUM,
-  CONSTANTINOPLE,
-  PETERSBURG,
-  ISTANBUL,
-  MUIR_GLACIER,
-  BERLIN,
-  LONDON,
-  ARROW_GLACIER,
-  GRAY_GLACIER,
-  MERGE,
-  SHANGHAI,
-  CANCUN,
-  PRAGUE,
-  OSAKA,
-  AMSTERDAM,
-  BEDROCK,
-  REGOLITH,
-  CANYON,
-  ECOTONE,
-  FJORD,
-  GRANITE,
-  HOLOCENE,
-  ISTHMUS,
+  opHardforkToString,
 } from "@nomicfoundation/edr";
+import { min } from "@nomicfoundation/hardhat-utils/bigint";
 
 import {
   GENERIC_CHAIN_TYPE,
@@ -61,194 +38,35 @@ import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
+  EIP_7825_TRANSACTION_GAS_CAP,
+  EIP_8037_MAX_TRANSACTION_GAS_LIMIT,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
+import { hardforkGte, L1HardforkName } from "../types/hardfork.js";
+
 import {
-  hardforkGte,
-  L1HardforkName,
-  OpHardforkName,
-} from "../types/hardfork.js";
+  getHardforkName,
+  getL1HardforkName,
+  getOpHardforkName,
+} from "./hardfork.js";
 
-import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
-
+/**
+ * Returns Hardhat's name for an EDR hardfork.
+ */
 export function edrL1HardforkToHardhatL1HardforkName(
-  hardfork: SpecId,
+  hardfork: L1Hardfork,
 ): L1HardforkName {
-  switch (hardfork) {
-    case SpecId.Frontier:
-      return L1HardforkName.FRONTIER;
-    case SpecId.FrontierThawing:
-      return L1HardforkName.FRONTIER;
-    case SpecId.Homestead:
-      return L1HardforkName.HOMESTEAD;
-    case SpecId.DaoFork:
-      return L1HardforkName.DAO;
-    case SpecId.Tangerine:
-      return L1HardforkName.TANGERINE_WHISTLE;
-    case SpecId.SpuriousDragon:
-      return L1HardforkName.SPURIOUS_DRAGON;
-    case SpecId.Byzantium:
-      return L1HardforkName.BYZANTIUM;
-    case SpecId.Constantinople:
-      return L1HardforkName.CONSTANTINOPLE;
-    case SpecId.Petersburg:
-      return L1HardforkName.PETERSBURG;
-    case SpecId.Istanbul:
-      return L1HardforkName.ISTANBUL;
-    case SpecId.MuirGlacier:
-      return L1HardforkName.MUIR_GLACIER;
-    case SpecId.Berlin:
-      return L1HardforkName.BERLIN;
-    case SpecId.London:
-      return L1HardforkName.LONDON;
-    case SpecId.ArrowGlacier:
-      return L1HardforkName.ARROW_GLACIER;
-    case SpecId.GrayGlacier:
-      return L1HardforkName.GRAY_GLACIER;
-    case SpecId.Merge:
-      return L1HardforkName.MERGE;
-    case SpecId.Shanghai:
-      return L1HardforkName.SHANGHAI;
-    case SpecId.Cancun:
-      return L1HardforkName.CANCUN;
-    case SpecId.Prague:
-      return L1HardforkName.PRAGUE;
-    case SpecId.Osaka:
-      return L1HardforkName.OSAKA;
-    case SpecId.Amsterdam:
-      return L1HardforkName.AMSTERDAM;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown L1 hardfork '${hardfork as SpecId}', this shouldn't happen`,
-      );
-  }
+  return getL1HardforkName(l1HardforkToString(hardfork));
 }
 
+/**
+ * Returns Hardhat's name for an EDR OP hardfork. See
+ * {@link edrL1HardforkToHardhatL1HardforkName}.
+ */
 export function edrOpHardforkToHardhatOpHardforkName(
   hardfork: OpHardfork,
 ): OpHardforkName {
-  switch (hardfork) {
-    case OpHardfork.Bedrock:
-      return OpHardforkName.BEDROCK;
-    case OpHardfork.Regolith:
-      return OpHardforkName.REGOLITH;
-    case OpHardfork.Canyon:
-      return OpHardforkName.CANYON;
-    case OpHardfork.Ecotone:
-      return OpHardforkName.ECOTONE;
-    case OpHardfork.Fjord:
-      return OpHardforkName.FJORD;
-    case OpHardfork.Granite:
-      return OpHardforkName.GRANITE;
-    case OpHardfork.Holocene:
-      return OpHardforkName.HOLOCENE;
-    case OpHardfork.Isthmus:
-      return OpHardforkName.ISTHMUS;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown OP hardfork '${hardfork as OpHardfork}', this shouldn't happen`,
-      );
-  }
-}
-
-export function hardhatHardforkToEdrSpecId(
-  hardfork: string,
-  chainType: ChainType,
-): string {
-  return chainType === OPTIMISM_CHAIN_TYPE
-    ? hardhatOpHardforkToEdrSpecId(hardfork)
-    : hardhatL1HardforkToEdrSpecId(hardfork);
-}
-
-function hardhatOpHardforkToEdrSpecId(hardfork: string): string {
-  const hardforkName = getOpHardforkName(hardfork);
-
-  switch (hardforkName) {
-    case OpHardforkName.BEDROCK:
-      return BEDROCK;
-    case OpHardforkName.REGOLITH:
-      return REGOLITH;
-    case OpHardforkName.CANYON:
-      return CANYON;
-    case OpHardforkName.ECOTONE:
-      return ECOTONE;
-    case OpHardforkName.FJORD:
-      return FJORD;
-    case OpHardforkName.GRANITE:
-      return GRANITE;
-    case OpHardforkName.HOLOCENE:
-      return HOLOCENE;
-    case OpHardforkName.ISTHMUS:
-      return ISTHMUS;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
-    default:
-      const _exhaustiveCheck: never = hardforkName;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
-        `Unknown hardfork name '${hardforkName as string}', this shouldn't happen`,
-      );
-  }
-}
-
-function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
-  const hardforkName = getL1HardforkName(hardfork);
-
-  switch (hardforkName) {
-    case L1HardforkName.FRONTIER:
-      return FRONTIER;
-    case L1HardforkName.HOMESTEAD:
-      return HOMESTEAD;
-    case L1HardforkName.DAO:
-      return DAO_FORK;
-    case L1HardforkName.TANGERINE_WHISTLE:
-      return TANGERINE;
-    case L1HardforkName.SPURIOUS_DRAGON:
-      return SPURIOUS_DRAGON;
-    case L1HardforkName.BYZANTIUM:
-      return BYZANTIUM;
-    case L1HardforkName.CONSTANTINOPLE:
-      return CONSTANTINOPLE;
-    case L1HardforkName.PETERSBURG:
-      return PETERSBURG;
-    case L1HardforkName.ISTANBUL:
-      return ISTANBUL;
-    case L1HardforkName.MUIR_GLACIER:
-      return MUIR_GLACIER;
-    case L1HardforkName.BERLIN:
-      return BERLIN;
-    case L1HardforkName.LONDON:
-      return LONDON;
-    case L1HardforkName.ARROW_GLACIER:
-      return ARROW_GLACIER;
-    case L1HardforkName.GRAY_GLACIER:
-      return GRAY_GLACIER;
-    case L1HardforkName.MERGE:
-      return MERGE;
-    case L1HardforkName.SHANGHAI:
-      return SHANGHAI;
-    case L1HardforkName.CANCUN:
-      return CANCUN;
-    case L1HardforkName.PRAGUE:
-      return PRAGUE;
-    case L1HardforkName.OSAKA:
-      return OSAKA;
-    case L1HardforkName.AMSTERDAM:
-      return AMSTERDAM;
-
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we want to print the fork
-    default:
-      const _exhaustiveCheck: never = hardforkName;
-      throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- an enum can be safely cast to a string
-        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
-      );
-  }
+  return getOpHardforkName(opHardforkToString(hardfork));
 }
 
 export function hardhatMiningIntervalToEdrMiningInterval(
@@ -263,8 +81,8 @@ export function hardhatMiningIntervalToEdrMiningInterval(
     }
   } else {
     return {
-      min: BigInt(config[0]),
-      max: BigInt(config[1]),
+      min: BigInt(Math.max(1, config[0])),
+      max: BigInt(Math.max(1, config[1])),
     };
   }
 }
@@ -277,6 +95,17 @@ export function hardhatMempoolOrderToEdrMineOrdering(
       return MineOrdering.Fifo;
     case "priority":
       return MineOrdering.Priority;
+  }
+}
+
+export function hardhatGasEstimationModeToEdrGasEstimationMode(
+  gasEstimationMode: EdrNetworkConfig["gasEstimationMode"],
+): GasEstimationMode {
+  switch (gasEstimationMode) {
+    case "topLevelSuccess":
+      return GasEstimationMode.TopLevelSuccess;
+    case "noInternalOutOfGas":
+      return GasEstimationMode.NoInternalOutOfGas;
   }
 }
 
@@ -349,10 +178,7 @@ export function hardhatChainDescriptorsToEdrChainOverrides(
               blockNumber !== undefined
                 ? { blockNumber: BigInt(blockNumber) }
                 : { timestamp: BigInt(timestamp) },
-            hardfork: hardhatHardforkToEdrSpecId(
-              hardfork,
-              descriptor.chainType,
-            ),
+            hardfork: getHardforkName(hardfork, descriptor.chainType),
           }));
         }
 
@@ -393,11 +219,18 @@ export async function hardhatForkingConfigToEdrForkConfig(
 
 /**
  * Resolves the default transaction gas limit used by RPC call and
- * transaction requests that omit a `gas` field.
+ * transaction requests that omit a `gas` field. This includes
+ * `eth_estimateGas`: when the request doesn't specify `gas`, EDR uses this
+ * value as the upper bound of the estimation, so it should be the most gas a
+ * transaction can use.
  *
- * When `transactionGasCap` is a bigint, that value wins. When it is
- * `false`, the per-transaction cap is disabled and the block gas limit is
- * used. When it is undefined, the hardfork-specific default applies:
+ * From L1's Amsterdam hardfork onwards, EIP-8037 limits `transactionGasCap`
+ * to execution gas, and a transaction can use up to the minimum of the block
+ * gas limit or 2^32 - 1, no matter what `transactionGasCap` is.
+ *
+ * Before Amsterdam, when `transactionGasCap` is a bigint, that value wins.
+ * When it is `false`, the per-transaction cap is disabled and the block gas
+ * limit is used. When it is undefined, the hardfork-specific default applies:
  * from L1's Osaka hardfork onwards, the EIP-7825 transaction gas cap of
  * 16,777,216; otherwise the block gas limit.
  */
@@ -408,6 +241,13 @@ export function resolveDefaultTransactionGasLimit(params: {
   transactionGasCap: bigint | false | undefined;
 }): bigint {
   const { chainType, hardfork, blockGasLimit, transactionGasCap } = params;
+
+  if (
+    chainType !== OPTIMISM_CHAIN_TYPE &&
+    hardforkGte(hardfork, L1HardforkName.AMSTERDAM, chainType)
+  ) {
+    return min(blockGasLimit, EIP_8037_MAX_TRANSACTION_GAS_LIMIT);
+  }
 
   if (typeof transactionGasCap === "bigint") {
     return transactionGasCap;
@@ -423,7 +263,7 @@ export function resolveDefaultTransactionGasLimit(params: {
   }
 
   if (hardforkGte(hardfork, L1HardforkName.OSAKA, chainType)) {
-    return 16_777_216n; // EIP-7825 transaction gas cap
+    return EIP_7825_TRANSACTION_GAS_CAP;
   }
 
   return blockGasLimit;

@@ -95,15 +95,16 @@ export async function init(
   }
 
   const startedVerdaccio = !verdaccioAlreadyRunning;
-  if (startedVerdaccio || forcePublish === ForcePublish.Yes) {
-    if (useLocal === UseLocal.Yes) {
-      sinceReleasePublish();
-    } else {
-      verdaccioPublish(false, true);
-    }
-  }
 
   try {
+    if (startedVerdaccio || forcePublish === ForcePublish.Yes) {
+      if (useLocal === UseLocal.Yes) {
+        await sinceReleasePublish();
+      } else {
+        verdaccioPublish(false, true);
+      }
+    }
+
     setupScenario(scenario, forceCheckout);
 
     if (useLocal === UseLocal.Yes) {

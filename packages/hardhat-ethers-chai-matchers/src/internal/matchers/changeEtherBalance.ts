@@ -8,7 +8,7 @@ import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCE_MATCHER } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
-import { assertIsNotNull } from "../utils/asserts.js";
+import { assertIsNotNull, checkTransactionResponse } from "../utils/asserts.js";
 import { getBalances, type BalanceChangeOptions } from "../utils/balance.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
@@ -86,6 +86,8 @@ export async function getBalanceChange(
   } else {
     txResponse = await transaction;
   }
+
+  checkTransactionResponse(txResponse, CHANGE_ETHER_BALANCE_MATCHER);
 
   const txReceipt = await txResponse.wait();
   assertIsNotNull(

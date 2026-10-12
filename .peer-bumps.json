@@ -6,11 +6,5 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-slang-solx",
-      "peer": "hardhat",
-      "reason": "#8539 the plugin now writes `compilerType: \"slangSolx\"` into its build infos, and only a Hardhat bundling EDR 0.16.0 or later understands that value. An older Hardhat degrades the artifact to solc and silently loses Solidity stack traces, so the plugin has to require the version that carries the EDR upgrade."
-    }
-  ]
+  "bumps": []
 }

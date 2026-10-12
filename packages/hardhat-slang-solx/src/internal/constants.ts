@@ -4,7 +4,7 @@ import type { SolidityCompilerType } from "hardhat/types/config";
  * The compiler type identifier registered by this plugin.
  * Typed as SolidityCompilerType for type-safe comparisons.
  */
-export const SLANG_SOLX_COMPILER_TYPE: SolidityCompilerType = "slangSolx";
+export const SLANG_SOLX_COMPILER_TYPE: SolidityCompilerType = "slang-solx";
 
 export const SOLX_RELEASES_BASE_URL =
   "https://solx-releases-mirror.hardhat.org";
@@ -37,5 +37,5 @@ export const DEFAULT_SOLX_OPTIMIZER_MODE = "1";
 
 /** Maps Solidity versions to the solx version that embeds them. */
 export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
-  "0.8.34": "0.1.7",
+  "0.8.34": "0.1.8",
 };

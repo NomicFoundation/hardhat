@@ -13,4 +13,7 @@ export default defineConfig({
       include: [/core/, /node_modules/],
     },
   },
+  server: {
+    host: "127.0.0.1",
+  },
 });
