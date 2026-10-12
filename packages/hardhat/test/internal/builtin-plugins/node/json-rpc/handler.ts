@@ -373,23 +373,21 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.reason, "InternalCallOutOfGas");
   });
 
-  it("should allow POST in the CORS preflight response", async function () {
-    // A browser page calling a `hardhat node` JSON-RPC endpoint with
-    // `fetch(..., { method: "POST", headers: { "Content-Type": "application/json" } })`
-    // triggers a CORS preflight. The preflight response must list POST among the
-    // allowed methods, otherwise the browser blocks the real POST request.
-    const res = await requestOptions(hostname, port);
+  it("should list the served methods in the CORS preflight response", async function () {
+    const headers = await new Promise<http.IncomingHttpHeaders>(
+      (resolve, reject) => {
+        http
+          .request({ hostname, port, method: "OPTIONS" }, (res) => {
+            res.resume();
+            resolve(res.headers);
+          })
+          .once("error", reject)
+          .end();
+      },
+    );
 
-    const allowMethods = res.headers["access-control-allow-methods"];
-    assert.ok(
-      typeof allowMethods === "string",
-      "Expected an Access-Control-Allow-Methods header",
-    );
-    assert.match(
-      allowMethods,
-      /(^|,\s*)POST(\s*,|$)/,
-      `Expected POST in "${allowMethods}"`,
-    );
+    assert.equal(headers["access-control-allow-methods"], "OPTIONS, POST");
+    assert.equal(headers["access-control-request-method"], undefined);
   });
 
   it("should expose revert data as a hex string for code 3 errors (geth/anvil convention)", async function () {
@@ -457,35 +455,6 @@ async function postRawJsonRpc(
     req.once("error", reject);
     req.once("timeout", reject);
     req.write(rawBody);
-    req.end();
-  });
-}
-
-async function requestOptions(
-  hostname: string,
-  port: number,
-): Promise<{ headers: http.IncomingHttpHeaders }> {
-  return await new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        hostname,
-        port,
-        method: "OPTIONS",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Request-Method": "POST",
-        },
-        timeout: 500,
-      },
-      (res) => {
-        res.resume(); // drain the (empty) response body
-        res.on("end", () => {
-          resolve({ headers: res.headers });
-        });
-      },
-    );
-    req.once("error", reject);
-    req.once("timeout", reject);
     req.end();
   });
 }
