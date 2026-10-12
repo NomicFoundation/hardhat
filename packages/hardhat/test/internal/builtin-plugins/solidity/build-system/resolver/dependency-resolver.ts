@@ -3275,6 +3275,13 @@ submodule2/=lib/submodule2/src/`,
 
             await assertSuggestedRelativeImport(
               resolver,
+              contractsA.value,
+              "b.sol",
+              "./B.sol",
+            );
+
+            await assertSuggestedRelativeImport(
+              resolver,
               libSubmoduleSrcAsdD.value,
               "C.sol",
               "../C.sol",

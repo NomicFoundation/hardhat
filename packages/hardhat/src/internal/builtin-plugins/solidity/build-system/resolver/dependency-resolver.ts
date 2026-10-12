@@ -946,10 +946,28 @@ export class ResolverImplementation implements Resolver {
 
     if (!importPath.includes("/")) {
       while (baseDir.startsWith(from.package.rootFsPath)) {
-        const candidateFsPath = path.join(baseDir, importPath);
+        // We look the file up with its true casing, so that the suggestion
+        // works as written, even if the import's casing doesn't match it.
+        const pathValidation = await validateFsPath(
+          this.#trueCasePathResolver,
+          baseDir,
+          importPath,
+        );
+
+        const trueCaseFileName =
+          pathValidation.success === true
+            ? importPath
+            : pathValidation.error.type === PathValidationErrorType.CASING_ERROR
+              ? pathValidation.error.correctCasing
+              : undefined;
+
+        const candidateFsPath =
+          trueCaseFileName !== undefined
+            ? path.join(baseDir, trueCaseFileName)
+            : undefined;
 
         if (
-          (await exists(candidateFsPath)) &&
+          candidateFsPath !== undefined &&
           !(await isDirectory(candidateFsPath))
         ) {
           const relativeFsPath = path.relative(
