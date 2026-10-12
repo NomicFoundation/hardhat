@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.1.1
+
+### Patch Changes
+
+- [#8645](https://github.com/NomicFoundation/hardhat/pull/8645) [`155fab9`](https://github.com/NomicFoundation/hardhat/commit/155fab9093e5ad91db879462473856e5d611cf23) Thanks [@renovate](https://github.com/apps/renovate)! - Updated the `@noble/ciphers` and `@noble/hashes` dependencies to 2.4.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.1.0
 
 ### Minor Changes

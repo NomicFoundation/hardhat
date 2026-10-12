@@ -7,6 +7,7 @@ import {
   createPeakRssRecorder,
   GNU_TIME_PATH,
   parseGnuTimeMaxRssMb,
+  parsePeakRssMethod,
   PeakRssMethod,
   resolvePeakRssMethod,
   wrapWithGnuTime,
@@ -53,14 +54,13 @@ describe("wrapWithGnuTime", () => {
 
 describe("parseGnuTimeMaxRssMb", () => {
   it("converts the reported kB to whole MB", () => {
-    assert.equal(parseGnuTimeMaxRssMb(`${PEAK_RSS_KB}\n`, "x"), PEAK_RSS_MB);
+    assert.equal(parseGnuTimeMaxRssMb(`${PEAK_RSS_KB}\n`), PEAK_RSS_MB);
   });
 
   it("reads past the prefix line GNU time adds on a non-zero exit", () => {
     assert.equal(
       parseGnuTimeMaxRssMb(
         `Command exited with non-zero status 3\n${PEAK_RSS_KB}\n`,
-        "x",
       ),
       PEAK_RSS_MB,
     );
@@ -68,33 +68,30 @@ describe("parseGnuTimeMaxRssMb", () => {
 
   it("reads past the prefix line GNU time adds on a signal", () => {
     assert.equal(
-      parseGnuTimeMaxRssMb(
-        `Command terminated by signal 9\n${PEAK_RSS_KB}\n`,
-        "x",
-      ),
+      parseGnuTimeMaxRssMb(`Command terminated by signal 9\n${PEAK_RSS_KB}\n`),
       PEAK_RSS_MB,
     );
   });
 
-  it("names the report file when the content is unparseable", () => {
+  it("throws on unparseable content, quoting it", () => {
     assert.throws(
-      () => parseGnuTimeMaxRssMb("", REPORT_PATH),
-      new RegExp(REPORT_PATH),
+      () => parseGnuTimeMaxRssMb("garbage\n"),
+      /Unparseable GNU time output: "garbage\\n"/,
     );
   });
 
   it("rejects a non-integer or non-positive reading", () => {
-    assert.throws(() => parseGnuTimeMaxRssMb("no numbers here", "x"));
-    assert.throws(() => parseGnuTimeMaxRssMb("1.5\n", "x"));
-    assert.throws(() => parseGnuTimeMaxRssMb("0\n", "x"));
+    assert.throws(() => parseGnuTimeMaxRssMb("no numbers here"));
+    assert.throws(() => parseGnuTimeMaxRssMb("1.5\n"));
+    assert.throws(() => parseGnuTimeMaxRssMb("0\n"));
   });
 
   it("rejects a report that holds only the failure prefix line", () => {
     assert.throws(() =>
-      parseGnuTimeMaxRssMb("Command exited with non-zero status 3\n", "x"),
+      parseGnuTimeMaxRssMb("Command exited with non-zero status 3\n"),
     );
     assert.throws(() =>
-      parseGnuTimeMaxRssMb("Command terminated by signal 9\n", "x"),
+      parseGnuTimeMaxRssMb("Command terminated by signal 9\n"),
     );
   });
 });
@@ -116,6 +113,18 @@ describe("resolvePeakRssMethod", () => {
       () =>
         resolvePeakRssMethod(PeakRssMethod.GnuTime, AVAILABILITY.samplerOnly),
       /\/usr\/bin\/time.*apt-get install -y time/s,
+    );
+  });
+
+  it("suggests the sampler only when it would work", () => {
+    assert.throws(
+      () =>
+        resolvePeakRssMethod(PeakRssMethod.GnuTime, AVAILABILITY.samplerOnly),
+      /--peak-rss sampler/,
+    );
+    assert.throws(
+      () => resolvePeakRssMethod(PeakRssMethod.GnuTime, AVAILABILITY.neither),
+      (error: Error) => !error.message.includes("--peak-rss sampler"),
     );
   });
 
@@ -149,6 +158,27 @@ describe("resolvePeakRssMethod", () => {
   });
 });
 
+describe("parsePeakRssMethod", () => {
+  it("maps each documented value to its method", () => {
+    assert.equal(parsePeakRssMethod("gnu-time"), PeakRssMethod.GnuTime);
+    assert.equal(parsePeakRssMethod("sampler"), PeakRssMethod.Sampler);
+  });
+
+  it("returns undefined when the option was not given", () => {
+    assert.equal(parsePeakRssMethod(undefined), undefined);
+  });
+
+  it("rejects an unknown value, naming the accepted ones", () => {
+    assert.throws(
+      () => parsePeakRssMethod("auto"),
+      /--peak-rss must be one of gnu-time, sampler \(got "auto"\)/,
+    );
+    assert.throws(() => parsePeakRssMethod(""));
+    assert.throws(() => parsePeakRssMethod("GNU-TIME"));
+    assert.throws(() => parsePeakRssMethod("constructor"));
+  });
+});
+
 // Module scope: a file-root after() still runs when the suite is skipped or
 // filtered out, so the directory never leaks.
 const recorderTmpDir = mkdtempSync(
@@ -166,19 +196,19 @@ describe("createPeakRssRecorder", () => {
     assert.equal(recorder.finish(), undefined);
   });
 
-  it("throws, naming the report, when GNU time never wrote it", () => {
+  it("throws when the GNU time report is missing or empty", () => {
     rmSync(memPath, { force: true });
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      new RegExp(memPath),
+      { message: "GNU time wrote no report" },
     );
 
     writeFileSync(memPath, "");
 
     assert.throws(
       () => createPeakRssRecorder(PeakRssMethod.GnuTime, memPath).finish(),
-      new RegExp(memPath),
+      { message: "GNU time left an empty report" },
     );
   });
 

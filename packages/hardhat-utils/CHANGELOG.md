@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.4.0
+
+### Minor Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`eb2b13d`](https://github.com/NomicFoundation/hardhat/commit/eb2b13da0a4395006e39bc5927403dd21be13b02) Thanks [@schaable](https://github.com/schaable)! - Added an `abi` module with `encodeAbiParameters()` for ABI-encoding values against a list of Solidity parameter types.
+
+### Patch Changes
+
+- [#8646](https://github.com/NomicFoundation/hardhat/pull/8646) [`ac45dab`](https://github.com/NomicFoundation/hardhat/commit/ac45dab636432dbe98da5eb2909913dab0e202f5) Thanks [@renovate](https://github.com/apps/renovate)! - Updated the `@streamparser/json-node` dependency to 0.0.26.
+
 ## 4.3.0
 
 ### Minor Changes

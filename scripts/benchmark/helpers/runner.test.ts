@@ -1,4 +1,5 @@
 import { after, describe, it } from "node:test";
+import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 import {
   existsSync,
@@ -9,15 +10,20 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { setTimeout as delay } from "node:timers/promises";
 import {
+  calibrationFailure,
   CommandFailedError,
   formatOutput,
   measureShellSpawnOverhead,
   NO_SPAWN_OVERHEAD,
   parseCpuTiming,
+  readCpuTiming,
   reportPathsIn,
   runMeasured,
   runSeries,
+  withReportDir,
   wrapWithCpuTiming,
   type MeasuredRun,
   type ReportPaths,
@@ -90,33 +96,46 @@ describe("wrapWithCpuTiming", () => {
   });
 });
 
+describe("readCpuTiming", () => {
+  it("reports a missing report without its path", () => {
+    assert.throws(
+      () => readCpuTiming(path.join(measuredTmp.dir, "missing-cpu.txt")),
+      { message: "bash time wrote no report" },
+    );
+  });
+});
+
 describe("parseCpuTiming", () => {
   it("parses user and system seconds", () => {
-    assert.deepEqual(parseCpuTiming("1.25 0.75\n", "x"), {
+    assert.deepEqual(parseCpuTiming("1.25 0.75\n"), {
       user: 1.25,
       system: 0.75,
     });
   });
 
   it("parses a comma decimal separator from a non-C locale", () => {
-    assert.deepEqual(parseCpuTiming("0,003 0,001\n", "x"), {
+    assert.deepEqual(parseCpuTiming("0,003 0,001\n"), {
       user: 0.003,
       system: 0.001,
     });
   });
 
-  it("throws on unparseable content", () => {
-    assert.throws(() => parseCpuTiming("", "/tmp/cpu.txt"), /\/tmp\/cpu\.txt/);
-    assert.throws(() => parseCpuTiming("no numbers here", "x"));
+  it("throws on unparseable content, quoting it", () => {
+    assert.throws(
+      () => parseCpuTiming("garbage\n"),
+      /Unparseable bash time output: "garbage\\n"/,
+    );
+    assert.throws(() => parseCpuTiming(""), /Unparseable bash time output: ""/);
+    assert.throws(() => parseCpuTiming("no numbers here"));
   });
 
   it("throws when the system time is missing", () => {
-    assert.throws(() => parseCpuTiming("1.25\n", "x"));
+    assert.throws(() => parseCpuTiming("1.25\n"));
   });
 
   it("throws on unexpected extra tokens", () => {
-    assert.throws(() => parseCpuTiming("1.25 0.75 0.99\n", "x"));
-    assert.throws(() => parseCpuTiming("stray output\n1.25 0.75\n", "x"));
+    assert.throws(() => parseCpuTiming("1.25 0.75 0.99\n"));
+    assert.throws(() => parseCpuTiming("stray output\n1.25 0.75\n"));
   });
 });
 
@@ -325,6 +344,236 @@ describe(
     );
   },
 );
+
+describe("withReportDir", () => {
+  const prefix = "runner-report-dir-test-";
+
+  it("names each call's directory with the prefix and never shares it", async () => {
+    const dirs = await withReportDir(prefix, async (outer) =>
+      withReportDir(prefix, async (inner) => [outer, inner]),
+    );
+
+    for (const dir of dirs) {
+      assert.ok(path.basename(dir).startsWith(prefix), dir);
+    }
+
+    assert.notEqual(dirs[0], dirs[1]);
+  });
+
+  it("keeps the directory until fn settles, then removes it", async () => {
+    const dir = await withReportDir(prefix, async (created) => {
+      await delay(0);
+      assert.ok(existsSync(created));
+
+      return created;
+    });
+
+    assert.equal(existsSync(dir), false);
+  });
+
+  it("removes the directory when fn rejects and propagates the rejection", async () => {
+    let created: string | undefined;
+
+    await assert.rejects(
+      withReportDir(prefix, async (dir) => {
+        created = dir;
+        writeFileSync(path.join(dir, "run-cpu.txt"), "");
+        throw new Error("phase failed");
+      }),
+      /phase failed/,
+    );
+
+    assert.notEqual(created, undefined);
+    assert.equal(existsSync(created), false);
+  });
+});
+
+// child.kill() on Windows ends the child without running its signal
+// handlers.
+const WINDOWS = process.platform === "win32";
+
+describe("withReportDir on termination (subprocess)", { skip: WINDOWS }, () => {
+  const prefix = "runner-signal-test-";
+  const runnerUrl = pathToFileURL(path.join(import.meta.dirname, "runner.ts"));
+  // A handler that never fires would hang the child, which must fail the test
+  // instead.
+  const deadlineMs = 10_000;
+
+  /**
+   * Source for a child that holds two nested report directories. It prints
+   * both, waits `holdMs`, then prints whether they still exist. `before`
+   * runs ahead of the first `withReportDir` call, `setup` inside the inner
+   * callback, after the handlers are installed.
+   */
+  function holdReportDirs(setup: string, holdMs: number, before = ""): string {
+    return `
+      const { existsSync } = await import("node:fs");
+      const { withReportDir } = await import(${JSON.stringify(runnerUrl.href)});
+      ${before}
+      await withReportDir(${JSON.stringify(prefix)}, (outer) =>
+        withReportDir(${JSON.stringify(prefix)}, async (inner) => {
+          ${setup}
+          console.log(outer);
+          console.log(inner);
+          await new Promise((resolve) => setTimeout(resolve, ${holdMs}));
+          console.log(existsSync(outer), existsSync(inner));
+        }),
+      );
+    `;
+  }
+
+  interface Ended {
+    dirs: string[];
+    lines: string[];
+    code: number | null;
+    signal: NodeJS.Signals | null;
+  }
+
+  async function endWithSignal(
+    script: string,
+    signal: NodeJS.Signals,
+  ): Promise<Ended> {
+    const child = spawn(
+      process.execPath,
+      ["--input-type=module", "--eval", script],
+      { stdio: ["ignore", "pipe", "inherit"] },
+    );
+    let stdout = "";
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    const lines = () => stdout.split("\n").filter((line) => line !== "");
+
+    const closed = new Promise<[number | null, NodeJS.Signals | null]>(
+      (resolve, reject) => {
+        child.once("close", (code, endedBy) => resolve([code, endedBy]));
+        child.once("error", reject);
+      },
+    );
+    const deadline = new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error(`child still running after ${deadlineMs} ms`)),
+        deadlineMs,
+      ).unref();
+    });
+
+    try {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          child.stdout.on("data", () => {
+            if (lines().length >= 2) {
+              resolve();
+            }
+          });
+        }),
+        closed.then(() => {
+          throw new Error(`child ended early: ${stdout}`);
+        }),
+        deadline,
+      ]);
+
+      const dirs = lines().slice(0, 2);
+
+      for (const dir of dirs) {
+        assert.ok(existsSync(dir), dir);
+      }
+
+      child.kill(signal);
+      const [code, endedBy] = await Promise.race([closed, deadline]);
+
+      return { dirs, lines: lines(), code, signal: endedBy };
+    } finally {
+      child.kill("SIGKILL");
+    }
+  }
+
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const) {
+    it(`removes both directories and dies by ${signal} when nothing else handles it`, async () => {
+      const ended = await endWithSignal(holdReportDirs("", 60_000), signal);
+
+      assert.equal(ended.signal, signal);
+      assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+    });
+  }
+
+  it("removes both directories when another listener exits the process", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        'process.on("SIGTERM", () => setTimeout(() => process.exit(7), 0));',
+        60_000,
+      ),
+      "SIGTERM",
+    );
+
+    assert.equal(ended.code, 7);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+
+  it("defers to a one-shot listener installed earlier that swallows the signal", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        "",
+        300,
+        'process.once("SIGINT", () => console.log("swallowed"));',
+      ),
+      "SIGINT",
+    );
+
+    assert.equal(ended.code, 0);
+    assert.deepEqual(ended.lines.slice(2), ["swallowed", "true true"]);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+
+  it("keeps the run and its directories alive when another listener swallows the signal", async () => {
+    const ended = await endWithSignal(
+      holdReportDirs(
+        'process.on("SIGINT", () => console.log("swallowed"));',
+        300,
+      ),
+      "SIGINT",
+    );
+
+    assert.equal(ended.code, 0);
+    assert.deepEqual(ended.lines.slice(2), ["swallowed", "true true"]);
+    assert.deepEqual(ended.dirs.map(existsSync), [false, false]);
+  });
+});
+
+describe("calibrationFailure", () => {
+  it("keeps a failed command's captured output", () => {
+    const failure = calibrationFailure(
+      new CommandFailedError("Command exited with code 127", "out", "err"),
+    );
+
+    assert.ok(failure instanceof CommandFailedError);
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: Command exited with code 127",
+    );
+    assert.deepEqual([failure.stdout, failure.stderr], ["out", "err"]);
+  });
+
+  it("wraps any other error, keeping it as the cause", () => {
+    const cause = new Error("GNU time wrote no report");
+    const failure = calibrationFailure(cause);
+
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: GNU time wrote no report",
+    );
+    assert.equal(failure.cause, cause);
+  });
+
+  it("wraps a thrown non-Error value as text, keeping it as the cause", () => {
+    const failure = calibrationFailure("bash: time: not found");
+
+    assert.equal(
+      failure.message,
+      "Spawn-overhead calibration failed: bash: time: not found",
+    );
+    assert.equal(failure.cause, "bash: time: not found");
+  });
+});
 
 describe("measureShellSpawnOverhead (subprocess)", { skip: !HAS_BASH }, () => {
   it("reports a finite, non-negative wall, user and system overhead", async () => {

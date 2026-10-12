@@ -78,8 +78,9 @@ export function detectPeakRssAvailability(): PeakRssAvailability {
  * A `requested` method that this machine cannot provide throws, so an
  * explicit choice never degrades silently. Without a request, GNU time wins
  * for its exactness and the sampler is the fallback. bench:regression always
- * requests GNU time, so the fallback serves ad-hoc callers. An undefined
- * result means neither is available, so memory goes unmeasured.
+ * requests a method (GNU time unless --peak-rss says otherwise), so the
+ * fallback serves `pnpm bench`. An undefined result means neither is
+ * available, so memory goes unmeasured.
  */
 export function resolvePeakRssMethod(
   requested: PeakRssMethod,
@@ -95,7 +96,13 @@ export function resolvePeakRssMethod(
 ): PeakRssMethod | undefined {
   if (requested === PeakRssMethod.GnuTime) {
     if (!availability.gnuTime) {
-      throw new Error(GNU_TIME_UNAVAILABLE);
+      // Only suggest the sampler when it would actually work; on e.g. macOS
+      // neither method is available.
+      throw new Error(
+        availability.sampler
+          ? `${GNU_TIME_UNAVAILABLE}, or pass --peak-rss sampler`
+          : GNU_TIME_UNAVAILABLE,
+      );
     }
 
     return PeakRssMethod.GnuTime;
@@ -132,6 +139,47 @@ export function resolvePeakRssMethod(
   return undefined;
 }
 
+const PEAK_RSS_FLAG = "--peak-rss";
+
+/** `--peak-rss` values, as both benchmark CLIs spell them. */
+export const PEAK_RSS_METHOD_FLAGS: Readonly<Record<string, PeakRssMethod>> = {
+  "gnu-time": PeakRssMethod.GnuTime,
+  sampler: PeakRssMethod.Sampler,
+};
+
+const PEAK_RSS_METHOD_LIST = Object.keys(PEAK_RSS_METHOD_FLAGS).join(", ");
+
+/** Each method's CLI spelling, for user-facing output. */
+export const PEAK_RSS_METHOD_NAMES: Readonly<Record<PeakRssMethod, string>> =
+  Object.fromEntries(
+    Object.entries(PEAK_RSS_METHOD_FLAGS).map(([flag, method]) => [
+      method,
+      flag,
+    ]),
+  ) as Record<PeakRssMethod, string>;
+
+/**
+ * Map a `--peak-rss` value to its method. Undefined passes through, so each
+ * CLI applies its own default, and an unknown value throws.
+ */
+export function parsePeakRssMethod(
+  raw: string | undefined,
+): PeakRssMethod | undefined {
+  if (raw === undefined) {
+    return undefined;
+  }
+
+  // Object.hasOwn: a plain index would also find Object.prototype keys, so
+  // e.g. `--peak-rss constructor` would pass validation.
+  if (!Object.hasOwn(PEAK_RSS_METHOD_FLAGS, raw)) {
+    throw new Error(
+      `${PEAK_RSS_FLAG} must be one of ${PEAK_RSS_METHOD_LIST} (got "${raw}")`,
+    );
+  }
+
+  return PEAK_RSS_METHOD_FLAGS[raw];
+}
+
 /**
  * Wrap a shell command so GNU time writes its peak RSS to `memPath`.
  *
@@ -145,7 +193,7 @@ export function wrapWithGnuTime(command: string, memPath: string): string {
 }
 
 /** Parse the peak RSS written by {@link wrapWithGnuTime}, in whole MB. */
-export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
+export function parseGnuTimeMaxRssMb(raw: string): number {
   // GNU time prepends a "Command exited …" or "Command terminated …" line
   // when the command failed, so the measurement is the last line. That line
   // must be a lone integer, so a report holding only the prefix line throws
@@ -154,9 +202,7 @@ export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
   const kb = Number(reading);
 
   if (!/^\d+$/.test(reading) || kb <= 0) {
-    throw new Error(
-      `Unparseable GNU time output at ${source}: ${JSON.stringify(raw)}`,
-    );
+    throw new Error(`Unparseable GNU time output: ${JSON.stringify(raw)}`);
   }
 
   return kbToMb(kb);
@@ -174,11 +220,11 @@ function readGnuTimeReport(memPath: string): string {
       throw error;
     }
 
-    throw new Error(`GNU time wrote no report at ${memPath}`);
+    throw new Error("GNU time wrote no report");
   }
 
   if (raw.trim() === "") {
-    throw new Error(`GNU time left an empty report at ${memPath}`);
+    throw new Error("GNU time left an empty report");
   }
 
   return raw;
@@ -218,7 +264,7 @@ export function createPeakRssRecorder(
     return {
       ...NO_PEAK_RSS_RECORDER,
       wrapCommand: (command) => wrapWithGnuTime(command, memPath),
-      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath), memPath),
+      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath)),
     };
   }
 

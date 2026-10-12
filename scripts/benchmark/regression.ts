@@ -1,11 +1,17 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
+import {
+  givenCloneDirectory,
+  resolveCloneDirectory,
+} from "../end-to-end/helpers/args.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
-import { loadScenario } from "../end-to-end/helpers/directory.ts";
+import {
+  loadScenario,
+  resolveInvocationPath,
+} from "../end-to-end/helpers/directory.ts";
 import {
   ForceCheckout,
   ForcePublish,
@@ -15,6 +21,7 @@ import {
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
 import type {
   CommandVariant,
+  Scenario,
   ScenarioDefinition,
   StepsVariant,
 } from "../end-to-end/types.ts";
@@ -23,6 +30,7 @@ import {
   matchesAny,
   parseGlobList,
   planCommands,
+  type PlannedCommand,
 } from "./helpers/plan.ts";
 import {
   CommandFailedError,
@@ -34,12 +42,16 @@ import {
   runPrepare,
   runSeries,
   reportPathsIn,
+  withReportDir,
   type MeasuredRun,
   type ReportPaths,
 } from "./helpers/runner.ts";
 import { shellQuote } from "./helpers/shell.ts";
+import { formatRun, runCounter } from "./helpers/report.ts";
 import {
   GNU_TIME_PATH,
+  parsePeakRssMethod,
+  PEAK_RSS_METHOD_NAMES,
   PeakRssMethod,
   resolvePeakRssMethod,
 } from "./helpers/peak-rss.ts";
@@ -67,6 +79,8 @@ DESCRIPTION
     // single command
     {
       "runs":    <positive integer>,    // measured runs (required)
+      "statistic": "mean" | "median"    // optional tracked value (default "mean"),
+                 | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
       "command": "<shell command>"      // command to benchmark (required)
@@ -92,18 +106,24 @@ DESCRIPTION
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — single command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
-  entry with the total CPU time (user+system). Wall-clock entries carry
-  their per-run samples in the "extra" field; "(cpu)" entries carry their
-  mean user/system there instead.
+  entry with the total CPU time (user+system). Both carry their per-run
+  samples and statistics (times/min/max/median/mean) in the "extra" field;
+  the "(cpu)" entry nests the same shape per user/system split under
+  "user" and "system".
 
-  Every measured run is additionally wrapped in GNU time, whose %M reports
-  the exact peak RSS of the largest single process among the descendants
-  the wrapper waits for. This is emitted as a separate
-  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the mean
-  of the per-run peaks, with the peaks themselves and their statistics
+  Every measured run also records the peak RSS of the largest single
+  process in its tree, emitted as a separate
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB). Its value is the
+  command's "statistic" (default mean) of the per-run peaks, with the peaks
+  themselves and their statistics
   (mean/stddev/min/max/median) in the entry's extra.
-  GNU time is required, so this benchmark is Linux-only: without
-  ${GNU_TIME_PATH} (Debian/Ubuntu package "time") it fails at startup.
+  The default method wraps each run in GNU time, whose %M reading is exact.
+  Without ${GNU_TIME_PATH} (Debian/Ubuntu package "time") the benchmark
+  fails at startup. "--peak-rss sampler" measures via /proc instead, which
+  can miss a short-lived peak. Both methods are Linux-only.
+
+  A relative path in any option resolves against the directory you ran
+  the command from.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -125,6 +145,7 @@ OPTIONS
                         potentially overwriting its current contents
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
+  --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -165,6 +186,7 @@ interface RegressionArgs {
   forcePublish: ForcePublish;
   e2eCloneDirectory: string;
   failFast: boolean;
+  peakRssMethod: PeakRssMethod;
 }
 
 interface ScenarioEntry {
@@ -174,7 +196,15 @@ interface ScenarioEntry {
 }
 
 async function main(): Promise<void> {
-  const args = resolveArgs(process.argv.slice(2));
+  let args: RegressionArgs | undefined;
+
+  try {
+    args = resolveArgs(process.argv.slice(2));
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return;
+  }
 
   if (args === undefined) {
     console.log(USAGE);
@@ -198,12 +228,14 @@ async function main(): Promise<void> {
   let peakRssMethod: PeakRssMethod;
 
   try {
-    peakRssMethod = resolvePeakRssMethod(PeakRssMethod.GnuTime);
+    peakRssMethod = resolvePeakRssMethod(args.peakRssMethod);
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
     return;
   }
+
+  log(`Peak RSS method: ${PEAK_RSS_METHOD_NAMES[peakRssMethod]}`);
 
   const results: BenchmarkEntry[] = [];
   const failures: string[] = [];
@@ -254,8 +286,7 @@ async function main(): Promise<void> {
         const entries = await runScenario(scenario, args, peakRssMethod);
         results.push(...entries);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logError(`Scenario "${scenario.id}" failed: ${message}`);
+        logError(scenarioFailureMessage(scenario.id, error));
         failures.push(scenario.id);
 
         if (args.failFast) {
@@ -303,53 +334,58 @@ async function main(): Promise<void> {
   );
 }
 
-function resolveArgs(argv: string[]): RegressionArgs | undefined {
-  const output = getArgValue(argv, "--output");
+export function resolveArgs(argv: string[]): RegressionArgs | undefined {
+  const cli = {
+    command: "pnpm bench:regression",
+    options: {
+      output: { type: "string" },
+      scenarios: { type: "string" },
+      tag: { type: "string" },
+      benchmarks: { type: "string" },
+      "use-local": { type: "boolean" },
+      "force-checkout": { type: "boolean" },
+      "force-publish": { type: "boolean" },
+      "e2e-clone-dir": { type: "string" },
+      "fail-fast": { type: "boolean" },
+      "peak-rss": { type: "string" },
+    },
+  } as const;
+  const parsed = parseCliArgs(argv, cli);
 
-  if (output === undefined) {
+  if (parsed === undefined) {
     return undefined;
   }
 
-  const scenariosRaw = getArgValue(argv, "--scenarios");
+  const { values } = parsed;
+
+  if (values.output === undefined) {
+    throw cliError(cli, "--output is required");
+  }
+
   const scenarios =
-    scenariosRaw !== undefined
-      ? scenariosRaw
+    values.scenarios !== undefined
+      ? values.scenarios
           .split(",")
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : undefined;
 
-  const tag = getArgValue(argv, "--tag");
-
-  const benchmarks = parseGlobList(getArgValue(argv, "--benchmarks"));
-
-  const useLocal = argv.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
-
-  const forceCheckout = argv.includes("--force-checkout")
-    ? ForceCheckout.Yes
-    : ForceCheckout.No;
-
-  const forcePublish = argv.includes("--force-publish")
-    ? ForcePublish.Yes
-    : ForcePublish.No;
-
-  const failFast = argv.includes("--fail-fast");
-
-  const e2eCloneDirectory =
-    getArgValue(argv, "--e2e-clone-dir") ??
-    process.env.E2E_CLONE_DIR ??
-    DEFAULT_CLONE_DIR;
-
   return {
-    output: path.resolve(output),
+    output: resolveInvocationPath(values.output),
     scenarios,
-    tag,
-    benchmarks,
-    useLocal,
-    forceCheckout,
-    forcePublish,
-    e2eCloneDirectory,
-    failFast,
+    tag: values.tag,
+    benchmarks: parseGlobList(values.benchmarks),
+    useLocal: values["use-local"] === true ? UseLocal.Yes : UseLocal.No,
+    forceCheckout:
+      values["force-checkout"] === true ? ForceCheckout.Yes : ForceCheckout.No,
+    forcePublish:
+      values["force-publish"] === true ? ForcePublish.Yes : ForcePublish.No,
+    e2eCloneDirectory: resolveCloneDirectory(
+      givenCloneDirectory(values["e2e-clone-dir"]),
+    ),
+    failFast: values["fail-fast"] === true,
+    peakRssMethod:
+      parsePeakRssMethod(values["peak-rss"]) ?? PeakRssMethod.GnuTime,
   };
 }
 
@@ -463,9 +499,6 @@ async function runScenario(
     return [];
   }
 
-  const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
-  mkdirSync(scenarioTmpDir, { recursive: true });
-
   logStep("Initializing scenario");
   await e2eInit(
     args.e2eCloneDirectory,
@@ -484,13 +517,25 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
+  return withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
+    runPhases(scenario.id, scenarioTmpDir, loaded, plan, peakRssMethod),
+  );
+}
+
+async function runPhases(
+  scenarioId: string,
+  scenarioTmpDir: string,
+  loaded: Scenario,
+  plan: PlannedCommand[],
+  peakRssMethod: PeakRssMethod,
+): Promise<BenchmarkEntry[]> {
   const entries: BenchmarkEntry[] = [];
 
   for (const planned of plan) {
     if ("run" in planned) {
       entries.push(
         ...(await runStepsPhase(
-          scenario.id,
+          scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
@@ -505,7 +550,7 @@ async function runScenario(
     } else {
       entries.push(
         ...(await runCommandPhase(
-          scenario.id,
+          scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
@@ -572,7 +617,13 @@ async function runCommandPhase(
       },
     );
 
-    return measuredRunsToEntries(scenarioId, name, measured, peakRssMethod);
+    return measuredRunsToEntries(
+      scenarioId,
+      name,
+      measured,
+      peakRssMethod,
+      cfg.statistic,
+    );
   } catch (error) {
     throw benchmarkError(
       `${scenarioId} / ${name} failed`,
@@ -681,6 +732,24 @@ async function runStepsPhase(
   );
 }
 
+/**
+ * A failure that `benchmarkError` wrapped already carries its output in
+ * the message. One that arrives unwrapped, like the spawn-overhead
+ * calibration's, still holds it in its `CommandFailedError` fields.
+ */
+export function scenarioFailureMessage(
+  scenarioId: string,
+  error: unknown,
+): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const output =
+    error instanceof CommandFailedError
+      ? formatOutput({ stdout: error.stdout, stderr: error.stderr })
+      : "";
+
+  return `Scenario "${scenarioId}" failed: ${message}${output === "" ? "" : `\n${output}`}`;
+}
+
 // Contextualize a failed benchmark command: first line of the failure, a
 // repro hint, and the captured output. The env var names are listed so the
 // repro can be completed. Their values stay out of this message: it lands
@@ -720,17 +789,6 @@ function benchmarkError(
   );
 }
 
-function formatRun(run: MeasuredRun): string {
-  return (
-    `${run.wallSeconds.toFixed(3)} s, cpu ${(run.user + run.system).toFixed(3)} s` +
-    (run.peakRssMb !== undefined ? `, peak RSS ${run.peakRssMb} MB` : "")
-  );
-}
-
-function runCounter(index: number, total: number): string {
-  return `${String(index + 1).padStart(String(total).length)}/${total}`;
-}
-
 // One report file set per command or step sequence, overwritten by each
 // run.
 function reportPaths(scenarioTmpDir: string, name: string): ReportPaths {
@@ -746,10 +804,6 @@ function writeOutput(outputPath: string, entries: BenchmarkEntry[]): void {
   writeFileSync(outputPath, JSON.stringify(entries, null, 2));
 }
 
-function getArgValue(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
+if (import.meta.main) {
+  await main();
 }
-
-await main();

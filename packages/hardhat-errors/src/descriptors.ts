@@ -1240,6 +1240,42 @@ Please double check your transactions' parameters.`,
         websiteDescription:
           "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
       },
+      BLOB_TX_CANNOT_BE_SIGNED_LOCALLY: {
+        number: 725,
+        messageTemplate:
+          "Blob transactions (EIP-4844) can't be signed with locally managed accounts.",
+        websiteTitle: "Blob transactions can't be signed locally",
+        websiteDescription: `You are trying to send a blob transaction (EIP-4844) with a locally managed account. Your transaction has type 0x3, blobs or blobVersionedHashes, but Hardhat can't sign blob transactions locally.
+
+Please sign the transaction yourself and send it with eth_sendRawTransaction, or send it from an account managed by your node.`,
+      },
+      EIP7702_TX_CANNOT_CREATE_CONTRACT: {
+        number: 726,
+        messageTemplate: `The "to" field is missing from an EIP-7702 transaction being signed locally. EIP-7702 transactions can't create contracts, so "to" is required.`,
+        websiteTitle: "EIP-7702 transactions can't create contracts",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and it has an "authorizationList" but no "to" field. Transactions with an "authorizationList" are EIP-7702 transactions, which can't create contracts, so the "to" field is required.
+
+Please double check your transactions' parameters.`,
+      },
+      EMPTY_EIP7702_AUTHORIZATION_LIST: {
+        number: 727,
+        messageTemplate: `The "authorizationList" of an EIP-7702 transaction being signed locally is empty. It must contain at least one authorization.`,
+        websiteTitle: "Empty EIP-7702 authorization list",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and its "authorizationList" is empty. EIP-7702 transactions must contain at least one authorization.
+
+Please double check your transactions' parameters.`,
+      },
+      INVALID_TX_PARAMS_TO_SIGN_LOCALLY: {
+        number: 728,
+        messageTemplate: `Tried to sign a transaction locally, but some of its fields are invalid:
+{errors}`,
+        websiteTitle: "Invalid transaction parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed account, and some of its fields didn't pass the validation done before signing it. The error message lists each invalid field and the reason.
+
+This validation happens locally, so it can reject transactions that your network would accept. For example, the initcode of a contract deployment is limited to 512 KiB, even if your network allows unlimited contract sizes.
+
+Please double check your transactions' parameters.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
@@ -3121,7 +3157,7 @@ This usually happens when a library is only referenced in the contract's constru
       },
       INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
         number: 80017,
-        messageTemplate: `The value "{value}" for a constructor parameter cannot be encoded.
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" cannot be encoded.
 Reason: {reason}.`,
         websiteTitle: "Invalid constructor argument type",
         websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
@@ -3142,7 +3178,7 @@ Please verify that you pass the exact number of arguments required by the constr
       },
       CONSTRUCTOR_ARGUMENT_OVERFLOW: {
         number: 80019,
-        messageTemplate: `The value "{value}" is out of bounds for its Solidity type and cannot be encoded.`,
+        messageTemplate: `The value "{value}" for the constructor parameter "{path}" is out of bounds for the type "{solidityType}" and cannot be encoded.`,
         websiteTitle: "Constructor argument value out of bounds",
         websiteDescription: `One of the arguments passed to the contract's constructor is outside the allowed range for its Solidity type (for example, passing 256 to a uint8 parameter).
 
@@ -3152,7 +3188,7 @@ Please ensure all argument values fit within the valid range for their respectiv
       },
       CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED: {
         number: 80020,
-        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}.`,
+        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}`,
         websiteTitle: "Constructor arguments encoding failed",
         websiteDescription: `The constructor arguments provided for the contract could not be encoded correctly.
 Please review the provided arguments and ensure they match the expected arguments defined in the contract's ABI.`,

@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`ad49ec2`](https://github.com/NomicFoundation/hardhat/commit/ad49ec23136c8eb5a88024cb9b211a8b0b20ff11) Thanks [@schaable](https://github.com/schaable)! - Improved the constructor argument errors so `HHE80017` and `HHE80019` name the parameter that could not be encoded.
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`eb2b13d`](https://github.com/NomicFoundation/hardhat/commit/eb2b13da0a4395006e39bc5927403dd21be13b02) Thanks [@schaable](https://github.com/schaable)! - Removed the `@ethersproject/abi` dependency, encoding constructor arguments with `micro-eth-signer` instead ([#8605](https://github.com/NomicFoundation/hardhat/issues/8605)).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.1.1
 
 ### Patch Changes

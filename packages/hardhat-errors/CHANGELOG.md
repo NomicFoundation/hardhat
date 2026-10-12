@@ -1,5 +1,22 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8667](https://github.com/NomicFoundation/hardhat/pull/8667) [`5793554`](https://github.com/NomicFoundation/hardhat/commit/5793554131276677b931cd0bc3a34e0607dc6040) Thanks [@schaable](https://github.com/schaable)! - Improved the errors for invalid transactions sent from local accounts.
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
+## 3.1.1
+
+### Patch Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`ad49ec2`](https://github.com/NomicFoundation/hardhat/commit/ad49ec23136c8eb5a88024cb9b211a8b0b20ff11) Thanks [@schaable](https://github.com/schaable)! - Improved the constructor argument errors so `HHE80017` and `HHE80019` name the parameter that could not be encoded.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
 ## 3.1.0
 
 ### Minor Changes

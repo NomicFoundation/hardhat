@@ -9,8 +9,16 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DEFAULT_CLONE_DIR, getArgValue } from "../end-to-end/helpers/args.ts";
-import { normalizeScenarioPath } from "../end-to-end/helpers/directory.ts";
+import {
+  DEFAULT_CLONE_DIR,
+  givenCloneDirectory,
+  resolveCloneDirectory,
+} from "../end-to-end/helpers/args.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
+import {
+  normalizeScenarioPath,
+  resolveInvocationPath,
+} from "../end-to-end/helpers/directory.ts";
 import { ensureScenarioInitialized } from "../end-to-end/helpers/scenario-setup.ts";
 import {
   fmt,
@@ -28,11 +36,9 @@ import type { Scenario } from "../end-to-end/types.ts";
 
 import {
   DEFAULT_SAMPLE_RATE_HZ,
-  getAllArgValues,
   Mode,
   parseEnvPairs,
   parseMode,
-  parsePositionalArgs,
   parseSampleRate,
 } from "./helpers/args.ts";
 import { PERF_SCRIPT_OUTPUT_FILENAME } from "./helpers/flamegraph.ts";
@@ -72,6 +78,9 @@ DESCRIPTION
   To attribute time inside EDR by function name, build it for profiling
   (\`pnpm build:perf-js\` in edr's crates/edr_napi) and load that binary via
   NAPI_RS_NATIVE_LIBRARY_PATH, or publish it to the running Verdaccio.
+
+  A relative path in any option resolves against the directory you ran
+  the command from.
 
 OPTIONS
   --scenario <path>     Scenario folder or scenario.json (required, repeatable:
@@ -172,79 +181,64 @@ interface RunRecord {
   symbolized?: boolean;
 }
 
-const VALUE_FLAGS = [
-  "--scenario",
-  "--command",
-  "--prepare",
-  "--mode",
-  "--sample-rate",
-  "--out-dir",
-  "--env",
-  "--e2e-clone-dir",
-];
-
-const BOOLEAN_FLAGS = [
-  "--init",
-  "--use-local",
-  "--force-checkout",
-  "--force-publish",
-  "--show-output",
-  "--keep-perf-data",
-];
-
 export function resolveAndValidateArgs(
   args: string[],
 ): ProfileArgs | undefined {
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  const cli = {
+    command: "pnpm profiler",
+    options: {
+      scenario: { type: "string", multiple: true },
+      command: { type: "string" },
+      prepare: { type: "string" },
+      mode: { type: "string" },
+      "sample-rate": { type: "string" },
+      "out-dir": { type: "string" },
+      env: { type: "string", multiple: true },
+      init: { type: "boolean" },
+      "use-local": { type: "boolean" },
+      "force-checkout": { type: "boolean" },
+      "force-publish": { type: "boolean" },
+      "show-output": { type: "boolean" },
+      "keep-perf-data": { type: "boolean" },
+      "e2e-clone-dir": { type: "string" },
+    },
+  } as const;
+  const parsed = parseCliArgs(args, cli);
+
+  if (parsed === undefined) {
     return undefined;
   }
 
-  const stray = parsePositionalArgs(args, VALUE_FLAGS, BOOLEAN_FLAGS);
-
-  if (stray.length > 0) {
-    throw new Error(`unexpected argument: ${stray[0]}`);
-  }
-
-  const scenarioPaths = getAllArgValues(args, "--scenario").map(
-    normalizeScenarioPath,
-  );
+  const { values } = parsed;
+  const scenarioPaths = (values.scenario ?? []).map(normalizeScenarioPath);
 
   if (scenarioPaths.length === 0) {
-    throw new Error(
-      "--scenario is required (run pnpm profiler with no arguments for usage)",
-    );
+    throw cliError(cli, "--scenario is required");
   }
 
-  const commandOrName = getArgValue(args, "--command");
-
-  if (commandOrName === undefined) {
-    throw new Error(
-      "--command is required (run pnpm profiler with no arguments for usage)",
-    );
+  if (values.command === undefined) {
+    throw cliError(cli, "--command is required");
   }
 
   return {
     scenarioPaths,
-    commandOrName,
-    prepareOrName: getArgValue(args, "--prepare"),
-    mode: parseMode(getArgValue(args, "--mode")),
-    sampleRateHz: parseSampleRate(getArgValue(args, "--sample-rate")),
-    outDir: getArgValue(args, "--out-dir"),
-    env: parseEnvPairs(getAllArgValues(args, "--env")),
-    init: args.includes("--init"),
-    useLocal: args.includes("--use-local") ? UseLocal.Yes : UseLocal.No,
-    forceCheckout: args.includes("--force-checkout")
-      ? ForceCheckout.Yes
-      : ForceCheckout.No,
-    forcePublish: args.includes("--force-publish")
-      ? ForcePublish.Yes
-      : ForcePublish.No,
-    showOutput: args.includes("--show-output"),
-    keepPerfData: args.includes("--keep-perf-data"),
-    e2eCloneDirectory:
-      getArgValue(args, "--e2e-clone-dir") ??
-      process.env.E2E_CLONE_DIR ??
-      DEFAULT_CLONE_DIR,
+    commandOrName: values.command,
+    prepareOrName: values.prepare,
+    mode: parseMode(values.mode),
+    sampleRateHz: parseSampleRate(values["sample-rate"]),
+    outDir: resolveInvocationPath(values["out-dir"]),
+    env: parseEnvPairs(values.env ?? []),
+    init: values.init === true,
+    useLocal: values["use-local"] === true ? UseLocal.Yes : UseLocal.No,
+    forceCheckout:
+      values["force-checkout"] === true ? ForceCheckout.Yes : ForceCheckout.No,
+    forcePublish:
+      values["force-publish"] === true ? ForcePublish.Yes : ForcePublish.No,
+    showOutput: values["show-output"] === true,
+    keepPerfData: values["keep-perf-data"] === true,
+    e2eCloneDirectory: resolveCloneDirectory(
+      givenCloneDirectory(values["e2e-clone-dir"]),
+    ),
   };
 }
 
@@ -620,7 +614,8 @@ async function cliMain(): Promise<void> {
     profileArgs = resolveAndValidateArgs(process.argv.slice(2));
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   if (profileArgs === undefined) {
@@ -636,7 +631,7 @@ async function cliMain(): Promise<void> {
     }
 
     logError(error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
