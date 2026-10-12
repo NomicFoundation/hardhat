@@ -157,14 +157,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (sourcesPath) => fsPath.startsWith(sourcesPath + path.sep),
     );
 
-    // A `.sol` file under the tests path is a test, unless it is
-    // also registered as under a Solidity sources path. Sources takes
+    // A file under the tests path is a test, unless it is also registered as
+    // under a Solidity sources path. Sources takes
     // precedence (e.g. `test/` is listed in `paths.sources.solidity` to access
     // `./test/mocks`)
     if (
       !isUnderSources &&
-      fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
-      fsPath.endsWith(".sol")
+      fsPath.startsWith(this.#options.solidityTestsPath + path.sep)
     ) {
       return "tests";
     }
@@ -338,10 +337,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     await this.#downloadConfiguredCompilers(resolvedOptions.quiet);
 
-    const { buildProfile } = this.#getBuildProfile(
-      resolvedOptions.buildProfile,
-    );
-
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
       resolvedOptions,
@@ -358,8 +353,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     spinner.start();
 
     try {
-      const { compilationJobsPerFile, indexedIndividualJobs, cacheHits } =
-        compilationJobsResult;
+      const {
+        compilationJobsPerFile,
+        indexedIndividualJobs,
+        isolatedPerRootFile,
+        cacheHits,
+      } = compilationJobsResult;
 
       const runnableCompilationJobs = [
         ...new Set(compilationJobsPerFile.values()),
@@ -441,7 +440,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               indexedIndividualJobs,
               compilationResult,
               emitArtifactsResult,
-              buildProfile.isolated,
+              isolatedPerRootFile,
               resolvedOptions.scope,
             );
           }),
@@ -893,6 +892,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       success: true,
       compilationJobsPerFile,
       indexedIndividualJobs,
+      isolatedPerRootFile,
       cacheHits,
     };
   }
@@ -1525,7 +1525,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
-    isolated: boolean,
+    isolatedPerRootFile: Map<string, boolean>,
     scope: BuildScope,
   ): Promise<void> {
     for (const [userSourceName, root] of result.compilationJob.dependencyGraph
@@ -1549,6 +1549,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const typeFilePath = emitArtifactsResult.typeFilePaths.get(rootFilePath);
 
+      const isolated = isolatedPerRootFile.get(rootFilePath);
+
+      assertHardhatInvariant(
+        isolated !== undefined,
+        `No isolation setting for root file ${rootFilePath}`,
+      );
+
       const jobHash = await individualJob.getBuildId();
 
       const expectedLayout = await this.#getExpectedOutputLayout(
@@ -1558,7 +1565,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#compileCache[rootFilePath] = {
         jobHash,
-        isolated: await this.#isRootFileIsolated(rootFilePath, isolated),
+        isolated,
         compilerType: individualJob.solcConfig.type ?? "solc",
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
