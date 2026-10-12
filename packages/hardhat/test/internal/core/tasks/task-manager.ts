@@ -1207,7 +1207,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if the task definition object has an option with an reserved name", async () => {
-        RESERVED_ARGUMENT_NAMES.forEach(async (reservedName) => {
+        for (const reservedName of RESERVED_ARGUMENT_NAMES) {
           await assertRejectsWithHardhatError(
             HardhatRuntimeEnvironmentImplementation.create(
               {
@@ -1278,7 +1278,7 @@ describe("TaskManagerImplementation", () => {
               name: reservedName,
             },
           );
-        });
+        }
       });
 
       it("should throw if the task definition object has arguments with an duplicated name", async () => {
@@ -1409,7 +1409,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if the task definition object has a positional argument with an reserved name", async () => {
-        RESERVED_ARGUMENT_NAMES.forEach(async (reservedName) => {
+        for (const reservedName of RESERVED_ARGUMENT_NAMES) {
           await assertRejectsWithHardhatError(
             HardhatRuntimeEnvironmentImplementation.create(
               {
@@ -1445,7 +1445,7 @@ describe("TaskManagerImplementation", () => {
               name: reservedName,
             },
           );
-        });
+        }
       });
 
       it("should throw if the task definition object has a required positional argument after an optional argument", async () => {
