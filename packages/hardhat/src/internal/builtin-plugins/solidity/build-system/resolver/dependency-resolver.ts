@@ -964,7 +964,7 @@ export class ResolverImplementation implements Resolver {
               : `./${relativeSourceName}`;
 
           return {
-            type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+            type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
             fromFsPath: from.fsPath,
             importPath,
             suggestedRelativeImport,
@@ -1141,6 +1141,7 @@ export class ResolverImplementation implements Resolver {
       }
       /* c8 ignore end */
       case ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX:
+      case ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE:
       case ImportResolutionErrorType.IMPORT_WITH_WINDOWS_PATH_SEPARATORS:
       case ImportResolutionErrorType.RELATIVE_IMPORT_INTO_NODE_MODULES: {
         return {

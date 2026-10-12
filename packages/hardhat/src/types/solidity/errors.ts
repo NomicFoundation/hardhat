@@ -192,6 +192,12 @@ export enum ImportResolutionErrorType {
    * A direct import to a local file was found, which we forbid.
    */
   DIRECT_IMPORT_TO_LOCAL_FILE = "DIRECT_IMPORT_TO_LOCAL_FILE",
+
+  /**
+   * A bare filename import (e.g. "A.sol") to a local file was found, which we
+   * forbid.
+   */
+  BARE_IMPORT_TO_LOCAL_FILE = "BARE_IMPORT_TO_LOCAL_FILE",
 }
 
 export interface ImportWithWindowsPathSeparatorsError {
@@ -268,21 +274,23 @@ export interface RelativeImportClashesWithUserRemappingError {
   userRemapping: UserRemappingReference;
 }
 
-export type DirectImportToLocalFileError =
-  | {
-      type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
-      fromFsPath: string;
-      importPath: string;
-      suggestedRemapping: string;
-      suggestedRelativeImport?: never;
-    }
-  | {
-      type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
-      fromFsPath: string;
-      importPath: string;
-      suggestedRelativeImport: string;
-      suggestedRemapping?: never;
-    };
+export interface DirectImportToLocalFileError {
+  type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE;
+  fromFsPath: string;
+  importPath: string;
+  suggestedRemapping: string;
+}
+
+export interface BareImportToLocalFileError {
+  type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE;
+  fromFsPath: string;
+  importPath: string;
+  /**
+   * The relative import that resolves to the local file, starting with "./" or
+   * "../".
+   */
+  suggestedRelativeImport: string;
+}
 
 export type ImportResolutionError =
   | ImportWithWindowsPathSeparatorsError
@@ -295,7 +303,8 @@ export type ImportResolutionError =
   | ImportWithRemappingErrorsError
   | ImportOfNonExportedNpmFileError
   | RelativeImportClashesWithUserRemappingError
-  | DirectImportToLocalFileError;
+  | DirectImportToLocalFileError
+  | BareImportToLocalFileError;
 
 /**
  * The different types of errors that can happen when processing a user

@@ -3157,7 +3157,7 @@ submodule2/=lib/submodule2/src/`,
           assert.deepEqual(await resolver.resolveImport(from, importPath), {
             success: false,
             error: {
-              type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+              type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
               fromFsPath: from.fsPath,
               importPath,
               suggestedRelativeImport,

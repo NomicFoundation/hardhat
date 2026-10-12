@@ -539,10 +539,12 @@ If you want to use the remapping, write your import as "contracts/Token.sol" ins
 If you still want to be able to do it, try adding this remapping "contracts/=contracts/" to the "remappings.txt" file in the root of your project.`,
         );
       });
+    });
 
-      it("Should include suggested relative import when present", () => {
+    describe("BARE_IMPORT_TO_LOCAL_FILE", () => {
+      it("Should include the suggested relative import", () => {
         const result = formatImportResolutionError({
-          type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
+          type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
           fromFsPath: "/project/contracts/Factory.sol",
           importPath: "Storage.sol",
           suggestedRelativeImport: "./Storage.sol",
