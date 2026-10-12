@@ -90,6 +90,14 @@ describe("time - increase", () => {
       assert.equal(endTimestamp, initialTimestamp);
     });
 
+    it("should treat a zero hex string with leading zeros as zero seconds", async () => {
+      const initialTimestamp = await time.latest();
+
+      const returnedTimestamp = await time.increase("0x00");
+
+      assert.equal(returnedTimestamp, initialTimestamp);
+    });
+
     it("should throw if given a negative number of seconds", async () => {
       await assertRejectsWithHardhatError(
         time.increase(-1),
