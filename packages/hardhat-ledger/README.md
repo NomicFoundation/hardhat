@@ -2,8 +2,6 @@
 
 This plugin allows Hardhat to integrate seamlessly with a connected [Ledger wallet](https://www.ledger.com/).
 
-> Note: Currently, `EIP-7702` is not supported. The plugin is built on Ledger's [Device Management Kit](https://www.npmjs.com/package/@ledgerhq/device-management-kit?activeTab=readme), which does support it, so adding support is on our roadmap.
-
 > Note: When signing a transaction or typed data, the Device Management Kit contacts Ledger's servers: it fetches the metadata the device uses to display what you are signing ("clear signing"), and it reports each signing event (chain id, target contract, signing method, device model, app and firmware versions, whether it was blind-signed, and a random id) to Ledger's analytics endpoint. These requests go to Ledger, not to the network you are connected to, and are the only requests the plugin makes that you did not ask for. In practice, clear signing shows the token and amount for ERC-20 and NFT transfers, the ENS name of a recipient, and the network name; contract calls and typed data are displayed as before.
 
 ## Installation

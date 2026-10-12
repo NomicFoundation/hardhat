@@ -3424,6 +3424,7 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         websiteDescription: `The ledger device is locked. Please unlock it and try again.`,
       },
       EIP_7702_TX_CURRENTLY_NOT_SUPPORTED: {
+        // [DEPRECATED]
         number: 90009,
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,

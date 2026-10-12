@@ -302,9 +302,11 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // CANNOT_FIND_VALID_DERIVATION_PATH quotes them.
 // await run(derivationFunctionOverride);
 
-// TEST NR 32: an EIP-7702 transaction is refused with
-// EIP_7702_TX_CURRENTLY_NOT_SUPPORTED before the device is asked to sign.
-// await run(eip7702IsRejected);
+// TEST NR 32 (approve on the device): an EIP-7702 transaction. A fresh account
+// delegates to a local Counter, the Ledger account sends the type-4 transaction
+// that carries the authorization, and the authority's code becomes
+// 0xef0100 + the Counter's address.
+// await run(eip7702DelegationIsSigned);
 
 // TEST NR 33: a request from an address that is not a Ledger account is passed
 // through to the simulated network without touching the device.
@@ -1192,31 +1194,45 @@ async function typedDataNonAsciiFieldName(): Promise<void> {
 // Other
 // ---------------------------------------------------------------------------
 
-async function eip7702IsRejected(): Promise<void> {
+async function eip7702DelegationIsSigned(): Promise<void> {
   expected(
-    "refused with EIP_7702_TX_CURRENTLY_NOT_SUPPORTED before the device is " +
-      "asked to sign (the derivation path may be looked up first, without a " +
-      "prompt). The DMK supports EIP-7702; enabling it is a follow-up.",
+    "the device asks to approve a transaction that carries an authorization " +
+      "list (an Ethereum app too old for EIP-7702 refuses it instead). After " +
+      "approval the transaction is mined and the authority's code is " +
+      "0xef0100 followed by the Counter's address.",
   );
 
   await withConnection(async (ctx) => {
-    await expectLedgerError(
-      ctx.provider.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: ctx.ledgerAddress,
-            to: ctx.hardhatAddress,
-            value: "0x1",
-            gas: `0x${TX_OVERRIDES.gasLimit.toString(16)}`,
-            maxFeePerGas: `0x${TX_OVERRIDES.maxFeePerGas.toString(16)}`,
-            maxPriorityFeePerGas: `0x${TX_OVERRIDES.maxPriorityFeePerGas.toString(16)}`,
-            authorizationList: [],
-          },
-        ],
-      }),
-      "EIP_7702_TX_CURRENTLY_NOT_SUPPORTED",
+    const counter = await ctx.ethers.deployContract(
+      "Counter",
+      ctx.hardhatSigner,
     );
+    const counterAddress = await counter.getAddress();
+
+    // A fresh, unfunded account is the authority: the Ledger account sends the
+    // type-4 transaction and pays for it. Only the outer transaction is signed
+    // on the device; the plugin has no method to sign the authorization itself.
+    const authority = ctx.ethers.Wallet.createRandom();
+    const authorization = await authority.authorize({
+      address: counterAddress,
+      nonce: 0,
+      chainId: ctx.chainId,
+    });
+
+    const tx = await ctx.ledgerSigner.sendTransaction({
+      type: 4,
+      to: ctx.hardhatAddress,
+      authorizationList: [authorization],
+      ...TX_OVERRIDES,
+    });
+    await tx.wait();
+
+    const code = await ctx.provider.request({
+      method: "eth_getCode",
+      params: [authority.address, "latest"],
+    });
+
+    assert.equal(code, `0xef0100${counterAddress.slice(2).toLowerCase()}`);
   });
 }
 

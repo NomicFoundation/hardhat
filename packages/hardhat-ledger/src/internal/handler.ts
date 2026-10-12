@@ -863,10 +863,32 @@ export class LedgerHandler {
     const hasEip1559Fields =
       txRequest.maxFeePerGas !== undefined ||
       txRequest.maxPriorityFeePerGas !== undefined;
+    const hasEip7702Fields = txRequest.authorizationList !== undefined;
 
     if (!hasGasPrice && !hasEip1559Fields) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
+      );
+    }
+
+    if (hasGasPrice && hasEip7702Fields) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
+      );
+    }
+
+    if (
+      hasEip7702Fields &&
+      (txRequest.to === undefined || txRequest.to === null)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.EIP7702_TX_CANNOT_CREATE_CONTRACT,
+      );
+    }
+
+    if (txRequest.authorizationList?.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.EMPTY_EIP7702_AUTHORIZATION_LIST,
       );
     }
 

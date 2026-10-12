@@ -1,10 +1,7 @@
 import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 import type * as MicroEthSignerT from "micro-eth-signer";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   bytesToBigInt,
@@ -70,28 +67,22 @@ export async function createTx(
   );
 
   if (authorizationList !== undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
-        .EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
+    assertHardhatInvariant(
+      txRequest.maxFeePerGas !== undefined,
+      "maxFeePerGas should be defined",
     );
 
-    // TODO: enable after migrating to the latest Ledger libraries that support EIP-7702
-    // assertHardhatInvariant(
-    //   txRequest.maxFeePerGas !== undefined,
-    //   "maxFeePerGas should be defined",
-    // );
-
-    // return Transaction.prepare(
-    //   {
-    //     type: "eip7702",
-    //     ...baseTxParams,
-    //     maxFeePerGas: txRequest.maxFeePerGas,
-    //     maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
-    //     accessList: accessList ?? [],
-    //     authorizationList: authorizationList ?? [],
-    //   },
-    //   STRICT_MODE,
-    // );
+    return Transaction.prepare(
+      {
+        type: "eip7702",
+        ...baseTxParams,
+        maxFeePerGas: txRequest.maxFeePerGas,
+        maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
+        accessList: accessList ?? [],
+        authorizationList,
+      },
+      STRICT_MODE,
+    );
   } else if (txRequest.maxFeePerGas !== undefined) {
     return Transaction.prepare(
       {

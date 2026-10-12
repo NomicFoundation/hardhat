@@ -746,9 +746,20 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider.resetNumberOfCalls("eth_chainId");
         });
 
-        it("should throw for eip7702 transactions because they are not supported in the current ledger library", async () => {
+        it("should successfully handle the method eth_sendTransaction for eip7702 transactions", async () => {
+          const signedRawTx =
+            "0x04f90104827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000f85ef85c827a6994a809931e3b38059adae9bc5455bc567d0509ab920101a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba6006980a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+
           const [deviceFactory] = getLedgerDeviceMock({
             getAddress: findAccountAt(derPath),
+            signTransaction: {
+              result: txRsv,
+              expectedParams: {
+                path: derPath,
+                rawTxHex:
+                  "0x04f8c1827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000f85ef85c827a6994a809931e3b38059adae9bc5455bc567d0509ab920101a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+              },
+            },
           });
 
           ledgerHandler = createHandler({ deviceFactory });
@@ -761,17 +772,100 @@ describe("LedgerHandler", () => {
               gas: numberToHexString(1000001),
               maxFeePerGas: numberToHexString(1000001),
               maxPriorityFeePerGas: numberToHexString(1000001),
-              authorizationList: [],
               accessList,
+              authorizationList: [
+                {
+                  chainId: "0x7a69",
+                  address: accessList[0].address,
+                  nonce: "0x1",
+                  yParity: "0x1",
+                  r: txRsv.r,
+                  s: txRsv.s,
+                },
+              ],
             },
           ]);
 
-          await assertRejectsWithHardhatError(
-            ledgerHandler.handle(request),
-            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
-              .EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
-            {},
-          );
+          assert.deepEqual(await ledgerHandler.handle(request), {
+            ...request,
+            method: "eth_sendRawTransaction",
+            params: [signedRawTx],
+          });
+        });
+
+        describe("eip7702 rejections", () => {
+          const authorizationList = [
+            {
+              chainId: "0x7a69",
+              address: accessList[0].address,
+              nonce: "0x1",
+              yParity: "0x1",
+              r: txRsv.r,
+              s: txRsv.s,
+            },
+          ];
+          const eip7702Tx = {
+            from: account.address,
+            to: LEDGER_ADDRESSES[1],
+            gas: numberToHexString(1000001),
+            maxFeePerGas: numberToHexString(1000001),
+            maxPriorityFeePerGas: numberToHexString(1000001),
+            authorizationList,
+          };
+
+          const cases = [
+            {
+              name: "gasPrice is defined",
+              tx: {
+                ...eip7702Tx,
+                maxFeePerGas: undefined,
+                maxPriorityFeePerGas: undefined,
+                gasPrice: numberToHexString(1000001),
+              },
+              error:
+                HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
+            },
+            {
+              name: "'to' is undefined",
+              tx: { ...eip7702Tx, to: undefined },
+              error:
+                HardhatError.ERRORS.CORE.NETWORK
+                  .EIP7702_TX_CANNOT_CREATE_CONTRACT,
+            },
+            {
+              name: "'authorizationList' is empty",
+              tx: { ...eip7702Tx, authorizationList: [] },
+              error:
+                HardhatError.ERRORS.CORE.NETWORK
+                  .EMPTY_EIP7702_AUTHORIZATION_LIST,
+            },
+          ];
+
+          for (const { name, tx, error } of cases) {
+            it(`should reject an eip7702 transaction when ${name}`, async () => {
+              const [deviceFactory, calls] = getLedgerDeviceMock({
+                getAddress: findAccountAt(derPath),
+                signTransaction: { result: txRsv },
+              });
+
+              ledgerHandler = createHandler({ deviceFactory });
+
+              await assertRejectsWithHardhatError(
+                () =>
+                  ledgerHandler.handle(
+                    createJsonRpcRequest("eth_sendTransaction", [tx]),
+                  ),
+                error,
+                {},
+              );
+
+              assert.equal(
+                calls.signTransaction.totalCalls,
+                0,
+                "It must reject before the device asks for approval",
+              );
+            });
+          }
         });
 
         it("should successfully handle the method eth_sendTransaction for legacy transactions", async () => {
