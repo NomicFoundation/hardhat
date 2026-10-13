@@ -103,7 +103,7 @@ Judge observable egress, not time in memory. JavaScript strings cannot be reliab
 
 ### Hardware-wallet confirmation on the device
 
-The device displays what it will sign, and the user approves it there. Causing the device to sign something different from what it displayed defeats this boundary. Causing the host to send a different request, path, or account to the device does not: the host was never trusted, and device confirmation still applies.
+The device displays what it will sign, and the user approves it there. Causing the device to sign something different from what it displayed defeats this boundary. Causing the host to send a different request, path, or account to the device does not: the host was never trusted, and device confirmation still applies. This holds for every attacker, including one who controls a network response or a request: a value the device displays and the user approves, such as the chain, the recipient, or a bare hash shown with the device's blind-signing warning, is not a forbidden outcome. A silent fallback to a less readable display is a Low finding.
 
 ### Explicit non-boundaries
 
@@ -169,6 +169,7 @@ These examples illustrate the rules; they never override them.
 ### Low
 
 - A typo in a stored secret makes Hardhat print it in an error message.
+- A user pastes a secret into the wrong argument, and the error message prints it.
 - A crafted Solidity file makes a build hang.
 - A proxy exclusion setting is ignored, so a request uses the proxy anyway.
 

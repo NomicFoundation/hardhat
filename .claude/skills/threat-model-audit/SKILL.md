@@ -40,7 +40,7 @@ Use all available read-only capabilities, including code search, dependency mani
 
 1. Enumerate the target's source files. Skip dependencies such as `node_modules`, build output such as `dist`, lockfiles, generated files, and test fixtures. Dependency manifests such as `package.json` remain in scope for known-vulnerable version ranges, but dependency source does not.
 2. Run one location pass per subdirectory, or per file when the target is small, so every source file is read.
-3. Run separate issue-class passes across the entire target. Cover concrete, exploitable classes such as injection, secret leakage, path traversal, unsafe deserialization, server-side request forgery (SSRF), and insecure defaults; do not report theoretical style concerns.
+3. Run separate issue-class passes across the entire target. Cover concrete, exploitable classes such as injection, secret leakage, path traversal, unsafe deserialization, server-side request forgery (SSRF), insecure defaults, and unchecked responses or data that crash or hang Hardhat; do not report theoretical style concerns. Always include user-supplied values echoed in messages or errors, such as messages that print a rejected or unrecognized argument, since a user may paste a secret into any argument, and user- or file-controlled names such as `__proto__` used as object keys, following them into every serializer, hash, and merge and confirming each one by running it on input built with `JSON.parse` and comparing its output keys with its input keys (an object literal drops `__proto__` before the test starts), because `obj[k] = v` on a plain object turns `__proto__` into a prototype change and silently drops the entry.
 4. Trace relevant callers, imports, and shared helpers outside the target as far as needed to judge exploitability. Report any issue connected to what the target does, even if part of its implementation is elsewhere. Route unrelated leads to **To investigate later** during reconciliation.
 5. Explicitly inspect code gated by versions, operating systems, flags, or non-default settings.
 6. Deduplicate candidates by root cause before investigation, even when workers reported different locations for the same defect.
@@ -74,7 +74,7 @@ An investigator returns a verdict; it never deletes a candidate from the final d
 
 The skill runner makes every final classification:
 
-- **`CONFIRMED`:** include the finding at the investigated severity.
+- **`CONFIRMED`:** include the finding at the investigated severity. A finding whose weakest attacker already runs code as the user is an already-compromised issue, not a rated finding, unless it defeats a surviving boundary.
 - **`DISPUTED`:** list the candidate under **Checked and found safe** only when the concrete refutation holds. Keep it as a finding when the dispute is merely about severity.
 - **`ALREADY_COMPROMISED`:** re-check the verdict against the threat model without writing files or running a proof of concept. If it holds, place it in **Already compromised: precautions help** when it names a precaution, or in **Already compromised: nothing to do** when the precaution is `none`. Otherwise, treat it as `CONFIRMED`.
 - **Missing confirmed fields:** return the candidate for another investigation; use the severity returned by that investigation.
@@ -177,12 +177,25 @@ Include either section only when it has entries, immediately after findings. Use
 - `file.ts:34` — <one line on what happens>.
 ```
 
-### 6. Other sections
+### 6. Mandatory checks
+
+Always include this section. It records the result of each pass that discovery always runs, so a skipped pass is visible. Draft it before the rest of the report; a pass with no result to record was not run, so run it then.
+
+```markdown
+## 🧪 Mandatory checks
+
+- **Echoed input:** <call sites that print a user-supplied value> → <finding ID, or "none">. A site that could print a pasted secret is a Low finding; "the user's own mistake" is its attacker label, not a reason to drop it.
+- **Special object keys:** <each serializer, hash, and merge run with a `__proto__` key, with its output keys against its input keys> → <finding ID or section, or "`__proto__` kept everywhere">. This includes the function that builds the input of any hash or signature; a key missing from its output is a finding or an already-compromised issue, never safe.
+- **Crashes or hangs:** <unchecked responses or data that crash or hang Hardhat> → <finding ID, or "none">.
+- **Silent fallbacks:** <catch blocks or defaults that retry with a weaker, less visible, or less checked operation> → <finding ID, or "none">.
+```
+
+### 7. Other sections
 
 Include a section only when it has entries:
 
 - `## ⚖️ Out of scope under the threat model (noted for a policy decision)`: exploitable behavior that the threat model does not rate because its weakest attacker is outside the model or the model is silent on that class. State the behavior, why the model does not cover it, and the optional fix. If the model covers the attacker, classify the behavior as a finding or an already-compromised issue instead.
-- `## ✅ Checked and found safe`: candidates dropped because a concrete refutation holds. Add one bullet per candidate with `file:line` and the one-line refutation.
+- `## ✅ Checked and found safe`: candidates dropped because a concrete refutation holds. Add one bullet per candidate with `file:line` and the one-line refutation. An issue that needs an attacker already running code as the user is not safe: put it in an **Already compromised** section.
 - `## 🧭 To investigate later`: unrelated leads found during this audit. Open with the exact line below, then add one bullet per lead with `file:line` and a one-line description:
 
   > Issues spotted during this audit that aren't related to what was asked. They weren't checked, so treat each one as a lead for a future audit.
