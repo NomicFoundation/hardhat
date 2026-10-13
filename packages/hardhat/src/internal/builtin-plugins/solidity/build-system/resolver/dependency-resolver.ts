@@ -185,13 +185,7 @@ export class ResolverImplementation implements Resolver {
   async #resolveProjectFile(
     absoluteFilePath: string,
   ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>> {
-    const relativeFilePath = path.relative(this.#projectRoot, absoluteFilePath);
-
-    if (
-      relativeFilePath === ".." ||
-      relativeFilePath.startsWith(`..${path.sep}`) ||
-      path.isAbsolute(relativeFilePath)
-    ) {
+    if (!this.#isFsPathWithinRoot(absoluteFilePath, this.#projectRoot)) {
       return {
         success: false,
         error: {
@@ -200,6 +194,8 @@ export class ResolverImplementation implements Resolver {
         },
       };
     }
+
+    const relativeFilePath = path.relative(this.#projectRoot, absoluteFilePath);
 
     // We first check if the file has already been resolved.
     //
@@ -942,70 +938,134 @@ export class ResolverImplementation implements Resolver {
     from: ResolvedFile;
     importPath: string;
   }): Promise<ImportResolutionError | undefined> {
-    let baseDir = path.dirname(from.fsPath);
-
     if (!importPath.includes("/")) {
-      while (baseDir.startsWith(from.package.rootFsPath)) {
-        // We look the file up with its true casing, so that the suggestion
-        // works as written, even if the import's casing doesn't match it.
-        const pathValidation = await validateFsPath(
-          this.#trueCasePathResolver,
-          baseDir,
+      return await this.#tryToGenerateBareImportToLocalFileError({
+        from,
+        importPath,
+      });
+    }
+
+    return await this.#tryToGenerateDirectImportToLocalFileError({
+      from,
+      importPath,
+    });
+  }
+
+  async #tryToGenerateBareImportToLocalFileError({
+    from,
+    importPath,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+  }): Promise<ImportResolutionError | undefined> {
+    const fromDir = path.dirname(from.fsPath);
+
+    for (const dir of this.#dirsUpToRoot(fromDir, from.package.rootFsPath)) {
+      const fileFsPath = await this.#findTrueCaseFile(dir, importPath);
+
+      if (fileFsPath !== undefined) {
+        return {
+          type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
+          fromFsPath: from.fsPath,
           importPath,
-        );
-
-        const trueCaseFileName =
-          pathValidation.success === true
-            ? importPath
-            : pathValidation.error.type === PathValidationErrorType.CASING_ERROR
-              ? pathValidation.error.correctCasing
-              : undefined;
-
-        const candidateFsPath =
-          trueCaseFileName !== undefined
-            ? path.join(baseDir, trueCaseFileName)
-            : undefined;
-
-        if (
-          candidateFsPath !== undefined &&
-          !(await isDirectory(candidateFsPath))
-        ) {
-          const relativeFsPath = path.relative(
-            path.dirname(from.fsPath),
-            candidateFsPath,
-          );
-          const relativeSourceName = fsPathToSourceNamePath(relativeFsPath);
-          const suggestedRelativeImport =
-            relativeSourceName.startsWith("./") ||
-            relativeSourceName.startsWith("../")
-              ? relativeSourceName
-              : `./${relativeSourceName}`;
-
-          return {
-            type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
-            fromFsPath: from.fsPath,
-            importPath,
-            suggestedRelativeImport,
-          };
-        }
-
-        if (baseDir === from.package.rootFsPath) {
-          break;
-        }
-
-        const nextBaseDir = path.dirname(baseDir);
-        if (
-          nextBaseDir === baseDir ||
-          !nextBaseDir.startsWith(from.package.rootFsPath)
-        ) {
-          break;
-        }
-
-        baseDir = nextBaseDir;
+          suggestedRelativeImport: this.#toRelativeImport(fromDir, fileFsPath),
+        };
       }
+    }
 
+    return undefined;
+  }
+
+  /**
+   * Returns the absolute path of the file named `fileName` in `dir`, with its
+   * true casing, or undefined if there's no such file.
+   *
+   * We use the true casing so that a suggestion built from it works as
+   * written, even if `fileName`'s casing doesn't match it.
+   */
+  async #findTrueCaseFile(
+    dir: string,
+    fileName: string,
+  ): Promise<string | undefined> {
+    const pathValidation = await validateFsPath(
+      this.#trueCasePathResolver,
+      dir,
+      fileName,
+    );
+
+    let trueCaseFileName: string;
+    if (pathValidation.success === true) {
+      trueCaseFileName = fileName;
+    } else if (
+      pathValidation.error.type === PathValidationErrorType.CASING_ERROR
+    ) {
+      trueCaseFileName = pathValidation.error.correctCasing;
+    } else {
       return undefined;
     }
+
+    const fileFsPath = path.join(dir, trueCaseFileName);
+
+    if (await isDirectory(fileFsPath)) {
+      return undefined;
+    }
+
+    return fileFsPath;
+  }
+
+  #isFsPathWithinRoot(fsPath: string, rootFsPath: string): boolean {
+    const relativeFsPath = path.relative(rootFsPath, fsPath);
+
+    return (
+      relativeFsPath !== ".." &&
+      !relativeFsPath.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relativeFsPath)
+    );
+  }
+
+  /**
+   * Yields `startDir` and each of its ancestors, up to and including
+   * `rootFsPath`, without ever leaving it.
+   */
+  *#dirsUpToRoot(
+    startDir: string,
+    rootFsPath: string,
+  ): Generator<string, void, undefined> {
+    let dir = startDir;
+
+    while (this.#isFsPathWithinRoot(dir, rootFsPath)) {
+      yield dir;
+
+      if (dir === rootFsPath) {
+        return;
+      }
+
+      dir = path.dirname(dir);
+    }
+  }
+
+  /**
+   * Returns the relative import, starting with "./" or "../", that a file in
+   * `fromDir` would use to import the file at `fileFsPath`.
+   */
+  #toRelativeImport(fromDir: string, fileFsPath: string): string {
+    const relativeSourceName = fsPathToSourceNamePath(
+      path.relative(fromDir, fileFsPath),
+    );
+
+    return relativeSourceName.startsWith("../")
+      ? relativeSourceName
+      : `./${relativeSourceName}`;
+  }
+
+  async #tryToGenerateDirectImportToLocalFileError({
+    from,
+    importPath,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+  }): Promise<ImportResolutionError | undefined> {
+    let baseDir = path.dirname(from.fsPath);
 
     const firstDir = importPath.substring(0, importPath.indexOf("/"));
     // If there's no directory separator, or the import is just a directory
