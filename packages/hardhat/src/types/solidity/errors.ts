@@ -285,10 +285,6 @@ export interface BareImportToLocalFileError {
   type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE;
   fromFsPath: string;
   importPath: string;
-  /**
-   * The relative import that resolves to the local file, starting with "./" or
-   * "../".
-   */
   suggestedRelativeImport: string;
 }
 
