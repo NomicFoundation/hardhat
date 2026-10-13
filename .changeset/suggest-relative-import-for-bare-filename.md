@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Improved the error handling for relative imports when bare-filename imports target local files, previously this was a syntax error.
+Improved the error for bare-filename imports of local files (e.g. import "Token.sol"), which now suggests the equivalent relative import instead of reporting invalid npm import syntax.
