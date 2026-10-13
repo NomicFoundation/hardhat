@@ -82,18 +82,23 @@ Usage Example with Viem:
 import hre from "hardhat";
 import { stringToHex } from "viem";
 
-const { viem } = await hre.network.create("yourNetworkName");
+const connection = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-const [senderClient] = await viem.getWalletClients();
+try {
+  const [senderClient] = await connection.viem.getWalletClients();
 
-const hexMsg = stringToHex("Hello world");
+  const hexMsg = stringToHex("Hello world");
 
-const signature = await senderClient.request({
-  method: "eth_sign",
-  params: [ledgerAddress, hexMsg],
-});
+  const signature = await senderClient.request({
+    method: "eth_sign",
+    params: [ledgerAddress, hexMsg],
+  });
+} finally {
+  // Hardhat cannot exit while the Ledger connection is open (see below).
+  await connection.close();
+}
 ```
 
 Usage Example with the provider:
@@ -101,17 +106,22 @@ Usage Example with the provider:
 ```typescript
 import hre from "hardhat";
 
-const { provider, ethers } = await hre.network.create("yourNetworkName");
+const connection = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-const msg = ethers.toUtf8Bytes("Hello world");
-const hexMsg = ethers.hexlify(msg);
+try {
+  const msg = connection.ethers.toUtf8Bytes("Hello world");
+  const hexMsg = connection.ethers.hexlify(msg);
 
-const signature = await provider.request({
-  method: "eth_sign",
-  params: [ledgerAddress, hexMsg],
-});
+  const signature = await connection.provider.request({
+    method: "eth_sign",
+    params: [ledgerAddress, hexMsg],
+  });
+} finally {
+  // Hardhat cannot exit while the Ledger connection is open (see below).
+  await connection.close();
+}
 ```
 
 ## Closing the connection
