@@ -51,10 +51,11 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
       this.#cachedValue = await this._getRawValue();
     }
 
-    return this.format.replaceAll(
-      CONFIGURATION_VARIABLE_MARKER,
-      this.#cachedValue,
-    );
+    const value = this.#cachedValue;
+
+    // A replacer function inserts the value as is, while a replacement string
+    // would expand patterns like `$&` or `$$` that the value may contain.
+    return this.format.replaceAll(CONFIGURATION_VARIABLE_MARKER, () => value);
   }
 
   public async getUrl(): Promise<string> {

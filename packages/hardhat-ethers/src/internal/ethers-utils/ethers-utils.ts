@@ -23,6 +23,7 @@ import {
   getCreateAddress,
   getNumber,
   hexlify,
+  isBytesLike,
   isHexString,
   Signature,
   toQuantity,
@@ -49,7 +50,7 @@ export function copyRequest(
   }
 
   const bigIntKeys =
-    "chainId,gasLimit,gasPrice,maxFeePerGas,maxPriorityFeePerGas,value".split(
+    "chainId,gasLimit,gasPrice,maxFeePerBlobGas,maxFeePerGas,maxPriorityFeePerGas,value".split(
       /,/,
     );
   for (const key of bigIntKeys) {
@@ -101,6 +102,30 @@ export function copyRequest(
 
   if ("customData" in req) {
     result.customData = req.customData;
+  }
+
+  if (
+    req.blobVersionedHashes !== null &&
+    req.blobVersionedHashes !== undefined
+  ) {
+    result.blobVersionedHashes = req.blobVersionedHashes.slice();
+  }
+
+  // The kzg library and the wrapper version are only used when signing
+  // locally, but we keep them so that a populated request can still be
+  // signed by an ethers Wallet
+  if ("kzg" in req) {
+    result.kzg = req.kzg;
+  }
+
+  if ("blobWrapperVersion" in req) {
+    result.blobWrapperVersion = req.blobWrapperVersion;
+  }
+
+  if (req.blobs !== null && req.blobs !== undefined) {
+    result.blobs = req.blobs.map((blob) =>
+      isBytesLike(blob) ? hexlify(blob) : { ...blob },
+    );
   }
 
   return result;
@@ -416,10 +441,18 @@ export function formatLog(value: any): LogParams {
   return _formatLog(value);
 }
 
+/**
+ * ethers' JsonRpcTransactionRequest doesn't declare blobVersionedHashes, even
+ * though its JsonRpcSigner forwards it, so we extend the type with it.
+ */
+export type HardhatJsonRpcTransactionRequest = JsonRpcTransactionRequest & {
+  blobVersionedHashes?: string[];
+};
+
 export function getRpcTransaction(
   tx: TransactionRequest,
-): JsonRpcTransactionRequest {
-  const result: JsonRpcTransactionRequest = {};
+): HardhatJsonRpcTransactionRequest {
+  const result: HardhatJsonRpcTransactionRequest = {};
 
   let txKeys: Array<keyof TransactionRequest> = [
     "chainId",
@@ -462,6 +495,14 @@ export function getRpcTransaction(
   // Normalize the access list object
   if (tx.accessList !== null && tx.accessList !== undefined) {
     result.accessList = accessListify(tx.accessList);
+  }
+
+  // Like ethers' JsonRpcSigner, we only forward the versioned hashes. The
+  // blobs, their fee and the kzg library aren't part of the JSON-RPC request
+  if (tx.blobVersionedHashes !== null && tx.blobVersionedHashes !== undefined) {
+    result.blobVersionedHashes = tx.blobVersionedHashes.map((hash) =>
+      hash.toLowerCase(),
+    );
   }
 
   // Normalize the authorization list

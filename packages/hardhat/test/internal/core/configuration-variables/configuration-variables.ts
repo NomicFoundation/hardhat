@@ -56,6 +56,65 @@ describe("ResolvedConfigurationVariable", () => {
     assert.equal(await variable.get(), "variable: bar");
   });
 
+  describe("values with replacement patterns", () => {
+    // All the patterns that a replacement string expands when the searched
+    // value is a string, like the variable marker
+    const value = "a$$b$&c$`d$'e";
+
+    it("should return an inline value as is", async () => {
+      const variable = new FixedValueConfigurationVariable(value);
+
+      assert.equal(await variable.get(), value);
+    });
+
+    it("should insert the value of an environment variable as is, with format", async () => {
+      const variable = new LazyResolvedConfigurationVariable(
+        hre.hooks,
+        configVariable(
+          "foo",
+          `https://user:${CONFIGURATION_VARIABLE_MARKER}@example.com`,
+        ),
+      );
+
+      setEnvVar("foo", value);
+
+      assert.equal(await variable.get(), `https://user:${value}@example.com`);
+    });
+
+    it("should return a value from configurationVariables hooks as is", async () => {
+      const handlers: Partial<ConfigurationVariableHooks> = {
+        fetchValue: async (_context, _variable, _next) => value,
+      };
+
+      hre.hooks.registerHandlers("configurationVariables", handlers);
+
+      try {
+        const variable = new LazyResolvedConfigurationVariable(
+          hre.hooks,
+          configVariable("REPLACEMENT_PATTERNS_TEST_HOOK"),
+        );
+
+        assert.equal(await variable.get(), value);
+      } finally {
+        hre.hooks.unregisterHandlers("configurationVariables", handlers);
+      }
+    });
+
+    it("should insert the value as is in every marker of the format", async () => {
+      const variable = new LazyResolvedConfigurationVariable(
+        hre.hooks,
+        configVariable(
+          "foo",
+          `${CONFIGURATION_VARIABLE_MARKER}:${CONFIGURATION_VARIABLE_MARKER}`,
+        ),
+      );
+
+      setEnvVar("foo", value);
+
+      assert.equal(await variable.get(), `${value}:${value}`);
+    });
+  });
+
   it("should throw if the environment variable is not found", async () => {
     const variable = new LazyResolvedConfigurationVariable(
       hre.hooks,
