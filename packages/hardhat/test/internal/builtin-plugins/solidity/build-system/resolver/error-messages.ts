@@ -541,6 +541,24 @@ If you still want to be able to do it, try adding this remapping "contracts/=con
       });
     });
 
+    describe("BARE_IMPORT_TO_LOCAL_FILE", () => {
+      it("Should include the suggested relative import", () => {
+        const result = formatImportResolutionError({
+          type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE,
+          fromFsPath: "/project/contracts/Factory.sol",
+          importPath: "Storage.sol",
+          suggestedRelativeImport: "./Storage.sol",
+        });
+
+        assert.equal(
+          result,
+          `You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.
+
+Try writing your import as "./Storage.sol" instead.`,
+        );
+      });
+    });
+
     describe("IMPORT_DOES_NOT_EXIST", () => {
       it("Should say 'the package' for NPM_PACKAGE_FILE with no extras", () => {
         const result = formatImportResolutionError({
