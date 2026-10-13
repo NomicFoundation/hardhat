@@ -706,7 +706,16 @@ export class LedgerHandler {
         );
       }
 
-      throw error;
+      // Keep errors already reported by `#runOnDevice`, e.g. a closed connection.
+      if (HardhatError.isHardhatError(error)) {
+        throw error;
+      }
+
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
+        { message: error.message },
+        error,
+      );
     }
   }
 

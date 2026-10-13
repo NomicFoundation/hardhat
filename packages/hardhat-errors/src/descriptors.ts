@@ -3450,6 +3450,12 @@ Rename those fields and try again. If none of your fields match, please open an 
 
 Create a new connection to keep using the Ledger.`,
       },
+      DEVICE_ACTION_FAILED: {
+        number: 90012,
+        messageTemplate: `The Ledger device did not complete the request: {message}`,
+        websiteTitle: "Ledger device action failed",
+        websiteDescription: `The Ledger device reported an error while signing, for example because the request was rejected on the device.`,
+      },
     },
   },
   HARDHAT_FOUNDRY: {

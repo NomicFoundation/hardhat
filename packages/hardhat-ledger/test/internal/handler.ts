@@ -11,7 +11,6 @@ import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertRejects,
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -608,12 +607,10 @@ describe("LedgerHandler", () => {
           delayBeforeRetry: noOpSleep,
         });
 
-        await assertRejects(
+        await assertRejectsWithHardhatError(
           () => ledgerHandler.handle(personalSignRequest),
-          (error) =>
-            error instanceof LedgerDeviceError &&
-            error.tag === REFUSED_BY_USER_ERROR._tag,
-          "Expected the rejection to reach the caller unchanged",
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
+          { message: "RefusedByUserDAError: Refused by the user" },
         );
 
         assert.equal(calls.signMessage.totalCalls, 1, "It must not retry");
@@ -1147,12 +1144,12 @@ describe("LedgerHandler", () => {
 
         mockedDisplayInfo.clear();
 
-        await assertRejects(
+        await assertRejectsWithHardhatError(
           () => ledgerHandler.handle(personalSignRequest),
-          (error) =>
-            error instanceof LedgerDeviceError &&
-            error.tag === DEVICE_DISCONNECTED_ERROR._tag,
-          "Expected the disconnection to reach the caller",
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
+          {
+            message: `${DEVICE_DISCONNECTED_ERROR._tag}: ${DEVICE_DISCONNECTED_ERROR.message}`,
+          },
         );
 
         assert.equal(state.connectCount, 3);
