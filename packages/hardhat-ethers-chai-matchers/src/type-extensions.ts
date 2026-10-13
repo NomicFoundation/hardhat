@@ -142,11 +142,12 @@ declare global {
        * @param options Optional configuration, e.g., `{ includeFee: true }`.
        * @returns An AsyncAssertion.
        * @example
-       * await expect(token.transfer(receiver, 1000)).to.changeTokenBalances(
-       *  ethers,
-       *  token,
-       *  [sender, receiver],
-       *  [-1000, 1000],
+       * await expect(
+       *   sender.sendTransaction({ to: receiver, value: 1000 }),
+       * ).to.changeEtherBalances(
+       *   ethers,
+       *   [sender, receiver],
+       *   [-1000, 1000],
        * );
        */
       changeEtherBalances(

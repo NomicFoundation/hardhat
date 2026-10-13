@@ -13,24 +13,17 @@ import type { Writable } from "node:stream";
 import { finished } from "node:stream/promises";
 import { styleText } from "node:util";
 
-import {
-  opGenesisState,
-  l1GenesisState,
-  FsAccessPermission,
-  CollectStackTraces,
-  opHardforkFromString,
-  l1HardforkFromString,
-} from "@nomicfoundation/edr";
+import { FsAccessPermission, CollectStackTraces } from "@nomicfoundation/edr";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
-import {
-  ALWAYS_COLLECT_STACK_TRACES_VERBOSITY,
-  OPTIMISM_CHAIN_TYPE,
-} from "../../constants.js";
+import { ALWAYS_COLLECT_STACK_TRACES_VERBOSITY } from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
-import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
-import { warnIfExperimentalHardfork } from "../network-manager/edr/utils/hardfork.js";
+import { getChainGenesisState } from "../network-manager/edr/genesis-state.js";
+import {
+  getHardforkName,
+  warnIfExperimentalHardfork,
+} from "../network-manager/edr/utils/hardfork.js";
 import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-formatters.js";
 
 import { formatArtifactId } from "./formatters.js";
@@ -47,6 +40,8 @@ interface SolidityTestConfigParams {
   generateGasReport: boolean;
   eip712CanonicalTypes?: string[];
   testSourcePaths?: Record<string, string>;
+  testProfile?: string;
+  declaredTestProfiles?: string[];
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
@@ -61,6 +56,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   generateGasReport,
   eip712CanonicalTypes,
   testSourcePaths,
+  testProfile,
+  declaredTestProfiles,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -99,15 +96,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const resolvedHardforkName = resolveHardfork(hardfork, chainType);
   warnIfExperimentalHardfork(resolvedHardforkName, chainType);
 
-  const resolvedHardfork = hardhatHardforkToEdrSpecId(
-    resolvedHardforkName,
-    chainType,
-  );
+  const resolvedHardfork = getHardforkName(resolvedHardforkName, chainType);
 
-  const localPredeploys =
-    chainType === OPTIMISM_CHAIN_TYPE
-      ? opGenesisState(opHardforkFromString(resolvedHardfork))
-      : l1GenesisState(l1HardforkFromString(resolvedHardfork));
+  const localPredeploys = getChainGenesisState(resolvedHardfork, chainType);
 
   const includeTraces = verbosityToIncludeTraces(verbosity);
 
@@ -175,6 +166,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : CollectStackTraces.OnFailure,
     eip712CanonicalTypes,
     testSourcePaths,
+    testProfile,
+    declaredTestProfiles,
   };
 }
 

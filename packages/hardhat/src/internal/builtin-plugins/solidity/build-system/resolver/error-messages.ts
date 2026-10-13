@@ -156,6 +156,12 @@ If you want to use the remapping, write your import as "${error.directImport}" i
 If you still want to be able to do it, try adding this remapping "${error.suggestedRemapping}" to the "remappings.txt" file in the root of your project.`;
     }
 
+    case ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE: {
+      return `You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.
+
+Try writing your import as "${error.suggestedRelativeImport}" instead.`;
+    }
+
     case ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST: {
       const packageOrProject =
         error.resolvedFileType === ResolvedFileType.NPM_PACKAGE_FILE

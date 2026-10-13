@@ -1,5 +1,36 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`ad49ec2`](https://github.com/NomicFoundation/hardhat/commit/ad49ec23136c8eb5a88024cb9b211a8b0b20ff11) Thanks [@schaable](https://github.com/schaable)! - Improved the constructor argument errors so `HHE80017` and `HHE80019` name the parameter that could not be encoded.
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`eb2b13d`](https://github.com/NomicFoundation/hardhat/commit/eb2b13da0a4395006e39bc5927403dd21be13b02) Thanks [@schaable](https://github.com/schaable)! - Removed the `@ethersproject/abi` dependency, encoding constructor arguments with `micro-eth-signer` instead ([#8605](https://github.com/NomicFoundation/hardhat/issues/8605)).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
+## 3.1.1
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
+## 3.1.0
+
+### Minor Changes
+
+- [#8510](https://github.com/NomicFoundation/hardhat/pull/8510) [`7c85703`](https://github.com/NomicFoundation/hardhat/commit/7c85703e2ef088df2be6cc4ba378f5f368ea7200) Thanks [@nikitosing](https://github.com/nikitosing)! - Added support for an optional `apiKey` in the `verify.blockscout` config. This is required by Blockscout instances that don't expose a keyless API, like the Pro API.
+
+### Patch Changes
+
+- [#8577](https://github.com/NomicFoundation/hardhat/pull/8577) [`27a145d`](https://github.com/NomicFoundation/hardhat/commit/27a145d423e17082f78fa2bb8a0c003942bb642a) Thanks [@kanej](https://github.com/kanej)! - Report a directory with no importable entry point as a module-not-found error, instead of the generic "importing the module failed".
+
 ## 3.0.22
 
 ### Patch Changes

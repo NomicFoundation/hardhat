@@ -43,6 +43,16 @@
         "runs": 2,
         "command": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" bunx vitest run",
         "dependsOn": ["cold compile"]
+      },
+      "test vitest -vvv": {
+        "runs": 2,
+        "command": "HARDHAT_VERBOSITY=3 NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" bunx vitest run",
+        "dependsOn": ["cold compile"]
+      },
+      "test vitest -vvvv": {
+        "runs": 2,
+        "command": "HARDHAT_VERBOSITY=4 NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" bunx vitest run",
+        "dependsOn": ["cold compile"]
       }
     }
   }

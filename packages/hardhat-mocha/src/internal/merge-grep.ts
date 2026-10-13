@@ -3,6 +3,7 @@
 import type { MochaOptions } from "mocha";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 type MochaGrepFilter = Pick<MochaOptions, "grep" | "fgrep" | "invert">;
 
@@ -40,6 +41,21 @@ export function resolveMochaGrepFilter(
   assertValidPattern("grep", include);
   assertValidPattern("grepExclude", exclude);
 
+  // The include pattern comes from the CLI's `--grep` or, when that's absent,
+  // from the Mocha config's `grep`. Errors about the include side should say
+  // which of the two it was, so name it once here.
+  const includeName = include !== undefined ? "--grep" : "mocha config grep";
+
+  // The config's `grep` can be a string or a RegExp; only the string form goes
+  // through Mocha's `/pattern/flags` parsing.
+  const configGrepString =
+    typeof config.grep === "string" ? config.grep : undefined;
+
+  // Mocha parses a STRING name filter itself, and throws a raw SyntaxError
+  // from inside its constructor when the body or flags are invalid — long after
+  // this resolver returned. Reject it here instead, with a Hardhat error.
+  assertMochaCanCompilePattern(includeName, include ?? configGrepString);
+
   // A CLI `--grep` and a config `fgrep` are competing name filters, and Mocha
   // applies `fgrep` last (it would silently win). Reject the pair as mutually
   // exclusive, exactly like Mocha's own CLI does.
@@ -65,11 +81,6 @@ export function resolveMochaGrepFilter(
 
     return resolved;
   }
-
-  // The include pattern comes from the CLI's `--grep` or, when that's absent,
-  // from the Mocha config's `grep`. Errors about the include side should say
-  // which of the two it was, so name it once here.
-  const includeName = include !== undefined ? "--grep" : "mocha config grep";
 
   // The merged pattern is about to take over Mocha's one filter slot, so a
   // config that ALSO sets `fgrep` (fixed-string filter) or `invert` (run the
@@ -290,18 +301,17 @@ function emptyToUndefined(value: string | undefined): string | undefined {
 // don't affect a fresh `.test()`, so they can be dropped safely.
 const MEANING_CHANGING_REGEXP_FLAGS = /[imsuvy]/;
 
-// When a --grep value looks like `/pattern/flags` with a non-empty pattern,
-// Mocha treats it as a regex literal: it strips the slashes and applies the
-// flags (`new RegExp(arg[1] || arg[0], arg[2])`). The merge instead pastes the
-// value in verbatim (slashes and all), so its meaning would differ — so those
-// shapes are rejected. This mirrors the regex-literal branch of Mocha's own
-// parser, `/^\/(.*)\/([gimy]{0,4})$|.*/`, including its flag set (g, i, m, y).
-// The guard is a touch broader: because it uses `.*` it also rejects
-// empty-pattern shapes like `//` or `//g`, which Mocha's `arg[1] || arg[0]`
-// fallback keeps verbatim — those would merge with the same meaning anyway, so
-// rejecting them is harmless. Something like `/x/s` is NOT a literal to Mocha
-// either, so it stays plain text in both places and needs no guard.
-const MOCHA_REGEX_LITERAL = /^\/(.*)\/([gimy]{0,4})$/;
+// Mocha reads a `/pattern/flags` value as a regex literal — stripping the
+// slashes and applying the flags (`new RegExp(arg[1] || arg[0], arg[2])`) —
+// while the merge pastes it in verbatim, so those shapes are rejected. This
+// mirrors Mocha's own parser, `/^\/(.*)\/([a-z]*)$|.*/`, flag set included.
+// The drift-contract suite pins the mirror to the installed Mocha.
+//
+// The `.*` (not `.+`) is load-bearing: it also catches `//`, `//g`, `//i`, …,
+// where Mocha's `arg[1] || arg[0]` fallback compiles the WHOLE string but
+// still applies the flags (`//i` becomes /\/\/i/i, matching "a //I b"),
+// which a verbatim merge would not.
+const MOCHA_REGEX_LITERAL = /^\/(.*)\/([a-z]*)$/;
 
 function assertMergeableGrepPattern(
   name: string,
@@ -309,6 +319,61 @@ function assertMergeableGrepPattern(
 ): void {
   if (pattern !== undefined && MOCHA_REGEX_LITERAL.test(pattern)) {
     rejectUnsupportedPattern(name, pattern, "a /pattern/flags regex literal");
+  }
+}
+
+/**
+ * Rejects a string name filter that Mocha itself cannot compile.
+ *
+ * Mocha runs `new RegExp(body || whole, flags)` on a `/pattern/flags` string.
+ * Invalid flags or an invalid body throw a raw SyntaxError from Mocha, and only
+ * once it builds the runner — i.e. unwrapped, after the project compiled. A
+ * path-like `/contracts/token` hits exactly this (`token` read as the flags).
+ *
+ * Unlike the merge guards this applies with or without --grep-exclude: Mocha
+ * cannot use the value either way.
+ */
+function assertMochaCanCompilePattern(
+  name: string,
+  pattern: string | undefined,
+): void {
+  if (pattern === undefined) {
+    return;
+  }
+
+  const literal = MOCHA_REGEX_LITERAL.exec(pattern);
+
+  if (literal === null) {
+    return;
+  }
+
+  const [, body, flags] = literal;
+
+  // An empty body can't fail to compile, so only the flags can: checking them
+  // on their own first keeps each failure attributable. A body can be invalid
+  // under otherwise valid flags (e.g. /\a/u), so the two aren't interchangeable.
+  try {
+    new RegExp("", flags);
+  } catch (error) {
+    ensureError(error);
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_REGEX_LITERAL,
+      { name, pattern, body, flags },
+      error,
+    );
+  }
+
+  try {
+    // Exactly what Mocha does with `new RegExp(arg[1] || arg[0], arg[2])`: an
+    // empty body falls back to the whole matched string.
+    new RegExp(body === "" ? pattern : body, flags);
+  } catch (error) {
+    ensureError(error);
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      { value: pattern, name, type: "regexp" },
+      error,
+    );
   }
 }
 

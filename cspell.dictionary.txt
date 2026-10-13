@@ -11,6 +11,7 @@ behaviour
 besu
 Besu
 blinenums
+branchify
 BRDA
 bunx
 cbor
@@ -47,6 +48,7 @@ fqns
 Fqns
 FQNs
 gcda
+gcmsiv
 gnueabihf
 hdkey
 hdpath
@@ -96,6 +98,8 @@ onuncaughtexception
 packument
 perché
 perché
+pids
+Pids
 popd
 PREVRANDAO
 pushd
@@ -131,8 +135,10 @@ txts
 ufixed
 Uints
 Uncontended
+uncompilable
 uncompiled
 undownloadable
+ungroup
 unidici
 unmined
 unpad

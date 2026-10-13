@@ -1,5 +1,29 @@
 # @nomicfoundation/hardhat-slang-solx
 
+## 3.0.4
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
+## 3.0.3
+
+### Patch Changes
+
+- [#8597](https://github.com/NomicFoundation/hardhat/pull/8597) [`6684224`](https://github.com/NomicFoundation/hardhat/commit/6684224124c48fe84904797f3c2d0c715014e64c) Thanks [@kanej](https://github.com/kanej)! - Added slang-solx compiler support as a Hardhat plugin.
+
+## 3.0.2
+
+### Patch Changes
+
+- [#8570](https://github.com/NomicFoundation/hardhat/pull/8570) [`b1dd42f`](https://github.com/NomicFoundation/hardhat/commit/b1dd42f334a2b70e1cc74967085cedab62373321) Thanks [@kanej](https://github.com/kanej)! - Rename the solx compiler type from `slangSolx` to `slang-solx`.
+
+- [#8556](https://github.com/NomicFoundation/hardhat/pull/8556) [`c6397d1`](https://github.com/NomicFoundation/hardhat/commit/c6397d197f8bd0f67e5774efdc37df3bf25aa7bd) Thanks [@kanej](https://github.com/kanej)! - Fixed a race condition in the solx downloader that would show as `spawn ... EACCES`.
+
 ## 3.0.1
 
 ### Patch Changes

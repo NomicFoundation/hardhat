@@ -192,6 +192,12 @@ export enum ImportResolutionErrorType {
    * A direct import to a local file was found, which we forbid.
    */
   DIRECT_IMPORT_TO_LOCAL_FILE = "DIRECT_IMPORT_TO_LOCAL_FILE",
+
+  /**
+   * A bare filename import (e.g. "A.sol") to a local file was found, which we
+   * forbid.
+   */
+  BARE_IMPORT_TO_LOCAL_FILE = "BARE_IMPORT_TO_LOCAL_FILE",
 }
 
 export interface ImportWithWindowsPathSeparatorsError {
@@ -275,6 +281,13 @@ export interface DirectImportToLocalFileError {
   suggestedRemapping: string;
 }
 
+export interface BareImportToLocalFileError {
+  type: ImportResolutionErrorType.BARE_IMPORT_TO_LOCAL_FILE;
+  fromFsPath: string;
+  importPath: string;
+  suggestedRelativeImport: string;
+}
+
 export type ImportResolutionError =
   | ImportWithWindowsPathSeparatorsError
   | IllegalRelativeImportError
@@ -286,7 +299,8 @@ export type ImportResolutionError =
   | ImportWithRemappingErrorsError
   | ImportOfNonExportedNpmFileError
   | RelativeImportClashesWithUserRemappingError
-  | DirectImportToLocalFileError;
+  | DirectImportToLocalFileError
+  | BareImportToLocalFileError;
 
 /**
  * The different types of errors that can happen when processing a user

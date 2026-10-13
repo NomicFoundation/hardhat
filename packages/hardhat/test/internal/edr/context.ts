@@ -18,6 +18,7 @@ const networkConfigStub: RequireField<EdrNetworkConfig, "chainType"> = {
   chainId: 31337,
   coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
   gas: "auto",
+  gasEstimationMode: "topLevelSuccess",
   gasMultiplier: 1,
   gasPrice: "auto",
   hardfork: "osaka",

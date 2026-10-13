@@ -29,6 +29,17 @@ describe("BUILD_INFO_FORMAT", () => {
     assert.equal(match.groups.compilerType, "solx");
   });
 
+  it("matches a build ID with a hyphenated compiler type", () => {
+    const match = BUILD_INFO_FORMAT.exec("solc-0_8_0-slang-solx-abc123");
+
+    assert.ok(
+      match !== null && match.groups !== undefined,
+      "Regexp should match and have groups",
+    );
+
+    assert.equal(match.groups.compilerType, "slang-solx");
+  });
+
   it("matches a build ID with empty hash", () => {
     // The regex allows zero hex chars in the hash portion
     const match = BUILD_INFO_FORMAT.exec("solc-0_8_0-");

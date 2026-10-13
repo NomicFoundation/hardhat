@@ -26,6 +26,21 @@ function directiveError(
   };
 }
 
+function contractLevelDirectiveError(
+  problem: InlineConfigDirectiveProblem,
+): InlineConfigError {
+  return {
+    kind: "directive",
+    sourceName: SOURCE_NAME,
+    contract: "FooTest",
+    // A contract-level directive doesn't belong to any test function, so EDR
+    // leaves this undefined.
+    function: undefined,
+    line: 12,
+    problem,
+  };
+}
+
 function sourceError(problem: InlineConfigSourceProblem): InlineConfigError {
   return {
     kind: "source",
@@ -68,6 +83,42 @@ describe("formatInlineConfigErrors", () => {
     );
   });
 
+  it("names only the contract for a contract-level directive", () => {
+    const formatted = formatInlineConfigErrors(
+      [
+        contractLevelDirectiveError({
+          kind: "InlineConfigDuplicateKey",
+          key: "default.fuzz.runs",
+        }),
+      ],
+      sourceNameToUserSourceName,
+    );
+
+    assert.equal(
+      formatted,
+      `- test/Foo.t.sol:12: FooTest: duplicate key "default.fuzz.runs"`,
+    );
+  });
+
+  it("names only the contract for a contract-level directive that can't be located", () => {
+    const formatted = formatInlineConfigErrors(
+      [
+        sourceError({
+          kind: "InlineConfigDirectiveLocation",
+          contract: "FooTest",
+          function: undefined,
+          reason: "offset out of bounds",
+        }),
+      ],
+      sourceNameToUserSourceName,
+    );
+
+    assert.equal(
+      formatted,
+      "- test/Foo.t.sol: a directive of FooTest could not be located: offset out of bounds",
+    );
+  });
+
   it("describes every directive problem", () => {
     const problems: Array<[InlineConfigDirectiveProblem, string]> = [
       [
@@ -75,8 +126,12 @@ describe("formatInlineConfigErrors", () => {
         `missing "=" in "fuzz.runs 7"`,
       ],
       [
-        { kind: "InlineConfigUnsupportedProfile", profile: "ci" },
-        `unsupported profile "ci". Only the "default" profile is supported`,
+        {
+          kind: "InlineConfigUndeclaredProfile",
+          profile: "ci",
+          declaredProfiles: ["default", "lite"],
+        },
+        `undeclared profile "ci". Declared profiles: "default", "lite"`,
       ],
       [
         { kind: "InlineConfigInvalidKey", key: "default.nope" },

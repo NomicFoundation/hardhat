@@ -418,6 +418,87 @@ describe("isCommandConfig", () => {
     );
   });
 
+  it("accepts an optional warmup count, including zero", () => {
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 1, command: "npx hardhat test" }),
+      true,
+    );
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 0, command: "npx hardhat test" }),
+      true,
+    );
+  });
+
+  it("rejects a negative or fractional warmup", () => {
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: -1, command: "npx hardhat test" }),
+      false,
+    );
+    assert.equal(
+      isCommandConfig({ runs: 2, warmup: 1.5, command: "npx hardhat test" }),
+      false,
+    );
+  });
+
+  it("accepts an optional statistic of mean or median", () => {
+    for (const statistic of ["mean", "median"]) {
+      assert.equal(
+        isCommandConfig({ runs: 3, statistic, command: "npx hardhat test" }),
+        true,
+        statistic,
+      );
+    }
+  });
+
+  it("accepts a per-metric statistic object", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "median" },
+        command: "npx hardhat test",
+      }),
+      true,
+    );
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "median", cpu: "mean", peakRss: "median" },
+        command: "npx hardhat test",
+      }),
+      true,
+    );
+  });
+
+  it("rejects a per-metric statistic with an unknown metric or value", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { wall: "p99" },
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: { time: "median" },
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+  });
+
+  it("rejects an unknown statistic", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        statistic: "p99",
+        command: "npx hardhat test",
+      }),
+      false,
+    );
+  });
+
   it("rejects when runs is missing", () => {
     assert.equal(isCommandConfig({ command: "npx hardhat compile" }), false);
   });
@@ -463,7 +544,7 @@ describe("isCommandConfig", () => {
       isCommandConfig({
         runs: 3,
         command: "npx hardhat compile",
-        warmup: 1,
+        timeout: 60,
       }),
       false,
     );

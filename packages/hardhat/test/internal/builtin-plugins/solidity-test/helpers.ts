@@ -7,9 +7,7 @@ import { Readable, Writable } from "node:stream";
 import { before, describe, it } from "node:test";
 
 import {
-  CANCUN,
   CollectStackTraces,
-  ECOTONE,
   IncludeTraces,
   l1HardforkLatest,
   l1HardforkToString,
@@ -18,6 +16,10 @@ import {
 } from "@nomicfoundation/edr";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import {
+  L1HardforkName,
+  OpHardforkName,
+} from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 import {
   isTestSuiteArtifact,
@@ -411,7 +413,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         generateGasReport: false,
       });
 
-      assert.equal(args.hardfork, CANCUN);
+      assert.equal(args.hardfork, L1HardforkName.CANCUN);
     });
 
     it("should use provided hardfork for OP", async () => {
@@ -424,7 +426,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         generateGasReport: false,
       });
 
-      assert.equal(args.hardfork, ECOTONE);
+      assert.equal(args.hardfork, OpHardforkName.ECOTONE);
     });
 
     it("should use latest L1 hardfork when hardfork is undefined", async () => {

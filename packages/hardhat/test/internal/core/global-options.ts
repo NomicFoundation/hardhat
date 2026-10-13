@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertThrowsHardhatError,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import {
   RESERVED_ARGUMENT_NAMES,
@@ -21,8 +24,6 @@ import {
   resolveGlobalOptions,
 } from "../../../src/internal/core/global-options.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
-
-import { createTestEnvManager } from "./utils.js";
 
 describe("Global Options", () => {
   before(() => {

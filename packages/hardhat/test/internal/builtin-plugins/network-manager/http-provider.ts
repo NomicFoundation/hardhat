@@ -7,19 +7,13 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import {
-  HttpProvider,
-  getHttpDispatcher,
-} from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
+import { HttpProvider } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import {
   ProviderError,
   LimitExceededError,
 } from "../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../src/internal/constants.js";
-import {
-  createTestEnvManager,
-  initializeTestDispatcher,
-} from "../../../utils.js";
+import { initializeTestDispatcher } from "../../../utils.js";
 
 describe("http-provider", () => {
   describe("HttpProvider.create", () => {
@@ -41,7 +35,7 @@ describe("http-provider", () => {
           timeout: 20_000,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_URL,
-        { value: "invalid url" },
+        { networkName: "exampleNetwork" },
       );
     });
   });
@@ -51,7 +45,7 @@ describe("http-provider", () => {
    * mock the network requests.
    */
   describe("HttpProvider#request", async () => {
-    const interceptor = await initializeTestDispatcher();
+    const { interceptor, dispatcher } = await initializeTestDispatcher();
     const baseInterceptorOptions = {
       path: "/",
       method: "POST",
@@ -81,7 +75,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -122,7 +116,7 @@ describe("http-provider", () => {
           // as we are mocking the dispatcher
           networkName: "edrNetwork",
           timeout: 20_000,
-          testDispatcher: interceptor,
+          testDispatcher: dispatcher,
         });
 
         const eventPromise = new Promise<void>((resolve) => {
@@ -148,7 +142,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       await assertRejectsWithHardhatError(
@@ -215,7 +209,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -256,7 +250,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       const result = await provider.request({
@@ -292,7 +286,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -330,7 +324,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -370,7 +364,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       await assertRejectsWithHardhatError(
@@ -415,7 +409,7 @@ describe("http-provider", () => {
         url: "http://localhost",
         networkName: "exampleNetwork",
         timeout: 20_000,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       try {
@@ -489,7 +483,7 @@ describe("http-provider", () => {
         networkName: "exampleNetwork",
         timeout: 20_000,
         jsonRpcRequestWrapper,
-        testDispatcher: interceptor,
+        testDispatcher: dispatcher,
       });
 
       // eth_chainId is handled by the wrapper and returns the hardhat chain ID
@@ -512,52 +506,6 @@ describe("http-provider", () => {
         method: "eth_blockNumber",
       });
       assert.equal(blockNumberResult, jsonRpcBlockNumberResponse.result);
-    });
-  });
-
-  describe("getHttpDispatcher", () => {
-    const { setEnvVar } = createTestEnvManager();
-
-    it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "Pool");
-    });
-
-    it("should return a pool dispatcher when shouldUseProxy returns false", async () => {
-      setEnvVar("http_proxy", "http://proxy.com");
-      // shouldUseProxy returns false for localhost, so getProxyUrl should return undefined
-      const dispatcher = await getHttpDispatcher("http://localhost");
-
-      assert.equal(dispatcher.constructor.name, "Pool");
-    });
-
-    it("should return a proxy dispatcher when http_proxy env var is set", async () => {
-      setEnvVar("http_proxy", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when HTTP_PROXY env var is set", async () => {
-      setEnvVar("HTTP_PROXY", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("http://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when https_proxy env var is set", async () => {
-      setEnvVar("https_proxy", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("https://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
-    });
-
-    it("should return a proxy dispatcher when HTTPS_PROXY env var is set", async () => {
-      setEnvVar("HTTPS_PROXY", "http://proxy.com");
-      const dispatcher = await getHttpDispatcher("https://example.com");
-
-      assert.equal(dispatcher.constructor.name, "ProxyAgent");
     });
   });
 

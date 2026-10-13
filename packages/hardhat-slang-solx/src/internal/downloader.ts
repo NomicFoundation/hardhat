@@ -13,6 +13,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
   exists,
+  move,
   readBinaryFile,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -104,9 +105,6 @@ export async function downloadSolx(
     dispatcher,
   );
 
-  // invoke the callback to allow the caller to update the UI
-  onBinaryDownloadStart();
-
   log(`Downloading solx ${solxVersion} from ${url}`);
 
   for (let attempt = 1; attempt <= DOWNLOAD_RETRY_COUNT; attempt++) {
@@ -123,10 +121,18 @@ export async function downloadSolx(
           return binaryPath;
         }
 
-        await download(url, binaryPath, {}, dispatcher);
+        // Signal download start only on the first attempt
+        if (attempt === 1) {
+          onBinaryDownloadStart();
+        }
+
+        // Download to a temporary path, we move into place after verifying the checksum
+        const downloadPath = `${binaryPath}.tmp`;
+
+        await download(url, downloadPath, {}, dispatcher);
 
         const checksumValid = await verifyChecksum(
-          binaryPath,
+          downloadPath,
           expectedChecksum,
         );
 
@@ -139,8 +145,10 @@ export async function downloadSolx(
 
         // Set executable permission on Unix
         if (process.platform !== "win32") {
-          await chmod(binaryPath, 0o755);
+          await chmod(downloadPath, 0o755);
         }
+
+        await move(downloadPath, binaryPath);
 
         log(`Successfully downloaded solx ${solxVersion}`);
         return binaryPath;
@@ -179,27 +187,31 @@ export async function downloadSolx(
 
 /**
  * Compares a downloaded binary against its expected SHA-256 checksum. On a
- * mismatch the binary is deleted and false is returned, leaving the caller to
+ * mismatch the file is deleted and false is returned, leaving the caller to
  * raise the error.
+ *
+ * This runs against the path the binary was downloaded to, before it is
+ * published to the path callers read, so a mismatch is deleted without ever
+ * having been visible.
  */
 async function verifyChecksum(
-  binaryPath: string,
+  downloadPath: string,
   expectedChecksum: PrefixedHexString,
 ): Promise<boolean> {
-  const binaryContents = await readBinaryFile(binaryPath);
+  const binaryContents = await readBinaryFile(downloadPath);
   const actualChecksum = bytesToHexString(await sha256(binaryContents));
 
   if (expectedChecksum !== actualChecksum) {
     log(
-      `SHA-256 mismatch for ${binaryPath}: expected ${expectedChecksum}, got ${actualChecksum}`,
+      `SHA-256 mismatch for ${downloadPath}: expected ${expectedChecksum}, got ${actualChecksum}`,
     );
 
-    await remove(binaryPath);
+    await remove(downloadPath);
 
     return false;
   }
 
-  log(`SHA-256 checksum verified for ${binaryPath}`);
+  log(`SHA-256 checksum verified for ${downloadPath}`);
   return true;
 }
 

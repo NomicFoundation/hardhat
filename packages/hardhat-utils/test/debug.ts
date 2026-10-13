@@ -17,6 +17,8 @@ import {
   useColors,
 } from "../src/internal/debug.js";
 
+import { createTestEnvManager } from "./helpers/env.js";
+
 function captureStderr(t: TestContext): string[] {
   const chunks: string[] = [];
   t.mock.method(process.stderr, "write", (chunk: unknown) => {
@@ -34,35 +36,19 @@ function setIsTTY(value: boolean | undefined): void {
   });
 }
 
-function setEnv(
-  key: "DEBUG" | "DEBUG_COLORS",
-  value: string | undefined,
-): void {
-  if (value === undefined) {
-    delete process.env[key];
-  } else {
-    process.env[key] = value;
-  }
-}
-
 describe("debug", () => {
   describe("createDebug", () => {
-    let savedDebug: string | undefined;
-    let savedDebugColors: string | undefined;
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
     let savedIsTTY: boolean | undefined;
 
     beforeEach(() => {
-      savedDebug = process.env.DEBUG;
-      savedDebugColors = process.env.DEBUG_COLORS;
       savedIsTTY = process.stderr.isTTY;
-      delete process.env.DEBUG;
-      delete process.env.DEBUG_COLORS;
+      unsetEnvVar("DEBUG");
+      unsetEnvVar("DEBUG_COLORS");
       setIsTTY(false);
     });
 
     afterEach(() => {
-      setEnv("DEBUG", savedDebug);
-      setEnv("DEBUG_COLORS", savedDebugColors);
       setIsTTY(savedIsTTY);
     });
 
@@ -74,18 +60,18 @@ describe("debug", () => {
     });
 
     it("returns the shared NOOP when the namespace is not matched", () => {
-      process.env.DEBUG = "other:*";
+      setEnvVar("DEBUG", "other:*");
       assert.equal(createDebug("hardhat:foo"), NOOP);
     });
 
     describe("enabled", () => {
       it("is true for a matched namespace", () => {
-        process.env.DEBUG = "hardhat:foo";
+        setEnvVar("DEBUG", "hardhat:foo");
         assert.equal(createDebug("hardhat:foo").enabled, true);
       });
 
       it("is true for a wildcard-matched namespace", () => {
-        process.env.DEBUG = "hardhat:*";
+        setEnvVar("DEBUG", "hardhat:*");
         assert.equal(createDebug("hardhat:core:foo").enabled, true);
       });
 
@@ -94,18 +80,18 @@ describe("debug", () => {
       });
 
       it("is false when the namespace does not match", () => {
-        process.env.DEBUG = "other:*";
+        setEnvVar("DEBUG", "other:*");
         assert.equal(createDebug("hardhat:foo").enabled, false);
       });
 
       it("is false for a negated namespace", () => {
-        process.env.DEBUG = "hardhat:*,-hardhat:noisy";
+        setEnvVar("DEBUG", "hardhat:*,-hardhat:noisy");
         assert.equal(createDebug("hardhat:noisy").enabled, false);
       });
     });
 
     it("writes to stderr when the namespace matches", (t) => {
-      process.env.DEBUG = "hardhat:foo";
+      setEnvVar("DEBUG", "hardhat:foo");
       const chunks = captureStderr(t);
 
       const log = createDebug("hardhat:foo");
@@ -115,7 +101,7 @@ describe("debug", () => {
     });
 
     it("supports wildcard patterns", (t) => {
-      process.env.DEBUG = "hardhat:*";
+      setEnvVar("DEBUG", "hardhat:*");
       const chunks = captureStderr(t);
 
       const log = createDebug("hardhat:core:foo");
@@ -125,7 +111,7 @@ describe("debug", () => {
     });
 
     it("supports negation patterns", (t) => {
-      process.env.DEBUG = "hardhat:*,-hardhat:noisy";
+      setEnvVar("DEBUG", "hardhat:*,-hardhat:noisy");
       const chunks = captureStderr(t);
 
       const enabled = createDebug("hardhat:foo");
@@ -140,7 +126,7 @@ describe("debug", () => {
     });
 
     it("renders the %O format specifier", (t) => {
-      process.env.DEBUG = "hardhat:foo";
+      setEnvVar("DEBUG", "hardhat:foo");
       const chunks = captureStderr(t);
 
       const log = createDebug("hardhat:foo");
@@ -150,7 +136,7 @@ describe("debug", () => {
     });
 
     it("formats multiple positional args", (t) => {
-      process.env.DEBUG = "hardhat:foo";
+      setEnvVar("DEBUG", "hardhat:foo");
       const chunks = captureStderr(t);
 
       const log = createDebug("hardhat:foo");
@@ -160,7 +146,7 @@ describe("debug", () => {
     });
 
     it("wraps the prefix in a bold ANSI sequence and the elapsed-diff suffix in a non-bold one when stderr is a TTY", (t) => {
-      process.env.DEBUG = "hardhat:foo";
+      setEnvVar("DEBUG", "hardhat:foo");
       setIsTTY(true);
       const chunks = captureStderr(t);
 
@@ -174,8 +160,8 @@ describe("debug", () => {
     });
 
     it("omits ANSI escape codes when DEBUG_COLORS=no", (t) => {
-      process.env.DEBUG = "hardhat:foo";
-      process.env.DEBUG_COLORS = "no";
+      setEnvVar("DEBUG", "hardhat:foo");
+      setEnvVar("DEBUG_COLORS", "no");
       setIsTTY(true);
       const chunks = captureStderr(t);
 
@@ -186,8 +172,8 @@ describe("debug", () => {
     });
 
     it("omits ANSI escape codes when DEBUG_COLORS=false", (t) => {
-      process.env.DEBUG = "hardhat:foo";
-      process.env.DEBUG_COLORS = "false";
+      setEnvVar("DEBUG", "hardhat:foo");
+      setEnvVar("DEBUG_COLORS", "false");
       setIsTTY(true);
       const chunks = captureStderr(t);
 
@@ -198,7 +184,7 @@ describe("debug", () => {
     });
 
     it("appends the elapsed-diff suffix", (t) => {
-      process.env.DEBUG = "hardhat:foo";
+      setEnvVar("DEBUG", "hardhat:foo");
       const chunks = captureStderr(t);
 
       const log = createDebug("hardhat:foo");
@@ -369,17 +355,15 @@ describe("debug", () => {
   });
 
   describe("useColors", () => {
-    let savedDebugColors: string | undefined;
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
     let savedIsTTY: boolean | undefined;
 
     beforeEach(() => {
-      savedDebugColors = process.env.DEBUG_COLORS;
       savedIsTTY = process.stderr.isTTY;
-      delete process.env.DEBUG_COLORS;
+      unsetEnvVar("DEBUG_COLORS");
     });
 
     afterEach(() => {
-      setEnv("DEBUG_COLORS", savedDebugColors);
       setIsTTY(savedIsTTY);
     });
 
@@ -395,13 +379,13 @@ describe("debug", () => {
 
     it("returns false when DEBUG_COLORS=no", () => {
       setIsTTY(true);
-      process.env.DEBUG_COLORS = "no";
+      setEnvVar("DEBUG_COLORS", "no");
       assert.equal(useColors(), false);
     });
 
     it("returns false when DEBUG_COLORS=false", () => {
       setIsTTY(true);
-      process.env.DEBUG_COLORS = "false";
+      setEnvVar("DEBUG_COLORS", "false");
       assert.equal(useColors(), false);
     });
   });

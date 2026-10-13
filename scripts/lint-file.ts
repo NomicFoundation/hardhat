@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { cliError, parseCliArgs } from "./lib/cli-args.ts";
 import { styleText } from "node:util";
 
 import { getRootDir, groupByPackage } from "./lib/file-package.ts";
@@ -41,25 +42,30 @@ interface PackageResult {
 }
 
 function main(): void {
-  const args = process.argv.slice(2);
+  const cli = {
+    command: "pnpm lint:file",
+    options: { fix: { type: "boolean" } },
+    allowPositionals: true,
+  } as const;
+  let parsed;
 
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  try {
+    parsed = parseCliArgs(process.argv.slice(2), cli);
+  } catch (error) {
+    logError((error as Error).message);
+    process.exit(1);
+  }
+
+  if (parsed === undefined) {
     console.log(USAGE);
     process.exit(0);
   }
 
-  let fix = false;
-  const paths: string[] = [];
-  for (const arg of args) {
-    if (arg === "--fix") {
-      fix = true;
-    } else {
-      paths.push(arg);
-    }
-  }
+  const fix = parsed.values.fix === true;
+  const paths = parsed.positionals;
 
   if (paths.length === 0) {
-    logError("No files specified");
+    logError(cliError(cli, "No files specified").message);
     process.exit(1);
   }
 

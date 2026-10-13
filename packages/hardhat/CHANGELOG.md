@@ -1,5 +1,107 @@
 # hardhat
 
+## 3.19.0
+
+### Minor Changes
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`0e51fa2`](https://github.com/NomicFoundation/hardhat/commit/0e51fa2f1023894a79e62d0e11d9528f7ea75dd7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7976 support to the Amsterdam hardfork: the calldata floor cost rises to 64 gas per byte.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`b52d2eb`](https://github.com/NomicFoundation/hardhat/commit/b52d2ebd98677b430f42503ca9cf008de0725823) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7981 support to the Amsterdam hardfork: access list data costs an extra 64 gas per byte.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7997 support to the Amsterdam hardfork: the deterministic `CREATE2` factory is now part of the genesis state.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`0e51fa2`](https://github.com/NomicFoundation/hardhat/commit/0e51fa2f1023894a79e62d0e11d9528f7ea75dd7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-8024 support to the Amsterdam hardfork: the `DUPN`, `SWAPN` and `EXCHANGE` opcodes reach stack items beyond `DUP16` and `SWAP16`.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-8037 support to the Amsterdam hardfork: execution gas and state gas are metered separately, and a block's `gasUsed` reports the larger.
+
+### Patch Changes
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Upgraded EDR to v0.22.2.
+
+- [#8679](https://github.com/NomicFoundation/hardhat/pull/8679) [`63fb54a`](https://github.com/NomicFoundation/hardhat/commit/63fb54aec02a60bad1314f3946f5749dc05051e9) Thanks [@Wodann](https://github.com/Wodann)! - Excluded the templates' `node_modules` folders from the published package, which broke installation with Yarn classic.
+
+- [#8667](https://github.com/NomicFoundation/hardhat/pull/8667) [`5793554`](https://github.com/NomicFoundation/hardhat/commit/5793554131276677b931cd0bc3a34e0607dc6040) Thanks [@schaable](https://github.com/schaable)! - Improved the errors for invalid transactions sent from local accounts.
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`17133ce`](https://github.com/NomicFoundation/hardhat/commit/17133ce6f3e65ec8ab08d6129f64ab7d4afccd5e) Thanks [@kanej](https://github.com/kanej)! - Removed the remaining built-in Holesky (chain ID `17000`) hardfork history, as the network has been shut down.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`17133ce`](https://github.com/NomicFoundation/hardhat/commit/17133ce6f3e65ec8ab08d6129f64ab7d4afccd5e) Thanks [@kanej](https://github.com/kanej)! - Added the Amsterdam hardfork activation on Sepolia, so forking Sepolia uses `amsterdam` for blocks after it activates.
+
+## 3.18.1
+
+### Patch Changes
+
+- [#8631](https://github.com/NomicFoundation/hardhat/pull/8631) [`d014d43`](https://github.com/NomicFoundation/hardhat/commit/d014d43b157ab8c54d1ed4d94e24e2dd98cdf68b) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed `edr-simulated` networks with `forking.enabled: false` starting without the chain's predeploys (e.g. OP's `GasPriceOracle` and `L1Block`, or the L1 beacon roots and history storage contracts).
+
+- [#8636](https://github.com/NomicFoundation/hardhat/pull/8636) [`8b24451`](https://github.com/NomicFoundation/hardhat/commit/8b2445190330a18851c6deda682d0d11efd214e8) Thanks [@schaable](https://github.com/schaable)! - Fixed the formatting of errors reported while running Solidity tests.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
+## 3.18.0
+
+### Minor Changes
+
+- [#8574](https://github.com/NomicFoundation/hardhat/pull/8574) [`e28e4f5`](https://github.com/NomicFoundation/hardhat/commit/e28e4f5ccb952913046ac4c14b09fb0db45f5b25) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Removed the pre-Byzantium hardforks (`chainstart`, `homestead`, `dao`, `tangerineWhistle`, `spuriousDragon`) from the accepted `hardfork` and `hardforkHistory` values, as EDR cannot execute them.
+
+- [#8595](https://github.com/NomicFoundation/hardhat/pull/8595) [`562cc0b`](https://github.com/NomicFoundation/hardhat/commit/562cc0b0bed2eb98822f5e302a940f9d20cccb53) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers derive secp256k1 public keys with EDR's native implementation instead of its pure-JS one, speeding up `new Wallet(secretKey)`, `Wallet.createRandom()`, HD wallet derivation and `computeAddress`.
+
+- [#8590](https://github.com/NomicFoundation/hardhat/pull/8590) [`e2ebf54`](https://github.com/NomicFoundation/hardhat/commit/e2ebf54801eceffdcce61a705dcd2609807b51d8) Thanks [@schaable](https://github.com/schaable)! - Added Solidity test profiles, allowing test settings to vary across environments such as local development and CI.
+
+### Patch Changes
+
+- [#8635](https://github.com/NomicFoundation/hardhat/pull/8635) [`ad92657`](https://github.com/NomicFoundation/hardhat/commit/ad92657292c160cd7bdf8cc80a2386a0ebf83d43) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Upgraded EDR to v0.22.0.
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+- [#8624](https://github.com/NomicFoundation/hardhat/pull/8624) [`1377eb0`](https://github.com/NomicFoundation/hardhat/commit/1377eb049a54f0b1bcb911141729356c2a2958da) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated `mocha` to `^12.0.0` in the `hardhat --init` mocha-ethers template project.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.1.0
+  - @nomicfoundation/hardhat-utils@4.3.0
+
+## 3.17.0
+
+### Minor Changes
+
+- [#8501](https://github.com/NomicFoundation/hardhat/pull/8501) [`5faee42`](https://github.com/NomicFoundation/hardhat/commit/5faee42584ec0a27454914aadf08fee6057dfd23) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add `gasEstimationMode` config option to EDR networks, featuring a `"noInternalOutOfGas"` mode to prevent misleading `eth_estimateGas` results when internal calls run out of gas.
+
+- [#8580](https://github.com/NomicFoundation/hardhat/pull/8580) [`8583e24`](https://github.com/NomicFoundation/hardhat/commit/8583e24c13e5fecd238734f8698867c945541f5d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made ethers use EDR's native Keccak-256 instead of its pure-JS one.
+
+- [#8210](https://github.com/NomicFoundation/hardhat/pull/8210) [`024b422`](https://github.com/NomicFoundation/hardhat/commit/024b422340705f1ff5fc14b9dcc6a1f143487d86) Thanks [@renovate](https://github.com/apps/renovate)! - Update the cryptography dependencies to their latest major versions: `@noble/hashes` and `@noble/ciphers` to 2, `ethereum-cryptography` to 3, and `micro-eth-signer` to 0.19.
+
+### Patch Changes
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`0acd737`](https://github.com/NomicFoundation/hardhat/commit/0acd737df2e04781d6f035c79bfdac480e67b703) Thanks [@schaable](https://github.com/schaable)! - Fixed configuration variables to stop printing of values in error messages.
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`78f613c`](https://github.com/NomicFoundation/hardhat/commit/78f613c1f390cd0d39ef239a387505bc5d5dfdad) Thanks [@schaable](https://github.com/schaable)! - Fixed error shown when an HD key cannot be derived, to only include the derivation path.
+
+- [#8594](https://github.com/NomicFoundation/hardhat/pull/8594) [`0fc2dca`](https://github.com/NomicFoundation/hardhat/commit/0fc2dca0e12b3ed1a7491ea9e7ac934b861b31c6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Upgrade to EDR v0.20.0.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
+## 3.16.0
+
+### Minor Changes
+
+- [#8597](https://github.com/NomicFoundation/hardhat/pull/8597) [`6684224`](https://github.com/NomicFoundation/hardhat/commit/6684224124c48fe84904797f3c2d0c715014e64c) Thanks [@kanej](https://github.com/kanej)! - Added slang-solx compiler support as a Hardhat plugin.
+
+## 3.15.0
+
+### Minor Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
+- [#8541](https://github.com/NomicFoundation/hardhat/pull/8541) [`ec737a2`](https://github.com/NomicFoundation/hardhat/commit/ec737a2894162b4e59aa22dc95518deba4027003) Thanks [@kanej](https://github.com/kanej)! - The project templates have been updated to Solidity 0.8.34 and forge-std v1.16.2.
+
+### Patch Changes
+
+- [#8578](https://github.com/NomicFoundation/hardhat/pull/8578) [`d88f769`](https://github.com/NomicFoundation/hardhat/commit/d88f76989e90987a5e454c23f0c5f3fa2e07af6d) Thanks [@kanej](https://github.com/kanej)! - Support hyphens in compiler type names.
+
 ## 3.14.0
 
 ### Minor Changes

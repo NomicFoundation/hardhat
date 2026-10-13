@@ -20,17 +20,17 @@ export async function parseJsonStream<T>(stream: Readable): Promise<T> {
     streamParserJson = await import("@streamparser/json-node");
   }
 
-  // NOTE: We set a separator to disable self-closing to be able to use the parser
-  // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
+  // We only emit the root value, as it's the only one we use, and emitting
+  // every nested value is much slower.
   const jsonParser = new streamParserJson.JSONParser({
-    separator: "",
+    paths: ["$"],
   });
 
   const result: T | undefined = await pipeline(
     stream,
     jsonParser,
     async (
-      elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
+      elements: AsyncIterable<StreamParserJson.ParsedElementInfo>,
     ): Promise<any | undefined> => {
       let value:
         | StreamParserJson.JsonTypes.JsonPrimitive

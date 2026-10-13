@@ -8,7 +8,9 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
+  createTestEnvManager,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { configVariable } from "../../../../src/config.js";
 import {
@@ -19,6 +21,7 @@ import {
 import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
 
 describe("ResolvedConfigurationVariable", () => {
+  const { setEnvVar } = createTestEnvManager();
   let hre: HardhatRuntimeEnvironment;
 
   before(async () => {
@@ -37,11 +40,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "bar";
+    setEnvVar("foo", "bar");
 
     assert.equal(await variable.get(), "bar");
-
-    delete process.env.foo;
   });
 
   it("should return the value of a configuration variable from an environment variable, with format", async () => {
@@ -50,11 +51,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo", `variable: ${CONFIGURATION_VARIABLE_MARKER}`),
     );
 
-    process.env.foo = "bar";
+    setEnvVar("foo", "bar");
 
     assert.equal(await variable.get(), "variable: bar");
-
-    delete process.env.foo;
   });
 
   it("should throw if the environment variable is not found", async () => {
@@ -85,11 +84,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("DEFAULT_TEST_ENV", { default: "the-default" }),
     );
 
-    process.env.DEFAULT_TEST_ENV = "from-env";
+    setEnvVar("DEFAULT_TEST_ENV", "from-env");
 
     assert.equal(await variable.get(), "from-env");
-
-    delete process.env.DEFAULT_TEST_ENV;
   });
 
   it("should prefer an empty-string environment variable over the default value", async () => {
@@ -98,11 +95,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("DEFAULT_TEST_EMPTY", { default: "the-default" }),
     );
 
-    process.env.DEFAULT_TEST_EMPTY = "";
+    setEnvVar("DEFAULT_TEST_EMPTY", "");
 
     assert.equal(await variable.get(), "");
-
-    delete process.env.DEFAULT_TEST_EMPTY;
   });
 
   it("should apply the format to the default value", async () => {
@@ -123,15 +118,13 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "bar";
+    setEnvVar("foo", "bar");
 
     assert.equal(await variable.get(), "bar");
 
-    process.env.foo = "baz";
+    setEnvVar("foo", "baz");
 
     assert.equal(await variable.get(), "bar");
-
-    delete process.env.foo;
   });
 
   it("should prefer the environment variable over configurationVariables hooks", async () => {
@@ -152,7 +145,7 @@ describe("ResolvedConfigurationVariable", () => {
         configVariable("foo"),
       );
 
-      process.env.foo = "value-from-env";
+      setEnvVar("foo", "value-from-env");
 
       assert.equal(await variable.get(), "value-from-env");
       assert.equal(
@@ -162,7 +155,6 @@ describe("ResolvedConfigurationVariable", () => {
       );
     } finally {
       hre.hooks.unregisterHandlers("configurationVariables", handlers);
-      delete process.env.foo;
     }
   });
 
@@ -184,7 +176,7 @@ describe("ResolvedConfigurationVariable", () => {
         configVariable("foo"),
       );
 
-      process.env.foo = "";
+      setEnvVar("foo", "");
 
       assert.equal(await variable.get(), "");
       assert.equal(
@@ -194,7 +186,6 @@ describe("ResolvedConfigurationVariable", () => {
       );
     } finally {
       hre.hooks.unregisterHandlers("configurationVariables", handlers);
-      delete process.env.foo;
     }
   });
 
@@ -204,11 +195,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "http://localhost:8545";
+    setEnvVar("foo", "http://localhost:8545");
 
     assert.equal(await variable.getUrl(), "http://localhost:8545");
-
-    delete process.env.foo;
   });
 
   it("should throw if the configuration variable is not a valid URL", async () => {
@@ -217,17 +206,15 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "not a url";
+    setEnvVar("foo", "not a url");
 
     await assertRejectsWithHardhatError(
       variable.getUrl(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_URL,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_URL,
       {
-        url: "not a url",
+        configVariable: `the configuration variable "foo"`,
       },
     );
-
-    delete process.env.foo;
   });
 
   it("should return the value of a configuration variable as a BigInt", async () => {
@@ -236,11 +223,9 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "42";
+    setEnvVar("foo", "42");
 
     assert.equal(await variable.getBigInt(), 42n);
-
-    delete process.env.foo;
   });
 
   it("should throw if the configuration variable is not a valid BigInt", async () => {
@@ -249,27 +234,72 @@ describe("ResolvedConfigurationVariable", () => {
       configVariable("foo"),
     );
 
-    process.env.foo = "not a bigint";
+    setEnvVar("foo", "not a bigint");
 
     await assertRejectsWithHardhatError(
       variable.getBigInt(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_BIGINT,
       {
-        value: "not a bigint",
+        configVariable: `the configuration variable "foo"`,
       },
     );
-
-    delete process.env.foo;
   });
 
   it("Should throw if the configuration variable is not a valid hex string", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    setEnvVar("foo", "not a hex string");
+
+    await assertRejectsWithHardhatError(
+      variable.getHexString(),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
+      {
+        configVariable: `the configuration variable "foo"`,
+      },
+    );
+  });
+
+  it("should not include the value of a configuration variable in its errors", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    setEnvVar("foo", "super-secret-value");
+
+    for (const getter of [
+      async () => await variable.getUrl(),
+      async () => await variable.getBigInt(),
+      async () => await variable.getHexString(),
+    ]) {
+      let thrownError: Error | undefined;
+
+      try {
+        await getter();
+      } catch (error) {
+        ensureError(error);
+        thrownError = error;
+      }
+
+      assert.ok(thrownError !== undefined, "The getter should have thrown");
+      assert.ok(
+        !thrownError.message.includes("super-secret-value"),
+        `The error message must not include the value, but it was: ${thrownError.message}`,
+      );
+    }
+  });
+
+  it("Should throw if an inline configuration value is not a valid hex string", async () => {
     const variable = new FixedValueConfigurationVariable("not a hex string");
 
     await assertRejectsWithHardhatError(
       variable.getHexString(),
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_HEX_STRING,
       {
-        value: "not a hex string",
+        configVariable: "an inline configuration value",
       },
     );
   });

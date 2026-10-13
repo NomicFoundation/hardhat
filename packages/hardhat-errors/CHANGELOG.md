@@ -1,5 +1,56 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8667](https://github.com/NomicFoundation/hardhat/pull/8667) [`5793554`](https://github.com/NomicFoundation/hardhat/commit/5793554131276677b931cd0bc3a34e0607dc6040) Thanks [@schaable](https://github.com/schaable)! - Improved the errors for invalid transactions sent from local accounts.
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
+## 3.1.1
+
+### Patch Changes
+
+- [#8632](https://github.com/NomicFoundation/hardhat/pull/8632) [`ad49ec2`](https://github.com/NomicFoundation/hardhat/commit/ad49ec23136c8eb5a88024cb9b211a8b0b20ff11) Thanks [@schaable](https://github.com/schaable)! - Improved the constructor argument errors so `HHE80017` and `HHE80019` name the parameter that could not be encoded.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.4.0
+
+## 3.1.0
+
+### Minor Changes
+
+- [#8624](https://github.com/NomicFoundation/hardhat/pull/8624) [`e50cc73`](https://github.com/NomicFoundation/hardhat/commit/e50cc7336b104311519f6fae1f52f3a359016655) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated `mocha` to `^12.0.0`.
+
+### Patch Changes
+
+- [#8601](https://github.com/NomicFoundation/hardhat/pull/8601) [`34087dd`](https://github.com/NomicFoundation/hardhat/commit/34087dd349e40be5bf4d5dbdce557b23b98cfefd) Thanks [@cdesch](https://github.com/cdesch)! - Improved HTTP proxy support.
+
+- [#8616](https://github.com/NomicFoundation/hardhat/pull/8616) [`8b73917`](https://github.com/NomicFoundation/hardhat/commit/8b73917cbf830b58c773ea7580d2d30c4fb11b43) Thanks [@rome-xi](https://github.com/rome-xi)! - Fixed invalid `HTTPS_PROXY`/`HTTP_PROXY` values being reported as unexpected errors instead of a Hardhat error.
+
+- [#8590](https://github.com/NomicFoundation/hardhat/pull/8590) [`e2ebf54`](https://github.com/NomicFoundation/hardhat/commit/e2ebf54801eceffdcce61a705dcd2609807b51d8) Thanks [@schaable](https://github.com/schaable)! - Added Solidity test profiles, allowing test settings to vary across environments such as local development and CI.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.3.0
+
+## 3.0.22
+
+### Patch Changes
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`0acd737`](https://github.com/NomicFoundation/hardhat/commit/0acd737df2e04781d6f035c79bfdac480e67b703) Thanks [@schaable](https://github.com/schaable)! - Fixed configuration variables to stop printing of values in error messages.
+
+- [#8596](https://github.com/NomicFoundation/hardhat/pull/8596) [`78f613c`](https://github.com/NomicFoundation/hardhat/commit/78f613c1f390cd0d39ef239a387505bc5d5dfdad) Thanks [@schaable](https://github.com/schaable)! - Fixed error shown when an HD key cannot be derived, to only include the derivation path.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.2.0
+
+## 3.0.21
+
+### Patch Changes
+
+- [#8457](https://github.com/NomicFoundation/hardhat/pull/8457) [`48286e0`](https://github.com/NomicFoundation/hardhat/commit/48286e0a69b49d814689073ce9897ac1b007ac19) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improve compilation speed for Solidity test runs by porting inline configuration parsing to Rust.
+
 ## 3.0.20
 
 ### Patch Changes

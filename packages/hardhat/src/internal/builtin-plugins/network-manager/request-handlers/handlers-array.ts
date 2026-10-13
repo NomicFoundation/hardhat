@@ -63,10 +63,34 @@ export async function createHandlersArray<
   }
 
   if (networkConfig.gas === undefined || networkConfig.gas === "auto") {
+    // On EDR networks, if the gas estimation fails because an internal call
+    // runs out of gas regardless of the gas limit, we fall back to the same
+    // default transaction gas limit that the network uses for requests
+    // without a gas field. The EdrProvider exposes the exact value it was
+    // configured with, so the fallback always matches the provider's actual
+    // default. Providers that don't expose it (e.g. HTTP connections) get no
+    // fallback, and the handler surfaces the estimation error instead of
+    // guessing a limit that may not suit the remote network.
+    const provider = networkConnection.provider;
+    const fallbackGas =
+      "defaultTransactionGasLimit" in provider &&
+      typeof provider.defaultTransactionGasLimit === "bigint"
+        ? provider.defaultTransactionGasLimit
+        : undefined;
+
+    // The fallback only gets capped on networks that enforce a block gas
+    // limit. Read lazily, as enforcement can turn on at runtime; providers
+    // that don't report it are conservatively assumed to enforce one.
+    const isBlockGasLimitEnforced = () =>
+      !("isBlockGasLimitEnforced" in provider) ||
+      provider.isBlockGasLimitEnforced !== false;
+
     requestHandlers.push(
       new AutomaticGasHandler(
         networkConnection.provider,
         networkConfig.gasMultiplier,
+        fallbackGas,
+        isBlockGasLimitEnforced,
       ),
     );
   } else {

@@ -27,10 +27,8 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
-  getProxyUrl,
   getRequest,
   postFormRequest,
-  shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
 const log = createDebug("hardhat:verify:blockscout");
@@ -179,12 +177,7 @@ export class Blockscout implements VerificationProvider {
     this.url = blockscoutConfig.url;
     this.apiUrl = blockscoutConfig.apiUrl;
 
-    const proxyUrl = shouldUseProxy(this.apiUrl)
-      ? getProxyUrl(this.apiUrl)
-      : undefined;
-    this.dispatcherOrDispatcherOptions =
-      blockscoutConfig.dispatcher ??
-      (proxyUrl !== undefined ? { proxy: proxyUrl } : {});
+    this.dispatcherOrDispatcherOptions = blockscoutConfig.dispatcher ?? {};
 
     this.pollingIntervalMs =
       blockscoutConfig.dispatcher !== undefined

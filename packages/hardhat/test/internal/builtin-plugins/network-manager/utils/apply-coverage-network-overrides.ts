@@ -19,6 +19,7 @@ describe("applyCoverageNetworkOverrides", () => {
       allowBlocksWithSameTimestamp: false,
       allowUnlimitedContractSize: false,
       coinbase: new Uint8Array(20),
+      gasEstimationMode: "topLevelSuccess",
       hardfork: "osaka",
       initialDate: new Date(),
       loggingEnabled: false,

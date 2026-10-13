@@ -48,6 +48,25 @@ describe("utils", () => {
       assert.equal(module.default, "This is a test module");
     });
 
+    it("should load a directory with an index module", async () => {
+      const module = await loadModule(
+        "./test/fixture-projects/load-module/directory-with-index",
+      );
+
+      assert.equal(module.default, "This is a directory index module");
+    });
+
+    it("should throw an error if a directory has no index module", async () => {
+      const modulePath =
+        "./test/fixture-projects/load-module/directory-without-index";
+
+      await assertRejectsWithHardhatError(
+        loadModule(modulePath),
+        HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.MODULE_NOT_FOUND,
+        { modulePath },
+      );
+    });
+
     it("should throw an error if the module does not exist", async () => {
       let modulePath =
         "./test/fixture-projects/load-module/non-existent-module.js";

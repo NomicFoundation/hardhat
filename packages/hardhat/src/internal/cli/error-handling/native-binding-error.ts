@@ -1,3 +1,5 @@
+import { getErrorChain } from "../telemetry/error-classification/helpers.js";
+
 /**
  * The platform triple that napi-rs appends to the platform package name, e.g.
  * `@nomicfoundation/edr-linux-x64-gnu`, `@scope/pkg-darwin-arm64`.
@@ -39,7 +41,7 @@ export interface NativeBindingFailure {
 export function detectNativeBindingFailure(
   error: Error,
 ): NativeBindingFailure | undefined {
-  const chain = errorChain(error);
+  const chain = getErrorChain(error);
 
   // Some link in the chain names the missing platform package.
   for (const chainedError of chain) {
@@ -61,18 +63,4 @@ export function detectNativeBindingFailure(
   }
 
   return undefined;
-}
-
-function errorChain(error: Error): Error[] {
-  const chain: Error[] = [];
-  const seen = new Set<unknown>();
-  let current: unknown = error;
-
-  while (current instanceof Error && !seen.has(current)) {
-    seen.add(current);
-    chain.push(current);
-    current = current.cause;
-  }
-
-  return chain;
 }

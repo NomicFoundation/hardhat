@@ -2,11 +2,14 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
+import { stripVTControlCharacters } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createEnvChanges,
+  createTestEnvManager,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
@@ -46,6 +49,11 @@ const hardhatConfigFailingTests = {
   paths: { tests: { solidity: "test/contracts/failing" } },
 };
 
+const hardhatConfigInvalidInlineConfigTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/invalid-inline-config" } },
+};
+
 const hardhatConfigOpTests = {
   ...hardhatConfig,
   paths: { tests: { solidity: "test/contracts/op" } },
@@ -64,6 +72,19 @@ const hardhatConfigAbstractAndInterfaceTests = {
 const hardhatConfigGrepTests = {
   ...hardhatConfig,
   paths: { tests: { solidity: "test/contracts/grep" } },
+};
+
+const hardhatConfigProfileTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/profiles" } },
+  test: {
+    solidity: {
+      profiles: {
+        default: { fuzz: { runs: 3 } },
+        ci: { fuzz: { runs: 7 } },
+      },
+    },
+  },
 };
 
 const TX_GAS_CAP_TEST_PATH = {
@@ -113,9 +134,17 @@ const hardhatConfigBlockGasLimitLow = {
 describe("solidity-test/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
 
+  // Every run in this file reads `HARDHAT_TEST_PROFILE`, and the configs below
+  // only declare `default`, so an ambient value fails all of them. The shield
+  // has to last the whole file, so it's restored in `after` rather than after
+  // each test.
+  const envChanges = createEnvChanges();
+
   useFixtureProject("solidity-test");
 
   before(async function () {
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
+
     // Build with a config that covers all test subdirectories so that
     // noCompile: true tests find pre-compiled artifacts on disk.
     const buildHre = await createHardhatRuntimeEnvironment(
@@ -124,6 +153,10 @@ describe("solidity-test/task-action", function () {
     await buildHre.tasks.getTask(["build"]).run({});
 
     hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+  });
+
+  after(function () {
+    envChanges.restoreEnvVars();
   });
 
   describe("when the solidity task test runner is specified", () => {
@@ -216,36 +249,32 @@ describe("solidity-test/task-action", function () {
   });
 
   describe("running the tests", () => {
+    const { setEnvVar, unsetEnvVar } = createTestEnvManager();
+
     it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const nodeEnv = process.env.NODE_ENV;
-      const hhTest = process.env.HH_TEST;
-      try {
-        delete process.env.NODE_ENV;
-        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
-        assert.equal(process.env.NODE_ENV, "test");
-        assert.equal(process.env.HH_TEST, "true");
-      } finally {
-        process.env.HH_TEST = hhTest;
-        process.env.NODE_ENV = nodeEnv;
-      }
+      unsetEnvVar("NODE_ENV");
+      // The task sets this one, so track it to have it restored too.
+      unsetEnvVar("HH_TEST");
+
+      await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+
+      assert.equal(process.env.NODE_ENV, "test");
+      assert.equal(process.env.HH_TEST, "true");
     });
 
     it("should not set the NODE_ENV variable if defined before", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const nodeEnv = process.env.NODE_ENV;
-      const hhTest = process.env.HH_TEST;
-      try {
-        process.env.NODE_ENV = "HELLO";
-        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
-        assert.equal(process.env.NODE_ENV, "HELLO");
-        assert.equal(process.env.HH_TEST, "true");
-      } finally {
-        process.env.HH_TEST = hhTest;
-        process.env.NODE_ENV = nodeEnv;
-      }
+      setEnvVar("NODE_ENV", "HELLO");
+      // The task sets this one, so track it to have it restored too.
+      unsetEnvVar("HH_TEST");
+
+      await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+
+      assert.equal(process.env.NODE_ENV, "HELLO");
+      assert.equal(process.env.HH_TEST, "true");
     });
 
     it("should return an error result when any test fails", async () => {
@@ -285,6 +314,42 @@ describe("solidity-test/task-action", function () {
       assert.ok(
         Array.isArray(result.value.suiteResults),
         "suiteResults should be an array",
+      );
+    });
+
+    it("should print runner errors the same way the CLI prints errors", async () => {
+      // The invalid inline config directive makes the runner fail.
+      hre = await createHardhatRuntimeEnvironment(
+        hardhatConfigInvalidInlineConfigTests,
+      );
+
+      const printed: unknown[] = [];
+      const originalConsoleError = console.error;
+      console.error = (...args: unknown[]) => {
+        printed.push(...args);
+      };
+
+      let result;
+      try {
+        result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+      } finally {
+        console.error = originalConsoleError;
+      }
+
+      assert.equal(result.success, false);
+
+      const output = stripVTControlCharacters(printed.join("\n"));
+      const errorCode = `HHE${HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number}`;
+      assert.ok(
+        output.startsWith(`Error ${errorCode}:`),
+        "The error should be printed with the CLI's formatting",
+      );
+      assert.doesNotMatch(
+        output,
+        /HardhatError:|\n\s+at /,
+        "The raw error and its stack trace shouldn't be printed",
       );
     });
 
@@ -797,6 +862,75 @@ describe("solidity-test/task-action", function () {
       assert.deepEqual(
         suite.testResults.map((t: TestResult) => t.name).sort(),
         ["testAlpha()", "testBeta()", "testGamma()"],
+      );
+    });
+  });
+
+  describe("when selecting a test profile", () => {
+    const { setEnvVar } = createTestEnvManager();
+
+    before(async () => {
+      const buildHre = await createHardhatRuntimeEnvironment(
+        hardhatConfigProfileTests,
+      );
+
+      await buildHre.tasks.getTask(["build"]).run({});
+    });
+
+    /**
+     * Runs the fixture's single fuzz test and returns the number of fuzz runs
+     * it performed, which is what the selected profile controls.
+     */
+    async function runsWith(args: {
+      testProfile?: string;
+    }): Promise<bigint | undefined> {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigProfileTests);
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ ...args, noCompile: true });
+
+      assert.equal(result.success, true);
+      const testResult = result.value.suiteResults
+        .flatMap((s: SuiteResult) => s.testResults)
+        .find((t: TestResult) => t.name === "testFuzzProfileRuns(uint256)");
+      assert.ok(testResult !== undefined, "expected the fuzz test to run");
+
+      return "runs" in testResult.kind ? testResult.kind.runs : undefined;
+    }
+
+    it("uses the default profile when none is selected", async () => {
+      assert.equal(await runsWith({}), 3n);
+    });
+
+    it("uses the selected profile", async () => {
+      assert.equal(await runsWith({ testProfile: "ci" }), 7n);
+    });
+
+    it("falls back to the HARDHAT_TEST_PROFILE environment variable", async () => {
+      setEnvVar("HARDHAT_TEST_PROFILE", "ci");
+
+      assert.equal(await runsWith({}), 7n);
+    });
+
+    it("prefers the option over the environment variable", async () => {
+      setEnvVar("HARDHAT_TEST_PROFILE", "ci");
+
+      assert.equal(await runsWith({ testProfile: "default" }), 3n);
+    });
+
+    it("throws when the selected profile is not declared", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigProfileTests);
+
+      await assertRejectsWithHardhatError(
+        hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ testProfile: "nope", noCompile: true }),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_PROFILE_NOT_FOUND,
+        {
+          testProfile: "nope",
+          declaredProfiles: '"ci", "default"',
+        },
       );
     });
   });

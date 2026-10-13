@@ -32,9 +32,21 @@ export function formatInlineConfigErrors(
         return `- ${sourceName}: ${formatInlineConfigSourceProblem(error.problem)}`;
       }
 
-      return `- ${sourceName}:${error.line}: ${error.contract}.${error.function}: ${formatInlineConfigDirectiveProblem(error.problem)}`;
+      return `- ${sourceName}:${error.line}: ${formatDirectiveOrigin(error.contract, error.function)}: ${formatInlineConfigDirectiveProblem(error.problem)}`;
     })
     .join("\n");
+}
+
+/**
+ * Names where a directive was found: `Contract.testFn` for a function-level
+ * directive, and just `Contract` for a contract-level one, which EDR reports
+ * without a function.
+ */
+function formatDirectiveOrigin(
+  contract: string,
+  functionName: string | undefined,
+): string {
+  return functionName === undefined ? contract : `${contract}.${functionName}`;
 }
 
 function formatInlineConfigDirectiveProblem(
@@ -43,8 +55,8 @@ function formatInlineConfigDirectiveProblem(
   switch (problem.kind) {
     case "InlineConfigInvalidSyntax":
       return `missing "=" in "${problem.directive}"`;
-    case "InlineConfigUnsupportedProfile":
-      return `unsupported profile "${problem.profile}". Only the "default" profile is supported`;
+    case "InlineConfigUndeclaredProfile":
+      return `undeclared profile "${problem.profile}". Declared profiles: ${problem.declaredProfiles.map((profile) => `"${profile}"`).join(", ")}`;
     case "InlineConfigInvalidKey":
       return `invalid key "${problem.key}"`;
     case "InlineConfigInvalidKeyForTestType":
@@ -65,6 +77,6 @@ function formatInlineConfigSourceProblem(
     case "InlineConfigSourceFileNotFound":
       return `the source file could not be read at "${problem.path}": ${problem.reason}`;
     case "InlineConfigDirectiveLocation":
-      return `a directive of ${problem.contract}.${problem.function} could not be located: ${problem.reason}`;
+      return `a directive of ${formatDirectiveOrigin(problem.contract, problem.function)} could not be located: ${problem.reason}`;
   }
 }

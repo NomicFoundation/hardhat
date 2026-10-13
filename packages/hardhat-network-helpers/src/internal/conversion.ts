@@ -44,9 +44,9 @@ export function toRpcQuantity(x: NumberLike): string {
     );
   }
 
-  if (hex === "0x0") {
-    return hex;
+  if (/^0x0+$/.test(hex)) {
+    return "0x0";
   }
 
-  return hex.startsWith("0x") ? hex.replace(/0x0+/, "0x") : `0x${hex}`;
+  return hex.startsWith("0x") ? hex.replace(/^0x0+/, "0x") : `0x${hex}`;
 }
