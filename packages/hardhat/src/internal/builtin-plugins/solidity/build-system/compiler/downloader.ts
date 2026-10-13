@@ -306,16 +306,18 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   #getCompilerBinaryPathFromBuild(build: CompilerBuild): string {
-    const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
-
-    if (
-      this.#platform !== CompilerPlatform.WINDOWS ||
-      !downloadPath.endsWith(".zip")
-    ) {
-      return downloadPath;
+    if (!this.#isZippedWindowsBuild(build)) {
+      return this.#getCompilerDownloadPathFromBuild(build);
     }
 
     return path.join(this.#compilersDir, build.version, "solc.exe");
+  }
+
+  // some window builds are zipped, some are not
+  #isZippedWindowsBuild(build: CompilerBuild): boolean {
+    return (
+      this.#platform === CompilerPlatform.WINDOWS && build.path.endsWith(".zip")
+    );
   }
 
   #getCompilerDoesNotWorkFile(build: CompilerBuild): string {
@@ -430,14 +432,23 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     log(`Downloading compiler ${build.version} from ${url}`);
 
-    const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
-    const tmpDownloadPath = `${downloadPath}.tmp`;
+    // Download to a temporary path, we move into place after verifying the checksum
+    const downloadPath = `${this.#getCompilerDownloadPathFromBuild(build)}.tmp`;
 
-    await this.#downloadFunction(url, tmpDownloadPath);
+    await this.#downloadFunction(url, downloadPath);
 
-    return tmpDownloadPath;
+    return downloadPath;
   }
 
+  /**
+   * Compares a downloaded compiler against its expected SHA-256 checksum. On a
+   * mismatch the file is deleted and false is returned, leaving the caller to
+   * raise the error.
+   *
+   * This runs against the path the compiler was downloaded to, before it is
+   * published to the path callers read, so a mismatch is deleted without ever
+   * having been visible.
+   */
   async #verifyCompilerDownload(
     build: CompilerBuild,
     downloadPath: string,
@@ -459,25 +470,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<boolean> {
-    const finalDownloadPath = this.#getCompilerDownloadPathFromBuild(build);
-
-    if (this.#platform === CompilerPlatform.WASM) {
-      await move(downloadPath, finalDownloadPath);
-      return true;
-    }
-
-    if (
-      this.#platform === CompilerPlatform.LINUX ||
-      this.#platform === CompilerPlatform.LINUX_ARM64 ||
-      this.#platform === CompilerPlatform.MACOS
-    ) {
-      await chmod(downloadPath, 0o755);
-      await move(downloadPath, finalDownloadPath);
-    } else if (
-      this.#platform === CompilerPlatform.WINDOWS &&
-      downloadPath.endsWith(".zip")
-    ) {
-      // some window builds are zipped, some are not
+    if (this.#isZippedWindowsBuild(build)) {
       const solcFolder = path.join(this.#compilersDir, build.version);
       await ensureDir(solcFolder);
 
@@ -485,7 +478,20 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       zip.extractAllTo(solcFolder);
       await remove(downloadPath);
     } else {
-      await move(downloadPath, finalDownloadPath);
+      if (
+        this.#platform === CompilerPlatform.LINUX ||
+        this.#platform === CompilerPlatform.LINUX_ARM64 ||
+        this.#platform === CompilerPlatform.MACOS
+      ) {
+        await chmod(downloadPath, 0o755);
+      }
+
+      // Publish the compiler only once it is verified and executable
+      await move(downloadPath, this.#getCompilerDownloadPathFromBuild(build));
+    }
+
+    if (this.#platform === CompilerPlatform.WASM) {
+      return true;
     }
 
     log("Checking native solc binary");
