@@ -1167,7 +1167,7 @@ importers:
         version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^22.0.0
-        version: 22.20.4
+        version: 22.20.5
       c8:
         specifier: ^12.0.0
         version: 12.0.0
