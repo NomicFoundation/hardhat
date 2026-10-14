@@ -886,6 +886,66 @@ describe("LedgerHandler", () => {
           }
         });
 
+        describe("blob transaction rejections", () => {
+          const blob = `0x${"ab".repeat(32)}`;
+          const blobVersionedHash = `0x01${"cd".repeat(31)}`;
+
+          const cases = [
+            {
+              name: "blobs and blobVersionedHashes",
+              blobFields: {
+                blobs: [blob],
+                blobVersionedHashes: [blobVersionedHash],
+              },
+            },
+            { name: "only blobs", blobFields: { blobs: [blob] } },
+            {
+              name: "only blobVersionedHashes",
+              blobFields: { blobVersionedHashes: [blobVersionedHash] },
+            },
+            {
+              name: "type 0x3 and no blob fields",
+              blobFields: { type: "0x3" },
+            },
+          ];
+
+          for (const { name, blobFields } of cases) {
+            it(`should reject a transaction with ${name}`, async () => {
+              const [deviceFactory, calls] = getLedgerDeviceMock({
+                getAddress: findAccountAt(derPath),
+                signTransaction: { result: txRsv },
+              });
+
+              ledgerHandler = createHandler({ deviceFactory });
+
+              await assertRejectsWithHardhatError(
+                () =>
+                  ledgerHandler.handle(
+                    createJsonRpcRequest("eth_sendTransaction", [
+                      {
+                        from: account.address,
+                        to: LEDGER_ADDRESSES[1],
+                        gas: numberToHexString(1000001),
+                        maxFeePerGas: numberToHexString(1000001),
+                        maxPriorityFeePerGas: numberToHexString(1000001),
+                        ...blobFields,
+                      },
+                    ]),
+                  ),
+                HardhatError.ERRORS.CORE.NETWORK
+                  .BLOB_TX_CANNOT_BE_SIGNED_LOCALLY,
+                {},
+              );
+
+              assert.equal(
+                calls.signTransaction.totalCalls,
+                0,
+                "It must reject before the device asks for approval",
+              );
+            });
+          }
+        });
+
         it("should successfully handle the method eth_sendTransaction for legacy transactions", async () => {
           const signedRawTx =
             "0xf8626465830f424194da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
