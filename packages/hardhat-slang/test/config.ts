@@ -344,6 +344,34 @@ describe("hardhat-slang plugin config resolution", () => {
     }
   });
 
+  it("gives a slang override the Solidity version of its own entry", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        slang: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", type: "slang", settings: {} }],
+          overrides: {
+            "contracts/Old.sol": {
+              version: "0.8.20",
+              type: "slang",
+              settings: {},
+            },
+          },
+        },
+      }),
+    );
+
+    const { compilers, overrides } = resolvedConfig.solidity.profiles.slang;
+    assert.equal(compilers[0].settings.solidityVersion, "0.8.34");
+    assert.equal(
+      overrides["contracts/Old.sol"].settings.solidityVersion,
+      "0.8.20",
+    );
+  });
+
   it("augments every slang-typed compiler when several Solidity versions use slang", async () => {
     const resolvedConfig = await resolveUserConfig(
       { slang: { version: PINNED_VERSION } },
