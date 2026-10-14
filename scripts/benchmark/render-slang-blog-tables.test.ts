@@ -14,6 +14,14 @@ function wall(name: string, value: number): BenchmarkEntry {
   };
 }
 
+// A baseline cell, as merge-baseline-report.ts writes it.
+function measuredIn(entry: BenchmarkEntry, run: string): BenchmarkEntry {
+  return {
+    ...entry,
+    extra: JSON.stringify({ ...JSON.parse(entry.extra), run }),
+  };
+}
+
 function section(output: string, title: string): string {
   const start = output.indexOf(`### ${title}\n`);
   assert.notEqual(start, -1, `no "${title}" section`);
@@ -120,7 +128,7 @@ describe("renderSlangBlogTables", () => {
     assert.match(table, /\| lido-vaults \| 30\.0s \| 9\.0s \|/);
   });
 
-  it("marks values borrowed from the baseline and links its run", () => {
+  it("marks values borrowed from the baseline and links each one's run", () => {
     const quick = renderSlangBlogTables(
       [
         wall("uniswap-v4-core-solx / cold compile slang", 10),
@@ -128,23 +136,30 @@ describe("renderSlangBlogTables", () => {
       ],
       {
         baseline: [
-          wall("uniswap-v4-core-solx / cold compile solc via-ir", 80),
-          wall("uniswap-v4-core-solx / warm test solc via-ir", 5),
+          measuredIn(
+            wall("uniswap-v4-core-solx / cold compile solc via-ir", 80),
+            "https://example.test/run/1",
+          ),
+          measuredIn(
+            wall("uniswap-v4-core-solx / warm test solc via-ir", 5),
+            "https://example.test/run/2",
+          ),
         ],
-        baselineUrl: "https://example.test/run/1",
       },
     );
     assert.match(
       quick,
-      /† measured in \[the baseline run\]\(https:\/\/example\.test\/run\/1\)/,
+      /each † links the run that measured it: \[1\], \[2\]\./,
     );
+    assert.match(quick, /^\[1\]: https:\/\/example\.test\/run\/1$/m);
+    assert.match(quick, /^\[2\]: https:\/\/example\.test\/run\/2$/m);
     assert.match(
       section(quick, VIA_IR),
-      /\| Uniswap v4 \| 80\.0s† \| 10\.0s \| 8\.0x† \|/,
+      /\| Uniswap v4 \| 80\.0s\[†\]\[1\] \| 10\.0s \| 8\.0x\[†\]\[1\] \|/,
     );
     assert.match(
       section(quick, "slang vs solc --via-ir including Solidity tests"),
-      /\| Uniswap v4 \| 85\.0s† \| 16\.0s \|/,
+      /\| Uniswap v4 \| 85\.0s\[†\]\[1\] \| 16\.0s \|/,
     );
   });
 });

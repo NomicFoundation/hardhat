@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseReport, speedup } from "./slang-report.ts";
+import { cellKey, parseReport, speedup } from "./slang-report.ts";
 
 function cell(wall: number, wallStddev = 0) {
   return { wall, wallStddev, runs: 5 };
@@ -71,14 +71,35 @@ describe("parseReport", () => {
   });
 });
 
+describe("cellKey", () => {
+  it("gives a cell's wall, cpu and peak-RSS entries the same key", () => {
+    assert.equal(
+      cellKey("aave-v4-solx / cold compile slang (peak RSS)"),
+      "aave-v4-solx / cold compile slang",
+    );
+    assert.equal(
+      cellKey("aave-v4-solx / cold compile slang (cpu)"),
+      "aave-v4-solx / cold compile slang",
+    );
+    assert.equal(
+      cellKey("aave-v4-solx / cold compile slang"),
+      "aave-v4-solx / cold compile slang",
+    );
+  });
+
+  it("keys an entry of another shape by its name", () => {
+    assert.equal(cellKey("no separator"), "no separator");
+  });
+});
+
 describe("parseReport with a baseline", () => {
-  function wallEntry(name: string, value: number) {
+  function wallEntry(name: string, value: number, run?: string) {
     return {
       name,
       unit: "s",
       value,
       range: "± 0",
-      extra: JSON.stringify({ times: [value] }),
+      extra: JSON.stringify({ times: [value], run }),
     };
   }
 
@@ -86,8 +107,8 @@ describe("parseReport with a baseline", () => {
     const { report } = parseReport(
       [wallEntry("aave-v4-solx / cold compile slang", 3)],
       [
-        wallEntry("aave-v4-solx / cold compile slang", 99),
-        wallEntry("aave-v4-solx / cold compile solc", 5),
+        wallEntry("aave-v4-solx / cold compile slang", 99, "https://run/1"),
+        wallEntry("aave-v4-solx / cold compile solc", 5, "https://run/2"),
       ],
     );
     const cells = report.get("aave-v4-solx")!;
@@ -95,5 +116,17 @@ describe("parseReport with a baseline", () => {
     assert.equal(cells.get("cold compile slang")?.fromBaseline, undefined);
     assert.equal(cells.get("cold compile solc")?.wall, 5);
     assert.equal(cells.get("cold compile solc")?.fromBaseline, true);
+    assert.equal(cells.get("cold compile solc")?.run, "https://run/2");
+  });
+
+  it("rejects a borrowed baseline cell that names no run", () => {
+    assert.throws(
+      () =>
+        parseReport(
+          [wallEntry("aave-v4-solx / cold compile slang", 3)],
+          [wallEntry("aave-v4-solx / cold compile solc", 5)],
+        ),
+      /Baseline cell "aave-v4-solx \/ cold compile solc" names no run/,
+    );
   });
 });

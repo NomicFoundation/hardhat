@@ -2,11 +2,12 @@ name: Slang Regression Benchmark
 
 # Two tiers. PR and push runs measure only slang and its solx 0.1.8
 # reference, 3 runs each, and take every other cell (solc, forge, tests)
-# from the committed report of the last full run. A dispatch with the
-# default inputs runs the full matrix; repeat it when solc, forge or the
-# scenarios change, copy its slang-regression-report artifact over
-# scripts/benchmark/slang-baseline-report.json and point BASELINE_RUN_URL
-# below at it.
+# from the committed baseline, scripts/benchmark/slang-baseline-report.json,
+# where each cell names the run that measured it. A dispatch runs the full
+# matrix, or the cells its filters select (e.g. `cold compile forge-*solar`
+# for solar alone), and uploads the baseline with its cells merged in as
+# the slang-baseline-report-merged artifact; to refresh, copy that over the
+# committed file.
 on:
   # Manual trigger for the full matrix, or any subset of it; filtered runs
   # never publish baselines (gated on push events).
@@ -69,10 +70,6 @@ jobs:
     # compile and warm test cells, 5 and 3 runs) took ~5h on the runner;
     # the PR tier takes ~35 min.
     timeout-minutes: 420
-    env:
-      # The full run that produced scripts/benchmark/slang-baseline-report.json,
-      # whose cells fill the ones a PR run skips.
-      BASELINE_RUN_URL: https://github.com/NomicFoundation/hardhat/actions/runs/37952638910
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -196,6 +193,29 @@ jobs:
           path: slang-regression-report.json
           if-no-files-found: warn
 
+      # A dispatch's cells, folded into the committed baseline: the file to
+      # commit to make them the cells PR runs borrow.
+      - name: Merge into the baseline
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ ! -f slang-regression-report.json ]; then
+            echo "::warning::No report produced — skipping the baseline merge"
+            exit 0
+          fi
+          node scripts/benchmark/merge-baseline-report.ts \
+            --baseline scripts/benchmark/slang-baseline-report.json \
+            --report slang-regression-report.json \
+            --run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --out slang-baseline-report.merged.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload merged baseline
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slang-baseline-report-merged
+          path: slang-baseline-report.merged.json
+          if-no-files-found: ignore
+
       # The blog post's tables, generated from the report on every run; they
       # land in the job summary and as an artifact for pasting.
       - name: Render blog tables
@@ -207,8 +227,7 @@ jobs:
           fi
           node scripts/benchmark/render-slang-blog-tables.ts \
             --report slang-regression-report.json \
-            --baseline scripts/benchmark/slang-baseline-report.json \
-            --baseline-url "$BASELINE_RUN_URL" > slang-blog-tables.md
+            --baseline scripts/benchmark/slang-baseline-report.json > slang-blog-tables.md
           cat slang-blog-tables.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload blog tables
@@ -235,7 +254,6 @@ jobs:
           node scripts/benchmark/render-slang-tables.ts \
             --report slang-regression-report.json \
             --baseline scripts/benchmark/slang-baseline-report.json \
-            --baseline-url "$BASELINE_RUN_URL" \
             --run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
             --head-sha "$HEAD_SHA" \
             --status "$JOB_STATUS" > slang-bench-comment.md
