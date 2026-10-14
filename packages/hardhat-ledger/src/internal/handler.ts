@@ -61,6 +61,12 @@ let microEthSigner: typeof MicroEthSignerT | undefined;
 let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
 let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
 
+// Each network connection has its own handler, but they all share one Ledger
+// device, which must not receive a command before answering the previous one.
+// `#reconnect()` also swaps a handler's device, so signing requests must run
+// one at a time.
+const signingRequestMutex = new AsyncMutex();
+
 interface RetryState {
   reconnection: number;
   deviceNotReady: number;
@@ -83,9 +89,6 @@ export class LedgerHandler {
   readonly #delayBeforeRetry: (seconds: number) => Promise<void>;
   readonly #maxDeviceNotReadyRetries: number;
   readonly #initializationMutex = new AsyncMutex();
-  // The DMK rejects overlapping APDU exchanges, and #reconnect() swaps the
-  // shared device, so signing requests must run one at a time.
-  readonly #requestMutex = new AsyncMutex();
   /** Lets `close()` cancel retry timers that would keep the process alive. */
   readonly #retryWaits = new Set<() => void>();
   /**
@@ -155,7 +158,7 @@ export class LedgerHandler {
       return jsonRpcRequest;
     }
 
-    return await this.#requestMutex.exclusiveRun(() =>
+    return await signingRequestMutex.exclusiveRun(() =>
       this.#handleSigningRequest(jsonRpcRequest),
     );
   }

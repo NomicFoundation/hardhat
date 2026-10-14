@@ -595,6 +595,42 @@ describe("LedgerHandler", () => {
         assert.equal(calls.signMessage.totalCalls, 2);
       });
 
+      it("should run signing requests from different handlers one at a time", async () => {
+        // Each network connection has its own handler and device session, but
+        // they all share the same device.
+        const methodsConfig: MethodsConfig = {
+          getAddress: findAccountAt(derPath),
+          signMessage: { result: rsv, delayMs: 100 },
+        };
+        const [firstDeviceFactory, firstCalls] =
+          getLedgerDeviceMock(methodsConfig);
+        const [secondDeviceFactory, secondCalls] =
+          getLedgerDeviceMock(methodsConfig);
+
+        const firstHandler = createHandler({
+          deviceFactory: firstDeviceFactory,
+        });
+        const secondHandler = createHandler({
+          deviceFactory: secondDeviceFactory,
+        });
+
+        const totalSignCalls = () =>
+          firstCalls.signMessage.totalCalls +
+          secondCalls.signMessage.totalCalls;
+
+        const first = firstHandler.handle(personalSignRequest);
+        const second = secondHandler.handle(personalSignRequest);
+
+        await waitFor(() => totalSignCalls() === 1);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        // The device is still busy with the first request
+        assert.equal(totalSignCalls(), 1);
+
+        assert.deepEqual(await first, signatureResponse);
+        assert.deepEqual(await second, signatureResponse);
+        assert.equal(totalSignCalls(), 2);
+      });
+
       it("should successfully handle the method eth_sign", async () => {
         const [deviceFactory] = getLedgerDeviceMock({
           getAddress: findAccountAt(derPath),
