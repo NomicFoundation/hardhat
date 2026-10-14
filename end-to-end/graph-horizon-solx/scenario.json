@@ -39,6 +39,10 @@
           "warm forge solc cache": {
             "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_PROFILE=prod ./.foundry/forge build && ./.foundry/forge clean",
             "measure": false
+          },
+          "warm forge solar": {
+            "command": "cd packages/horizon && FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_PROFILE=prod ./.foundry-solar/forge build --offline && ./.foundry-solar/forge clean",
+            "measure": false
           }
         }
       },
@@ -114,6 +118,12 @@
         "dependsOn": ["build workspace deps", "warm forge solc cache"],
         "prepare": "cd packages/horizon && ./.foundry/forge clean",
         "command": "cd packages/horizon && FOUNDRY_SOLC=0.8.34 FOUNDRY_PROFILE=prod ./.foundry/forge build --offline"
+      },
+      "cold compile forge-1.8.5 solar": {
+        "runs": 5,
+        "dependsOn": ["warm forge solar"],
+        "prepare": "cd packages/horizon && ./.foundry-solar/forge clean",
+        "command": "cd packages/horizon && FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_PROFILE=prod ./.foundry-solar/forge build --offline"
       },
       "warm test solx-0.1.8": {
         "runs": 3,

@@ -93,6 +93,11 @@ cp "$E2E_TEST_DIR/foundry.toml" foundry.toml
 rm -rf "$WORKDIR/.foundry"
 node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINNED_VERSION" --out "$WORKDIR/.foundry/forge"
 
+# forge with the solar its release ships, for the forge-solar cell
+# (FOUNDRY_SOLC pointed at that solar).
+rm -rf "$WORKDIR/.foundry-solar"
+node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_SOLAR_PINNED_VERSION" --with-solar --out "$WORKDIR/.foundry-solar/forge"
+
 # Swap in the wrapper config that adds the solx build profiles. The original
 # is kept as hardhat.config.base.ts, which the wrapper composes with — see
 # hardhat.config.solx.ts. The shared profile factory is copied in beside it

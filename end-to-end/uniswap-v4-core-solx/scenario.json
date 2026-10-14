@@ -32,6 +32,10 @@
           "warm forge solc cache": {
             "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build && ./.foundry/forge clean",
             "measure": false
+          },
+          "warm forge solar": {
+            "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_OPTIMIZER=true ./.foundry-solar/forge build --offline && ./.foundry-solar/forge clean",
+            "measure": false
           }
         }
       },
@@ -95,6 +99,12 @@
         "dependsOn": ["warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
         "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      },
+      "cold compile forge-1.8.5 solar": {
+        "runs": 5,
+        "dependsOn": ["warm forge solar"],
+        "prepare": "./.foundry-solar/forge clean",
+        "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_OPTIMIZER=true ./.foundry-solar/forge build --offline"
       },
       "warm test solx-0.1.8": {
         "runs": 3,
