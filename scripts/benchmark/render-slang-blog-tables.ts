@@ -35,6 +35,7 @@ EXAMPLE
 `;
 
 const FORGE = "forge-1.7.1";
+const FORGE_SOLAR = "forge-1.8.5 solar";
 const SOLX = "solx-0.1.8";
 const OZ = "openzeppelin-contracts-0.34";
 
@@ -60,9 +61,12 @@ const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
     "1inch-swap-vm-solx|slang": "does not compile",
     "1inch-swap-vm-solx|solx": "does not compile",
     [`${OZ}|forge`]: "incompatible",
+    [`${OZ}|forgeSolar`]: "incompatible",
+    "lidofinance-core-solx|forgeSolar": "n/a (0.4/0.6 sources)",
   },
   legacy: {
     [`${OZ}|forge`]: "incompatible",
+    [`${OZ}|forgeSolar`]: "incompatible",
   },
 };
 
@@ -94,7 +98,14 @@ interface Row {
   solx?: CellResult;
   slang?: CellResult;
   forge?: CellResult;
-  notes: { solc?: string; solx?: string; slang?: string; forge?: string };
+  forgeSolar?: CellResult;
+  notes: {
+    solc?: string;
+    solx?: string;
+    slang?: string;
+    forge?: string;
+    forgeSolar?: string;
+  };
   // Rows that sum into the headline: OpenZeppelin once, as the entire repo.
   inTotal: boolean;
 }
@@ -161,11 +172,14 @@ function buildRows(
       solx: pick(cells, `${SOLX}${suffix}`),
       slang: pick(cells, "slang"),
       forge: id === OZ ? undefined : pick(cells, `${FORGE}${suffix}`),
+      forgeSolar:
+        id === OZ ? undefined : cells.get(`cold compile ${FORGE_SOLAR}`),
       notes: {
         solc: note("solc"),
         solx: note("solx"),
         slang: note("slang"),
         forge: note("forge"),
+        forgeSolar: note("forgeSolar"),
       },
       inTotal: true,
     });
@@ -176,6 +190,7 @@ function buildRows(
         solx: pick(cells, `${SOLX}${suffix} parity`),
         slang: pick(cells, "slang parity"),
         forge: pick(cells, `${FORGE}${suffix}`),
+        forgeSolar: cells.get(`cold compile ${FORGE_SOLAR}`),
         notes: {},
         inTotal: false,
       });
@@ -189,7 +204,14 @@ function buildRows(
   return rows.sort((a, b) => ratio(b) - ratio(a));
 }
 
-function renderTable(rows: Row[], title: string, solx: boolean): string[] {
+// `forgeSolar` adds forge + solar's wall; it has no speedup column, since
+// slang is the slower of the two.
+function renderTable(
+  rows: Row[],
+  title: string,
+  solx: boolean,
+  forgeSolar: boolean,
+): string[] {
   const both = rows.filter(
     (r) => r.inTotal && r.solc !== undefined && r.slang !== undefined,
   );
@@ -209,10 +231,11 @@ function renderTable(rows: Row[], title: string, solx: boolean): string[] {
           `${slangTotal.toFixed(0)}s. **A ${(solcTotal / slangTotal).toFixed(1)}x ` +
           "overall improvement.**",
     "",
-    solx
+    (solx
       ? `| Repo | Hardhat solc | Hardhat ${SOLX} | Hardhat slang | vs Hardhat solc | vs ${SOLX} | forge solc | vs forge solc |`
-      : "| Repo | Hardhat solc | Hardhat slang | Improvement vs Hardhat solc | forge solc | Improvement vs forge solc |",
-    `|${" --- |".repeat(solx ? 8 : 6)}`,
+      : "| Repo | Hardhat solc | Hardhat slang | Improvement vs Hardhat solc | forge solc | Improvement vs forge solc |") +
+      (forgeSolar ? " forge solar |" : ""),
+    `|${" --- |".repeat((solx ? 8 : 6) + (forgeSolar ? 1 : 0))}`,
   );
   for (const r of rows) {
     const vs = (base: CellResult | undefined) =>
@@ -236,6 +259,9 @@ function renderTable(rows: Row[], title: string, solx: boolean): string[] {
           wallText(r.forge, r.notes.forge),
           vs(r.forge),
         ];
+    if (forgeSolar) {
+      cols.push(wallText(r.forgeSolar, r.notes.forgeSolar));
+    }
     lines.push(`| ${r.repo} | ${cols.join(" | ")} |`);
   }
   lines.push("");
@@ -271,10 +297,10 @@ export function renderSlangBlogTables(
 }
 
 // The post's four tables; `solx` adds Hardhat solx 0.1.8 and slang's speedup
-// over it.
+// over it, `forgeSolar` adds forge + solar to the compile tables.
 export function renderBlogSections(
   report: SlangReport,
-  opts: { solx?: boolean } = {},
+  opts: { solx?: boolean; forgeSolar?: boolean } = {},
 ): string[] {
   const lines: string[] = [];
   const sections: Array<[Pipeline, boolean, string]> = [
@@ -297,6 +323,7 @@ export function renderBlogSections(
         buildRows(report, pipeline, tests),
         title,
         opts.solx === true,
+        opts.forgeSolar === true && !tests,
       ),
     );
   }

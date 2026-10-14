@@ -70,6 +70,14 @@ describe("renderSlangBlogTables", () => {
     );
   });
 
+  it("has no forge + solar column, which only the PR comment shows", () => {
+    const withSolar = renderSlangBlogTables([
+      ...entries,
+      wall("uniswap-v4-core-solx / cold compile forge-1.8.5 solar", 0.8),
+    ]);
+    assert.doesNotMatch(withSolar, /forge solar/);
+  });
+
   it("leaves via-IR-only repos out of the legacy table", () => {
     assert.doesNotMatch(section(output, LEGACY), /lido-vaults/);
   });
