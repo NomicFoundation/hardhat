@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type { BenchmarkEntry } from "./helpers/entries.ts";
 import {
+  baselineFootnote,
   parseReport,
+  runLabel,
   speedup,
   type CellResult,
   type SlangReport,
@@ -26,9 +28,9 @@ DESCRIPTION
 
 OPTIONS
   --report <path>   Required. Report JSON to render
-  --baseline <path> Report of an earlier full run; cells the report lacks are
-                    taken from it and marked †
-  --baseline-url <url>  Link to the run that produced --baseline
+  --baseline <path> The committed baseline (merge-baseline-report.ts); cells
+                    the report lacks are taken from it and marked †, linking
+                    the run that measured each
 
 EXAMPLE
   node scripts/benchmark/render-slang-blog-tables.ts --report slang-regression-report.json
@@ -110,9 +112,10 @@ interface Row {
   inTotal: boolean;
 }
 
-// Marks a value measured in the baseline run rather than this one.
+// Marks a value taken from the baseline, linking the run that measured it.
 function mark(...results: Array<CellResult | undefined>): string {
-  return results.some((r) => r?.fromBaseline === true) ? "†" : "";
+  const borrowed = results.find((r) => r?.fromBaseline === true);
+  return borrowed === undefined ? "" : `[†][${runLabel(borrowed.run!)}]`;
 }
 
 function wallText(r: CellResult | undefined, note: string | undefined): string {
@@ -131,6 +134,7 @@ function sum(a?: CellResult, b?: CellResult): CellResult | undefined {
     wallStddev: a.wallStddev + b.wallStddev,
     runs: Math.min(a.runs, b.runs),
     fromBaseline: a.fromBaseline === true || b.fromBaseline === true,
+    run: a.fromBaseline === true ? a.run : b.run,
   };
 }
 
@@ -270,29 +274,17 @@ function renderTable(
 
 export function renderSlangBlogTables(
   entries: BenchmarkEntry[],
-  opts: { baseline?: BenchmarkEntry[]; baselineUrl?: string } = {},
+  opts: { baseline?: BenchmarkEntry[] } = {},
 ): string {
   const { report } = parseReport(entries, opts.baseline);
-  const borrowed = [...report.values()].some((cells) =>
-    [...cells.values()].some((r) => r.fromBaseline === true),
-  );
   const lines: string[] = [
     'Wall-clock seconds, mean over each cell\'s runs; "parity" means the ' +
       "difference is within the two cells' run-to-run spread.",
     "",
   ];
-  if (borrowed) {
-    lines.push(
-      `† measured in ${
-        opts.baselineUrl === undefined
-          ? "the baseline run"
-          : `[the baseline run](${opts.baselineUrl})`
-      }, not this one.`,
-      "",
-    );
-  }
 
   lines.push(...renderBlogSections(report));
+  lines.push(...baselineFootnote(report));
   return lines.join("\n");
 }
 
@@ -348,7 +340,6 @@ function main(): void {
   process.stdout.write(
     renderSlangBlogTables(read(reportPath), {
       baseline: baselinePath === undefined ? undefined : read(baselinePath),
-      baselineUrl: getArg("--baseline-url"),
     }),
   );
 }

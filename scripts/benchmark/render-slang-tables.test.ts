@@ -14,6 +14,14 @@ function wall(name: string, value: number): BenchmarkEntry {
   };
 }
 
+// A baseline cell, as merge-baseline-report.ts writes it.
+function measuredIn(entry: BenchmarkEntry, run: string): BenchmarkEntry {
+  return {
+    ...entry,
+    extra: JSON.stringify({ ...JSON.parse(entry.extra), run }),
+  };
+}
+
 const entries = [
   wall("aave-v4-solx / cold compile solc", 5),
   wall("aave-v4-solx / cold compile slang", 2.5),
@@ -68,16 +76,21 @@ describe("renderSlangTables", () => {
     const quick = renderSlangTables(
       [wall("uniswap-v4-core-solx / cold compile slang", 13)],
       {
-        baseline: [wall("uniswap-v4-core-solx / cold compile solc", 17)],
-        baselineUrl: "https://example.test/run/1",
+        baseline: [
+          measuredIn(
+            wall("uniswap-v4-core-solx / cold compile solc", 17),
+            "https://example.test/run/1",
+          ),
+        ],
       },
     );
     assert.match(
       quick,
-      /\| Uniswap v4 \| 17\.0s† \| not measured \| 13\.0s \| 1\.3x† \|/,
+      /\| Uniswap v4 \| 17\.0s\[†\]\[1\] \| not measured \| 13\.0s \| 1\.3x\[†\]\[1\] \|/,
     );
-    assert.match(quick, /\| cold compile solc \| 17\.0† \|/);
-    assert.match(quick, /† measured in \[the baseline run\]/);
+    assert.match(quick, /\| cold compile solc \| 17\.0\[†\]\[1\] \|/);
+    assert.match(quick, /^\[1\]: https:\/\/example\.test\/run\/1$/m);
+    assert.match(quick, /each † links the run that measured it/);
   });
 
   it("adds forge + solar's wall to the compile tables only", () => {

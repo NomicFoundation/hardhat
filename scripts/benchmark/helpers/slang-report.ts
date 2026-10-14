@@ -10,6 +10,8 @@ export interface CellResult {
   peakRssMb?: number;
   /** Taken from the baseline report because the run didn't measure it. */
   fromBaseline?: boolean;
+  /** The run that measured it, recorded by merge-baseline-report.ts. */
+  run?: string;
 }
 
 /** scenario id -> cell label (e.g. "cold compile slang") -> result */
@@ -19,13 +21,23 @@ const ENTRY_NAME =
   /^(?<scenario>.+?) \/ (?<cell>.+?)(?: \((?<kind>cpu|peak RSS)\))?$/;
 
 /**
+ * The "<scenario> / <cell>" an entry belongs to, shared by its wall, cpu and
+ * peak RSS entries; an entry of another shape is its own cell.
+ */
+export function cellKey(name: string): string {
+  const m = ENTRY_NAME.exec(name);
+  return m === null ? name : `${m.groups!.scenario} / ${m.groups!.cell}`;
+}
+
+/**
  * Groups a report's entries by scenario and cell. Entries whose name doesn't
  * have the "<scenario> / <cell>" shape are returned separately so a renderer
  * can still show them.
  *
  * A cell the report lacks is taken from `baseline` when that has it, marked
  * `fromBaseline`: a quick run measures only a few cells and borrows the rest
- * from the last full run.
+ * from the runs that last measured them. Every baseline cell must name that
+ * run.
  */
 export function parseReport(
   entries: BenchmarkEntry[],
@@ -41,6 +53,11 @@ export function parseReport(
     own.report.set(scenario, ownCells);
     for (const [cell, result] of cells) {
       if (!ownCells.has(cell)) {
+        if (result.run === undefined) {
+          throw new Error(
+            `Baseline cell "${scenario} / ${cell}" names no run; write the baseline with merge-baseline-report.ts`,
+          );
+        }
         ownCells.set(cell, { ...result, fromBaseline: true });
       }
     }
@@ -72,10 +89,16 @@ function groupEntries(entries: BenchmarkEntry[]): {
     } else if (kind === "peak RSS") {
       result.peakRssMb = entry.value;
     } else {
-      const extra = JSON.parse(entry.extra) as { times?: number[] };
+      const extra = JSON.parse(entry.extra) as {
+        times?: number[];
+        run?: string;
+      };
       result.wall = entry.value;
       result.wallStddev = Number(/± ([\d.]+)/.exec(entry.range)?.[1] ?? 0);
       result.runs = extra.times?.length ?? 1;
+      if (extra.run !== undefined) {
+        result.run = extra.run;
+      }
     }
   }
 
@@ -92,6 +115,41 @@ function groupEntries(entries: BenchmarkEntry[]): {
   }
 
   return { report, unparsed };
+}
+
+/**
+ * The reference-link label of a run, its URL's last path segment (the run
+ * id): a † links `[†][<label>]`, so the URL is written once per table set
+ * rather than once per borrowed value.
+ */
+export function runLabel(run: string): string {
+  return run.replace(/\/+$/, "").split("/").at(-1) ?? run;
+}
+
+/**
+ * The † footnote for the borrowed cells of `report`, followed by the link
+ * definitions their labels need; empty when nothing was borrowed.
+ */
+export function baselineFootnote(report: SlangReport): string[] {
+  const runs = new Set<string>();
+  for (const cells of report.values()) {
+    for (const result of cells.values()) {
+      if (result.fromBaseline === true && result.run !== undefined) {
+        runs.add(result.run);
+      }
+    }
+  }
+  if (runs.size === 0) {
+    return [];
+  }
+  const sorted = [...runs].sort();
+  return [
+    "† taken from the baseline, not measured in this run; each † links the " +
+      `run that measured it: ${sorted.map((r) => `[${runLabel(r)}]`).join(", ")}.`,
+    "",
+    ...sorted.map((r) => `[${runLabel(r)}]: ${r}`),
+    "",
+  ];
 }
 
 /**

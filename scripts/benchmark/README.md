@@ -46,3 +46,19 @@ file mostly composes helpers with parameters:
 Verify with `pnpm e2e init --scenario end-to-end/<scenario>` and a
 `npx hardhat compile --build-profile <profile>` per cell in the resulting
 working dir.
+
+## Refreshing the slang baseline
+
+Dispatch **Slang Regression Benchmark** on the branch, then copy its
+`slang-baseline-report-merged` artifact over
+`scripts/benchmark/slang-baseline-report.json` and commit it.
+
+- The filters pick what gets refreshed: the defaults rerun every cell,
+  `benchmark-filter: cold compile forge-*solar` only forge + solar,
+  `cold compile slang*` only slang. Cells the run doesn't measure stay as
+  they were.
+- The dispatch's `Store benchmark result` step fails on the token policy;
+  the merged artifact is still produced.
+- PR runs measure only slang and solx-0.1.8 and borrow every other cell from
+  the baseline. Each borrowed value's † links the run that measured it,
+  which `merge-baseline-report.ts` records per cell.

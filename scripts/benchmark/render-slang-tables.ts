@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type { BenchmarkEntry } from "./helpers/entries.ts";
 import {
+  baselineFootnote,
   parseReport,
+  runLabel,
   speedup,
   type CellResult,
 } from "./helpers/slang-report.ts";
@@ -28,9 +30,9 @@ OPTIONS
   --head-sha <sha>   Commit the run measured
   --status <status>  Producing job status; anything but "success" adds a
                      partial-results warning
-  --baseline <path>  Report of an earlier full run; cells this report lacks
-                     are taken from it and marked †
-  --baseline-url <url>  Link to the run that produced --baseline
+  --baseline <path>  The committed baseline (merge-baseline-report.ts);
+                     cells this report lacks are taken from it and marked †,
+                     linking the run that measured each
 
 EXAMPLE
   node scripts/benchmark/render-slang-tables.ts --report slang-regression-report.json
@@ -93,9 +95,10 @@ function seconds(n: number | undefined): string {
   return n === undefined ? "—" : n.toFixed(1);
 }
 
-// Marks a value measured in the baseline run rather than this one.
+// Marks a value taken from the baseline, linking the run that measured it.
 function mark(...results: Array<CellResult | undefined>): string {
-  return results.some((r) => r?.fromBaseline === true) ? "†" : "";
+  const borrowed = results.find((r) => r?.fromBaseline === true);
+  return borrowed === undefined ? "" : `[†][${runLabel(borrowed.run!)}]`;
 }
 
 function cellRow(
@@ -130,7 +133,6 @@ export function renderSlangTables(
     headSha?: string;
     status?: string;
     baseline?: BenchmarkEntry[];
-    baselineUrl?: string;
   } = {},
 ): string {
   const { report, unparsed } = parseReport(entries, opts.baseline);
@@ -204,18 +206,7 @@ export function renderSlangTables(
   }
 
   lines.push(...FOOTNOTES.map((f) => `${f}\n`));
-  const borrowed = [...report.values()].some((cells) =>
-    [...cells.values()].some((r) => r.fromBaseline === true),
-  );
-  if (borrowed) {
-    lines.push(
-      `† measured in ${
-        opts.baselineUrl === undefined
-          ? "the baseline run"
-          : `[the baseline run](${opts.baselineUrl})`
-      }, not this one.\n`,
-    );
-  }
+  lines.push(...baselineFootnote(report));
 
   if (unparsed.length > 0) {
     lines.push(
@@ -256,7 +247,6 @@ function main(): void {
       headSha: getArg("--head-sha"),
       status: getArg("--status"),
       baseline: baselinePath === undefined ? undefined : read(baselinePath),
-      baselineUrl: getArg("--baseline-url"),
     }),
   );
 }
