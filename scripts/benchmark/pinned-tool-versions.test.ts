@@ -14,7 +14,8 @@
 // real reports — must still read the map's value.
 //
 // The token scan flags every solx-vX.Y.Z / solx-X.Y.Z / forge-X.Y.Z it
-// sees, in the manifest and in this file too. Prose mentioning a historical
+// sees, in the manifest and in this file too; "forge-X.Y.Z solar" is checked
+// against the forge-solar pin instead. Prose mentioning a historical
 // version must therefore write it bare ("0.1.4"), never with the tool name
 // prefixed.
 import assert from "node:assert/strict";
@@ -41,6 +42,7 @@ function readPin(name: string): string {
 
 const solxPin = readPin("SOLX_PINNED_VERSION");
 const forgePin = readPin("FORGE_PINNED_VERSION");
+const forgeSolarPin = readPin("FORGE_SOLAR_PINNED_VERSION");
 
 /**
  * Every file of every solx scenario. Scenario dirs are found by their
@@ -212,6 +214,10 @@ describe("pinned-tool-versions", () => {
       // replay step's "cold compile solx-<pin>" pairing). Its prose writes
       // historical versions bare, so the name tokens are scannable.
       path.join(repoRoot, ".github/workflows/solx-regression-benchmark.yml"),
+      // The slang renderers and workflow name the forge cells they read.
+      path.join(repoRoot, "scripts/benchmark/render-slang-tables.ts"),
+      path.join(repoRoot, "scripts/benchmark/render-slang-blog-tables.ts"),
+      path.join(repoRoot, ".github/workflows/slang-regression-benchmark.yml"),
       // The manifest and this file describe the pinned names in prose, so
       // they strand stale ones just as easily as the code does.
       path.join(repoRoot, "scripts/benchmark/pinned-tool-versions.sh"),
@@ -228,8 +234,18 @@ describe("pinned-tool-versions", () => {
       for (const [, v] of content.matchAll(/solx-v?(\d+\.\d+\.\d+)/g)) {
         assert.equal(v, solxPin, `stale solx pin ${v} in ${file}`);
       }
-      for (const [, v] of content.matchAll(/forge-(\d+\.\d+\.\d+)/g)) {
-        assert.equal(v, forgePin, `stale forge pin ${v} in ${file}`);
+      for (const [, v, solar] of content.matchAll(
+        /forge-(\d+\.\d+\.\d+)( solar)?/g,
+      )) {
+        if (solar === undefined) {
+          assert.equal(v, forgePin, `stale forge pin ${v} in ${file}`);
+        } else {
+          assert.equal(
+            v,
+            forgeSolarPin,
+            `stale forge-solar pin ${v} in ${file}`,
+          );
+        }
       }
     }
   });
