@@ -5,6 +5,7 @@ import {
   buildPackageManagerEnv,
   getInstallArgs,
   getUpdateArgs,
+  isYarnCacheEntryOf,
 } from "./install.ts";
 
 const REGISTRY = "http://127.0.0.1:4873";
@@ -129,5 +130,36 @@ describe("buildPackageManagerEnv", () => {
     );
 
     assert.equal(env.SKIP_LINT_SOLIDITY, "1");
+  });
+});
+
+describe("isYarnCacheEntryOf", () => {
+  const names = ["hardhat", "@nomicfoundation/hardhat-slang"];
+
+  it("matches a Berry cache zip of a listed package, at any version", () => {
+    assert.ok(
+      isYarnCacheEntryOf(
+        "@nomicfoundation-hardhat-slang-npm-3.0.0-0fa5e312b7-10c0.zip",
+        names,
+      ),
+    );
+    assert.ok(
+      isYarnCacheEntryOf("hardhat-npm-3.16.0-1d74c5c469-10c0.zip", names),
+    );
+  });
+
+  it("does not match a package whose name only starts with a listed one", () => {
+    assert.ok(
+      !isYarnCacheEntryOf(
+        "@nomicfoundation-hardhat-slang-solx-npm-3.0.4-fb65b954a0-10c0.zip",
+        names,
+      ),
+    );
+    assert.ok(
+      !isYarnCacheEntryOf(
+        "hardhat-deploy-npm-1.0.0-6f76b01394-10c0.zip",
+        names,
+      ),
+    );
   });
 });
