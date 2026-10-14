@@ -37,6 +37,10 @@
           "warm forge solc cache": {
             "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' && ./.foundry/forge clean",
             "measure": false
+          },
+          "warm forge solar": {
+            "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_EVM_VERSION=cancun ./.foundry-solar/forge build --skip 'script/**' --offline && ./.foundry-solar/forge clean",
+            "measure": false
           }
         }
       },
@@ -55,6 +59,12 @@
         "dependsOn": ["relax dependency pragmas", "warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
         "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_EVM_VERSION=cancun ./.foundry/forge build --skip 'script/**' --offline"
+      },
+      "cold compile forge-1.8.5 solar": {
+        "runs": 5,
+        "dependsOn": ["warm forge solar"],
+        "prepare": "./.foundry-solar/forge clean",
+        "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_EVM_VERSION=cancun ./.foundry-solar/forge build --skip 'script/**' --offline"
       },
       "warm compile solc via-ir": {
         "runs": 3,
