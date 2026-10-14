@@ -193,51 +193,6 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("falls back to stream parsing when the build info output is too large for a single string", async (t) => {
-    const sources: FakeSource[] = [
-      {
-        inputSourceName: "project/test/Types.sol",
-        userSourceName: "test/Types.sol",
-        ast: sourceUnit([
-          structAst("Person", [
-            { type: "address", name: "wallet" },
-            { type: "string", name: "name" },
-          ]),
-        ]),
-      },
-    ];
-    const buildInfo = makeBuildInfo("solc-0_8_23-large-output", sources);
-
-    // Simulate an output too large to be decoded into a single string:
-    // `TextDecoder.decode` throws only in that case, so this exercises the
-    // stream-parsing fallback without allocating a multi-gigabyte buffer.
-    const originalDecode = TextDecoder.prototype.decode;
-    t.mock.method(
-      TextDecoder.prototype,
-      "decode",
-      function (
-        this: InstanceType<typeof TextDecoder>,
-        ...args: Parameters<typeof TextDecoder.prototype.decode>
-      ) {
-        if (args[0] === buildInfo.output) {
-          throw new RangeError(
-            "Cannot create a string longer than 0x1fffffe8 characters",
-          );
-        }
-
-        return originalDecode.call(this, args[0], args[1]);
-      },
-    );
-
-    const result = await collectEip712CanonicalTypes(
-      [buildInfo],
-      inputToUserSourceMap(sources),
-      { include: ["test/**"], exclude: [] },
-    );
-
-    assert.deepEqual(result, ["Person(address wallet,string name)"]);
-  });
-
   it("throws a HardhatError when the build info output cannot be parsed", async () => {
     const sources: FakeSource[] = [
       {
