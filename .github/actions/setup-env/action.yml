@@ -41,9 +41,6 @@ runs:
       with:
         path: ${{ steps.pnpm.outputs.path }}
         key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-    # node-hid (via @ledgerhq/device-transport-kit-node-hid): its Linux prebuilt
-    # binary links libusb-1.0 at runtime; a node-gyp fallback build needs both.
-    #
     # `time` is GNU /usr/bin/time: bench:regression and the benchmark runner
     # tests measure peak RSS with it.
     - name: Install Linux system dependencies
@@ -51,4 +48,4 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y libusb-1.0-0-dev libudev-dev time
+        sudo apt-get install -y time
