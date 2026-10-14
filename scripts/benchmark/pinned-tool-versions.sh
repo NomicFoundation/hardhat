@@ -22,6 +22,10 @@
 #     series stop updating.
 SOLX_PINNED_VERSION="0.1.8"
 FORGE_PINNED_VERSION="1.7.1"
+# The forge whose release ships solar, for the "forge-<pin> solar" cells:
+# forge with FOUNDRY_SOLC pointed at that solar. Separate from the forge pin
+# above, whose release predates solar.
+FORGE_SOLAR_PINNED_VERSION="1.8.5"
 # The slang release the "slang" profiles download (provision-slang.ts): the
 # solx main prerelease at 5e6ec5e1 (slang v0.2.0), the one hardhat-slang pins.
 # HARDHAT_SLANG_BENCH_BINARY overrides it with a local build.

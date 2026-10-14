@@ -20,8 +20,8 @@ DESCRIPTION
   Downloads the foundry release tarball for --version from GitHub releases,
   verifies it against the release's .sha256 sidecar, and installs the forge
   binary it contains at --out (executable; the other foundry tools are not
-  extracted). Scenario preinstall scripts use this to provision the pinned
-  forge for the cross-tool parity cells.
+  extracted, except solar with --with-solar). Scenario preinstall scripts use
+  this to provision the pinned forge for the cross-tool parity cells.
 
   Downloads are cached under ~/.cache/hardhat-solx-benchmark (re-verified on
   every use), so the per-scenario preinstalls don't re-fetch the same tarball.
@@ -29,6 +29,8 @@ DESCRIPTION
 OPTIONS
   --version <v>   Required. foundry release version, without the v (e.g. 1.7.1)
   --out <path>    Required. Where to install the forge binary
+  --with-solar    Also install the release's solar binary (foundry 1.8.0
+                  and later ship it) next to forge, as <dir of --out>/solar
 
 EXAMPLE
   node scripts/benchmark/download-forge.ts --version 1.7.1 --out ./.foundry/forge
@@ -88,6 +90,7 @@ async function main(): Promise<void> {
 
   const version = getArg("--version");
   const out = getArg("--out");
+  const withSolar = process.argv.includes("--with-solar");
   if (version === undefined || out === undefined) {
     console.log(USAGE);
     process.exit(1);
@@ -126,14 +129,30 @@ async function main(): Promise<void> {
 
   const extractDir = mkdtempSync(path.join(os.tmpdir(), "forge-extract-"));
   try {
-    execFileSync("tar", ["-xzf", cachedPath, "-C", extractDir, "forge"]);
-    mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+    const members = withSolar ? ["forge", "solar"] : ["forge"];
+    try {
+      execFileSync("tar", ["-xzf", cachedPath, "-C", extractDir, ...members]);
+    } catch (error) {
+      throw new Error(
+        `Could not extract ${members.join(" and ")} from ${tarballName}` +
+          (withSolar ? " (foundry ships solar from 1.8.0 on)" : ""),
+        { cause: error },
+      );
+    }
+    const outDir = path.dirname(path.resolve(out));
+    mkdirSync(outDir, { recursive: true });
     copyFileSync(path.join(extractDir, "forge"), out);
     chmodSync(out, 0o755);
+    if (withSolar) {
+      copyFileSync(path.join(extractDir, "solar"), path.join(outDir, "solar"));
+      chmodSync(path.join(outDir, "solar"), 0o755);
+    }
   } finally {
     rmSync(extractDir, { recursive: true, force: true });
   }
-  console.log(`Installed forge ${version} at ${out}`);
+  console.log(
+    `Installed forge ${version}${withSolar ? " and its solar" : ""} at ${out}`,
+  );
 }
 
 await main();
