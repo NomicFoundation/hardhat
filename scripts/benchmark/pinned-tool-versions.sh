@@ -23,7 +23,7 @@
 SOLX_PINNED_VERSION="0.1.8"
 FORGE_PINNED_VERSION="1.7.1"
 # The slang release the "slang" profiles download (provision-slang.ts): the
-# prerelease of solx #786 at cc66c013, on main after #702 and #767.
+# solx main prerelease at 5e6ec5e1 (slang v0.2.0), the one hardhat-slang pins.
 # HARDHAT_SLANG_BENCH_BINARY overrides it with a local build.
-SLANG_PINNED_TAG="cc66c013"
-SLANG_PINNED_ASSET_SUFFIX="slang-debug-symbols"
+SLANG_PINNED_TAG="5e6ec5e1"
+SLANG_PINNED_ASSET_SUFFIX="debug-fast"
