@@ -832,6 +832,74 @@ describe("hardhat-slang Solidity version validation", () => {
     );
     assert.equal(rangeErrors(errors).length, 1);
   });
+
+  it("rejects settings.solidityVersion that differs from the entry's version", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([
+        {
+          version: "0.8.34",
+          type: "slang",
+          settings: { solidityVersion: "0.8.20" },
+        },
+      ]),
+    );
+    assert.deepEqual(
+      errors.map((e) => e.path),
+      [
+        [
+          "solidity",
+          "profiles",
+          "slang",
+          "compilers",
+          0,
+          "settings",
+          "solidityVersion",
+        ],
+      ],
+    );
+  });
+
+  it("rejects a differing settings.solidityVersion on an override with its own binary", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([{ version: "0.8.34", type: "slang" }], {
+        overrides: {
+          "contracts/Old.sol": {
+            version: "0.8.20",
+            type: "slang",
+            path: "/tmp/slang-nightly",
+            settings: { solidityVersion: "0.8.34" },
+          },
+        },
+      }),
+    );
+    assert.deepEqual(
+      errors.map((e) => e.path),
+      [
+        [
+          "solidity",
+          "profiles",
+          "slang",
+          "overrides",
+          "contracts/Old.sol",
+          "settings",
+          "solidityVersion",
+        ],
+      ],
+    );
+  });
+
+  it("accepts settings.solidityVersion equal to the entry's version", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([
+        {
+          version: "0.8.34",
+          type: "slang",
+          settings: { solidityVersion: "0.8.34" },
+        },
+      ]),
+    );
+    assert.deepEqual(errors, []);
+  });
 });
 
 describe("hardhat-slang resolved config validation", () => {

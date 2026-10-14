@@ -176,7 +176,18 @@ const slangUserConfigType = z
       .optional(),
   })
   .superRefine((config, ctx) => {
-    const entries = collectSlangEntriesToDownload(config.solidity);
+    const slangEntries = collectSlangEntries(config.solidity);
+    for (const { version, solidityVersion, path } of slangEntries) {
+      if (solidityVersion !== undefined && solidityVersion !== version) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [...path, "settings", "solidityVersion"],
+          message: `settings.solidityVersion (${String(solidityVersion)}) must match the compiler entry's version (${version}). slang compiles the entry's version; leave settings.solidityVersion unset.`,
+        });
+      }
+    }
+
+    const entries = slangEntries.filter((entry) => !entry.hasCustomPath);
     if (entries.length === 0) {
       return;
     }
@@ -208,30 +219,34 @@ const slangUserConfigType = z
     }
   });
 
-interface SlangEntryToDownload {
+interface SlangEntry {
   version: string;
+  solidityVersion: unknown;
+  /** Whether the entry brings its own binary instead of the pinned release. */
+  hasCustomPath: boolean;
   path: Array<string | number>;
 }
 
 /**
- * Collects every compiler entry with `type: "slang"` and no custom `path`
- * from any of the shapes `solidity` can take, along with the config path of
- * the entry, so that errors point at the right place.
+ * Collects every compiler entry with `type: "slang"` from any of the shapes
+ * `solidity` can take, along with the config path of the entry, so that
+ * errors point at the right place.
  */
-function collectSlangEntriesToDownload(
-  solidity: unknown,
-): SlangEntryToDownload[] {
-  const entries: SlangEntryToDownload[] = [];
+function collectSlangEntries(solidity: unknown): SlangEntry[] {
+  const entries: SlangEntry[] = [];
 
   function visit(entry: unknown, path: Array<string | number>): void {
-    if (
-      !isObject(entry) ||
-      entry.type !== SLANG_COMPILER_TYPE ||
-      (typeof entry.path === "string" && entry.path.length > 0)
-    ) {
+    if (!isObject(entry) || entry.type !== SLANG_COMPILER_TYPE) {
       return;
     }
-    entries.push({ version: String(entry.version), path });
+    entries.push({
+      version: String(entry.version),
+      solidityVersion: isObject(entry.settings)
+        ? entry.settings.solidityVersion
+        : undefined,
+      hasCustomPath: typeof entry.path === "string" && entry.path.length > 0,
+      path,
+    });
   }
 
   function visitVersionsConfig(
