@@ -1,11 +1,17 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
 import { which } from "./shell.ts";
 import { log, logStep } from "./log.ts";
 
-import { VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
+import { ROOT_DIR, VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
 import type { ScenarioDefinition } from "../types.ts";
 
 /**
@@ -67,6 +73,11 @@ function runPackageManager(
       cwd: workDir,
       stdio: "inherit",
     });
+
+    evictLocalPackagesFromYarnCache(
+      workDir,
+      buildPackageManagerEnv(packageManager, env),
+    );
   }
 
   execFileSync(which(packageManager), args, {
@@ -74,6 +85,84 @@ function runPackageManager(
     stdio: "inherit",
     env: buildPackageManagerEnv(packageManager, env),
   });
+}
+
+/**
+ * Drop the monorepo's packages from Yarn Berry's caches before an install.
+ *
+ * Verdaccio republishes them under versions that repeat across runs (a
+ * package missing from npm keeps its own version) with new contents, and
+ * Berry reuses a cached zip by name and version when the lockfile has no
+ * checksum for it, which a scenario lockfile never has. A persistent runner
+ * would then install a previous run's build. Yarn Classic checks the
+ * registry's shasum, so it needs nothing.
+ */
+function evictLocalPackagesFromYarnCache(
+  workDir: string,
+  env: NodeJS.ProcessEnv,
+): void {
+  const yarn = (args: string[]) =>
+    execFileSync(which("yarn"), args, {
+      cwd: workDir,
+      env,
+      encoding: "utf8",
+    }).trim();
+
+  if (Number(yarn(["--version"]).split(".")[0]) < 2) {
+    return;
+  }
+
+  // The global cache is used unless enableGlobalCache is off; clear both.
+  const cacheDirs = [
+    resolve(workDir, yarn(["config", "get", "cacheFolder"])),
+    resolve(yarn(["config", "get", "globalFolder"]), "cache"),
+  ];
+  const names = localPackageNames();
+
+  for (const dir of cacheDirs) {
+    if (!existsSync(dir)) {
+      continue;
+    }
+    const stale = readdirSync(dir).filter((file) =>
+      isYarnCacheEntryOf(file, names),
+    );
+    for (const file of stale) {
+      rmSync(resolve(dir, file));
+    }
+    if (stale.length > 0) {
+      log(`Evicted ${stale.length} local package(s) from ${dir}`);
+    }
+  }
+}
+
+/** The names of the monorepo packages Verdaccio may serve. */
+function localPackageNames(): string[] {
+  const packagesDir = resolve(ROOT_DIR, "packages");
+  return readdirSync(packagesDir, { withFileTypes: true })
+    .filter((entry) =>
+      existsSync(resolve(packagesDir, entry.name, "package.json")),
+    )
+    .map(
+      (entry) =>
+        JSON.parse(
+          readFileSync(
+            resolve(packagesDir, entry.name, "package.json"),
+            "utf8",
+          ),
+        ) as { name: string; private?: boolean },
+    )
+    .filter((pkg) => pkg.private !== true)
+    .map((pkg) => pkg.name);
+}
+
+/**
+ * Whether `file` is Yarn Berry's cache zip of an npm version of one of
+ * `names`: "@scope/name" is slugged to "@scope-name-npm-<version>-…".
+ */
+export function isYarnCacheEntryOf(file: string, names: string[]): boolean {
+  return names.some((name) =>
+    file.startsWith(`${name.replace("/", "-")}-npm-`),
+  );
 }
 
 /**
