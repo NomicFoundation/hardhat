@@ -433,6 +433,11 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
 
     // If the code is defined, we assume the error to be related to the file system
     if ("code" in e) {
+      // Except for invalid UTF-8, which is a problem with the file's contents
+      if (e.code === "ERR_ENCODING_INVALID_ENCODED_DATA") {
+        throw new InvalidFileFormatError(absolutePathToFile, e);
+      }
+
       if (e.code === "ENOENT") {
         throw new FileNotFoundError(absolutePathToFile, e);
       }

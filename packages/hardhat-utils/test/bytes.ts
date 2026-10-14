@@ -260,10 +260,34 @@ describe("bytes", () => {
           assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
         });
 
-        it("Should throw if the bytes are not valid JSON", async () => {
+        it("Should throw InvalidParameterError if the bytes are not valid JSON", async () => {
           const bytes = new TextEncoder().encode("not-json");
 
-          await assert.rejects(parseJsonBytes(bytes));
+          await assert.rejects(parseJsonBytes(bytes), {
+            name: "InvalidParameterError",
+            message: "The bytes are not valid UTF-8 encoded JSON",
+          });
+        });
+
+        it("Should throw InvalidParameterError if the bytes are empty", async () => {
+          await assert.rejects(parseJsonBytes(new Uint8Array()), {
+            name: "InvalidParameterError",
+            message: "The bytes are not valid UTF-8 encoded JSON",
+          });
+        });
+
+        it("Should throw InvalidParameterError if the bytes are not valid UTF-8", async () => {
+          // {"s":"a\xFFb"}: 0xFF can't appear anywhere in UTF-8
+          const bytes = new Uint8Array([
+            ...new TextEncoder().encode('{"s":"a'),
+            0xff,
+            ...new TextEncoder().encode('b"}'),
+          ]);
+
+          await assert.rejects(parseJsonBytes(bytes), {
+            name: "InvalidParameterError",
+            message: "The bytes are not valid UTF-8 encoded JSON",
+          });
         });
       });
     }

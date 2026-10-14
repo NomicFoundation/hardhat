@@ -1034,6 +1034,24 @@ describe("File system utils", () => {
           });
         });
 
+        it("Should throw InvalidFileFormatError if the file is not valid UTF-8", async () => {
+          const filePath = path.join(tmp.path, "file.json");
+          // {"s":"a\xFFb"}: 0xFF can't appear anywhere in UTF-8
+          await fsPromises.writeFile(
+            filePath,
+            new Uint8Array([
+              ...new TextEncoder().encode('{"s":"a'),
+              0xff,
+              ...new TextEncoder().encode('b"}'),
+            ]),
+          );
+
+          await assert.rejects(readJsonFile(filePath), {
+            name: "InvalidFileFormatError",
+            message: `Invalid file format: ${filePath}`,
+          });
+        });
+
         it("Should throw InvalidFileFormatError if the file is empty", async () => {
           const filePath = path.join(tmp.path, "file.json");
           await writeUtf8File(filePath, "");

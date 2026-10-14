@@ -1,6 +1,8 @@
 import { constants as bufferConstants } from "node:buffer";
 import { Readable } from "node:stream";
 
+import { InvalidParameterError } from "./common-errors.js";
+import { ensureError } from "./error.js";
 import { buildLpsTable, parseJsonStream } from "./internal/bytes.js";
 import {
   hasHeapHeadroomFor,
@@ -122,20 +124,30 @@ export function bytesIncludesUtf8String(
  *
  * @param bytes The UTF-8 encoded JSON bytes.
  * @returns The parsed JSON object.
+ * @throws InvalidParameterError if the bytes aren't valid UTF-8 encoded JSON.
  */
 export async function parseJsonBytes<T>(bytes: Uint8Array): Promise<T> {
-  // Each UTF-8 byte decodes to at most one character, so this also guarantees
-  // that the text fits in a string. Everything from the heap check on is
-  // synchronous, so no other code can use memory in between.
-  if (
-    bytes.length > bufferConstants.MAX_STRING_LENGTH ||
-    !hasHeapHeadroomFor(bytes.length * READ_HEAP_BYTES_PER_JSON_BYTE)
-  ) {
-    return await parseJsonStream<T>(Readable.from([bytes]));
-  }
+  try {
+    // Each UTF-8 byte decodes to at most one character, so this also
+    // guarantees that the text fits in a string. Everything from the heap
+    // check on is synchronous, so no other code can use memory in between.
+    if (
+      bytes.length > bufferConstants.MAX_STRING_LENGTH ||
+      !hasHeapHeadroomFor(bytes.length * READ_HEAP_BYTES_PER_JSON_BYTE)
+    ) {
+      return await parseJsonStream<T>(Readable.from([bytes]));
+    }
 
-  // `bytesToUtf8String` skips a leading BOM, like the stream parser does.
-  return JSON.parse(bytesToUtf8String(bytes));
+    // Like the stream parser, this skips a leading BOM and rejects invalid
+    // UTF-8, so both paths behave the same.
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch (e) {
+    ensureError(e);
+    throw new InvalidParameterError(
+      "The bytes are not valid UTF-8 encoded JSON",
+      e,
+    );
+  }
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";
