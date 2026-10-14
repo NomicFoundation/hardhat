@@ -159,23 +159,14 @@ export const PEAK_RSS_METHOD_NAMES: Readonly<Record<PeakRssMethod, string>> =
   ) as Record<PeakRssMethod, string>;
 
 /**
- * Parse the `--peak-rss` flag out of `argv`. An absent flag returns
- * undefined, so each CLI applies its own default. A flag without a value, or
- * with an unknown one, throws.
+ * Map a `--peak-rss` value to its method. Undefined passes through, so each
+ * CLI applies its own default, and an unknown value throws.
  */
-export function parsePeakRssMethod(argv: string[]): PeakRssMethod | undefined {
-  const flagIndex = argv.indexOf(PEAK_RSS_FLAG);
-
-  if (flagIndex === -1) {
-    return undefined;
-  }
-
-  const raw = argv[flagIndex + 1];
-
+export function parsePeakRssMethod(
+  raw: string | undefined,
+): PeakRssMethod | undefined {
   if (raw === undefined) {
-    throw new Error(
-      `${PEAK_RSS_FLAG} requires a value: one of ${PEAK_RSS_METHOD_LIST}`,
-    );
+    return undefined;
   }
 
   // Object.hasOwn: a plain index would also find Object.prototype keys, so
@@ -202,7 +193,7 @@ export function wrapWithGnuTime(command: string, memPath: string): string {
 }
 
 /** Parse the peak RSS written by {@link wrapWithGnuTime}, in whole MB. */
-export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
+export function parseGnuTimeMaxRssMb(raw: string): number {
   // GNU time prepends a "Command exited …" or "Command terminated …" line
   // when the command failed, so the measurement is the last line. That line
   // must be a lone integer, so a report holding only the prefix line throws
@@ -211,9 +202,7 @@ export function parseGnuTimeMaxRssMb(raw: string, source: string): number {
   const kb = Number(reading);
 
   if (!/^\d+$/.test(reading) || kb <= 0) {
-    throw new Error(
-      `Unparseable GNU time output at ${source}: ${JSON.stringify(raw)}`,
-    );
+    throw new Error(`Unparseable GNU time output: ${JSON.stringify(raw)}`);
   }
 
   return kbToMb(kb);
@@ -231,11 +220,11 @@ function readGnuTimeReport(memPath: string): string {
       throw error;
     }
 
-    throw new Error(`GNU time wrote no report at ${memPath}`);
+    throw new Error("GNU time wrote no report");
   }
 
   if (raw.trim() === "") {
-    throw new Error(`GNU time left an empty report at ${memPath}`);
+    throw new Error("GNU time left an empty report");
   }
 
   return raw;
@@ -275,7 +264,7 @@ export function createPeakRssRecorder(
     return {
       ...NO_PEAK_RSS_RECORDER,
       wrapCommand: (command) => wrapWithGnuTime(command, memPath),
-      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath), memPath),
+      finish: () => parseGnuTimeMaxRssMb(readGnuTimeReport(memPath)),
     };
   }
 

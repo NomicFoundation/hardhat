@@ -281,6 +281,48 @@ describe(
         );
       });
 
+      it("leaves no temporary file behind after a successful download", async function () {
+        await downloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
+        await downloader.downloadCompiler("0.5.0");
+
+        assert.deepEqual(
+          await fs.getAllFilesMatching(tmp.path, (f) => f.endsWith(".tmp")),
+          [],
+          "the download path should have been renamed into place, not copied",
+        );
+      });
+
+      it("doesn't report a compiler as downloaded before it is verified", async function () {
+        let isDownloadedBeforeVerification: boolean | undefined;
+        const mockDownloader = new CompilerDownloader(
+          CompilerDownloader.getCompilerPlatform(),
+          tmp.path,
+          async (url, destination, requestOptions, dispatcherOptions) => {
+            await download(url, destination, requestOptions, dispatcherOptions);
+
+            if (!url.endsWith("list.json")) {
+              // This is what a concurrent process sees between the download
+              // and the checksum verification
+              isDownloadedBeforeVerification =
+                await downloader.isCompilerDownloaded("0.5.0");
+            }
+          },
+        );
+
+        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
+        await mockDownloader.downloadCompiler("0.5.0");
+
+        assert.equal(
+          isDownloadedBeforeVerification,
+          false,
+          "the compiler should not be visible before it is verified",
+        );
+        assert.ok(
+          await downloader.isCompilerDownloaded("0.5.0"),
+          "Compiler should be downloaded",
+        );
+      });
+
       describe("multiple downloads", function () {
         it("should not download multiple times the same compiler", async function () {
           // The intention is for the value to be 1 if the compiler is downloaded only once.
@@ -492,6 +534,54 @@ describe(
         assert.ok(compiler !== undefined, "Compiler should be defined");
         assert.equal(compiler.version, "0.8.31");
         assert.equal(compiler.longVersion, "0.8.31+commit.fd3a2265");
+      });
+    });
+
+    describe("when on windows", function () {
+      let downloader: CompilerDownloader;
+
+      beforeEach(async () => {
+        downloader = new CompilerDownloader(CompilerPlatform.WINDOWS, tmp.path);
+      });
+
+      describe("downloadCompiler", function () {
+        // solc 0.7.1 and older are published for windows as zip archives
+        it("extracts a zipped compiler", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.7.1"]));
+          await downloader.downloadCompiler("0.7.1");
+
+          assert(
+            await fs.exists(path.join(tmp.path, "0.7.1", "solc.exe")),
+            "solc.exe should have been extracted",
+          );
+          assert(
+            await downloader.isCompilerDownloaded("0.7.1"),
+            "Compiler should be downloaded",
+          );
+          assert.deepEqual(
+            await fs.getAllFilesMatching(
+              path.join(tmp.path, "windows-amd64"),
+              (f) => f.endsWith(".zip") || f.endsWith(".tmp"),
+            ),
+            [],
+            "the archive should have been removed once extracted",
+          );
+        });
+
+        it("downloads an unzipped compiler", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+          await downloader.downloadCompiler("0.8.28");
+
+          assert(
+            await downloader.isCompilerDownloaded("0.8.28"),
+            "Compiler should be downloaded",
+          );
+          assert.deepEqual(
+            await fs.getAllFilesMatching(tmp.path, (f) => f.endsWith(".tmp")),
+            [],
+            "the download path should have been renamed into place, not copied",
+          );
+        });
       });
     });
 

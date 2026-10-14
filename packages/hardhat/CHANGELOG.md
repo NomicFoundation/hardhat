@@ -1,5 +1,33 @@
 # hardhat
 
+## 3.19.0
+
+### Minor Changes
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`0e51fa2`](https://github.com/NomicFoundation/hardhat/commit/0e51fa2f1023894a79e62d0e11d9528f7ea75dd7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7976 support to the Amsterdam hardfork: the calldata floor cost rises to 64 gas per byte.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`b52d2eb`](https://github.com/NomicFoundation/hardhat/commit/b52d2ebd98677b430f42503ca9cf008de0725823) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7981 support to the Amsterdam hardfork: access list data costs an extra 64 gas per byte.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-7997 support to the Amsterdam hardfork: the deterministic `CREATE2` factory is now part of the genesis state.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`0e51fa2`](https://github.com/NomicFoundation/hardhat/commit/0e51fa2f1023894a79e62d0e11d9528f7ea75dd7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-8024 support to the Amsterdam hardfork: the `DUPN`, `SWAPN` and `EXCHANGE` opcodes reach stack items beyond `DUP16` and `SWAP16`.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Added experimental EIP-8037 support to the Amsterdam hardfork: execution gas and state gas are metered separately, and a block's `gasUsed` reports the larger.
+
+### Patch Changes
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`bb62bf6`](https://github.com/NomicFoundation/hardhat/commit/bb62bf65e3124304d905b5912b55cc1d61a214d7) Thanks [@anaPerezGhiglia](https://github.com/kanej)! - Upgraded EDR to v0.22.2.
+
+- [#8679](https://github.com/NomicFoundation/hardhat/pull/8679) [`63fb54a`](https://github.com/NomicFoundation/hardhat/commit/63fb54aec02a60bad1314f3946f5749dc05051e9) Thanks [@Wodann](https://github.com/Wodann)! - Excluded the templates' `node_modules` folders from the published package, which broke installation with Yarn classic.
+
+- [#8667](https://github.com/NomicFoundation/hardhat/pull/8667) [`5793554`](https://github.com/NomicFoundation/hardhat/commit/5793554131276677b931cd0bc3a34e0607dc6040) Thanks [@schaable](https://github.com/schaable)! - Improved the errors for invalid transactions sent from local accounts.
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`17133ce`](https://github.com/NomicFoundation/hardhat/commit/17133ce6f3e65ec8ab08d6129f64ab7d4afccd5e) Thanks [@kanej](https://github.com/kanej)! - Removed the remaining built-in Holesky (chain ID `17000`) hardfork history, as the network has been shut down.
+
+- [#8680](https://github.com/NomicFoundation/hardhat/pull/8680) [`17133ce`](https://github.com/NomicFoundation/hardhat/commit/17133ce6f3e65ec8ab08d6129f64ab7d4afccd5e) Thanks [@kanej](https://github.com/kanej)! - Added the Amsterdam hardfork activation on Sepolia, so forking Sepolia uses `amsterdam` for blocks after it activates.
+
 ## 3.18.1
 
 ### Patch Changes

@@ -373,6 +373,23 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.reason, "InternalCallOutOfGas");
   });
 
+  it("should list the served methods in the CORS preflight response", async function () {
+    const headers = await new Promise<http.IncomingHttpHeaders>(
+      (resolve, reject) => {
+        http
+          .request({ hostname, port, method: "OPTIONS" }, (res) => {
+            res.resume();
+            resolve(res.headers);
+          })
+          .once("error", reject)
+          .end();
+      },
+    );
+
+    assert.equal(headers["access-control-allow-methods"], "OPTIONS, POST");
+    assert.equal(headers["access-control-request-method"], undefined);
+  });
+
   it("should expose revert data as a hex string for code 3 errors (geth/anvil convention)", async function () {
     // For revert errors (code 3), error.data must be the raw hex string,
     // matching the geth/anvil convention viem/ethers/web3.js expect. See #8075.

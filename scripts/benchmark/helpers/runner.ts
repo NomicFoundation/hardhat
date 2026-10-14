@@ -37,8 +37,8 @@ const CALIBRATION_RUNS = 20;
 const STREAM_DRAIN_GRACE_MS = 5_000;
 
 /**
- * Where a measured run's wrappers write their reports. Callers pass paths in
- * their own temp dir, so a crashed run leaves diagnosable state behind.
+ * Where a measured run's wrappers write their reports, inside a directory
+ * from `withReportDir`.
  */
 export interface ReportPaths {
   /** bash's `time` builtin report, "<user> <system>" in seconds. */
@@ -56,6 +56,98 @@ export function reportPathsIn(dir: string, stem: string): ReportPaths {
     cpuTimingPath: path.join(dir, `${stem}-cpu.txt`),
     peakRssPath: path.join(dir, `${stem}-mem.txt`),
   };
+}
+
+/**
+ * Run `fn` with a fresh directory for its report files, removed once `fn`
+ * settles, or when the process exits or takes SIGINT, SIGTERM or SIGHUP.
+ * No two calls share a directory, so concurrent callers cannot delete or
+ * read each other's reports.
+ */
+export async function withReportDir<T>(
+  prefix: string,
+  fn: (dir: string) => Promise<T>,
+): Promise<T> {
+  const dir = mkdtempSync(path.join(tmpdir(), prefix));
+  installTerminationCleanup();
+  activeReportDirs.add(dir);
+
+  try {
+    return await fn(dir);
+  } finally {
+    activeReportDirs.delete(dir);
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const activeReportDirs = new Set<string>();
+
+const TERMINATION_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
+
+let terminationCleanupInstalled = false;
+
+/**
+ * Install the handlers, once, that remove the active report directories
+ * when the process exits or takes a termination signal, which skips every
+ * `finally`.
+ */
+function installTerminationCleanup(): void {
+  if (terminationCleanupInstalled) {
+    return;
+  }
+
+  terminationCleanupInstalled = true;
+  process.on("exit", removeActiveReportDirs);
+
+  for (const signal of TERMINATION_SIGNALS) {
+    const onSignal = (): void => {
+      // Only the sole listener may end the process. Another listener decides
+      // that itself, and the exit handler then removes the directories.
+      if (process.listenerCount(signal) === 1) {
+        removeActiveReportDirs();
+        process.off(signal, onSignal);
+        process.kill(process.pid, signal);
+      }
+    };
+
+    // Run first, so a one-shot listener installed earlier is still counted
+    // when this one decides.
+    process.prependListener(signal, onSignal);
+  }
+}
+
+function removeActiveReportDirs(): void {
+  for (const dir of activeReportDirs) {
+    // A failed removal must not abort the other listeners or replace the
+    // exit status.
+    try {
+      rmSync(dir, { recursive: true, force: true });
+    } catch {
+      continue;
+    }
+  }
+
+  activeReportDirs.clear();
+}
+
+/**
+ * Name the calibration in a failure, since nothing else does. A failed
+ * command keeps its captured output, so the failure report can show it.
+ */
+export function calibrationFailure(error: unknown): Error {
+  const context = "Spawn-overhead calibration failed";
+
+  if (error instanceof CommandFailedError) {
+    return new CommandFailedError(
+      `${context}: ${error.message}`,
+      error.stdout,
+      error.stderr,
+    );
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+
+  return new Error(`${context}: ${message}`, { cause: error });
 }
 
 export interface RunOptions {
@@ -279,15 +371,29 @@ function netOfOverhead(measured: number, overhead: number): number {
 }
 
 /** Read the CPU report a wrapped run wrote to `timingPath`. */
-function readCpuTiming(timingPath: string): { user: number; system: number } {
-  return parseCpuTiming(readFileSync(timingPath, "utf-8"), timingPath);
+export function readCpuTiming(timingPath: string): {
+  user: number;
+  system: number;
+} {
+  let raw: string;
+
+  try {
+    raw = readFileSync(timingPath, "utf-8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+
+    // The path is inside a report directory that is gone by the time the
+    // message is read.
+    throw new Error("bash time wrote no report");
+  }
+
+  return parseCpuTiming(raw);
 }
 
 /** Parse the "<user> <system>" report written by {@link wrapWithCpuTiming}. */
-export function parseCpuTiming(
-  raw: string,
-  source: string,
-): { user: number; system: number } {
+export function parseCpuTiming(raw: string): { user: number; system: number } {
   const fields = raw.trim().split(/\s+/);
   // bash prints the report with the inherited locale's decimal separator.
   const [user, system] = fields.map((field) => Number(field.replace(",", ".")));
@@ -297,9 +403,7 @@ export function parseCpuTiming(
     !Number.isFinite(user) ||
     !Number.isFinite(system)
   ) {
-    throw new Error(
-      `Unparseable bash time output at ${source}: ${JSON.stringify(raw)}`,
-    );
+    throw new Error(`Unparseable bash time output: ${JSON.stringify(raw)}`);
   }
 
   return { user, system };
@@ -359,10 +463,9 @@ export class CommandFailedError extends Error {
 export async function measureShellSpawnOverhead(
   peakRssMethod: PeakRssMethod | undefined,
 ): Promise<SpawnOverhead> {
-  const dir = mkdtempSync(path.join(tmpdir(), "bench-calibration-"));
-  const reports = reportPathsIn(dir, "noop");
+  return withReportDir("bench-calibration-", async (dir) => {
+    const reports = reportPathsIn(dir, "noop");
 
-  try {
     const walls: number[] = [];
     const users: number[] = [];
     const systems: number[] = [];
@@ -384,6 +487,8 @@ export async function measureShellSpawnOverhead(
         walls.push(wallSeconds);
         users.push(cpu.user);
         systems.push(cpu.system);
+      } catch (error) {
+        throw calibrationFailure(error);
       } finally {
         recorder.cancel();
       }
@@ -394,9 +499,7 @@ export async function measureShellSpawnOverhead(
       user: mean(users),
       system: mean(systems),
     };
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  });
 }
 
 // Resolves once the child exited and its output streams closed; the wall

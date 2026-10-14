@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8667](https://github.com/NomicFoundation/hardhat/pull/8667) [`5793554`](https://github.com/NomicFoundation/hardhat/commit/5793554131276677b931cd0bc3a34e0607dc6040) Thanks [@schaable](https://github.com/schaable)! - Improved the errors for invalid transactions sent from local accounts.
+
+- [#8666](https://github.com/NomicFoundation/hardhat/pull/8666) [`0295fef`](https://github.com/NomicFoundation/hardhat/commit/0295fefd4d8882afb13f9709f556ab8d78e718e8) Thanks [@schaable](https://github.com/schaable)! - Fixed locally managed accounts silently dropping the blobs of EIP-4844 transactions; sending one now throws an error.
+
 ## 3.1.1
 
 ### Patch Changes

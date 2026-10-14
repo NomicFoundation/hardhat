@@ -1,4 +1,5 @@
 import { start } from "./start.ts";
+import { cliError, parseCliArgs } from "../lib/cli-args.ts";
 import { publish, sinceReleasePublish } from "./publish.ts";
 import { stop } from "./stop.ts";
 import { logError } from "./helpers/logging.ts";
@@ -43,7 +44,7 @@ COMMANDS
   start                Start the Verdaccio server
   publish              Build and publish packages to Verdaccio
   stop                 Stop the running Verdaccio instance
-  (none)               Print this usage information
+  (none), --help       Print this usage information
 
 OPTIONS
   --background         Run Verdaccio in the background (use with start)
@@ -79,14 +80,40 @@ RUNTIME DIRECTORY
 `;
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const noGitChecks = args.includes("--no-git-checks");
-  const background = args.includes("--background");
-  const changes = args.includes("--changes");
-  const sinceRelease = args.includes("--since-release");
+  const cli = {
+    command: "pnpm verdaccio",
+    options: {
+      background: { type: "boolean" },
+      "no-git-checks": { type: "boolean" },
+      changes: { type: "boolean" },
+      "since-release": { type: "boolean" },
+    },
+    allowPositionals: true,
+  } as const;
 
   try {
+    const parsed = parseCliArgs(process.argv.slice(2), cli);
+
+    if (parsed === undefined) {
+      console.log(USAGE);
+      return;
+    }
+
+    const [command, ...stray] = parsed.positionals;
+    const { values } = parsed;
+    const noGitChecks = values["no-git-checks"] === true;
+    const background = values.background === true;
+    const changes = values.changes === true;
+    const sinceRelease = values["since-release"] === true;
+
+    if (command === undefined) {
+      throw cliError(cli, "missing command (expected: start, publish or stop)");
+    }
+
+    if (stray.length > 0) {
+      throw cliError(cli, `unexpected argument "${stray[0]}"`);
+    }
+
     if (command === "start") {
       await start(background);
     } else if (command === "publish") {
@@ -98,7 +125,10 @@ async function main(): Promise<void> {
     } else if (command === "stop") {
       stop();
     } else {
-      console.log(USAGE);
+      throw cliError(
+        cli,
+        `unknown command "${command}" (expected: start, publish or stop)`,
+      );
     }
   } catch (error) {
     if (!(error instanceof Error)) {
