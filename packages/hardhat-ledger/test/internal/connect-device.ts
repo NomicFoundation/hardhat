@@ -19,7 +19,7 @@ const NANO_X_HID_DEVICE = {
 };
 
 let hidDevices: Array<typeof NANO_X_HID_DEVICE> = [];
-let hotplugUnrefs = 0;
+let hotplugUnrefCount = 0;
 
 /**
  * The transport kit `require`s these native modules. Stubbing them runs the
@@ -41,7 +41,7 @@ const STUBS: Record<string, unknown> = {
       on() {},
       removeAllListeners() {},
       unrefHotplugEvents() {
-        hotplugUnrefs++;
+        hotplugUnrefCount++;
       },
     },
   },
@@ -76,6 +76,6 @@ describe("connectDevice lifecycle", () => {
     // The transport is built once, so it registers one exit listener and its
     // hotplug listeners are unref'd once.
     assert.equal(process.listenerCount("exit"), exitListenersBefore + 1);
-    assert.equal(hotplugUnrefs, 1);
+    assert.equal(hotplugUnrefCount, 1);
   });
 });
