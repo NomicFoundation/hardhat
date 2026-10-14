@@ -53,7 +53,7 @@ describe("SlangCompiler", () => {
     assert.equal(compiler.isSolcJs, false);
   });
 
-  it("forwards binary path, the release's extra args, and the input unchanged to spawnCompile", async () => {
+  it("forwards binary path, the release's extra args, and the input to spawnCompile", async () => {
     const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang", {
       release: PINNED_RELEASE,
       spawnCompile: fakeSpawnCompile,
@@ -66,10 +66,41 @@ describe("SlangCompiler", () => {
     assert.equal(call.command, "/path/to/slang");
     // The prerelease row keeps --no-import-callback.
     assert.deepEqual(call.args, ["--standard-json", "--no-import-callback"]);
-    // compile() transforms nothing — the plugin's defaults (optimizer mode,
+    // compile() only drops `ast` — the plugin's defaults (optimizer mode,
     // debugInfo) are applied at config resolution, so the input reaches the
-    // compiler exactly as the build system constructed it.
-    assert.equal(call.input, sampleInput);
+    // compiler otherwise exactly as the build system constructed it.
+    assert.deepEqual(call.input, sampleInput);
+  });
+
+  it("drops the ast output and keeps every other selector", async () => {
+    const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang", {
+      release: PINNED_RELEASE,
+      spawnCompile: fakeSpawnCompile,
+    });
+    const input: CompilerInput = {
+      ...sampleInput,
+      settings: {
+        ...sampleInput.settings,
+        outputSelection: {
+          "*": {
+            "": ["ast", "debugSymbols"],
+            "*": ["abi", "evm.bytecode.object"],
+          },
+        },
+      },
+    };
+
+    await compiler.compile(input);
+
+    assert.deepEqual(spawnCompileCalls[0].input.settings.outputSelection, {
+      "*": { "": ["debugSymbols"], "*": ["abi", "evm.bytecode.object"] },
+    });
+    assert.deepEqual(
+      input.settings.outputSelection["*"][""],
+      ["ast", "debugSymbols"],
+      "the build system's input must not be modified",
+    );
+    assert.deepEqual(spawnCompileCalls[0].input.sources, input.sources);
   });
 
   it("passes only --standard-json when the release has no extra args", async () => {

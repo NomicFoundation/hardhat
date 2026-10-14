@@ -53,8 +53,33 @@ export class SlangCompiler implements Compiler {
   }
 
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
-    return await this.#spawnCompile(this.compilerPath, [...this.args], input);
+    return await this.#spawnCompile(
+      this.compilerPath,
+      [...this.args],
+      withoutAst(input),
+    );
   }
+}
+
+/**
+ * `input` without the `ast` output Hardhat requests from every compiler.
+ * slang's AST is not the solc AST that Hardhat's consumers read (EDR builds
+ * slang stack traces from debugSymbols), and on a large project it is most
+ * of the output Hardhat parses and writes into the build info.
+ */
+function withoutAst(input: CompilerInput): CompilerInput {
+  const outputSelection = Object.fromEntries(
+    Object.entries(input.settings.outputSelection).map(([file, contracts]) => [
+      file,
+      Object.fromEntries(
+        Object.entries(contracts).map(([contract, selectors]) => [
+          contract,
+          selectors.filter((selector) => selector !== "ast"),
+        ]),
+      ),
+    ]),
+  );
+  return { ...input, settings: { ...input.settings, outputSelection } };
 }
 
 /**
