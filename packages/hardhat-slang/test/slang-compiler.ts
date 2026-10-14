@@ -11,7 +11,7 @@ import {
   addSlangStackTraceSelectors,
 } from "../src/internal/slang-compiler.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-01";
+const PINNED_VERSION = "0.1.0-pre.2026-10-14";
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 // Track calls to the fake spawnCompile

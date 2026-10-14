@@ -9,7 +9,7 @@ import {
   getSlangBinaryBaseName,
 } from "../src/internal/platform.js";
 
-const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-01"];
+const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-14"];
 
 // A release served by the mirror under the standard `v${version}` naming.
 const MIRROR_RELEASE: SlangRelease = {
@@ -25,8 +25,8 @@ describe("hardhat-slang platform detection", () => {
     const baseName = getSlangBinaryBaseName();
     assert.ok(typeof baseName === "string", "base name should be a string");
     assert.ok(
-      baseName.startsWith("solx-"),
-      "base name should start with 'solx-'",
+      baseName.startsWith("slang-"),
+      "base name should start with 'slang-'",
     );
     assert.ok(baseName.length > 5, "base name should have meaningful length");
   });
@@ -37,13 +37,13 @@ describe("hardhat-slang platform detection", () => {
     const arch = process.arch;
 
     if (platform === "linux" && arch === "x64") {
-      assert.equal(baseName, "solx-linux-amd64-gnu");
+      assert.equal(baseName, "slang-linux-amd64-gnu");
     } else if (platform === "linux" && arch === "arm64") {
-      assert.equal(baseName, "solx-linux-arm64-gnu");
+      assert.equal(baseName, "slang-linux-arm64-gnu");
     } else if (platform === "darwin") {
-      assert.equal(baseName, "solx-macosx");
+      assert.equal(baseName, "slang-macosx");
     } else if (platform === "win32" && arch === "x64") {
-      assert.equal(baseName, "solx-windows-amd64-gnu");
+      assert.equal(baseName, "slang-windows-amd64-gnu");
     }
   });
 
@@ -56,8 +56,8 @@ describe("hardhat-slang platform detection", () => {
 
   it("names the pinned prerelease's asset with its override suffix instead of the version", () => {
     assert.equal(
-      getSlangAssetName("0.1.0-pre.2026-10-01", PINNED_RELEASE),
-      `${getSlangBinaryBaseName()}-slang-2026-10-01${EXE}`,
+      getSlangAssetName("0.1.0-pre.2026-10-14", PINNED_RELEASE),
+      `${getSlangBinaryBaseName()}-debug-fast${EXE}`,
     );
   });
 });

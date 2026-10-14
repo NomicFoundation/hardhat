@@ -63,14 +63,14 @@ export interface SlangRelease {
  */
 // TODO: revisit before release to finalize.
 export const SLANG_RELEASES: Record<string, SlangRelease> = {
-  "0.1.0-pre.2026-10-01": {
+  "0.1.0-pre.2026-10-14": {
     minSolidity: "0.8.0",
     maxSolidity: "0.8.37",
     extraArgs: ["--no-import-callback"],
     assetOverride: {
       baseUrl:
-        "https://github.com/NomicFoundation/solx/releases/download/b74af542",
-      assetSuffix: "slang-2026-10-01",
+        "https://github.com/NomicFoundation/solx/releases/download/5e6ec5e1",
+      assetSuffix: "debug-fast",
     },
   },
 };

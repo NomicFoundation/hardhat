@@ -16,9 +16,8 @@ const SET_ZERO_CALLDATA = `0x60fe47b1${"0".repeat(64)}`;
 describe(
   "hardhat-slang stack traces",
   {
-    // Needs a pinned release that emits debugSymbols and an EDR that builds
-    // stack traces from them. Opt in once both do, so this turns on without a
-    // code change.
+    // Needs an EDR that builds stack traces from debugSymbols. Opt in once
+    // Hardhat's does, so this turns on without a code change.
     skip:
       process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
       process.env.HARDHAT_SLANG_EXPECT_STACK_TRACES !== "true",
