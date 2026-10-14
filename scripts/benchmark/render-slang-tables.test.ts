@@ -80,6 +80,48 @@ describe("renderSlangTables", () => {
     assert.match(quick, /† measured in \[the baseline run\]/);
   });
 
+  it("adds forge + solar's wall to the compile tables only", () => {
+    const solar = renderSlangTables([
+      ...entries,
+      wall("uniswap-v4-core-solx / cold compile forge-1.8.5 solar", 0.8),
+      wall("openzeppelin-contracts-0.34 / cold compile solc", 50),
+      wall("openzeppelin-contracts-0.34 / cold compile slang", 23),
+      wall("openzeppelin-contracts-0.34 / cold compile slang parity", 9),
+      wall("openzeppelin-contracts-0.34 / cold compile forge-1.8.5 solar", 3.2),
+    ]);
+    const legacyCompile = solar.slice(
+      solar.indexOf(
+        "### slang vs solc in legacy mode (without --via-ir) compilation",
+      ),
+      solar.indexOf("### slang vs solc --via-ir including Solidity tests"),
+    );
+    assert.match(legacyCompile, /\| forge solar \|\n/);
+    assert.match(legacyCompile, /\| Uniswap v4 \|.*\| 0\.8s \|\n/);
+    assert.match(
+      legacyCompile,
+      /\| openzeppelin-contracts \(entire repo\) \|.*\| incompatible \|\n/,
+    );
+    assert.match(
+      legacyCompile,
+      /\| openzeppelin-contracts \(forge-compatible subset\) \|.*\| 3\.2s \|\n/,
+    );
+    const legacyTests = solar.slice(
+      solar.indexOf(
+        "### slang vs solc in legacy mode (without --via-ir) including Solidity tests",
+      ),
+    );
+    assert.doesNotMatch(legacyTests.split("\n### ")[0], /forge solar/);
+  });
+
+  it("explains lido-core's missing forge + solar cell", () => {
+    const lido = renderSlangTables([
+      wall("lidofinance-core-solx / cold compile solc via-ir", 60),
+      wall("lidofinance-core-solx / cold compile slang", 20),
+    ]);
+    assert.match(lido, /\| cold compile forge-1\.8\.5 solar \| n\/a⁷ \|/);
+    assert.match(lido, /\| lido-core \|.*\| n\/a \(0\.4\/0\.6 sources\) \|\n/);
+  });
+
   it("compares a forge-scope cell with slang's forge-scope cell", () => {
     const oz = renderSlangTables([
       wall("openzeppelin-contracts-0.34 / cold compile slang", 23),

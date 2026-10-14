@@ -64,6 +64,7 @@ export const CELL_NOTES: Record<string, string> = {
   "warm test lidofinance-core-solx|slang": "✗ tests do not compile⁴",
   "warm test aave-v4-solx|slang": "not run⁵",
   "warm test aave-v4-solx|solc via-ir": "✗ tests do not compile⁶",
+  "cold compile lidofinance-core-solx|forge-1.8.5 solar": "n/a⁷",
 };
 
 const FOOTNOTES = [
@@ -84,6 +85,8 @@ const FOOTNOTES = [
     "is left out until slang's output carries struct definitions.",
   "⁶ solc via-IR cannot compile aave's Foundry test sources (a Yul " +
     "stack-too-deep in its vendored assembly), so the suite cannot run.",
+  "⁷ lido-core also compiles 0.4.24 and 0.6 sources; forge runs solar as " +
+    "its only compiler, so the repo has no forge + solar cell.",
 ];
 
 function seconds(n: number | undefined): string {
@@ -157,7 +160,13 @@ export function renderSlangTables(
     "",
   );
 
-  lines.push(...renderBlogSections(report, { solx: true }));
+  lines.push(
+    "forge solar = forge 1.8.5 building with the solar its release ships: " +
+      "experimental codegen, one pipeline, lint-on-build off. Compile tables " +
+      "only.",
+    "",
+  );
+  lines.push(...renderBlogSections(report, { solx: true, forgeSolar: true }));
 
   for (const id of [...report.keys()].sort()) {
     const cells = report.get(id)!;
