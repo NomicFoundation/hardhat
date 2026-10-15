@@ -1,4 +1,5 @@
 ---
+# docs: https://github.com/NomicFoundation/hardhat-website/pull/312
 "hardhat": minor
 ---
 
