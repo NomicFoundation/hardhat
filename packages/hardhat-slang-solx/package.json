@@ -35,7 +35,9 @@
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "sourcify-sweep": "tsx sourcify-sweep/src/run.ts",
+    "sourcify-sweep:report": "tsx sourcify-sweep/src/report.ts"
   },
   "files": [
     "dist/src/",
