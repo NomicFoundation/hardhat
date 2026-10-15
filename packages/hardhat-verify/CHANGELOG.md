@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.3
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.2
 
 ### Patch Changes

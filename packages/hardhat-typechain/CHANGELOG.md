@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.1.2
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.1
 
 ### Patch Changes

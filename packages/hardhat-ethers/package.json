@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers",
   "repository": {
@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.1.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.3.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^5.0.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "ethereum-cryptography": "^3.0.0",
     "ethers": "^6.14.0",

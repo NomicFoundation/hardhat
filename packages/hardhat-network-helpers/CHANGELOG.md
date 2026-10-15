@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 3.0.12
+
+### Patch Changes
+
+- [#8672](https://github.com/NomicFoundation/hardhat/pull/8672) [`79247bf`](https://github.com/NomicFoundation/hardhat/commit/79247bf30c632618efd01dea30d4de487fd8cd7d) Thanks [@watarus](https://github.com/watarus)! - Fixed the conversion of zero-padded zero strings such as `"0x00"` in the network helpers.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.0.11
 
 ### Patch Changes
