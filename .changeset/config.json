@@ -12,6 +12,7 @@
   "ignore": [
     "@nomicfoundation/config",
     "@nomicfoundation/example-project",
+    "@nomicfoundation/hardhat-slang",
     "@nomicfoundation/template-package",
     "template-*"
   ],
