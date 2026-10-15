@@ -1,5 +1,21 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.0.0
+
+### Major Changes
+
+- [#8693](https://github.com/NomicFoundation/hardhat/pull/8693) [`98db1b3`](https://github.com/NomicFoundation/hardhat/commit/98db1b30c9471a5f3db6424909b1f2c3bc43e093) Thanks [@schaable](https://github.com/schaable)! - Removed the deprecated `readJsonFileAsStream`, `writeJsonFileAsStream` and `getFileTrueCase`; use `readJsonFile`, `writeLargeJsonFile` and `TrueCasePathResolver` instead.
+
+### Minor Changes
+
+- [#8690](https://github.com/NomicFoundation/hardhat/pull/8690) [`0058149`](https://github.com/NomicFoundation/hardhat/commit/0058149a39f2ac9063f140e85a7949bd7e42fff2) Thanks [@schaable](https://github.com/schaable)! - Added `writeLargeJsonFile` and made `readJsonFile` read files of any size, deprecating `writeJsonFileAsStream` and `readJsonFileAsStream`.
+
+### Patch Changes
+
+- [#8690](https://github.com/NomicFoundation/hardhat/pull/8690) [`0058149`](https://github.com/NomicFoundation/hardhat/commit/0058149a39f2ac9063f140e85a7949bd7e42fff2) Thanks [@schaable](https://github.com/schaable)! - Sped up compilation by reading and writing solc's output with `JSON.parse` and `JSON.stringify` when memory allows ([#8565](https://github.com/NomicFoundation/hardhat/issues/8565)).
+
+- [#8695](https://github.com/NomicFoundation/hardhat/pull/8695) [`38041a8`](https://github.com/NomicFoundation/hardhat/commit/38041a8200553583bbdf228956b48de2edb0cf5a) Thanks [@kanej](https://github.com/kanej)! - Reduced the startup time and memory use of Hardhat commands that make no network request.
+
 ## 4.4.0
 
 ### Minor Changes

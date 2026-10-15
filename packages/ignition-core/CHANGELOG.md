@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.11
+
+### Patch Changes
+
+- [#8665](https://github.com/NomicFoundation/hardhat/pull/8665) [`0de6a74`](https://github.com/NomicFoundation/hardhat/commit/0de6a74f5d39870f57d108067a3a3520bd2134db) Thanks [@schaable](https://github.com/schaable)! - Fixed Ignition reconciliation reporting a `contractAt` address as changed when only its letter case differed.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.10
 
 ### Patch Changes

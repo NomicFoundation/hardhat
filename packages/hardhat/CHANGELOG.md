@@ -1,5 +1,44 @@
 # hardhat
 
+## 3.20.0
+
+### Minor Changes
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Added experimental EIP-2780 support to the Amsterdam hardfork: intrinsic transaction gas is priced per resource instead of a flat 21,000.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Added experimental EIP-8246 support to the Amsterdam hardfork: a contract that self-destructs in the transaction that created it keeps its balance instead of burning it.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Added the `lastFrameGas` and `snapshotGasLastFrame` cheatcodes, which also record `CREATE` and `CREATE2` frames, and deprecated `lastCallGas` and `snapshotGasLastCall` in their favour.
+
+### Patch Changes
+
+- [#8697](https://github.com/NomicFoundation/hardhat/pull/8697) [`8c4d435`](https://github.com/NomicFoundation/hardhat/commit/8c4d43540907e7d93153e14d9a176e433ee03476) Thanks [@kediyalua](https://github.com/kediyalua)! - Fixed the CORS headers of `hardhat node`'s JSON-RPC server to list the methods it actually serves.
+
+- [#8690](https://github.com/NomicFoundation/hardhat/pull/8690) [`0058149`](https://github.com/NomicFoundation/hardhat/commit/0058149a39f2ac9063f140e85a7949bd7e42fff2) Thanks [@schaable](https://github.com/schaable)! - Sped up compilation by reading and writing solc's output with `JSON.parse` and `JSON.stringify` when memory allows ([#8565](https://github.com/NomicFoundation/hardhat/issues/8565)).
+
+- [#8705](https://github.com/NomicFoundation/hardhat/pull/8705) [`5f5991b`](https://github.com/NomicFoundation/hardhat/commit/5f5991bdc39e408b76da60181aa4758b41a24553) Thanks [@izzetemredemir](https://github.com/izzetemredemir)! - Fixed config values containing "$$", "$&", "$`" or "$'" being altered when resolved, including inline values. An HD account passphrase with one of these will now derive different accounts than before.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Upgraded EDR to v0.23.0.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed Solidity stack traces not recognising `console.log` calls made through the Hardhat console address.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed the transaction `Value` in the `hardhat node` logs dropping leading zeros of the fractional part (`0.01 ETH` was logged as `0.1 ETH`) and whole amounts ending with a trailing dot.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed JSON-RPC call traces to include calls to precompiles.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed Solidity stack traces after a precompile call, so a failing precompile call is reported as a precompile error and later calls in the same function point at the right line.
+
+- [#8710](https://github.com/NomicFoundation/hardhat/pull/8710) [`065c858`](https://github.com/NomicFoundation/hardhat/commit/065c85844a64c1199d69ef839800a51c0ee5db1e) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed the default gas limit of Solidity test transactions being lowered to the EIP-7825 cap from the Amsterdam hardfork, where the cap bounds execution gas only.
+
+- [#8669](https://github.com/NomicFoundation/hardhat/pull/8669) [`257692d`](https://github.com/NomicFoundation/hardhat/commit/257692dae6dd855686a6a76840e58dace963b1ed) Thanks [@schaable](https://github.com/schaable)! - Fixed Hardhat exiting without an error when a prompt, like the keystore password prompt, has no input to read.
+
+- [#8572](https://github.com/NomicFoundation/hardhat/pull/8572) [`a0a52b9`](https://github.com/NomicFoundation/hardhat/commit/a0a52b9768fd861628baecc50bfeb34de03e36ba) Thanks [@sanskar717](https://github.com/sanskar717)! - Fixed a race condition in the solc downloader that would show as `spawn ... EACCES`.
+
+- [#8642](https://github.com/NomicFoundation/hardhat/pull/8642) [`7f75efb`](https://github.com/NomicFoundation/hardhat/commit/7f75efbef5e76575418e948a2ef9f898adb513ef) Thanks [@spideydotjs](https://github.com/spideydotjs)! - Improved the error for bare-filename imports of local files (e.g. import "Token.sol"), which now suggests the equivalent relative import instead of reporting invalid npm import syntax.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.19.0
 
 ### Minor Changes

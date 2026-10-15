@@ -55,7 +55,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.3.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^5.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0",
     "@types/chai": "^5.2.3",

@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.1.4
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.3
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.3
+
+### Patch Changes
+
+- [#8669](https://github.com/NomicFoundation/hardhat/pull/8669) [`257692d`](https://github.com/NomicFoundation/hardhat/commit/257692dae6dd855686a6a76840e58dace963b1ed) Thanks [@schaable](https://github.com/schaable)! - Fixed Hardhat exiting without an error when a prompt, like the keystore password prompt, has no input to read.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.2
 
 ### Patch Changes
