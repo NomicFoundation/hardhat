@@ -314,11 +314,16 @@ describe("hardhat-slang solidity hook handler", () => {
       });
       const mockNext = createGetCompilerMockNext();
 
+      const binaryPath = await getSlangBinaryPath(
+        PINNED_VERSION,
+        PINNED_RELEASE,
+      );
+
       await assertRejectsWithHardhatError(
         hooks.getCompiler!(createContext(), compilerConfig, mockNext.next),
         HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
-          message: `slang binary not found at ${await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)} — downloadCompilers should have been called first`,
+          message: `slang binary not found at ${binaryPath} — downloadCompilers should have been called first`,
         },
       );
     });
