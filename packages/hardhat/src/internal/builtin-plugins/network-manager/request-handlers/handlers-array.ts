@@ -6,7 +6,7 @@ import type {
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { getPrivateKey } from "../../../core/configuration-variables.js";
+import { getPrivateKey } from "../accounts/get-private-key.js";
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";

@@ -15,7 +15,7 @@ import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 let microEthSigner: typeof MicroEthSignerT | undefined;
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
-import { getPrivateKey } from "../../core/configuration-variables.js";
+import { getPrivateKey } from "../network-manager/accounts/get-private-key.js";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-constants.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 

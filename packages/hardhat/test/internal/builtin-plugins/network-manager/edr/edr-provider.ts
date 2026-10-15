@@ -1039,5 +1039,24 @@ describe("edr-provider", () => {
         { configVariable: `the configuration variable "SHORT_PRIVATE_KEY"` },
       );
     });
+
+    it("should throw if a private key is zero", async () => {
+      setEnvVar("ZERO_PRIVATE_KEY", `0x${"00".repeat(32)}`);
+
+      await assertRejectsWithHardhatError(
+        hre.network.create({
+          override: {
+            accounts: [
+              {
+                privateKey: configVariable("ZERO_PRIVATE_KEY"),
+                balance: 10n ** 18n,
+              },
+            ],
+          },
+        }),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+        { configVariable: `the configuration variable "ZERO_PRIVATE_KEY"` },
+      );
+    });
   });
 });

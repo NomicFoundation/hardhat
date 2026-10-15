@@ -648,9 +648,9 @@ Run the command in an interactive terminal to answer the prompt. If it's the key
       },
       INVALID_CONFIG_VARIABLE_PRIVATE_KEY: {
         number: 33,
-        messageTemplate: `Invalid private key value for {configVariable}: expected 32 bytes of hex`,
+        messageTemplate: `Invalid private key value for {configVariable}: expected a 32-byte hex string that is a valid secp256k1 private key`,
         websiteTitle: "Invalid configuration variable private key",
-        websiteDescription: `The value of a configuration variable used as a private key was not a valid one. Private keys must be hex strings of 32 bytes (64 hex digits).
+        websiteDescription: `The value of a configuration variable used as a private key was not a valid one. Private keys must be hex strings of 32 bytes (64 hex digits), and their value must be greater than zero and lower than the order of the secp256k1 curve. For example, a key made only of zeros is not valid.
 
 The value is not shown, as configuration variables are meant to hold secrets.`,
       },

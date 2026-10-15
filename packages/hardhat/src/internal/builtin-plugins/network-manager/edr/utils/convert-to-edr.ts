@@ -33,11 +33,9 @@ import {
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../../constants.js";
-import {
-  FixedValueConfigurationVariable,
-  getPrivateKey,
-} from "../../../../core/configuration-variables.js";
+import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
+import { getPrivateKey } from "../../accounts/get-private-key.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,

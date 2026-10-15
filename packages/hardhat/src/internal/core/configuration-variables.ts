@@ -8,11 +8,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import {
-  getUnprefixedHexString,
-  isHexString,
-  normalizeHexString,
-} from "@nomicfoundation/hardhat-utils/hex";
+import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 export const CONFIGURATION_VARIABLE_MARKER = "{variable}";
@@ -29,35 +25,13 @@ export function resolveConfigurationVariable(
 }
 
 /**
- * Returns true if the value is a hex-encoded private key: a hex string with
- * exactly 64 digits (32 bytes), with or without the 0x prefix.
+ * Returns the description of a configuration variable, to identify it in
+ * errors thrown outside of its own methods. It never includes its value.
  */
-export function isPrivateKey(value: string): boolean {
-  return isHexString(value) && getUnprefixedHexString(value).length === 64;
-}
-
-/**
- * Returns the value of a configuration variable that holds a private key,
- * normalized like `getHexString` does.
- *
- * @throws a HardhatError if the value isn't a hex-encoded private key.
- */
-export async function getPrivateKey(
+export function getConfigurationVariableDescription(
   variable: ResolvedConfigurationVariable,
-): Promise<string> {
-  const privateKey = await variable.getHexString();
-
-  if (!isPrivateKey(privateKey)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
-      {
-        configVariable:
-          BaseResolvedConfigurationVariable.getDescription(variable),
-      },
-    );
-  }
-
-  return privateKey;
+): string {
+  return BaseResolvedConfigurationVariable.getDescription(variable);
 }
 
 abstract class BaseResolvedConfigurationVariable implements ResolvedConfigurationVariable {

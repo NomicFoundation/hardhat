@@ -960,6 +960,26 @@ describe("network-manager/hook-handlers/config", () => {
                 },
               ]);
             });
+
+            for (const privateKey of [
+              `0x${"00".repeat(32)}`,
+              "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+            ]) {
+              it(`should not allow private keys out of the secp256k1 range (${privateKey})`, async () => {
+                hardhatUserConfig.networks.localhost.accounts = [privateKey];
+
+                const validationErrors =
+                  await validateNetworkUserConfig(hardhatUserConfig);
+
+                assertValidationErrors(validationErrors, [
+                  {
+                    path: ["networks", "localhost", "accounts", 0],
+                    message:
+                      "Expected a hex-encoded private key or a Configuration Variable",
+                  },
+                ]);
+              });
+            }
           });
         });
 
@@ -1242,6 +1262,34 @@ describe("network-manager/hook-handlers/config", () => {
                 },
               ]);
             });
+
+            for (const privateKey of [
+              `0x${"00".repeat(32)}`,
+              "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+            ]) {
+              it(`should not allow private keys out of the secp256k1 range (${privateKey})`, async () => {
+                hardhatUserConfig.networks.localhost.accounts = [
+                  { balance: "123", privateKey },
+                ];
+
+                const validationErrors =
+                  await validateNetworkUserConfig(hardhatUserConfig);
+
+                assertValidationErrors(validationErrors, [
+                  {
+                    path: [
+                      "networks",
+                      "localhost",
+                      "accounts",
+                      0,
+                      "privateKey",
+                    ],
+                    message:
+                      "Expected a hex-encoded private key or a Configuration Variable",
+                  },
+                ]);
+              });
+            }
           });
 
           it("should not allow an array that contains a value that is not an object", async () => {

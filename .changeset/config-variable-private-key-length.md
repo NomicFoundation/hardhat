@@ -3,4 +3,4 @@
 "@nomicfoundation/hardhat-errors": patch
 ---
 
-Fixed a cryptic error when a private key from a configuration variable has the wrong length.
+Fixed a cryptic error when a private key in a network's `accounts` is invalid.
