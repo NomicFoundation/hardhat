@@ -3,6 +3,9 @@ import type { EdrNetworkHDAccountsConfig } from "../../../../src/types/config.js
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 import { DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   formatEdrNetworkConfigAccounts,
@@ -92,6 +95,19 @@ describe("node/helpers", () => {
         const regex = new RegExp(warning.replace(/[[\]]/g, "\\$&"), "g");
         assert.equal((formattedAccounts.match(regex) ?? []).length, 0);
       });
+    });
+
+    it("should throw if a private key isn't 32 bytes long", async () => {
+      await assertRejectsWithHardhatError(
+        formatEdrNetworkConfigAccounts([
+          {
+            privateKey: new FixedValueConfigurationVariable("0x1234"),
+            balance: 10n ** 18n,
+          },
+        ]),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+        { configVariable: "an inline configuration value" },
+      );
     });
   });
 });

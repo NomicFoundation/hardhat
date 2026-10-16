@@ -15,6 +15,7 @@ import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 let microEthSigner: typeof MicroEthSignerT | undefined;
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
+import { getPrivateKey } from "../network-manager/accounts/get-private-key.js";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-constants.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 
@@ -54,8 +55,9 @@ export async function formatEdrNetworkConfigAccounts(
   }
 
   for (const [index, account] of accounts.entries()) {
+    const privateKey = await getPrivateKey(account.privateKey);
     const address = microEthSigner.addr
-      .fromPrivateKey(hexStringToBytes(await account.privateKey.getHexString()))
+      .fromPrivateKey(hexStringToBytes(privateKey))
       .toLowerCase();
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
@@ -64,7 +66,7 @@ export async function formatEdrNetworkConfigAccounts(
     );
     if (isDefault === true) {
       formattedAccountsLines.push(
-        `${privateKeyPrefix.padEnd(maxPrefixLength)} ${await account.privateKey.getHexString()}`,
+        `${privateKeyPrefix.padEnd(maxPrefixLength)} ${privateKey}`,
       );
     }
 

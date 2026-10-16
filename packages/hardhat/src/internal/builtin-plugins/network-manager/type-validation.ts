@@ -11,10 +11,8 @@ import type {
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 import type { RefinementCtx } from "zod";
 
-import {
-  getUnprefixedHexString,
-  isHexString,
-} from "@nomicfoundation/hardhat-utils/hex";
+import { isPrivateKey } from "@nomicfoundation/hardhat-utils/eth";
+import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   conditionalUnionType,
@@ -186,11 +184,8 @@ const chainDescriptorsUserConfigSchema = z
 const accountsPrivateKeyUserConfigSchema = unionType(
   [
     configurationVariableSchema,
-    z
-      .string()
-      .refine(
-        (val) => isHexString(val) && getUnprefixedHexString(val).length === 64,
-      ),
+    // Private keys written in the config may omit the 0x prefix
+    z.string().refine((val) => isPrivateKey(getPrefixedHexString(val))),
   ],
   `Expected a hex-encoded private key or a Configuration Variable`,
 );

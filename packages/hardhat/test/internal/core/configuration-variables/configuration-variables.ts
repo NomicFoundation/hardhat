@@ -1,3 +1,4 @@
+import type { ResolvedConfigurationVariable } from "../../../../src/types/config.js";
 import type { ConfigurationVariableHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
@@ -16,6 +17,7 @@ import { configVariable } from "../../../../src/config.js";
 import {
   CONFIGURATION_VARIABLE_MARKER,
   FixedValueConfigurationVariable,
+  getConfigurationVariableDescription,
   LazyResolvedConfigurationVariable,
 } from "../../../../src/internal/core/configuration-variables.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
@@ -360,6 +362,51 @@ describe("ResolvedConfigurationVariable", () => {
       {
         configVariable: "an inline configuration value",
       },
+    );
+  });
+});
+
+describe("getConfigurationVariableDescription", () => {
+  let hre: HardhatRuntimeEnvironment;
+
+  before(async () => {
+    hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
+  });
+
+  it("should describe a configuration variable by its name", () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
+
+    assert.equal(
+      getConfigurationVariableDescription(variable),
+      `the configuration variable "foo"`,
+    );
+  });
+
+  it("should describe an inline configuration value", () => {
+    const variable = new FixedValueConfigurationVariable("0x1234");
+
+    assert.equal(
+      getConfigurationVariableDescription(variable),
+      "an inline configuration value",
+    );
+  });
+
+  it("should describe other implementations of ResolvedConfigurationVariable generically", () => {
+    const variable: ResolvedConfigurationVariable = {
+      _type: "ResolvedConfigurationVariable",
+      format: CONFIGURATION_VARIABLE_MARKER,
+      get: async () => "0x1234",
+      getUrl: async () => "0x1234",
+      getBigInt: async () => 0x1234n,
+      getHexString: async () => "0x1234",
+    };
+
+    assert.equal(
+      getConfigurationVariableDescription(variable),
+      "a configuration variable",
     );
   });
 });

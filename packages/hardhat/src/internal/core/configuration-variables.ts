@@ -24,6 +24,16 @@ export function resolveConfigurationVariable(
   return new LazyResolvedConfigurationVariable(hooks, variable);
 }
 
+/**
+ * Returns the description of a configuration variable, to identify it in
+ * errors thrown outside of its own methods. It never includes its value.
+ */
+export function getConfigurationVariableDescription(
+  variable: ResolvedConfigurationVariable,
+): string {
+  return BaseResolvedConfigurationVariable.getDescription(variable);
+}
+
 abstract class BaseResolvedConfigurationVariable implements ResolvedConfigurationVariable {
   public _type: "ResolvedConfigurationVariable" =
     "ResolvedConfigurationVariable";
@@ -38,6 +48,20 @@ abstract class BaseResolvedConfigurationVariable implements ResolvedConfiguratio
    * Resolved values may be secrets, so they must never be included in errors.
    */
   protected abstract _getDescription(): string;
+
+  /**
+   * Returns the description of a variable, for errors thrown outside of its
+   * own methods.
+   */
+  public static getDescription(
+    variable: ResolvedConfigurationVariable,
+  ): string {
+    // Hardhat only creates instances of this class, but other implementations
+    // of the public interface can't describe themselves
+    return variable instanceof BaseResolvedConfigurationVariable
+      ? variable._getDescription()
+      : "a configuration variable";
+  }
 
   constructor(public readonly format: string) {
     assertHardhatInvariant(

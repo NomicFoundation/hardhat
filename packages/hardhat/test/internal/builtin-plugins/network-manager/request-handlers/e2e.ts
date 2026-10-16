@@ -3,11 +3,17 @@ import type { HttpNetworkHDAccountsUserConfig } from "../../../../../src/types/c
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   hexStringToBytes,
   numberToHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 
+import { configVariable } from "../../../../../src/config.js";
 import { getJsonRpcRequest } from "../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 
 import { createMockedNetworkHre } from "./hooks-mock.js";
@@ -260,6 +266,34 @@ describe("request-handlers - e2e", () => {
 
       // The tx type is encoded in the first byte, and it must be the EIP-1559 one
       assert.equal(rawTransaction[0], 2);
+    });
+
+    describe("local accounts from configuration variables", () => {
+      const { setEnvVar } = createTestEnvManager();
+
+      it("should throw if a private key isn't 32 bytes long", async () => {
+        setEnvVar("SHORT_PRIVATE_KEY", "0x1234");
+
+        const hre = await createMockedNetworkHre({
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+              accounts: [configVariable("SHORT_PRIVATE_KEY")],
+            },
+          },
+        });
+
+        const connection = await hre.network.create({
+          network: "localhost",
+        });
+
+        await assertRejectsWithHardhatError(
+          connection.provider.request({ method: "eth_accounts" }),
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_VARIABLE_PRIVATE_KEY,
+          { configVariable: `the configuration variable "SHORT_PRIVATE_KEY"` },
+        );
+      });
     });
   });
 });

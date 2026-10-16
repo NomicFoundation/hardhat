@@ -35,6 +35,7 @@ import {
 } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
+import { getPrivateKey } from "../../accounts/get-private-key.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
@@ -115,7 +116,7 @@ export async function hardhatAccountsToEdrOwnedAccounts(
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
-    secretKey: await account.privateKey.getHexString(),
+    secretKey: await getPrivateKey(account.privateKey),
     balance: account.balance,
   }));
 
