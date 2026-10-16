@@ -28,7 +28,7 @@
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/resolvers/PublicResolver.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           },
-          "edit & compile Solidity contract with max dependents: contracts/utils/LibMem/LibMem.sol": {
+          "edit & compile Solidity contract with max deps: contracts/utils/LibMem/LibMem.sol": {
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/utils/LibMem/LibMem.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           }
