@@ -74,7 +74,7 @@ export default defineConfig({
 });
 ```
 
-The provided `viemChain` is used as-is for viem clients, including when viem already knows the chain ID. Its `id` should match the descriptor key. Hardhat uses the descriptor's `name` independently of `viemChain.name`. Network connections provide their own transport, so the `rpcUrls` field is required by viem's type but is not used for requests.
+The viem clients of networks connected to that chain use this `viemChain`, and its `contracts` are also available when you fork the chain. Its `id` must match the descriptor key. Hardhat connects through your network config, so `rpcUrls` can be left empty, as in the example.
 
 ### Clients
 

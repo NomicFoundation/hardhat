@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat-viem": patch
+"@nomicfoundation/hardhat-viem": minor
 ---
 
-Allow `chainDescriptors` to provide a complete viem `Chain` through `viemChain`.
+Added a `viemChain` option to `chainDescriptors` to set the full viem `Chain` used by `hardhat-viem`.
