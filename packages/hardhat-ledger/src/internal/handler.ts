@@ -1,5 +1,11 @@
-import type { EIP712Message, TransportT } from "./cjs-imports.js";
-import type { Paths, Signature, LedgerOptions } from "./types.js";
+import type { Signature, TypedData } from "./dmk-imports.js";
+import type { DeviceAction } from "./run-device-action.js";
+import type {
+  LedgerDevice,
+  LedgerDeviceFactory,
+  LedgerOptions,
+  Paths,
+} from "./types.js";
 import type {
   EthereumProvider,
   JsonRpcRequest,
@@ -20,10 +26,9 @@ import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import {
   bytesToHexString,
   hexStringToBigInt,
-  hexStringToNumber,
-  normalizeHexString,
+  hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
-import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import {
   rpcAddress,
   rpcAny,
@@ -33,25 +38,21 @@ import {
 } from "@nomicfoundation/hardhat-zod-utils/rpc";
 
 import * as cache from "./cache.js";
-import {
-  DisconnectedDevice,
-  DisconnectedDeviceDuringOperation,
-  Eth,
-  isEIP712Message,
-  ledgerService,
-  LockedDeviceError,
-  Transport,
-  TransportError,
-  TransportStatusError,
-} from "./cjs-imports.js";
+import { connectDevice } from "./connect-device.js";
 import { createTx } from "./create-tx.js";
+import {
+  isDeviceLockedError,
+  isDeviceNotConnectedError,
+  isDeviceNotReadyError,
+  isReconnectableError,
+  LedgerSessionLostError,
+  toLedgerError,
+} from "./dmk-errors.js";
 import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
 import { getRequestParams } from "./rpc-helpers.js";
-
-// Status code 0x6511 is thrown when the Ethereum app is not open on the Ledger device.
-// This is not a standard ISO 7816-4 code, but a Ledger-specific error meaning "no app context".
-const APP_NOT_OPEN_STATUS_CODE = 0x6511;
+import { runDeviceAction } from "./run-device-action.js";
+import { toTypedData } from "./typed-data.js";
 
 const log = createDebug("hardhat:ledger:handler");
 
@@ -59,6 +60,12 @@ const log = createDebug("hardhat:ledger:handler");
 let microEthSigner: typeof MicroEthSignerT | undefined;
 let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
 let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
+
+// Each network connection has its own handler, but they all share one Ledger
+// device, which must not receive a command before answering the previous one.
+// `#reconnect()` also swaps a handler's device, so signing requests must run
+// one at a time.
+const signingRequestMutex = new AsyncMutex();
 
 interface RetryState {
   reconnection: number;
@@ -68,6 +75,8 @@ interface RetryState {
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
+  /* Allows slow USB stacks, to rediscover a device while it re-enumerates. */
+  public static readonly RECONNECTION_TIMEOUT = 10_000;
   public static readonly MAX_RECONNECTION_ATTEMPTS = 2;
   public static readonly RECONNECTION_DELAY_SECONDS = 0.5;
   public static readonly DEVICE_NOT_READY_RETRY_DELAY_SECONDS = 30;
@@ -75,17 +84,24 @@ export class LedgerHandler {
 
   readonly #provider: EthereumProvider;
   readonly #displayMessage: (message: string) => Promise<void>;
-  readonly #ethConstructor: typeof Eth;
-  readonly #transportNodeHid: TransportT;
+  readonly #deviceFactory: LedgerDeviceFactory;
   readonly #cachePath: string | undefined;
   readonly #delayBeforeRetry: (seconds: number) => Promise<void>;
   readonly #maxDeviceNotReadyRetries: number;
+  readonly #initializationMutex = new AsyncMutex();
+  /** Lets `close()` cancel retry timers that would keep the process alive. */
+  readonly #retryWaits = new Set<() => void>();
+  /**
+   * Lets `close()` cancel DMK actions, which keep running after their session
+   * closes.
+   */
+  readonly #runningActions = new Set<() => void>();
 
-  #eth: InstanceType<typeof Eth> | undefined;
+  #device: LedgerDevice | undefined;
   #chainId: bigint | undefined;
+  #closed: boolean = false;
 
   public readonly options: LedgerOptions;
-  public isOutputEnabled: boolean = true;
   public paths: Paths = {};
 
   constructor(
@@ -93,18 +109,18 @@ export class LedgerHandler {
     options: LedgerOptions,
     displayMessage: (interruptor: string, message: string) => Promise<void>,
     customConfig?: {
-      // Allows passing a custom config, primarily used for testing
-      ethConstructor?: typeof Eth;
-      transportNodeHid?: TransportT;
+      // Test overrides.
+      deviceFactory?: LedgerDeviceFactory;
       cachePath?: string;
       delayBeforeRetry?: (seconds: number) => Promise<void>;
       maxDeviceNotReadyRetries?: number;
     },
   ) {
-    this.#ethConstructor = customConfig?.ethConstructor ?? Eth;
-    this.#transportNodeHid = customConfig?.transportNodeHid ?? Transport;
+    this.#deviceFactory = customConfig?.deviceFactory ?? connectDevice;
     this.#cachePath = customConfig?.cachePath;
-    this.#delayBeforeRetry = customConfig?.delayBeforeRetry ?? sleep;
+    this.#delayBeforeRetry =
+      customConfig?.delayBeforeRetry ??
+      (async (seconds) => await this.#waitBeforeRetry(seconds));
     this.#maxDeviceNotReadyRetries =
       customConfig?.maxDeviceNotReadyRetries ??
       LedgerHandler.MAX_DEVICE_NOT_READY_RETRIES;
@@ -137,9 +153,22 @@ export class LedgerHandler {
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
+    if (!this.#methodRequiresSignature(jsonRpcRequest.method)) {
+      // No interception required, return the original request as is
+      return jsonRpcRequest;
+    }
+
+    return await signingRequestMutex.exclusiveRun(() =>
+      this.#handleSigningRequest(jsonRpcRequest),
+    );
+  }
+
+  async #handleSigningRequest(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<JsonRpcRequest | JsonRpcResponse> {
     const params = getRequestParams(jsonRpcRequest);
 
-    if (this.#methodRequiresSignature(jsonRpcRequest.method)) {
+    {
       let result;
 
       try {
@@ -190,7 +219,6 @@ export class LedgerHandler {
       }
     }
 
-    // No interception required, return the original request as is
     return jsonRpcRequest;
   }
 
@@ -218,17 +246,12 @@ export class LedgerHandler {
 
         const path = await this.#derivePath(address);
 
-        const signature = await this.#withConfirmation(() => {
-          assertHardhatInvariant(
-            this.#eth !== undefined,
-            "Ledger handler should have initialized the eth instance",
-          );
-
-          return this.#eth.signPersonalMessage(
-            path,
-            bytesToHexString(data).replace("0x", ""),
-          );
-        });
+        const signature = await this.#withConfirmation(
+          async () =>
+            await this.#runOnDevice(path, (signer, devicePath) =>
+              signer.signMessage(devicePath, data),
+            ),
+        );
 
         return await this.#toRpcSig(signature);
       }
@@ -258,53 +281,32 @@ export class LedgerHandler {
     }
   }
 
+  /**
+   * Opens a device session and loads the derivation-path cache. Calls are
+   * serialized to prevent concurrent requests from opening duplicate sessions.
+   */
   public async init(retryAttempts: number = 0): Promise<void> {
-    // If init is called concurrently, it can cause the Ledger to throw
-    // because the transport might be in use. This is a known problem but shouldn't happen
-    // as init is not called manually. More info read: https://github.com/NomicFoundation/hardhat/pull/4008#discussion_r1233258204
+    await this.#initializationMutex.exclusiveRun(
+      async () => await this.#initExclusive(retryAttempts),
+    );
+  }
 
-    if (this.#eth === undefined) {
-      try {
-        await this.#displayMessage("Connecting to Ledger...");
+  async #initExclusive(
+    retryAttempts: number,
+    reconnecting: boolean = false,
+  ): Promise<void> {
+    if (this.#device === undefined && !this.#closed) {
+      await this.#connect(retryAttempts, reconnecting);
+    }
 
-        const transport = await this.#transportNodeHid.create(
-          LedgerHandler.DEFAULT_TIMEOUT,
-          LedgerHandler.DEFAULT_TIMEOUT,
-        );
+    if (this.#closed) {
+      // `close()` ran while the session was opening. Release the session now
+      // that opening has finished.
+      await this.#resetConnection();
 
-        this.#eth = new this.#ethConstructor(transport);
-
-        await this.#displayMessage("Connection successful");
-      } catch (error) {
-        ensureError(error);
-
-        // Retry if device not connected and we have retries left
-        if (
-          this.#isDeviceNotConnectedError(error) &&
-          retryAttempts < this.#maxDeviceNotReadyRetries
-        ) {
-          log("Device not connected error during init, waiting for user");
-          log(error);
-
-          const delay = LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS;
-          await this.#displayMessage(
-            `Device not connected or PIN not entered. Please plug in your Ledger, enter the PIN and open the Ethereum app. Retrying in ${delay} seconds...`,
-          );
-          await this.#delayBeforeRetry(delay);
-
-          return await this.init(retryAttempts + 1);
-        }
-
-        // Give up - either not a retryable error or exhausted retries
-        await this.#displayMessage("Connection error");
-
-        const transportId = error instanceof TransportError ? error.id : "";
-
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
-          { error, transportId },
-        );
-      }
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_CLOSED,
+      );
     }
 
     try {
@@ -314,6 +316,56 @@ export class LedgerHandler {
         this.paths = { ...paths };
       }
     } catch (_error) {}
+  }
+
+  /**
+   * @param reconnecting Whether a connected device disappeared mid-request.
+   * Re-enumeration gets a longer timeout and no initial setup prompt.
+   */
+  async #connect(retryAttempts: number, reconnecting: boolean): Promise<void> {
+    try {
+      await this.#displayMessage("Connecting to Ledger...");
+
+      this.#device = await this.#deviceFactory(
+        reconnecting
+          ? LedgerHandler.RECONNECTION_TIMEOUT
+          : LedgerHandler.DEFAULT_TIMEOUT,
+      );
+
+      await this.#displayMessage("Connection successful");
+    } catch (error) {
+      ensureError(error);
+
+      // Stop retrying after `close()`; this loop can otherwise run for 30 minutes.
+      if (
+        isDeviceNotConnectedError(error) &&
+        retryAttempts < this.#maxDeviceNotReadyRetries &&
+        !this.#closed
+      ) {
+        log("Device not connected error during init, waiting for user");
+        log(error);
+
+        const delay = LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS;
+        await this.#displayMessage(
+          reconnecting
+            ? `Device did not reconnect. Please check that your Ledger is plugged in and unlocked. Retrying in ${delay} seconds...`
+            : `Device not connected or PIN not entered. Please plug in your Ledger and enter the PIN. Retrying in ${delay} seconds...`,
+        );
+        await this.#delayBeforeRetry(delay);
+
+        // Do not rebuild the transport if `close()` ran during the wait.
+        if (!this.#closed) {
+          return await this.#connect(retryAttempts + 1, reconnecting);
+        }
+      }
+
+      await this.#displayMessage("Connection error");
+
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+        { error },
+      );
+    }
   }
 
   async #derivePath(
@@ -341,12 +393,10 @@ export class LedgerHandler {
           `Derivation progress. Path: ${path}, account index: ${accountI}`,
         );
 
-        assertHardhatInvariant(
-          this.#eth !== undefined,
-          "Ledger handler should have initialized the eth instance",
+        const wallet = await this.#runOnDevice(path, (signer, devicePath) =>
+          // Path lookup does not need on-device address confirmation.
+          signer.getAddress(devicePath, { checkOnDevice: false }),
         );
-
-        const wallet = await this.#eth.getAddress(path);
         const address = wallet.address.toLowerCase();
 
         if (address === addressToFind) {
@@ -362,18 +412,14 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // Check if we should attempt reconnection
       if (
-        this.#isReconnectableError(error) &&
+        isReconnectableError(error) &&
         retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
       ) {
         log("Reconnectable error during path derivation, attempting reconnect");
         log(error);
 
-        await this.#displayMessage("Reconnecting to Ledger...");
-        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
-        await this.#resetConnection();
-        await this.init();
+        await this.#reconnect();
 
         return await this.#derivePath(addressToFindAsBuffer, {
           ...retryState,
@@ -381,10 +427,11 @@ export class LedgerHandler {
         });
       }
 
-      // Retry if device not ready and we have retries left
+      // Without the `#closed` check, skipped waits would make retries spin.
       if (
-        this.#isDeviceNotReadyError(error) &&
-        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries
+        isDeviceNotReadyError(error) &&
+        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries &&
+        !this.#closed
       ) {
         log("Device not ready error during path derivation, waiting for user");
         log(error);
@@ -400,10 +447,14 @@ export class LedgerHandler {
         });
       }
 
-      // Give up - either exhausted retries or other error
       await this.#displayMessage("Derivation failure");
 
-      if (this.#isDeviceNotReadyError(error)) {
+      // Keep errors already reported by `#runOnDevice`, e.g. a closed connection.
+      if (HardhatError.isHardhatError(error)) {
+        throw error;
+      }
+
+      if (isDeviceNotReadyError(error)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           error,
@@ -439,79 +490,170 @@ export class LedgerHandler {
   }
 
   /**
-   * Checks if an error indicates the Ledger connection is lost and reconnection should be attempted.
-   * This includes:
-   * - DisconnectedDevice: Device was physically unplugged
-   * - DisconnectedDeviceDuringOperation: Device was unplugged mid-operation
+   * Waits for the retry delay or until the handler closes. The timer must be
+   * clearable so it does not keep the process alive.
    */
-  #isReconnectableError(error: Error): boolean {
-    return (
-      error instanceof DisconnectedDevice ||
-      error instanceof DisconnectedDeviceDuringOperation
-    );
+  async #waitBeforeRetry(seconds: number): Promise<void> {
+    // Retry messages are async, so check again immediately before adding the
+    // timer that `close()` cancels.
+    if (this.#closed) {
+      return;
+    }
+
+    let endWait: (() => void) | undefined;
+
+    try {
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, seconds * 1000);
+
+        endWait = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+
+        this.#retryWaits.add(endWait);
+      });
+    } finally {
+      if (endWait !== undefined) {
+        this.#retryWaits.delete(endWait);
+      }
+    }
   }
 
-  /**
-   * Checks if an error indicates the Ledger device is locked (at PIN screen).
-   * This is an APDU response (status code 0x5515) - the transport works but the device says "I'm locked".
-   */
-  #isLockedDeviceError(error: Error): boolean {
-    return error instanceof LockedDeviceError;
-  }
-
-  /**
-   * Checks if an error indicates the Ethereum app is not open on the Ledger device.
-   * This happens when the device is on the dashboard or has a different app open.
-   * Status code 0x6511 means "no app context" - the APDU command was sent but there's no app running.
-   */
-  #isAppNotOpenError(error: Error): boolean {
-    return (
-      error instanceof TransportStatusError &&
-      error.statusCode === APP_NOT_OPEN_STATUS_CODE
-    );
-  }
-
-  /**
-   * Checks if an error indicates the device is not ready for operations.
-   * This includes both locked device (PIN screen) and app not open (dashboard or wrong app).
-   */
-  #isDeviceNotReadyError(error: Error): boolean {
-    return this.#isLockedDeviceError(error) || this.#isAppNotOpenError(error);
-  }
-
-  /**
-   * Checks if an error indicates the Ledger device is not connected (not plugged in).
-   * TransportError with id "NoDeviceFound" is thrown when no Ledger device is detected.
-   */
-  #isDeviceNotConnectedError(error: Error): boolean {
-    return error instanceof TransportError;
-  }
-
-  /**
-   * Returns the appropriate user message for a device-not-ready error.
-   */
   #getDeviceNotReadyMessage(error: Error): string {
     const delay = LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS;
-    return this.#isLockedDeviceError(error)
+
+    return isDeviceLockedError(error)
       ? `Device is locked. Please unlock your Ledger. Retrying in ${delay} seconds...`
-      : `Device not ready. Likely due to the Ethereum App not being opened. Please open the app on your Ledger. Retrying in ${delay} seconds...`;
+      : `Device not ready. Please check your Ledger. Retrying in ${delay} seconds...`;
   }
 
   /**
-   * Resets the Ledger connection by closing the transport and clearing the eth instance.
-   * This allows the next init() call to create a fresh connection.
+   * Runs a device action on the connected signer. The callback must use the
+   * converted `devicePath` argument.
+   *
+   * @param derivationPath The path to sign with, in the `m/...` form used
+   * everywhere else in the handler.
+   * @param action Builds the device action from the signer and the converted
+   * path.
    */
-  async #resetConnection(): Promise<void> {
-    if (this.#eth !== undefined) {
+  async #runOnDevice<Output>(
+    derivationPath: string,
+    action: (
+      signer: LedgerDevice["signer"],
+      devicePath: string,
+    ) => DeviceAction<Output>,
+  ): Promise<Output> {
+    if (this.#device === undefined) {
+      // Another request may be reconnecting. `init()` waits for its session.
+      await this.init();
+    }
+
+    const device = this.#device;
+
+    // The connection closed or another request replaced the session after init.
+    if (device === undefined) {
+      if (this.#closed) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_CLOSED,
+        );
+      }
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+        { error: new LedgerSessionLostError() },
+      );
+    }
+
+    let deviceAction: DeviceAction<Output>;
+
+    try {
+      // The DMK rejects the `m/` prefix. `M/` too, which `hw-app-eth` tolerated.
+      deviceAction = action(
+        device.signer,
+        derivationPath.replace(/^m\//iu, ""),
+      );
+    } catch (thrown) {
+      // The signer may throw a plain object when its session has disappeared.
+      const error = toLedgerError(thrown);
+
+      throw error;
+    }
+
+    // Let `close()` cancel the action.
+    const cancel = (): void => deviceAction.cancel();
+
+    this.#runningActions.add(cancel);
+
+    try {
+      return await runDeviceAction(deviceAction, this.#displayMessage);
+    } catch (error) {
+      ensureError(error);
+
+      // Report the closed connection instead of retrying its cancelled action.
+      if (this.#closed) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_CLOSED,
+          error,
+        );
+      }
+
+      throw error;
+    } finally {
+      this.#runningActions.delete(cancel);
+    }
+  }
+
+  /**
+   * Cancels retries and actions, then releases the session. Scripts must call
+   * `connection.close()` so the session does not keep the process alive.
+   */
+  public async close(): Promise<void> {
+    this.#closed = true;
+
+    // Wake retries so they can observe `#closed`.
+    for (const endWait of this.#retryWaits) {
+      endWait();
+    }
+
+    // The DMK does not cancel actions when their session closes.
+    for (const cancel of this.#runningActions) {
       try {
-        await this.#eth.transport.close();
+        cancel();
       } catch (error) {
-        log("Failed to close transport during reset");
+        log("Failed to cancel a running device action");
         log(error);
       }
     }
 
-    this.#eth = undefined;
+    await this.#resetConnection();
+  }
+
+  /** Replaces a lost session under the same lock used by `init()`. */
+  async #reconnect(): Promise<void> {
+    await this.#displayMessage("Reconnecting to Ledger...");
+    await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
+    await this.#resetConnection();
+    await this.#initializationMutex.exclusiveRun(
+      async () => await this.#initExclusive(0, true),
+    );
+  }
+
+  /** Closes the current session so the next `init()` opens a new one. */
+  async #resetConnection(): Promise<void> {
+    const device = this.#device;
+
+    // Cleared before awaiting, so that nothing picks up a session that is
+    // already being closed.
+    this.#device = undefined;
+
+    if (device !== undefined) {
+      try {
+        await device.close();
+      } catch (error) {
+        log("Failed to close the device session during reset");
+        log(error);
+      }
+    }
   }
 
   async #withConfirmation<T extends (...args: any) => any>(
@@ -529,18 +671,14 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
-      // Check if we should attempt reconnection
       if (
-        this.#isReconnectableError(error) &&
+        isReconnectableError(error) &&
         retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
       ) {
         log("Reconnectable error during confirmation, attempting reconnect");
         log(error);
 
-        await this.#displayMessage("Reconnecting to Ledger...");
-        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
-        await this.#resetConnection();
-        await this.init();
+        await this.#reconnect();
 
         return await this.#withConfirmation(func, {
           ...retryState,
@@ -548,10 +686,11 @@ export class LedgerHandler {
         });
       }
 
-      // Retry if device not ready and we have retries left
+      // Without the `#closed` check, skipped waits would make retries spin.
       if (
-        this.#isDeviceNotReadyError(error) &&
-        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries
+        isDeviceNotReadyError(error) &&
+        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries &&
+        !this.#closed
       ) {
         log("Device not ready error during confirmation, waiting for user");
         log(error);
@@ -567,17 +706,25 @@ export class LedgerHandler {
         });
       }
 
-      // Give up - either exhausted retries or other error
       await this.#displayMessage("Confirmation failure");
 
-      if (this.#isDeviceNotReadyError(error)) {
+      if (isDeviceNotReadyError(error)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           error,
         );
       }
 
-      throw error;
+      // Keep errors already reported by `#runOnDevice`, e.g. a closed connection.
+      if (HardhatError.isHardhatError(error)) {
+        throw error;
+      }
+
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
+        { message: error.message },
+        error,
+      );
     }
   }
 
@@ -586,15 +733,10 @@ export class LedgerHandler {
       microEthSignerUtils = await import("micro-eth-signer/utils");
     }
 
-    const recovery = this.#calculateSigRecovery(sig.v - 27);
-
-    assertHardhatInvariant(
-      recovery === 0 || recovery === 1,
-      `Invalid recovery value: ${recovery}. It should be either 0 or 1.`,
-    );
+    const recovery = getYParity(sig.v);
 
     const nobleSig = microEthSignerUtils.initSig(
-      { r: toBigInt(`0x${sig.r}`), s: toBigInt(`0x${sig.s}`) },
+      { r: toBigInt(sig.r), s: toBigInt(sig.s) },
       recovery,
     );
 
@@ -602,14 +744,6 @@ export class LedgerHandler {
     const vByte = recovery === 0 ? "1b" : "1c";
 
     return microEthSignerUtils.add0x(hex64 + vByte);
-  }
-
-  #calculateSigRecovery(v: number): number {
-    if (v === 0 || v === 1) {
-      return v;
-    }
-
-    return v - 27;
   }
 
   async #personalSign(params: any[]): Promise<unknown> {
@@ -628,17 +762,12 @@ export class LedgerHandler {
 
         const path = await this.#derivePath(address);
 
-        const signature = await this.#withConfirmation(() => {
-          assertHardhatInvariant(
-            this.#eth !== undefined,
-            "Ledger handler should have initialized the eth instance",
-          );
-
-          return this.#eth.signPersonalMessage(
-            path,
-            bytesToHexString(data).replace("0x", ""),
-          );
-        });
+        const signature = await this.#withConfirmation(
+          async () =>
+            await this.#runOnDevice(path, (signer, devicePath) =>
+              signer.signMessage(devicePath, data),
+            ),
+        );
 
         return await this.#toRpcSig(signature);
       }
@@ -656,63 +785,79 @@ export class LedgerHandler {
       );
     }
 
-    let typedMessage: EIP712Message;
-    try {
-      typedMessage = typeof data === "string" ? JSON.parse(data) : data;
+    // The DMK handles EIP-712 hashing and its fallback internally.
+    const typedData = toTypedData(data);
 
-      if (!isEIP712Message(typedMessage)) {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
-            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
-        );
-      }
-    } catch {
+    await this.#assertHashable(typedData);
+
+    const path = await this.#derivePath(address);
+
+    const signature = await this.#withConfirmation(
+      async () =>
+        await this.#runOnDevice(path, (signer, devicePath) =>
+          signer.signTypedData(devicePath, typedData),
+        ),
+    );
+
+    const rpcSignature = await this.#toRpcSig(signature);
+
+    await this.#assertSignedAsRequested(rpcSignature, typedData, address);
+
+    return rpcSignature;
+  }
+
+  /**
+   * Rejects typed data our verifier cannot hash before the device asks for an
+   * approval that `#assertSignedAsRequested` would discard anyway.
+   */
+  async #assertHashable(typedData: TypedData): Promise<void> {
+    if (microEthSignerTypedData === undefined) {
+      microEthSignerTypedData = await import("micro-eth-signer/typed-data");
+    }
+
+    try {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The DMK type cannot express micro-eth-signer's linked field types. */
+      microEthSignerTypedData.sigHash(typedData as any);
+    } catch (error) {
+      ensureError(error);
+
+      log(`The typed data could not be hashed: ${error.message}`);
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
           .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
       );
     }
+  }
 
+  /**
+   * Verifies that the device signed the exact typed data requested. Recovering
+   * the address from the original data catches DMK encoding mismatches.
+   */
+  async #assertSignedAsRequested(
+    rpcSignature: string,
+    typedData: TypedData,
+    address: Uint8Array,
+  ): Promise<void> {
     if (microEthSignerTypedData === undefined) {
       microEthSignerTypedData = await import("micro-eth-signer/typed-data");
     }
 
-    const { types, domain, message, primaryType } = typedMessage;
+    const signedAsRequested = microEthSignerTypedData.verifyTyped(
+      rpcSignature,
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The DMK type cannot express micro-eth-signer's linked field types. */
+      typedData as any,
+      bytesToHexString(address),
+    );
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- A type assertion is necessary because there is no type overlap between the `domain` imported from `@ledgerhq`
-    and the parameter type expected by the function imported from `micro-eth-signer`. */
-    const enc = microEthSignerTypedData.encoder(types, domain as any);
-
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- A type assertion is necessary because there is no type overlap between the `domain` imported from `@ledgerhq`
-    and the parameter type expected by the function imported from `micro-eth-signer`. */
-    const domainHash = enc.structHash("EIP712Domain", domain as any);
-
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- A type assertion is necessary because there is no type overlap between the `message` imported from `@ledgerhq`
-    and the parameter type expected by the function imported from `micro-eth-signer`. */
-    const structHash = enc.structHash(primaryType, message as any);
-
-    const path = await this.#derivePath(address);
-    const signature = await this.#withConfirmation(async () => {
-      assertHardhatInvariant(
-        this.#eth !== undefined,
-        "Ledger handler should have initialized the eth instance",
+    if (!signedAsRequested) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+          .ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH,
       );
-
-      try {
-        return await this.#eth.signEIP712Message(path, typedMessage);
-      } catch (_error) {
-        return await this.#eth.signEIP712HashedMessage(
-          path,
-          domainHash,
-          structHash,
-        );
-      }
-    });
-
-    return await this.#toRpcSig(signature);
+    }
   }
 
   async #ethSendTransaction(params: any[]): Promise<{
@@ -722,6 +867,18 @@ export class LedgerHandler {
     const [txRequest] = validateParams(params, rpcTransactionRequest);
 
     await this.#requireControlledInit(txRequest.from);
+
+    // We can't sign blob txs (type 3), and signing them as non-blob txs
+    // would drop their blobs silently
+    if (
+      txRequest.type === 3n ||
+      txRequest.blobs !== undefined ||
+      txRequest.blobVersionedHashes !== undefined
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.BLOB_TX_CANNOT_BE_SIGNED_LOCALLY,
+      );
+    }
 
     if (txRequest.gas === undefined) {
       throw new HardhatError(
@@ -736,10 +893,32 @@ export class LedgerHandler {
     const hasEip1559Fields =
       txRequest.maxFeePerGas !== undefined ||
       txRequest.maxPriorityFeePerGas !== undefined;
+    const hasEip7702Fields = txRequest.authorizationList !== undefined;
 
     if (!hasGasPrice && !hasEip1559Fields) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
+      );
+    }
+
+    if (hasGasPrice && hasEip7702Fields) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
+      );
+    }
+
+    if (
+      hasEip7702Fields &&
+      (txRequest.to === undefined || txRequest.to === null)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.EIP7702_TX_CANNOT_CREATE_CONTRACT,
+      );
+    }
+
+    if (txRequest.authorizationList?.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.EMPTY_EIP7702_AUTHORIZATION_LIST,
       );
     }
 
@@ -792,24 +971,20 @@ export class LedgerHandler {
 
     const unsignedTx = await createTx(txRequest, this.#chainId);
 
-    const txToSign = unsignedTx.toHex(false).substring(2);
+    const txToSign = hexStringToBytes(unsignedTx.toHex(false));
 
-    const resolution = await ledgerService.resolveTransaction(txToSign, {}, {});
-
-    const signature = await this.#withConfirmation(() => {
-      assertHardhatInvariant(
-        this.#eth !== undefined,
-        "Ledger handler should have initialized the eth instance",
-      );
-
-      return this.#eth.signTransaction(path, txToSign, resolution);
-    });
+    const signature = await this.#withConfirmation(
+      async () =>
+        await this.#runOnDevice(path, (signer, devicePath) =>
+          signer.signTransaction(devicePath, txToSign),
+        ),
+    );
 
     const signedTx = new microEthSigner.Transaction(unsignedTx.type, {
       ...unsignedTx.raw,
-      r: toBigInt(normalizeHexString(signature.r)),
-      s: toBigInt(normalizeHexString(signature.s)),
-      yParity: getYParity(hexStringToNumber(normalizeHexString(signature.v))),
+      r: toBigInt(signature.r),
+      s: toBigInt(signature.s),
+      yParity: getYParity(signature.v),
     }).toHex();
 
     return {
