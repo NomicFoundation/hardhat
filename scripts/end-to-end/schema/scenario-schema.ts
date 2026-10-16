@@ -15,6 +15,19 @@ function isNonNegativeInteger(value: unknown): boolean {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
+/**
+ * Whether `value` is a non-empty path that stays inside the repo: relative,
+ * with no `..` segment.
+ */
+export function isRepoSubdirectory(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value !== "" &&
+    !value.startsWith("/") &&
+    !value.split("/").includes("..")
+  );
+}
+
 export function isScenarioDefinition(
   value: unknown,
 ): value is ScenarioDefinition {
@@ -43,6 +56,8 @@ export function isScenarioDefinition(
       obj.packageManager === "yarn" ||
       obj.packageManager === "pnpm") &&
     typeof obj.defaultCommand === "string" &&
+    (obj.workingDirectory === undefined ||
+      isRepoSubdirectory(obj.workingDirectory)) &&
     Array.isArray(obj.tags) &&
     obj.tags.every((t: unknown) => typeof t === "string") &&
     (obj.env === undefined || isStringRecord(obj.env)) &&

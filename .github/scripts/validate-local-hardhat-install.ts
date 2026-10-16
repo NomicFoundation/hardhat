@@ -223,6 +223,26 @@ export function classifyScenario(
   };
 }
 
+// The directory a scenario's clone installs hardhat in: the clone itself, or
+// the scenario's `workingDirectory` inside it. A clone whose scenario.json is
+// missing or unreadable (e.g. a scenario since removed) falls back to the
+// clone itself.
+export function scenarioProjectDir(
+  cloneDir: string,
+  scenarioJsonPath: string,
+): string {
+  try {
+    const { workingDirectory } = JSON.parse(
+      fs.readFileSync(scenarioJsonPath, "utf8"),
+    );
+    return typeof workingDirectory === "string"
+      ? path.join(cloneDir, workingDirectory)
+      : cloneDir;
+  } catch {
+    return cloneDir;
+  }
+}
+
 function warn(message: string): void {
   // GitHub annotations render only the first line; collapse for readability.
   console.log(`::warning::${message.replace(/\r?\n/g, " ")}`);
@@ -269,9 +289,16 @@ function main(): void {
   }
 
   let allOk = true;
+  const scenariosDir = path.resolve(import.meta.dirname, "../../end-to-end");
+
   for (const scenarioDir of scenarioDirs) {
     const id = path.basename(scenarioDir);
-    const resolution = resolveScenario(scenarioDir);
+    const resolution = resolveScenario(
+      scenarioProjectDir(
+        scenarioDir,
+        path.join(scenariosDir, id, "scenario.json"),
+      ),
+    );
     const verdict = classifyScenario(id, resolution, expected);
     if (verdict.ok) {
       console.log(verdict.message);

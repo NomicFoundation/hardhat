@@ -140,7 +140,7 @@ OPTIONS
                         If Verdaccio is already running, an error is thrown unless
                         --force-publish is also passed.
   --force-checkout      Force git checkouts even if there are uncommitted changes
-                        in the scenario working directory
+                        in the scenario's cloned repository
   --force-publish       Allow publishing to an already-running Verdaccio instance,
                         potentially overwriting its current contents
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
