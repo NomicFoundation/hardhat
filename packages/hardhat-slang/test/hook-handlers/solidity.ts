@@ -26,7 +26,7 @@ import solidityHookHandlers, {
 } from "../../src/internal/hook-handlers/solidity.js";
 import { SlangCompiler } from "../../src/internal/slang-compiler.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-01";
+const PINNED_VERSION = "0.1.0-pre.2026-10-14";
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 // Helper to create a compiler config
@@ -99,9 +99,9 @@ describe("parseSlangVersion", () => {
   it("parses the prerelease build's banner, which names the Slang front end", () => {
     assert.equal(
       parseSlangVersion(
-        "solx v0.1.8, LLVM-based Solidity compiler for the EVM, Front end: Slang, LLVM build: e7c67b95\nVersion: 0.8.37",
+        "slang v0.2.0, LLVM-based Solidity compiler for the EVM, Front end: Slang, LLVM build: 716613b7\nVersion: 0.8.37",
       ),
-      "0.1.8",
+      "0.2.0",
     );
   });
 

@@ -11,9 +11,12 @@ import {
   validateResolvedConfig,
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
-import { SLANG_DEBUG_INFO_SELECTORS } from "../src/internal/slang-compiler.js";
+import {
+  SLANG_DEBUG_INFO_SELECTORS,
+  SLANG_DEBUG_SYMBOLS_SELECTORS,
+} from "../src/internal/slang-compiler.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-01";
+const PINNED_VERSION = "0.1.0-pre.2026-10-14";
 const { minSolidity: PINNED_MIN, maxSolidity: PINNED_MAX } =
   SLANG_RELEASES[PINNED_VERSION];
 
@@ -224,7 +227,7 @@ describe("hardhat-slang plugin config resolution", () => {
     assert.deepEqual(profileNames, ["default"]);
   });
 
-  it("adds slang debugInfo selectors to slang-typed compilers in resolved config", async () => {
+  it("adds slang stack-trace selectors to slang-typed compilers in resolved config", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -258,6 +261,15 @@ describe("hardhat-slang plugin config resolution", () => {
       wildcardSelectors.includes("abi"),
       "user-provided selectors must be preserved alongside the augmentation",
     );
+    const fileSelectors = slangCompiler.settings.outputSelection["*"][
+      ""
+    ] as string[];
+    for (const selector of SLANG_DEBUG_SYMBOLS_SELECTORS) {
+      assert.ok(
+        fileSelectors.includes(selector),
+        `expected resolved slang compiler config to include file-level "${selector}", got: ${fileSelectors.join(", ")}`,
+      );
+    }
   });
 
   it("does NOT add slang selectors to non-slang compilers", async () => {
@@ -287,6 +299,14 @@ describe("hardhat-slang plugin config resolution", () => {
       assert.ok(
         !wildcardSelectors.includes(selector),
         `solc-typed compiler must NOT receive slang selector "${selector}"; got: ${wildcardSelectors.join(", ")}`,
+      );
+    }
+    const fileSelectors: string[] =
+      solcCompiler.settings.outputSelection["*"][""] ?? [];
+    for (const selector of SLANG_DEBUG_SYMBOLS_SELECTORS) {
+      assert.ok(
+        !fileSelectors.includes(selector),
+        `solc-typed compiler must NOT receive slang selector "${selector}"; got: ${fileSelectors.join(", ")}`,
       );
     }
   });
@@ -324,6 +344,34 @@ describe("hardhat-slang plugin config resolution", () => {
     }
   });
 
+  it("gives a slang override the Solidity version of its own entry", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        slang: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", type: "slang", settings: {} }],
+          overrides: {
+            "contracts/Old.sol": {
+              version: "0.8.20",
+              type: "slang",
+              settings: {},
+            },
+          },
+        },
+      }),
+    );
+
+    const { compilers, overrides } = resolvedConfig.solidity.profiles.slang;
+    assert.equal(compilers[0].settings.solidityVersion, "0.8.34");
+    assert.equal(
+      overrides["contracts/Old.sol"].settings.solidityVersion,
+      "0.8.20",
+    );
+  });
+
   it("augments every slang-typed compiler when several Solidity versions use slang", async () => {
     const resolvedConfig = await resolveUserConfig(
       { slang: { version: PINNED_VERSION } },
@@ -346,6 +394,7 @@ describe("hardhat-slang plugin config resolution", () => {
       resolvedConfig.solidity.profiles.slang.compilers;
     for (const compiler of [first, second]) {
       assert.equal(compiler.settings.optimizer.mode, "1");
+      assert.equal(compiler.settings.solidityVersion, compiler.version);
       const wildcardSelectors = compiler.settings.outputSelection["*"][
         "*"
       ] as string[];
@@ -782,6 +831,74 @@ describe("hardhat-slang Solidity version validation", () => {
       slangProfileConfig([{ version: "0.8", type: "slang" }]),
     );
     assert.equal(rangeErrors(errors).length, 1);
+  });
+
+  it("rejects settings.solidityVersion that differs from the entry's version", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([
+        {
+          version: "0.8.34",
+          type: "slang",
+          settings: { solidityVersion: "0.8.20" },
+        },
+      ]),
+    );
+    assert.deepEqual(
+      errors.map((e) => e.path),
+      [
+        [
+          "solidity",
+          "profiles",
+          "slang",
+          "compilers",
+          0,
+          "settings",
+          "solidityVersion",
+        ],
+      ],
+    );
+  });
+
+  it("rejects a differing settings.solidityVersion on an override with its own binary", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([{ version: "0.8.34", type: "slang" }], {
+        overrides: {
+          "contracts/Old.sol": {
+            version: "0.8.20",
+            type: "slang",
+            path: "/tmp/slang-nightly",
+            settings: { solidityVersion: "0.8.34" },
+          },
+        },
+      }),
+    );
+    assert.deepEqual(
+      errors.map((e) => e.path),
+      [
+        [
+          "solidity",
+          "profiles",
+          "slang",
+          "overrides",
+          "contracts/Old.sol",
+          "settings",
+          "solidityVersion",
+        ],
+      ],
+    );
+  });
+
+  it("accepts settings.solidityVersion equal to the entry's version", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([
+        {
+          version: "0.8.34",
+          type: "slang",
+          settings: { solidityVersion: "0.8.34" },
+        },
+      ]),
+    );
+    assert.deepEqual(errors, []);
   });
 });
 
