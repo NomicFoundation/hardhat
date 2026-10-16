@@ -5,6 +5,8 @@ import type { Abi, AbiEvent, ContractEventName, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
+import { isHex, keccak256, stringToHex } from "viem";
+
 import { settle, stringifyArgs } from "../../helpers.js";
 import { isArgumentMatch } from "../../predicates.js";
 
@@ -88,7 +90,13 @@ export async function emitWithArgs<
       }
     }
 
-    if (await isArgumentMatch(emittedArgs, expectedArgs)) {
+    const comparableExpectedArgs = hashIndexedStringAndBytesArgs(
+      expectedAbiEvent,
+      expectedArgs,
+      emittedArgs,
+    );
+
+    if (await isArgumentMatch(emittedArgs, comparableExpectedArgs)) {
       return;
     }
 
@@ -114,7 +122,7 @@ export async function emitWithArgs<
         // Otherwise, we can use it
         assert.deepEqual(
           emittedArgs,
-          expectedArgs,
+          comparableExpectedArgs,
           "The event arguments do not match the expected ones.",
         );
       }
@@ -124,4 +132,30 @@ export async function emitWithArgs<
   assert.fail(
     "Multiple events were emitted, but none of them match the expected arguments.",
   );
+}
+
+// Indexed `string` and `bytes` event arguments are logged as the keccak256
+// hash of their value, so the expected values are hashed the same way.
+function hashIndexedStringAndBytesArgs(
+  abiEvent: AbiEvent,
+  expectedArgs: readonly unknown[],
+  emittedArgs: readonly unknown[],
+): unknown[] {
+  return expectedArgs.map((arg, index) => {
+    const { type, indexed } = abiEvent.inputs[index];
+
+    if (
+      indexed !== true ||
+      typeof arg !== "string" ||
+      arg === emittedArgs[index]
+    ) {
+      return arg;
+    }
+
+    if (type === "string") {
+      return keccak256(stringToHex(arg));
+    }
+
+    return type === "bytes" && isHex(arg) ? keccak256(arg) : arg;
+  });
 }
