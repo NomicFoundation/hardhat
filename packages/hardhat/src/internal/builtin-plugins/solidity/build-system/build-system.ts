@@ -157,14 +157,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (sourcesPath) => fsPath.startsWith(sourcesPath + path.sep),
     );
 
-    // A `.sol` file under the tests path is a test, unless it is
-    // also registered as under a Solidity sources path. Sources takes
+    // A file under the tests path is a test, unless it is also registered as
+    // under a Solidity sources path. Sources takes
     // precedence (e.g. `test/` is listed in `paths.sources.solidity` to access
     // `./test/mocks`)
     if (
       !isUnderSources &&
-      fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
-      fsPath.endsWith(".sol")
+      fsPath.startsWith(this.#options.solidityTestsPath + path.sep)
     ) {
       return "tests";
     }
@@ -203,8 +202,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // In unified mode, contracts scope returns all roots: contracts,
         // tests, and npm files.
         const testFiles = [
-          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-            f.endsWith(".sol"),
+          ...(await this.#discoverRootFilePaths(
+            this.#options.solidityTestsPath,
           )),
           ...sourceTestFiles,
         ];
@@ -217,8 +216,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
       case "tests": {
         let rootFilePaths = [
-          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-            f.endsWith(".sol"),
+          ...(await this.#discoverRootFilePaths(
+            this.#options.solidityTestsPath,
           )),
           ...sourceTestFiles,
         ];
@@ -232,6 +231,37 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   /**
+   * Returns the root files found in a directory, as decided by the
+   * `discoverRootFilePaths` hook. By default, every `.sol` file.
+   */
+  async #discoverRootFilePaths(directoryPath: string): Promise<string[]> {
+    return await this.#hooks.runHandlerChain(
+      "solidity",
+      "discoverRootFilePaths",
+      [directoryPath],
+      async (_context, nextDirectoryPath) =>
+        await getAllFilesMatching(nextDirectoryPath, (f) => f.endsWith(".sol")),
+    );
+  }
+
+  /**
+   * Returns whether a root file is compiled in its own compilation job, as
+   * decided by the `isRootFileIsolated` hook. By default, the build profile's
+   * `isolated` setting.
+   */
+  async #isRootFileIsolated(
+    rootFilePath: string,
+    isolated: boolean,
+  ): Promise<boolean> {
+    return await this.#hooks.runHandlerChain(
+      "solidity",
+      "isRootFileIsolated",
+      [rootFilePath, isolated],
+      async (_context, _nextRootFilePath, nextIsolated) => nextIsolated,
+    );
+  }
+
+  /**
    * Returns all the root files from the different solidity source dirs in the
    * config, partitioned into contract files and test files according to their
    * extensions.
@@ -242,9 +272,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }> {
     const sourceFileGroups = await Promise.all(
       this.#options.soliditySourcesPaths.map(async (dir) => {
-        const localSolidityFiles = await getAllFilesMatching(dir, (f) =>
-          f.endsWith(".sol"),
-        );
+        const localSolidityFiles = await this.#discoverRootFilePaths(dir);
 
         const localContractFiles: string[] = [];
         const sourceTestFiles: string[] = [];
@@ -309,10 +337,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     await this.#downloadConfiguredCompilers(resolvedOptions.quiet);
 
-    const { buildProfile } = this.#getBuildProfile(
-      resolvedOptions.buildProfile,
-    );
-
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
       resolvedOptions,
@@ -329,8 +353,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     spinner.start();
 
     try {
-      const { compilationJobsPerFile, indexedIndividualJobs, cacheHits } =
-        compilationJobsResult;
+      const {
+        compilationJobsPerFile,
+        indexedIndividualJobs,
+        isolatedPerRootFile,
+        cacheHits,
+      } = compilationJobsResult;
 
       const runnableCompilationJobs = [
         ...new Set(compilationJobsPerFile.values()),
@@ -412,7 +440,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               indexedIndividualJobs,
               compilationResult,
               emitArtifactsResult,
-              buildProfile.isolated,
+              isolatedPerRootFile,
               resolvedOptions.scope,
             );
           }),
@@ -680,9 +708,22 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const rootFilesToCompile: Set<string> = new Set();
     const cacheHits: Map<string, CacheHitInfo> = new Map();
 
-    const isolated = buildProfile.isolated;
+    const isolatedPerRootFile: Map<string, boolean> = new Map();
+    for (const rootFile of indexedIndividualJobs.keys()) {
+      isolatedPerRootFile.set(
+        rootFile,
+        await this.#isRootFileIsolated(rootFile, buildProfile.isolated),
+      );
+    }
 
     for (const [rootFile, compilationJob] of indexedIndividualJobs.entries()) {
+      const isolated = isolatedPerRootFile.get(rootFile);
+
+      assertHardhatInvariant(
+        isolated !== undefined,
+        `No isolation setting for root file ${rootFile}`,
+      );
+
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
       const compilerType = compilationJob.solcConfig.type ?? "solc";
@@ -769,48 +810,48 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (!isolated) {
-      // non-isolated mode
-      log(`Merging compilation jobs`);
+    log(`Merging compilation jobs`);
 
-      const mergedSubgraphsByConfig: Map<
-        SolidityCompilerConfig,
-        DependencyGraphImplementation
-      > = new Map();
+    const mergedSubgraphsByConfig: Map<
+      SolidityCompilerConfig,
+      DependencyGraphImplementation
+    > = new Map();
+    const isolatedSubgraphsWithConfig: Array<
+      [SolidityCompilerConfig, DependencyGraphImplementation]
+    > = [];
 
-      // Note: This groups the subgraphs by compiler config. It compares the
-      // configs based on reference, and not by deep equality. This is
-      // inherently type-aware: two configs with different types will always be
-      // different references. It misses some merging opportunities, but this is
-      // Hardhat v2's behavior and works well enough.
-      for (const [config, subgraph] of subgraphsWithConfig) {
-        const rootFile = getSingleRootFilePath(subgraph);
+    // Note: This groups the subgraphs by compiler config. It compares the
+    // configs based on reference, and not by deep equality. This is
+    // inherently type-aware: two configs with different types will always be
+    // different references. It misses some merging opportunities, but this is
+    // Hardhat v2's behavior and works well enough.
+    for (const [config, subgraph] of subgraphsWithConfig) {
+      const rootFile = getSingleRootFilePath(subgraph);
 
-        // Skip root files with cache hit (should not recompile)
-        if (!rootFilesToCompile.has(rootFile)) {
-          continue;
-        }
-
-        const mergedSubgraph = mergedSubgraphsByConfig.get(config);
-
-        if (mergedSubgraph === undefined) {
-          mergedSubgraphsByConfig.set(config, subgraph);
-        } else {
-          mergedSubgraphsByConfig.set(config, mergedSubgraph.merge(subgraph));
-        }
+      // Skip root files with cache hit (should not recompile)
+      if (!rootFilesToCompile.has(rootFile)) {
+        continue;
       }
 
-      subgraphsWithConfig = [...mergedSubgraphsByConfig.entries()];
-    } else {
-      // isolated mode
-      subgraphsWithConfig = subgraphsWithConfig.filter(
-        ([_config, subgraph]) => {
-          const rootFile = getSingleRootFilePath(subgraph);
+      // Isolated root files keep their own compilation job
+      if (isolatedPerRootFile.get(rootFile) === true) {
+        isolatedSubgraphsWithConfig.push([config, subgraph]);
+        continue;
+      }
 
-          return rootFilesToCompile.has(rootFile);
-        },
-      );
+      const mergedSubgraph = mergedSubgraphsByConfig.get(config);
+
+      if (mergedSubgraph === undefined) {
+        mergedSubgraphsByConfig.set(config, subgraph);
+      } else {
+        mergedSubgraphsByConfig.set(config, mergedSubgraph.merge(subgraph));
+      }
     }
+
+    subgraphsWithConfig = [
+      ...mergedSubgraphsByConfig.entries(),
+      ...isolatedSubgraphsWithConfig,
+    ];
 
     const compilationJobsPerFile = new Map<string, CompilationJob>();
     for (const [compilerConfig, subgraph] of subgraphsWithConfig) {
@@ -851,6 +892,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       success: true,
       compilationJobsPerFile,
       indexedIndividualJobs,
+      isolatedPerRootFile,
       cacheHits,
     };
   }
@@ -1480,7 +1522,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
-    isolated: boolean,
+    isolatedPerRootFile: Map<string, boolean>,
     scope: BuildScope,
   ): Promise<void> {
     for (const [userSourceName, root] of result.compilationJob.dependencyGraph
@@ -1503,6 +1545,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
 
       const typeFilePath = emitArtifactsResult.typeFilePaths.get(rootFilePath);
+
+      const isolated = isolatedPerRootFile.get(rootFilePath);
+
+      assertHardhatInvariant(
+        isolated !== undefined,
+        `No isolation setting for root file ${rootFilePath}`,
+      );
 
       const jobHash = await individualJob.getBuildId();
 

@@ -31,6 +31,7 @@ import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { downloadSolcCompilersHandler } from "../../../../src/internal/builtin-plugins/solidity/solidity-hooks.js";
@@ -685,6 +686,311 @@ describe("solidity - hooks", () => {
         customCompilerUsed,
         "The custom compiler should have been used for compilation",
       );
+    });
+  });
+
+  describe("discoverRootFilePaths", () => {
+    useFixtureProject("solidity/simple-project");
+
+    function createDiscoverPlugin(
+      transform: (rootFilePaths: string[]) => string[],
+      capturedDirectoryPaths: string[],
+    ): HardhatPlugin {
+      return {
+        id: "test-discover-root-file-paths-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                discoverRootFilePaths: async (
+                  context: HookContext,
+                  directoryPath: string,
+                  next: (
+                    nextContext: HookContext,
+                    nextDirectoryPath: string,
+                  ) => Promise<string[]>,
+                ) => {
+                  capturedDirectoryPaths.push(directoryPath);
+                  return transform(await next(context, directoryPath));
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+    }
+
+    it("should be called with the sources directory and return the .sol files by default", async () => {
+      const capturedDirectoryPaths: string[] = [];
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          createDiscoverPlugin((files) => files, capturedDirectoryPaths),
+        ],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+
+      assert.ok(
+        capturedDirectoryPaths.includes(path.join(process.cwd(), "contracts")),
+        "The hook should be called with the sources directory",
+      );
+      assert.deepEqual(roots.toSorted(), [
+        path.join(process.cwd(), "contracts", "A.sol"),
+        path.join(process.cwd(), "contracts", "B.sol"),
+      ]);
+    });
+
+    it("should allow plugins to add and remove root files", async () => {
+      const extraFile = path.join(process.cwd(), "contracts", "C.yul");
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          createDiscoverPlugin(
+            (files) =>
+              files.length === 0
+                ? files
+                : [...files.filter((f) => !f.endsWith("B.sol")), extraFile],
+            [],
+          ),
+        ],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+
+      assert.deepEqual(roots.toSorted(), [
+        path.join(process.cwd(), "contracts", "A.sol"),
+        extraFile,
+      ]);
+    });
+  });
+
+  describe("isRootFileIsolated", () => {
+    useFixtureProject("solidity/simple-project");
+
+    async function getJobsPerFile(
+      hre: HardhatRuntimeEnvironment,
+    ): Promise<Map<string, CompilationJob>> {
+      const roots = await hre.solidity.getRootFilePaths();
+      const result = await hre.solidity.getCompilationJobs(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(result.success, "getCompilationJobs should not error");
+      return result.compilationJobsPerFile;
+    }
+
+    it("should merge root files with the same config by default", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: "0.8.23",
+      });
+
+      const jobs = await getJobsPerFile(hre);
+      const a = jobs.get(path.join(process.cwd(), "contracts", "A.sol"));
+      const b = jobs.get(path.join(process.cwd(), "contracts", "B.sol"));
+
+      assert.ok(
+        a !== undefined && b !== undefined,
+        "Both root files should have a compilation job",
+      );
+      assert.equal(a, b);
+    });
+
+    it("should compile a root file in its own job when the hook returns true", async () => {
+      const isolatedFile = path.join(process.cwd(), "contracts", "A.sol");
+      const capturedCalls: Array<[string, boolean]> = [];
+
+      const isolatePlugin: HardhatPlugin = {
+        id: "test-is-root-file-isolated-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                isRootFileIsolated: async (
+                  context: HookContext,
+                  rootFilePath: string,
+                  isolated: boolean,
+                  next: (
+                    nextContext: HookContext,
+                    nextRootFilePath: string,
+                    nextIsolated: boolean,
+                  ) => Promise<boolean>,
+                ) => {
+                  capturedCalls.push([rootFilePath, isolated]);
+                  return (
+                    rootFilePath === isolatedFile ||
+                    (await next(context, rootFilePath, isolated))
+                  );
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [isolatePlugin],
+        solidity: "0.8.23",
+      });
+
+      const jobs = await getJobsPerFile(hre);
+      const a = jobs.get(isolatedFile);
+      const b = jobs.get(path.join(process.cwd(), "contracts", "B.sol"));
+
+      assert.ok(
+        a !== undefined && b !== undefined,
+        "Both root files should have a compilation job",
+      );
+      assert.notEqual(a, b);
+      assert.equal(a.dependencyGraph.getRoots().size, 1);
+      assert.ok(
+        capturedCalls.some(
+          ([rootFilePath, isolated]) =>
+            rootFilePath === isolatedFile && !isolated,
+        ),
+        "The hook should receive the build profile's isolated setting",
+      );
+
+      // The build still succeeds, and caches each root file's isolation
+      const result = await hre.solidity.build(
+        await hre.solidity.getRootFilePaths(),
+        { force: true, quiet: true },
+      );
+      assert.ok(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "The build should succeed",
+      );
+      for (const fileResult of result.values()) {
+        assert.equal(fileResult.type, FileBuildResultType.BUILD_SUCCESS);
+      }
+
+      const secondBuild = await hre.solidity.build(
+        await hre.solidity.getRootFilePaths(),
+        { quiet: true },
+      );
+      assert.ok(
+        hre.solidity.isSuccessfulBuildResult(secondBuild),
+        "The second build should succeed",
+      );
+      for (const fileResult of secondBuild.values()) {
+        assert.equal(fileResult.type, FileBuildResultType.CACHE_HIT);
+      }
+    });
+  });
+
+  describe("discoverRootFilePaths and isRootFileIsolated with Yul sources", () => {
+    useFixtureProject("solidity/yul-project");
+
+    const isYul = (file: string) => file.endsWith(".yul");
+
+    // A minimal plugin compiling `.yul` files found in the sources directories
+    const yulPlugin: HardhatPlugin = {
+      id: "test-yul-plugin",
+      hookHandlers: {
+        solidity: async () => ({
+          default: async () => {
+            const handlers: Partial<SolidityHooks> = {
+              discoverRootFilePaths: async (context, directoryPath, next) => [
+                ...(await next(context, directoryPath)),
+                ...(await getAllFilesMatching(directoryPath, isYul)),
+              ],
+              isRootFileIsolated: async (
+                context,
+                rootFilePath,
+                isolated,
+                next,
+              ) =>
+                isYul(rootFilePath) ||
+                (await next(context, rootFilePath, isolated)),
+              preprocessSolcInputBeforeBuilding: async (
+                context,
+                solcInput,
+                next,
+              ) => {
+                const input = await next(context, solcInput);
+                return Object.keys(input.sources).every(isYul)
+                  ? { ...input, language: "Yul" }
+                  : input;
+              },
+            };
+
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    it("should build each Yul root file in its own compilation job", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [yulPlugin],
+        solidity: "0.8.23",
+      });
+
+      const solFile = path.join(process.cwd(), "contracts", "A.sol");
+      const yulFiles = {
+        CallSimulator: path.join(
+          process.cwd(),
+          "contracts",
+          "CallSimulator.yul",
+        ),
+        Echo: path.join(process.cwd(), "contracts", "Echo.yul"),
+      };
+
+      const roots = await hre.solidity.getRootFilePaths();
+      assert.deepEqual(roots.toSorted(), [solFile, ...Object.values(yulFiles)]);
+
+      const result = await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "The build should succeed",
+      );
+
+      // solc only accepts a single source per Yul input, so every Yul file
+      // must have its own compilation job
+      const jobs = new Set();
+      for (const root of roots) {
+        const fileResult = result.get(root);
+        assert.equal(fileResult?.type, FileBuildResultType.BUILD_SUCCESS);
+        jobs.add(fileResult.compilationJob);
+      }
+      assert.equal(
+        jobs.size,
+        roots.length,
+        "Each Yul file should be compiled in its own compilation job",
+      );
+
+      for (const [contractName, yulFile] of Object.entries(yulFiles)) {
+        const artifact = await hre.artifacts.readArtifact(
+          `contracts/${path.basename(yulFile)}:${contractName}`,
+        );
+        assert.deepEqual(artifact.abi, [], "A Yul artifact has an empty ABI");
+        assert.notEqual(
+          artifact.bytecode,
+          "0x",
+          "Bytecode should not be empty",
+        );
+        assert.ok(
+          artifact.bytecode.endsWith(artifact.deployedBytecode.slice(2)),
+          "The creation code should embed the runtime code",
+        );
+        assert.ok(
+          artifact.buildInfoId !== undefined &&
+            (await hre.artifacts.getBuildInfoPath(artifact.buildInfoId)) !==
+              undefined,
+          "The artifact should reference an existing build info",
+        );
+      }
     });
   });
 
