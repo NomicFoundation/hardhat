@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { relative, resolve } from "node:path";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
   git,
@@ -18,11 +18,37 @@ import {
   minorBump,
   npmLatestVersion,
   patchBump,
+  satisfiesCaret,
 } from "./helpers/version.ts";
 
 const PUBLISH_SUMMARY = resolve(ROOT_DIR, "pnpm-publish-summary.json");
 
-const PACKAGES_DIR = "packages";
+const LOCKFILE = "pnpm-lock.yaml";
+
+const WORKSPACE_PROTOCOL = "workspace:";
+const WORKSPACE_CARET = `${WORKSPACE_PROTOCOL}^`;
+
+const DEPENDENCY_SECTIONS = [
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+] as const;
+
+type DependencySection = (typeof DEPENDENCY_SECTIONS)[number];
+
+/** The one section a package's consumers never install from. */
+const DEV_SECTION: DependencySection = "devDependencies";
+
+/** A package.json, typed only where this script reads or writes it. */
+export interface Manifest extends Partial<
+  Record<DependencySection, Record<string, string>>
+> {
+  name: string;
+  version: string;
+  private?: boolean;
+  [field: string]: unknown;
+}
 
 const REGISTRY_ENV = {
   ...process.env,
@@ -124,8 +150,15 @@ function packageJsonPath(packageDir: string): string {
   return resolve(ROOT_DIR, packageDir, "package.json");
 }
 
-function readManifest(packageDir: string) {
+function readManifest(packageDir: string): Manifest {
   return JSON.parse(readFileSync(packageJsonPath(packageDir), "utf-8"));
+}
+
+function writeManifest(packageDir: string, manifest: Manifest): void {
+  writeFileSync(
+    packageJsonPath(packageDir),
+    JSON.stringify(manifest, null, 2) + "\n",
+  );
 }
 
 function readPackageInfo(packageDir: string): PackageVersion & {
@@ -259,7 +292,7 @@ interface PackageVersion {
  */
 type PublishAction = "publish" | "skip";
 
-interface PublishTarget {
+export interface PublishTarget {
   packageDir: string;
   name: string;
   currentVersion: string;
@@ -269,6 +302,23 @@ interface PublishTarget {
   reason: string;
 }
 
+/** A package and the version it is being published under instead. */
+type RaisedVersion = Pick<PublishTarget, "currentVersion" | "version">;
+
+/** One workspace range moved up to the version that outgrew it. */
+interface RangeRaise {
+  section: DependencySection;
+  dependency: string;
+  from: string;
+  to: string;
+}
+
+/** A manifest with its ranges raised, and what moved. */
+interface ManifestRewrite {
+  manifest: Manifest;
+  raises: RangeRaise[];
+}
+
 /**
  * Publish the packages that changed since their last release, each published
  * a minor above npm's release of it.
@@ -276,11 +326,20 @@ interface PublishTarget {
  * That raise is what makes the local build win. pnpm skips a version that npm
  * already has, and Verdaccio serves the uplink's `dist-tags.latest` whenever
  * the local version doesn't exceed it.
+ *
+ * The same uplink answers for every range a published package declares, so a
+ * raise that crosses a major takes the ranges it outgrew with it. See
+ * `raiseWorkspaceRanges`.
  */
 export async function sinceReleasePublish(): Promise<void> {
   ensureVerdaccioRunning();
 
   const targets = await detectChangedSinceRelease();
+  const rewrites = rewriteOutgrownRanges(targets);
+
+  promoteStaleDependents(targets, namesStaleOnNpm(rewrites.values()));
+  logTargets(targets);
+
   const toPublish = targets.filter((target) => target.action === "publish");
 
   if (toPublish.length === 0) {
@@ -288,10 +347,16 @@ export async function sinceReleasePublish(): Promise<void> {
     return;
   }
 
-  const written: PublishTarget[] = [];
+  const written: string[] = [];
 
   try {
-    writeVersions(toPublish, written);
+    writeManifests(toPublish, rewrites, written);
+
+    if (rewrites.size > 0) {
+      written.push(LOCKFILE);
+      syncLockfile(written);
+    }
+
     unpublish(toPublish);
     publishPackages(toPublish.map((target) => target.packageDir));
     ensurePublishedLocally(toPublish);
@@ -302,28 +367,227 @@ export async function sinceReleasePublish(): Promise<void> {
   reportPublished(readPublishSummary());
 }
 
+/**
+ * Bring the lockfile in line with the raised ranges, and name every file
+ * `written` so far for restoring.
+ *
+ * The lockfile records each workspace range as written, so a raised range
+ * leaves it outdated. pnpm then attempts a reinstall before every package
+ * script. On CI installs are frozen, so each attempt fails and pnpm warns
+ * before going on. Keep the raised ranges linking workspace packages only,
+ * so that this resolves nothing from a registry.
+ */
+function syncLockfile(written: string[]): void {
+  logStep(`Syncing ${LOCKFILE} with the raised ranges`);
+
+  pnpm(["install", "--no-frozen-lockfile"], "inherit");
+
+  log(
+    `  Restore what this run wrote with:\n` +
+      `    git checkout -- ${restorePaths(written)}`,
+  );
+}
+
 function wasRewritten(target: PublishTarget): boolean {
   return target.version !== target.currentVersion;
 }
 
-function withRestoreHint(error: unknown, written: PublishTarget[]): Error {
+/**
+ * Every workspace manifest whose ranges a published version outgrew, by dir.
+ *
+ * A version published as it stands counts too. EDR writes such a version
+ * into hardhat's manifest, and it can sit across a major from the ranges
+ * the checkout declares on hardhat.
+ */
+function rewriteOutgrownRanges(
+  targets: PublishTarget[],
+): Map<string, ManifestRewrite> {
+  const raised = new Map(
+    targets
+      .filter((target) => target.action === "publish")
+      .map((target) => [target.name, target]),
+  );
+  const rewrites = new Map<string, ManifestRewrite>();
+
+  for (const packageDir of listWorkspaceDirs()) {
+    const rewrite = raiseWorkspaceRanges(readManifest(packageDir), raised);
+
+    if (rewrite.raises.length > 0) {
+      rewrites.set(packageDir, rewrite);
+    }
+  }
+
+  return rewrites;
+}
+
+/**
+ * A copy of `manifest` in which each workspace range outgrown by a published
+ * version now starts at that version, plus the list of moves.
+ *
+ * pnpm publishes `workspace:^4.4.0` verbatim as `^4.4.0`. A dependency is
+ * raised across a major when npm released one that this checkout has not
+ * caught up with, and then falls outside such a range. The published
+ * dependent resolves the range to npm's old major through Verdaccio's uplink,
+ * which is the build the raise exists to outrank.
+ *
+ * A range the raised version still satisfies is left alone, which keeps peer
+ * ranges as wide as the release left them. A raise never drops below the
+ * version a range was written against, so the only way out of a range is
+ * across a major.
+ *
+ * pnpm fills a bare `workspace:^` with the dependency's version at publish,
+ * so a published bare range never falls behind. A skipped dependent's npm
+ * release filled the range with the dependency's pre-raise version, so that
+ * is the floor. The range is made explicit once it is outgrown.
+ */
+export function raiseWorkspaceRanges(
+  manifest: Manifest,
+  raised: ReadonlyMap<string, RaisedVersion>,
+): ManifestRewrite {
+  const result = structuredClone(manifest);
+  const raises: RangeRaise[] = [];
+
+  for (const section of DEPENDENCY_SECTIONS) {
+    const ranges = result[section];
+
+    if (ranges === undefined) {
+      continue;
+    }
+
+    for (const [dependency, range] of Object.entries(ranges)) {
+      const target = raised.get(dependency);
+
+      if (target === undefined || !range.startsWith(WORKSPACE_PROTOCOL)) {
+        continue;
+      }
+
+      const floor = workspaceCaretFloor(dependency, range, target);
+
+      if (satisfiesCaret(target.version, floor)) {
+        continue;
+      }
+
+      const to = `${WORKSPACE_CARET}${target.version}`;
+
+      ranges[dependency] = to;
+      raises.push({ section, dependency, from: range, to });
+    }
+  }
+
+  return { manifest: result, raises };
+}
+
+/**
+ * The version a `workspace:^` range starts at.
+ *
+ * Only caret ranges are raised. pnpm publishes each other workspace form
+ * differently, so meeting one fails the run rather than publishing a range
+ * the raise may have left behind.
+ */
+function workspaceCaretFloor(
+  dependency: string,
+  range: string,
+  { currentVersion }: RaisedVersion,
+): string {
+  if (!range.startsWith(WORKSPACE_CARET)) {
+    throw new Error(
+      `Cannot raise ${dependency}@${range}: only ${WORKSPACE_CARET} ranges are supported`,
+    );
+  }
+
+  const floor = range.slice(WORKSPACE_CARET.length);
+
+  return floor === "" ? currentVersion : floor;
+}
+
+/**
+ * The packages whose npm release now declares an outgrown range.
+ *
+ * A consumer never installs from `devDependencies`, so a move there leaves
+ * the release usable.
+ */
+export function namesStaleOnNpm(
+  rewrites: Iterable<ManifestRewrite>,
+): Set<string> {
+  const names = new Set<string>();
+
+  for (const { manifest, raises } of rewrites) {
+    if (raises.some((raise) => raise.section !== DEV_SECTION)) {
+      names.add(manifest.name);
+    }
+  }
+
+  return names;
+}
+
+/**
+ * Republish each skipped target named in `stale`, a minor above its release.
+ *
+ * A skipped target leaves scenarios to its npm release, whose ranges predate
+ * the raise, so it would pull the old major from the uplink. Skipping requires
+ * the checkout to match that release, so a minor above the checkout outranks
+ * it. That raise stays inside the caret of the checkout's version from `1.0.0`
+ * up, so it cannot outgrow a range on the promoted package in turn. One pass
+ * over the ranges is therefore enough. A `0.x` package fails the run instead,
+ * because its minor bump leaves its own caret.
+ */
+export function promoteStaleDependents(
+  targets: PublishTarget[],
+  stale: ReadonlySet<string>,
+): void {
+  for (const target of targets) {
+    if (target.action !== "skip" || !stale.has(target.name)) {
+      continue;
+    }
+
+    const version = minorBump(target.currentVersion);
+
+    if (!satisfiesCaret(version, target.currentVersion)) {
+      throw new Error(
+        `Cannot republish ${target.name}@${target.currentVersion} as ${version}: ` +
+          "that leaves the ranges declared on it, and nothing raises those in turn",
+      );
+    }
+
+    target.action = "publish";
+    target.version = version;
+    target.reason = "(republished because its ranges were raised)";
+  }
+}
+
+function logTargets(targets: PublishTarget[]): void {
+  for (const { name, version, reason } of targets) {
+    log(
+      `  ${fmt.pkg(name)} ${fmt.version(version)} ${fmt.deemphasize(reason)}`,
+    );
+  }
+}
+
+/**
+ * `error`, naming the files this run rewrote so far. Only those may be
+ * restored, since the rest can hold edits this run never made.
+ */
+function withRestoreHint(error: unknown, written: string[]): Error {
   const failure = error instanceof Error ? error : new Error(String(error));
 
   if (written.length === 0) {
     return failure;
   }
 
-  const paths = written
-    .map((target) => `${target.packageDir}/package.json`)
-    .join(" ");
-
   return new Error(
     `${failure.message}\n\n` +
-      `  ${written.length} package.json file(s) still carry the version this run wrote.\n` +
+      `  ${written.length} file(s) still carry what this run wrote.\n` +
       "  To restore them:\n" +
-      `    git checkout -- ${paths}`,
+      `    git checkout -- ${restorePaths(written)}`,
     { cause: failure },
   );
+}
+
+/** The paths to restore, with each package dir standing for its manifest. */
+function restorePaths(written: string[]): string {
+  return written
+    .map((path) => (path === LOCKFILE ? path : `${path}/package.json`))
+    .join(" ");
 }
 
 /**
@@ -402,44 +666,35 @@ function storedTarball(
   return resolve(storageDir, name, `${unscoped}-${version}.tgz`);
 }
 
+/**
+ * Every workspace project's directory relative to the repo root, in path
+ * order, as pnpm resolves them from `pnpm-workspace.yaml`.
+ *
+ * Keep this the full workspace rather than `packages/*`. An install resolves
+ * every project's workspace ranges, and the templates under
+ * `packages/hardhat/templates/` declare such ranges too.
+ */
+function listWorkspaceDirs(): string[] {
+  const projects = JSON.parse(
+    pnpm(["--recursive", "ls", "--depth", "-1", "--json"], "pipe"),
+  ) as Array<{ path: string }>;
+
+  return projects
+    .map((project) => relative(ROOT_DIR, project.path) || ".")
+    .sort();
+}
+
+/** A target for every public package, in directory order. */
 async function detectChangedSinceRelease(): Promise<PublishTarget[]> {
   logStep("Detecting packages changed since release");
 
-  const packagesDir = resolve(ROOT_DIR, PACKAGES_DIR);
-  const packageDirs: string[] = [];
-
-  const entries = readdirSync(packagesDir, { withFileTypes: true }).sort(
-    (a, b) => a.name.localeCompare(b.name),
+  // pnpm never publishes a private package, so a version written for one
+  // would name a tarball no scenario can install.
+  const packageDirs = listWorkspaceDirs().filter(
+    (packageDir) => !readPackageInfo(packageDir).private,
   );
 
-  for (const entry of entries) {
-    const packageDir = `${PACKAGES_DIR}/${entry.name}`;
-
-    if (
-      !entry.isDirectory() ||
-      !existsSync(resolve(ROOT_DIR, packageDir, "package.json"))
-    ) {
-      continue;
-    }
-
-    // pnpm never publishes a private package, so a version written for one
-    // would name a tarball no scenario can install.
-    if (!readPackageInfo(packageDir).private) {
-      packageDirs.push(packageDir);
-    }
-  }
-
-  const targets = await Promise.all(packageDirs.map(resolveTarget));
-
-  // Logged after the fan-out, so the listing keeps directory order instead of
-  // the order the npm lookups happened to finish in.
-  for (const { name, version, reason } of targets) {
-    log(
-      `  ${fmt.pkg(name)} ${fmt.version(version)} ${fmt.deemphasize(reason)}`,
-    );
-  }
-
-  return targets;
+  return Promise.all(packageDirs.map(resolveTarget));
 }
 
 async function resolveTarget(packageDir: string): Promise<PublishTarget> {
@@ -582,38 +837,50 @@ export function resolvePublishVersion(
 }
 
 /**
- * Write each raised version into its manifest, recording progress in
- * `written`.
- *
- * A failure part-way leaves the manifests already rewritten, and only those
- * may be restored: the rest can hold edits this run never made.
+ * Write each raised version and range into its manifest, recording in
+ * `written` the package dirs whose manifest changed.
  */
-function writeVersions(
+function writeManifests(
   targets: PublishTarget[],
-  written: PublishTarget[],
+  rewrites: ReadonlyMap<string, ManifestRewrite>,
+  written: string[],
 ): void {
-  const toWrite = targets.filter(wasRewritten);
+  const raisedByDir = new Map(
+    targets.filter(wasRewritten).map((target) => [target.packageDir, target]),
+  );
+  const packageDirs = [
+    ...new Set([...raisedByDir.keys(), ...rewrites.keys()]),
+  ].sort();
 
-  if (toWrite.length === 0) {
+  if (packageDirs.length === 0) {
     return;
   }
 
-  logStep("Writing publish versions");
+  logStep("Writing publish versions and raised ranges");
 
-  for (const target of toWrite) {
-    const { packageDir, currentVersion, version } = target;
-    const pkgJson = readManifest(packageDir);
+  for (const packageDir of packageDirs) {
+    const target = raisedByDir.get(packageDir);
+    const rewrite = rewrites.get(packageDir);
+    const manifest = rewrite?.manifest ?? readManifest(packageDir);
 
-    pkgJson.version = version;
-    writeFileSync(
-      packageJsonPath(packageDir),
-      JSON.stringify(pkgJson, null, 2) + "\n",
-    );
+    if (target !== undefined) {
+      manifest.version = target.version;
+    }
 
-    written.push(target);
+    writeManifest(packageDir, manifest);
+    written.push(packageDir);
 
-    log(
-      `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(currentVersion)} → ${fmt.version(version)}`,
-    );
+    const version =
+      target !== undefined
+        ? `${fmt.deemphasize(target.currentVersion)} → ${fmt.version(target.version)}`
+        : fmt.deemphasize(manifest.version);
+
+    log(`  ${fmt.pkg(manifest.name)} ${version}`);
+
+    for (const { section, dependency, from, to } of rewrite?.raises ?? []) {
+      log(
+        `    ${fmt.deemphasize(`${section}.`)}${fmt.pkg(dependency)} ${fmt.deemphasize(from)} → ${fmt.version(to)}`,
+      );
+    }
   }
 }
