@@ -287,7 +287,7 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       '@uniswap/v4-core':
         specifier: 1.0.2
@@ -390,7 +390,7 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       '@types/semver':
         specifier: ^7.5.8
@@ -427,7 +427,7 @@ importers:
         specifier: workspace:^3.1.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -479,7 +479,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -543,7 +543,7 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -595,7 +595,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -662,7 +662,7 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       '@types/prompts':
         specifier: ^2.4.2
@@ -738,7 +738,7 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../ignition-core
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -799,7 +799,7 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../ignition-core
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -860,7 +860,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -933,7 +933,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -988,7 +988,7 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1031,7 +1031,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1068,7 +1068,7 @@ importers:
         version: 30.5.2
     devDependencies:
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1114,7 +1114,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1166,7 +1166,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1212,7 +1212,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1249,7 +1249,7 @@ importers:
         specifier: workspace:^3.0.5
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1318,7 +1318,7 @@ importers:
         specifier: ^5.2.3
         version: 5.2.3
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1390,7 +1390,7 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../ignition-core
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1451,7 +1451,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1515,7 +1515,7 @@ importers:
         specifier: ^5.1.5
         version: 5.2.0
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1548,7 +1548,7 @@ importers:
         specifier: ^5.1.5
         version: 5.2.0
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1597,7 +1597,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1640,7 +1640,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1689,7 +1689,7 @@ importers:
         specifier: workspace:^3.0.4
         version: link:../hardhat-viem
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1735,7 +1735,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
@@ -1796,7 +1796,7 @@ importers:
         specifier: workspace:^5.0.7
         version: link:../../../hardhat-toolbox-viem
       '@types/node':
-        specifier: ^22.8.5
+        specifier: ^22.18.0
         version: 22.20.5
       forge-std:
         specifier: foundry-rs/forge-std#v1.17.0
@@ -1857,7 +1857,7 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.8.5
+        specifier: ^22.18.0
         version: 22.20.5
       chai:
         specifier: ^6.2.2
@@ -1881,7 +1881,7 @@ importers:
   packages/hardhat/templates/03-minimal:
     devDependencies:
       '@types/node':
-        specifier: ^22.8.5
+        specifier: ^22.18.0
         version: 22.20.5
       hardhat:
         specifier: workspace:^3.21.0
@@ -1945,7 +1945,7 @@ importers:
         specifier: 2.0.4
         version: 2.0.4
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       chai:
         specifier: ^6.2.2
@@ -2068,7 +2068,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.18.0
         version: 22.20.5
       c8:
         specifier: ^12.0.0
