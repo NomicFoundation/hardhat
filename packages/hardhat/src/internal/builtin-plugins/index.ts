@@ -17,6 +17,7 @@ import solidity from "./solidity/index.js";
 import solidityTest from "./solidity-test/index.js";
 import telemetry from "./telemetry/index.js";
 import test from "./test/index.js";
+import watch from "./watch/index.js";
 
 // NOTE: We export the built-in plugin types to have a centralized way to
 // re-export them and force their type extensions to be loaded.
@@ -44,6 +45,7 @@ export const builtinPlugins: HardhatPlugin[] = [
   coverage,
   solidityTest,
   gasAnalytics,
+  watch,
   networkManager,
   clean,
   console,

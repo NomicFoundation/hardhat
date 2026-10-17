@@ -1068,6 +1068,14 @@ The following files form a cycle:
 
 If you need to flatten your project, refactor your Solidity sources to remove the cycle. Cyclic imports are usually avoidable, and removing them tends to make code easier to reason about.`,
       },
+      WATCH_MODE_REQUIRES_CLI: {
+        number: 603,
+        messageTemplate: `The "{task}" task can only run in watch mode from the command line, with \`--watch\`.`,
+        websiteTitle: "Watch mode can only be used from the command line",
+        websiteDescription: `Watch mode reruns the command you typed each time a file changes, so it needs the command line arguments of a \`hardhat\` invocation. It can't be enabled when a task is run from code.
+
+Run the task from the command line with \`--watch\`, for example \`npx hardhat test --watch\`.`,
+      },
     },
     NETWORK: {
       INVALID_URL: {
