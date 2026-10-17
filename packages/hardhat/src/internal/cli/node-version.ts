@@ -10,7 +10,30 @@
 
 import { getRuntimeInfo } from "@nomicfoundation/hardhat-utils/runtime";
 
-export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 13, 0];
+/**
+ * The minimum supported version of each Node.js major that has one, sorted by
+ * major.
+ *
+ * Majors below the first entry aren't supported. Majors above it without an
+ * entry of their own (e.g. odd majors, or newer ones) are supported.
+ */
+export const MIN_SUPPORTED_NODE_VERSIONS: Array<[number, number, number]> = [
+  [22, 18, 0],
+  [24, 3, 0],
+];
+
+/**
+ * Returns the minimum supported version of the given Node.js major, or the
+ * lowest minimum supported version if that major doesn't have its own.
+ */
+export function getMinSupportedNodeVersion(
+  major: number,
+): [number, number, number] {
+  return (
+    MIN_SUPPORTED_NODE_VERSIONS.find(([minMajor]) => minMajor === major) ??
+    MIN_SUPPORTED_NODE_VERSIONS[0]
+  );
+}
 
 export function isNodeVersionSupported(): boolean {
   try {
@@ -19,19 +42,21 @@ export function isNodeVersionSupported(): boolean {
     const minor = parseInt(minorStr, 10);
     const patch = parseInt(patchStr, 10);
 
-    if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
+    const [minMajor, minMinor, minPatch] = getMinSupportedNodeVersion(major);
+
+    if (major < minMajor) {
       return false;
-    } else if (major > MIN_SUPPORTED_NODE_VERSION[0]) {
+    } else if (major > minMajor) {
       return true;
     }
 
-    if (minor < MIN_SUPPORTED_NODE_VERSION[1]) {
+    if (minor < minMinor) {
       return false;
-    } else if (minor > MIN_SUPPORTED_NODE_VERSION[1]) {
+    } else if (minor > minMinor) {
       return true;
     }
 
-    if (patch < MIN_SUPPORTED_NODE_VERSION[2]) {
+    if (patch < minPatch) {
       return false;
     }
   } catch {
@@ -51,9 +76,11 @@ export function exitIfNodeVersionNotSupported(): void {
   }
 
   if (!isNodeVersionSupported()) {
+    const major = parseInt(process.versions.node.split(".")[0], 10);
+
     console.error(
       `\nERROR: You are using Node.js ${process.versions.node} which is not supported by Hardhat.\n` +
-        `Please upgrade to Node.js ${MIN_SUPPORTED_NODE_VERSION.join(".")} or later.\n`,
+        `Please upgrade to Node.js ${getMinSupportedNodeVersion(major).join(".")} or later.\n`,
     );
 
     process.exit(1);
