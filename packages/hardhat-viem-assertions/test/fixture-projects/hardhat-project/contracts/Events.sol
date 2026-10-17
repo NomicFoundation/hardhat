@@ -20,6 +20,9 @@ contract Events {
   event WithArray(uint[] a);
   event WithStruct(TestStruct a);
   event WithAddress(address a);
+  event WithIndexedString(string indexed s);
+  event WithIndexedBytes(bytes indexed b);
+  event WithIndexedBytes32(bytes32 indexed b);
 
   constructor() {}
 
@@ -83,5 +86,17 @@ contract Events {
 
   function emitAddress(address a) public {
     emit WithAddress(a);
+  }
+
+  function emitIndexedString(string memory s) public {
+    emit WithIndexedString(s);
+  }
+
+  function emitIndexedBytes(bytes memory b) public {
+    emit WithIndexedBytes(b);
+  }
+
+  function emitIndexedBytes32(bytes32 b) public {
+    emit WithIndexedBytes32(b);
   }
 }

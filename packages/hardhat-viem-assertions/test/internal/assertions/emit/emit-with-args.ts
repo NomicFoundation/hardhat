@@ -10,7 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, keccak256, toHex } from "viem";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { anyValue } from "../../../../src/internal/predicates.js";
@@ -262,6 +262,94 @@ describe("emitWithArgs", () => {
           "The event arguments do not match the expected ones.",
           [addr1],
           [addr2],
+        ),
+    );
+  });
+
+  it("should match indexed string and bytes arguments against their value or its hash, and pass the hash to predicates", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedString(["0x1234"]),
+      contract,
+      "WithIndexedString",
+      ["0x1234"],
+    );
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedBytes(["0x1234"]),
+      contract,
+      "WithIndexedBytes",
+      ["0x1234"],
+    );
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedString(["hello"]),
+      contract,
+      "WithIndexedString",
+      [keccak256(toHex("hello"))],
+    );
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedString(["hello"]),
+      contract,
+      "WithIndexedString",
+      [(arg: string) => arg === keccak256(toHex("hello"))],
+    );
+  });
+
+  it("should throw when an indexed argument does not match", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitIndexedString(["hello"]),
+        contract,
+        "WithIndexedString",
+        ["bye"],
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          "The event arguments do not match the expected ones.",
+          [keccak256(toHex("hello"))],
+          [keccak256(toHex("bye"))],
+        ),
+    );
+  });
+
+  it("should not hash non-indexed or fixed-size indexed arguments", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitIndexedBytes32([keccak256("0x1234")]),
+        contract,
+        "WithIndexedBytes32",
+        ["0x1234"],
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          "The event arguments do not match the expected ones.",
+          [keccak256("0x1234")],
+          ["0x1234"],
+        ),
+    );
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitString([keccak256(toHex("hello"))]),
+        contract,
+        "WithString",
+        ["hello"],
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          "The event arguments do not match the expected ones.",
+          [keccak256(toHex("hello"))],
+          ["hello"],
         ),
     );
   });
