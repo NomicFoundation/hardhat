@@ -3,8 +3,8 @@ import { describe, it, afterEach, beforeEach } from "node:test";
 
 import {
   exitIfNodeVersionNotSupported,
+  getMinSupportedNodeVersion,
   isNodeVersionSupported,
-  MIN_SUPPORTED_NODE_VERSION,
 } from "../../../src/internal/cli/node-version.js";
 
 let originalNodeVersion: string;
@@ -26,59 +26,53 @@ afterEach(() => {
 });
 
 describe("Node version", () => {
+  describe("getMinSupportedNodeVersion", () => {
+    it("returns the minimum version of majors that have their own", () => {
+      assert.deepEqual(getMinSupportedNodeVersion(22), [22, 18, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(24), [24, 3, 0]);
+    });
+
+    it("returns the lowest minimum version for any other major", () => {
+      assert.deepEqual(getMinSupportedNodeVersion(20), [22, 18, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(23), [22, 18, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(26), [22, 18, 0]);
+    });
+  });
+
   describe("isNodeVersionSupported", () => {
-    it("is true when current node version is greater than supported version", () => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major + 2}.${minor - 1}.${patch - 1}`);
-      assert(
-        isNodeVersionSupported(),
-        `${process.versions.node} should be supported`,
-      );
-
-      setNodeVersion(`${major}.${minor + 1}.${patch - 1}`);
-      assert(
-        isNodeVersionSupported(),
-        `${process.versions.node} should be supported`,
-      );
-
-      setNodeVersion(`${major}.${minor}.${patch + 1}`);
-      assert(
-        isNodeVersionSupported(),
-        `${process.versions.node} should be supported`,
-      );
+    it("is true for supported versions", () => {
+      for (const version of [
+        "22.18.0",
+        "22.18.1",
+        "22.23.3",
+        "24.3.0",
+        "24.22.0",
+        "26.0.0",
+      ]) {
+        setNodeVersion(version);
+        assert(isNodeVersionSupported(), `${version} should be supported`);
+      }
     });
 
-    it("is true when the current version is the same as the supported version", () => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major}.${minor}.${patch}`);
-      assert(
-        isNodeVersionSupported(),
-        `${process.versions.node} should be supported`,
-      );
+    it("is true for majors above the lowest one without their own minimum version", () => {
+      for (const version of ["23.0.0", "25.0.0", "27.0.0"]) {
+        setNodeVersion(version);
+        assert(isNodeVersionSupported(), `${version} should be supported`);
+      }
     });
 
-    it("is false when the current version is less than the supported version", () => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major - 2}.${minor + 1}.${patch + 1}`);
-      assert(
-        !isNodeVersionSupported(),
-        `${process.versions.node} should not be supported`,
-      );
-
-      setNodeVersion(`${major}.${minor - 1}.${patch + 1}`);
-      assert(
-        !isNodeVersionSupported(),
-        `${process.versions.node} should not be supported`,
-      );
-
-      setNodeVersion(`${major}.${minor}.${patch - 1}`);
-      assert(
-        !isNodeVersionSupported(),
-        `${process.versions.node} should not be supported`,
-      );
+    it("is false for unsupported versions", () => {
+      for (const version of [
+        "20.19.0",
+        "21.7.3",
+        "22.13.0",
+        "22.17.1",
+        "24.0.0",
+        "24.2.0",
+      ]) {
+        setNodeVersion(version);
+        assert(!isNodeVersionSupported(), `${version} should not be supported`);
+      }
     });
 
     it("returns true in case it's not parsable", async () => {
@@ -88,61 +82,52 @@ describe("Node version", () => {
         `${process.versions.node} should be supported`,
       );
     });
-
-    it("is true when the major version is above the minimum and odd (non-LTS)", () => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major + 1}.${minor}.${patch}`);
-      assert(
-        isNodeVersionSupported(),
-        `${process.versions.node} should be supported`,
-      );
-    });
   });
 
   describe("exitIfNodeVersionNotSupported", () => {
-    it("writes an error to stderr and calls process.exit(1) when the version is unsupported", (t) => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-      const unsupported = `${major}.${minor}.${patch - 1}`;
+    for (const [unsupported, minVersion] of [
+      ["24.2.0", "24.3.0"],
+      ["22.17.0", "22.18.0"],
+      ["20.0.0", "22.18.0"],
+    ]) {
+      it(`writes an error to stderr and calls process.exit(1) on ${unsupported}`, (t) => {
+        setNodeVersion(unsupported);
 
-      setNodeVersion(unsupported);
+        const writeMock = t.mock.method(process.stderr, "write", () => true);
+        const exitMock = t.mock.method(process, "exit", () => undefined);
 
-      const writeMock = t.mock.method(process.stderr, "write", () => true);
-      const exitMock = t.mock.method(process, "exit", () => undefined);
+        exitIfNodeVersionNotSupported();
 
-      exitIfNodeVersionNotSupported();
+        assert.equal(
+          exitMock.mock.callCount(),
+          1,
+          "process.exit should be called exactly once",
+        );
+        assert.deepEqual(
+          exitMock.mock.calls[0].arguments,
+          [1],
+          "process.exit should be called with code 1",
+        );
+        assert.equal(
+          writeMock.mock.callCount(),
+          1,
+          "process.stderr.write should be called exactly once",
+        );
 
-      assert.equal(
-        exitMock.mock.callCount(),
-        1,
-        "process.exit should be called exactly once",
-      );
-      assert.deepEqual(
-        exitMock.mock.calls[0].arguments,
-        [1],
-        "process.exit should be called with code 1",
-      );
-      assert.equal(
-        writeMock.mock.callCount(),
-        1,
-        "process.stderr.write should be called exactly once",
-      );
-
-      const writtenMessage = String(writeMock.mock.calls[0].arguments[0]);
-      assert.ok(
-        writtenMessage.includes(unsupported),
-        `stderr message should include the current version (${unsupported}): ${writtenMessage}`,
-      );
-      assert.ok(
-        writtenMessage.includes(MIN_SUPPORTED_NODE_VERSION.join(".")),
-        `stderr message should include the minimum version (${MIN_SUPPORTED_NODE_VERSION.join(".")}): ${writtenMessage}`,
-      );
-    });
+        const writtenMessage = String(writeMock.mock.calls[0].arguments[0]);
+        assert.ok(
+          writtenMessage.includes(unsupported),
+          `stderr message should include the current version (${unsupported}): ${writtenMessage}`,
+        );
+        assert.ok(
+          writtenMessage.includes(`Please upgrade to Node.js ${minVersion}`),
+          `stderr message should include the minimum version (${minVersion}): ${writtenMessage}`,
+        );
+      });
+    }
 
     it("does nothing when the version is supported", (t) => {
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major}.${minor}.${patch}`);
+      setNodeVersion("22.18.0");
 
       const writeMock = t.mock.method(process.stderr, "write", () => true);
       const exitMock = t.mock.method(process, "exit", () => undefined);
@@ -169,9 +154,7 @@ describe("Node version", () => {
         });
       });
 
-      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
-
-      setNodeVersion(`${major}.${minor}.${patch - 1}`);
+      setNodeVersion("22.17.0");
       Object.defineProperty(process.versions, "bun", {
         value: "1.1.0",
         writable: false,
