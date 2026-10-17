@@ -35,7 +35,7 @@
     "@nomicfoundation/hardhat-slang-solx": "workspace:^",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.1.1",
     "@nomicfoundation/hardhat-verify": "workspace:^3.1.0",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.9",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.1.2",
     "@nomicfoundation/ignition-core": "workspace:^3.1.8",
     "@openzeppelin/contracts": "5.6.1",
