@@ -35,7 +35,6 @@ import * as t from "io-ts";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
-  FUSAKA_TRANSACTION_GAS_LIMIT,
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
@@ -276,11 +275,6 @@ export class EdrProviderWrapper
       bailOnTransactionFailure: config.throwOnTransactionFailures,
       chainId: BigInt(config.chainId),
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      defaultTransactionGasLimit: _resolveDefaultTransactionGasLimit(
-        hardforkName,
-        config.blockGasLimit,
-        transactionGasCap
-      ),
       precompileOverrides,
       genesisState,
       hardfork: edrHardfork,
@@ -715,22 +709,6 @@ function _addCompilationResultParams(
 
 function _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
   return validateParams(params, optionalRpcHardhatNetworkConfig);
-}
-
-function _resolveDefaultTransactionGasLimit(
-  hardfork: HardforkName,
-  blockGasLimit: number,
-  transactionGasCap: bigint | undefined
-): bigint {
-  if (transactionGasCap !== undefined) {
-    return transactionGasCap;
-  }
-
-  if (hardforkGte(hardfork, HardforkName.OSAKA)) {
-    return BigInt(Math.min(FUSAKA_TRANSACTION_GAS_LIMIT, blockGasLimit));
-  }
-
-  return BigInt(blockGasLimit);
 }
 
 function _genesisStateAndOwnedAccounts(
