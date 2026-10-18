@@ -77,7 +77,6 @@ import {
   edrTracingStepToMinimalInterpreterStep,
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
-  ethereumsjsHardforkToEdrSpecId,
   httpHeadersToEdr,
 } from "./utils/convertToEdr";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
@@ -193,9 +192,7 @@ export class EdrProviderWrapper
             ([hardfork, blockNumber]) => {
               return {
                 condition: { blockNumber: BigInt(blockNumber) },
-                hardfork: ethereumsjsHardforkToEdrSpecId(
-                  getHardforkName(hardfork)
-                ),
+                hardfork: getHardforkName(hardfork),
               };
             }
           ),
@@ -241,11 +238,10 @@ export class EdrProviderWrapper
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
     const hardforkName = getHardforkName(config.hardfork);
-    const edrHardfork = ethereumsjsHardforkToEdrSpecId(hardforkName);
 
     const [genesisState, ownedAccounts] = _genesisStateAndOwnedAccounts(
       config.forkConfig !== undefined,
-      edrHardfork,
+      hardforkName,
       config.genesisAccounts
     );
 
@@ -277,7 +273,7 @@ export class EdrProviderWrapper
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
       precompileOverrides,
       genesisState,
-      hardfork: edrHardfork,
+      hardfork: hardforkName,
       initialBaseFeePerGas:
         config.initialBaseFeePerGas !== undefined
           ? BigInt(config.initialBaseFeePerGas!)

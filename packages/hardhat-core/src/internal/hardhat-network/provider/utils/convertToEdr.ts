@@ -20,12 +20,6 @@ import {
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
-  // EDR's hardfork names match Hardhat's, so no conversion is needed. Names
-  // EDR does not support (e.g. pre-Byzantium) are rejected by EDR itself.
-  return hardfork;
-}
-
 export function edrSpecIdToEthereumHardfork(specId: L1Hardfork): HardforkName {
   const { l1HardforkToString } = requireNapiRsModule(
     "@nomicfoundation/edr"
