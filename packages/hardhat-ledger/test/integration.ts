@@ -1,12 +1,15 @@
 import type { EdrNetworkAccountsUserConfig } from "hardhat/types/config";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatLedgerPlugin from "../src/index.js";
+import { LedgerHandler } from "../src/internal/handler.js";
 
 import mockedNetworkPlugin from "./mocked-network-plugin.js";
 
@@ -128,6 +131,57 @@ describe("LedgerHandler", () => {
         },
       );
     });
+  });
+
+  it("should close the handler and refuse requests once the connection closes", async (t) => {
+    // Parks a request before it reaches the ledger hook. Hooks run in reverse
+    // registration order, so this plugin must come after the ledger plugin.
+    let requestGate = Promise.resolve();
+    const gatePlugin: HardhatPlugin = {
+      id: "gate-plugin",
+      hookHandlers: {
+        network: async () => ({
+          default: async () => ({
+            async onRequest(context, networkConnection, jsonRpcRequest, next) {
+              await requestGate;
+              return await next(context, networkConnection, jsonRpcRequest);
+            },
+          }),
+        }),
+      },
+    };
+
+    const hre = await createHardhatRuntimeEnvironment({
+      plugins: [hardhatLedgerPlugin, gatePlugin],
+      networks: {
+        ledger: {
+          type: "edr-simulated",
+          accounts: [],
+          ledgerAccounts: LEDGER_ADDRESSES,
+        },
+      },
+    });
+    const connection = await hre.network.create("ledger");
+    const close = t.mock.method(LedgerHandler.prototype, "close");
+
+    assert.deepEqual(
+      await connection.provider.request({ method: "eth_accounts" }),
+      [...LEDGER_ADDRESSES],
+    );
+
+    const { promise, resolve: releaseRequest } = Promise.withResolvers<void>();
+    requestGate = promise;
+    const inFlight = connection.provider.request({ method: "eth_accounts" });
+    await connection.close();
+    assert.equal(close.mock.callCount(), 1);
+    releaseRequest();
+
+    await assertRejects(inFlight, (error) =>
+      HardhatError.isHardhatError(
+        error,
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_CLOSED,
+      ),
+    );
   });
 
   it("should work with multiple connections", async () => {

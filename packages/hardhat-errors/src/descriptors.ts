@@ -3406,7 +3406,7 @@ export default { lib1: "0x...", lib2: "0x...", ... };
       },
       CONNECTION_ERROR: {
         number: 90002,
-        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.{transportId}
+        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.
 
 Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.`,
         websiteTitle: "Ledger connection error",
@@ -3457,10 +3457,37 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         websiteDescription: `The ledger device is locked. Please unlock it and try again.`,
       },
       EIP_7702_TX_CURRENTLY_NOT_SUPPORTED: {
+        // [DEPRECATED]
         number: 90009,
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
+      },
+      ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH: {
+        number: 90010,
+        messageTemplate: `The Ledger device signed different typed data than requested, so the signature was discarded. Known causes: a field named only with digits (e.g. "123") or "__proto__". Rename those fields.`,
+        websiteTitle: `The Ledger device signed different typed data than requested`,
+        websiteDescription: `Before signing, the Ledger SDK re-encodes your EIP-712 typed data. For some inputs that encoding differs from the EIP-712 standard, so the device signs a different message than the one you sent. Hardhat detects this by recovering the signer from your original data and refuses to return the signature.
+
+Known causes:
+- A field whose name is only digits (e.g. "123"): the SDK moves it to the front of the struct.
+- A field named "__proto__": the SDK drops it.
+
+Rename those fields and try again. If none of your fields match, please open an issue with the typed data so we can document the cause.`,
+      },
+      CONNECTION_CLOSED: {
+        number: 90011,
+        messageTemplate: `The network connection was closed. Create a new connection to keep using the Ledger.`,
+        websiteTitle: "Ledger connection closed",
+        websiteDescription: `A request reached the Ledger after its network connection was closed.
+
+Create a new connection to keep using the Ledger.`,
+      },
+      DEVICE_ACTION_FAILED: {
+        number: 90012,
+        messageTemplate: `The Ledger device did not complete the request: {message}`,
+        websiteTitle: "Ledger device action failed",
+        websiteDescription: `The Ledger device reported an error while signing, for example because the request was rejected on the device.`,
       },
     },
   },
