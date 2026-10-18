@@ -154,7 +154,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async getScope(fsPath: string): Promise<BuildScope> {
     const isUnderSources = this.#options.soliditySourcesPaths.some(
-      (sourcesPath) => fsPath.startsWith(sourcesPath + path.sep),
+      (sourcesPath) => isFsPathWithin(sourcesPath, fsPath),
     );
 
     // A `.sol` file under the tests path is a test, unless it is
@@ -163,7 +163,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // `./test/mocks`)
     if (
       !isUnderSources &&
-      fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
+      isFsPathWithin(this.#options.solidityTestsPath, fsPath) &&
       fsPath.endsWith(".sol")
     ) {
       return "tests";
@@ -1687,4 +1687,24 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
 function toForwardSlash(str: string): string {
   return str.split(/[\\\/]/).join(path.posix.sep);
+}
+
+/**
+ * Returns true if `fsPath` points to something inside `parentFsPath`.
+ *
+ * The comparison is done with `path.relative` instead of
+ * `String.prototype.startsWith` so that the different valid spellings of the
+ * same location are treated as equal: a trailing separator in either path,
+ * redundant `.` or `..` segments, a mixture of `/` and `\` on Windows, or a
+ * different letter case on Windows, where the file system is case-insensitive.
+ */
+function isFsPathWithin(parentFsPath: string, fsPath: string): boolean {
+  const relativePath = path.relative(parentFsPath, fsPath);
+
+  return (
+    relativePath !== "" &&
+    relativePath !== ".." &&
+    !relativePath.startsWith(".." + path.sep) &&
+    !path.isAbsolute(relativePath)
+  );
 }

@@ -879,6 +879,106 @@ describe("SolidityBuildSystemImplementation.getScope with overlapping sources an
   });
 });
 
+describe("SolidityBuildSystemImplementation.getScope with equivalently-spelled paths", () => {
+  const projectRoot = path.join(path.sep, "project");
+  const contractsPath = path.join(projectRoot, "contracts");
+  const testsPath = path.join(projectRoot, "tests");
+
+  function makeBuildSystem(
+    soliditySourcesPaths: string[],
+    solidityTestsPath: string,
+  ): SolidityBuildSystemImplementation {
+    const hooks = new HookManagerImplementation(projectRoot, []);
+
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hooks context is irrelevant for getScope
+    hooks.setContext({} as HookContext);
+
+    const solidityConfig: SolidityConfig = {
+      profiles: {
+        default: {
+          compilers: [],
+          overrides: {},
+          isolated: false,
+          preferWasm: false,
+        },
+      },
+      npmFilesToBuild: [],
+      registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: false,
+    };
+
+    return new SolidityBuildSystemImplementation(hooks, {
+      solidityConfig,
+      projectRoot,
+      soliditySourcesPaths,
+      artifactsPath: path.join(projectRoot, "artifacts"),
+      cachePath: path.join(projectRoot, "cache"),
+      solidityTestsPath,
+      coverage: false,
+    });
+  }
+
+  it("treats a sources path with a trailing separator as that sources path", async () => {
+    const solidity = makeBuildSystem([contractsPath + path.sep], testsPath);
+
+    assert.equal(
+      await solidity.getScope(path.join(contractsPath, "Foo.t.sol")),
+      "tests",
+    );
+  });
+
+  it("treats a tests path with a trailing separator as that tests path", async () => {
+    const solidity = makeBuildSystem([contractsPath], testsPath + path.sep);
+
+    assert.equal(
+      await solidity.getScope(path.join(testsPath, "Foo.sol")),
+      "tests",
+    );
+  });
+
+  it("treats a sources path with a redundant separator as that sources path", async () => {
+    const solidity = makeBuildSystem(
+      // A doubled separator is a valid spelling of the same directory.
+      [projectRoot + path.sep + path.sep + "contracts"],
+      testsPath,
+    );
+
+    assert.equal(
+      await solidity.getScope(path.join(contractsPath, "Foo.t.sol")),
+      "tests",
+    );
+  });
+
+  it("treats a sources path that uses forward slashes as that sources path", async () => {
+    // On POSIX this is the same string as `contractsPath`. On Windows it's a
+    // different spelling of the same directory, and Windows accepts both.
+    const solidity = makeBuildSystem(
+      [contractsPath.replaceAll(path.sep, path.posix.sep)],
+      testsPath,
+    );
+
+    assert.equal(
+      await solidity.getScope(path.join(contractsPath, "Foo.t.sol")),
+      "tests",
+    );
+  });
+
+  it("treats a tests path that differs only in casing as that tests path on Windows", async () => {
+    if (process.platform !== "win32") {
+      // Only Windows has a case-insensitive file system, so the spelling
+      // below is a different file system path elsewhere.
+      return;
+    }
+
+    const solidity = makeBuildSystem([contractsPath], testsPath.toUpperCase());
+
+    assert.equal(
+      await solidity.getScope(path.join(testsPath, "Foo.sol")),
+      "tests",
+    );
+  });
+});
+
 describe("SolidityBuildSystemImplementation.getRootFilePaths", () => {
   const tmp = createTmpDir("solidity-build-system-root-files", "test");
 
