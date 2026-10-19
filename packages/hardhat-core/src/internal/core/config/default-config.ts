@@ -54,62 +54,7 @@ export const defaultHardhatNetworkParams: Omit<
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   minGasPrice: 0n,
-  /**
-   * Block numbers / timestamps were taken from:
-   * https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains.ts
-   *
-   * To find hardfork activation blocks by timestamp, use:
-   * https://api-TESTNET.etherscan.io/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
-   */
-  chains: new Map([
-    [
-      11155111, // sepolia
-      {
-        hardforkHistory: new Map([
-          [HardforkName.GRAY_GLACIER, 0],
-          [HardforkName.MERGE, 1_450_409],
-          [HardforkName.SHANGHAI, 2_990_908],
-          [HardforkName.CANCUN, 5_187_023],
-          [HardforkName.PRAGUE, 7_836_331],
-        ]),
-      },
-    ],
-    // TODO: the rest of this config is a temporary workaround,
-    // see https://github.com/NomicFoundation/edr/issues/522
-    [
-      10, // optimism mainnet
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      11155420, // optimism sepolia
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      42161, // arbitrum one
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      43114, // avalanche
-      {
-        hardforkHistory: new Map([
-          [HardforkName.SHANGHAI, 11_404_279],
-          [HardforkName.CANCUN, 41_263_126],
-        ]),
-      },
-    ],
-    [
-      421614, // arbitrum sepolia
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-  ]),
+  chains: new Map(),
 };
 
 export const defaultHttpNetworkParams = {
