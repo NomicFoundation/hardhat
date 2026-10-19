@@ -50,7 +50,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
       .addFlag({
         name: "gasProfile",
         description:
-          "Print a gas summary and write folded stacks for each test",
+          "Print a gas summary and write an HTML report and folded stacks for each test",
       })
       .addOption({
         name: "testSummaryIndex",

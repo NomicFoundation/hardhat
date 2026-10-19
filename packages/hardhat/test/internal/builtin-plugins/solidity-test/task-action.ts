@@ -988,12 +988,17 @@ describe("solidity-test/task-action", function () {
       assert.match(folded, /^GasProfileTest\.testIncTwice \d+\n/);
       assert.match(folded, /\nGasProfileTest\.testIncTwice;Counter\.inc \d+\n/);
 
+      const htmlPath = path.join(tmp.path, "gas-profile", "index.html");
+      const html = await readUtf8File(htmlPath);
+      assertIncludes(html, "GasProfileTest#<wbr>testIncTwice");
+      assertIncludes(html, "Counter.inc ×2");
+
       const printed = output.lines.join("\n");
       assertIncludes(printed, "Tests by gas (top 2 of 2)");
       assertIncludes(printed, "Counter.inc ×2");
       assertIncludes(
         printed,
-        `Saved gas profile (folded stacks, 2 files) to ${foldedDir}`,
+        `Saved gas profile to ${htmlPath}\nSaved folded stacks to ${foldedDir} (2 files)`,
       );
       assert.ok(
         !printed.includes(ISOLATION_NOTE),

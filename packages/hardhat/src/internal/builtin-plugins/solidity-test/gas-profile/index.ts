@@ -12,7 +12,10 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { sanitizeFilename } from "@nomicfoundation/hardhat-utils/path";
 
-import { isProfiled, profileTest } from "./model.js";
+import { getEdrVersion, getHardhatVersion } from "../../../utils/package.js";
+
+import { renderReport } from "./html.js";
+import { isProfiled, plural, profileTest } from "./model.js";
 import { renderSummary } from "./summary.js";
 
 const log = createDebug("hardhat:core:solidity-test:gas-profile");
@@ -94,8 +97,8 @@ export async function foldedFileNames(
 }
 
 /**
- * Replaces `outputDir` with one folded-stacks file per profiled test, and
- * returns the text to print. When no test ran, it only removes `outputDir`.
+ * Replaces `outputDir` with an HTML report and one folded-stacks file per
+ * profiled test, and returns the text to print. When no test ran, it only removes `outputDir`.
  */
 export async function writeGasProfile(
   suiteResults: SuiteResult[],
@@ -122,9 +125,21 @@ export async function writeGasProfile(
   }
   log(`Wrote ${profiles.length} folded files to ${foldedDir}`);
 
-  const summary = renderSummary(profiles, unprofiled, isolation);
-  if (profiles.length === 0) {
-    return summary;
+  const htmlPath = path.join(outputDir, "index.html");
+  await writeUtf8File(
+    htmlPath,
+    renderReport(profiles, unprofiled, {
+      hardhatVersion: await getHardhatVersion(),
+      edrVersion: await getEdrVersion(),
+      isolation,
+    }),
+  );
+
+  const saved = [`Saved gas profile to ${htmlPath}`];
+  if (profiles.length > 0) {
+    saved.push(
+      `Saved folded stacks to ${foldedDir} (${plural(profiles.length, "file")})`,
+    );
   }
-  return `${summary}\n\nSaved gas profile (folded stacks, ${profiles.length} file${profiles.length === 1 ? "" : "s"}) to ${foldedDir}`;
+  return `${renderSummary(profiles, unprofiled, isolation)}\n\n${saved.join("\n")}`;
 }

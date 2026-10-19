@@ -92,6 +92,10 @@ describe("gas-profile/index", () => {
       false,
     );
 
+    assert.ok(
+      await exists(path.join(outputDir, "index.html")),
+      "expected the HTML report",
+    );
     assert.deepEqual(await readdir(path.join(outputDir, "folded")), [
       "GasTest.test_deposit.folded",
     ]);
@@ -103,7 +107,7 @@ describe("gas-profile/index", () => {
     );
     assert.ok(
       printed.endsWith(
-        `Saved gas profile (folded stacks, 1 file) to ${path.join(outputDir, "folded")}`,
+        `Saved gas profile to ${path.join(outputDir, "index.html")}\nSaved folded stacks to ${path.join(outputDir, "folded")} (1 file)`,
       ),
       "expected the saved path last",
     );
