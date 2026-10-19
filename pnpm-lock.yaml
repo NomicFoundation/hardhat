@@ -387,8 +387,8 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/adm-zip':
-        specifier: ^0.5.8
-        version: 0.5.8
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.5
@@ -3292,8 +3292,9 @@ packages:
       typechain: ^8.3.2
       typescript: '>=4.7.0'
 
-  '@types/adm-zip@0.5.8':
-    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
+  '@types/adm-zip@0.6.0':
+    resolution: {integrity: sha512-4BJwT30zsKqyYk+PgJS+LQzVrLh0bHragg9etHGg679uuBbNDbSaLsJy+DaJQZM8AvESHB+t3ruVzbrn6BUsMQ==}
+    deprecated: This is a stub types definition. adm-zip provides its own type definitions, so you do not need this installed.
 
   '@types/argparse@1.0.38':
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
@@ -8702,9 +8703,9 @@ snapshots:
       typechain: 8.3.2(supports-color@8.1.1)(typescript@6.0.3)
       typescript: 6.0.3
 
-  '@types/adm-zip@0.5.8':
+  '@types/adm-zip@0.6.0':
     dependencies:
-      '@types/node': 22.20.5
+      adm-zip: 0.6.0
 
   '@types/argparse@1.0.38': {}
 

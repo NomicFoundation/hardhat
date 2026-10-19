@@ -83,7 +83,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/adm-zip": "^0.5.8",
+    "@types/adm-zip": "^0.6.0",
     "@types/node": "^22.0.0",
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
