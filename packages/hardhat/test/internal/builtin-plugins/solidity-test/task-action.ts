@@ -1,10 +1,17 @@
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
-import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
+import type {
+  CallTrace,
+  LogTrace,
+  SuiteResult,
+  TestResult,
+} from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import path from "node:path";
+import { after, before, beforeEach, describe, it } from "node:test";
 import { stripVTControlCharacters } from "node:util";
 
+import { CallKind } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
@@ -12,10 +19,16 @@ import {
   createTestEnvManager,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  readUtf8File,
+  remove,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { overrideTask } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test/hardhat.config.js";
+import callTracesHardhatConfig from "../../../fixture-projects/solidity-test-call-traces/hardhat.config.js";
 
 /**
  * The fixture project for this test has two folders:
@@ -933,6 +946,243 @@ describe("solidity-test/task-action", function () {
         },
       );
     });
+  });
+});
+
+describe("solidity-test/task-action call traces of the selected test files", function () {
+  let hre: HardhatRuntimeEnvironment;
+
+  // See the comment on the same shield in the suite above.
+  const envChanges = createEnvChanges();
+
+  useFixtureProject("solidity-test-call-traces");
+
+  before(() => {
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
+  });
+
+  after(() => {
+    envChanges.restoreEnvVars();
+  });
+
+  const splitTestsConfig = {
+    ...callTracesHardhatConfig,
+    solidity: { version: "0.8.28", splitTestsCompilation: true },
+  };
+
+  // Each test starts without artifacts, like a fresh project.
+  beforeEach(async () => {
+    await remove(path.join(process.cwd(), "artifacts"));
+    await remove(path.join(process.cwd(), "cache"));
+  });
+
+  /**
+   * Runs the selected test files with call traces and returns every call and
+   * log in them, depth first.
+   */
+  async function getTraces(
+    config: typeof callTracesHardhatConfig,
+    args: { testFiles: string[]; noCompile?: boolean },
+  ): Promise<Array<CallTrace | LogTrace>> {
+    hre = await createHardhatRuntimeEnvironment(config, { verbosity: 4 });
+
+    const result = await hre.tasks.getTask(["test", "solidity"]).run(args);
+    assert.equal(result.success, true);
+
+    const traces: Array<CallTrace | LogTrace> = [];
+    const visit = (trace: CallTrace | LogTrace) => {
+      traces.push(trace);
+
+      if ("address" in trace) {
+        trace.children.forEach(visit);
+      }
+    };
+
+    result.value.suiteResults
+      .flatMap((s: SuiteResult) => s.testResults)
+      .flatMap((t: TestResult) => t.callTraces())
+      .forEach(visit);
+
+    return traces;
+  }
+
+  /**
+   * Runs the selected test files with call traces and returns the contract
+   * label of every call in them, depth first, with `undefined` for a call
+   * whose contract wasn't identified.
+   */
+  async function getTraceContractLabels(
+    config: typeof callTracesHardhatConfig,
+    args: { testFiles: string[]; noCompile?: boolean },
+  ): Promise<Array<string | undefined>> {
+    const traces = await getTraces(config, args);
+
+    return traces
+      .filter((trace) => "address" in trace)
+      .map((trace) => trace.contract);
+  }
+
+  it("labels the contracts that a selected test deploys and calls", async () => {
+    const labels = await getTraceContractLabels(callTracesHardhatConfig, {
+      testFiles: ["test/Counter.t.sol"],
+    });
+
+    assert.deepEqual(labels, ["CounterTest", "Counter", "Counter", "Counter"]);
+  });
+
+  it("doesn't label a contract with the name of another contract's stale artifact", async () => {
+    const buildHre = await createHardhatRuntimeEnvironment(
+      callTracesHardhatConfig,
+    );
+    await buildHre.tasks
+      .getTask(["build"])
+      .run({ files: ["contracts/Counter.sol"] });
+
+    const labels = await getTraceContractLabels(callTracesHardhatConfig, {
+      testFiles: ["test/Tally.t.sol"],
+    });
+
+    assert.deepEqual(labels, ["TallyTest", "Tally", "Tally", "Tally"]);
+  });
+
+  it("decodes the calls and events of a contract whose artifact is stale", async () => {
+    const bumperPath = path.join(process.cwd(), "contracts", "Bumper.sol");
+    const bumperSource = await readUtf8File(bumperPath);
+
+    // Build an older Bumper, without `bumpBy` nor `Bumped`, which leaves an
+    // artifact with the same id as the Bumper that the test uses.
+    try {
+      await writeUtf8File(
+        bumperPath,
+        `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Bumper {
+  uint256 public count;
+
+  function bump() external {
+    count += 1;
+  }
+}
+`,
+      );
+
+      const buildHre = await createHardhatRuntimeEnvironment(
+        callTracesHardhatConfig,
+      );
+      await buildHre.tasks
+        .getTask(["build"])
+        .run({ files: ["contracts/Bumper.sol"] });
+    } finally {
+      await writeUtf8File(bumperPath, bumperSource);
+    }
+
+    const traces = await getTraces(callTracesHardhatConfig, {
+      testFiles: ["test/Bumper.t.sol"],
+    });
+
+    const decoded = traces.map((trace) => {
+      if ("address" in trace) {
+        if (trace.kind === CallKind.Create) {
+          return `new ${trace.contract}`;
+        }
+
+        return trace.inputs instanceof Uint8Array
+          ? `${trace.contract}::<undecoded>`
+          : `${trace.contract}::${trace.inputs.name}`;
+      }
+
+      return Array.isArray(trace.parameters)
+        ? "event <undecoded>"
+        : `event ${trace.parameters.name}`;
+    });
+
+    assert.deepEqual(decoded, [
+      "BumperTest::testBumpBy",
+      "new Bumper",
+      "Bumper::bump",
+      "Bumper::bumpBy",
+      "event Bumped",
+    ]);
+  });
+
+  it("fuzzes the invariant targets that a selected test imports", async () => {
+    hre = await createHardhatRuntimeEnvironment(callTracesHardhatConfig);
+
+    const result = await hre.tasks
+      .getTask(["test", "solidity"])
+      .run({ testFiles: ["test/Invariant.t.sol"] });
+
+    const suiteResults: SuiteResult[] =
+      result.success === true
+        ? result.value.suiteResults
+        : result.error.suiteResults;
+
+    assert.deepEqual(
+      suiteResults
+        .flatMap((s: SuiteResult) => s.testResults)
+        .map((t: TestResult) => [t.name, t.status, t.reason]),
+      [["invariantCountIsBounded()", "Success", undefined]],
+    );
+  });
+
+  it("runs a selected test with its own compiler settings when another selected test imports it", async () => {
+    // OverrideA.t.sol has its own settings, and OverrideB.t.sol imports it, so
+    // OverrideB.t.sol's build info compiles OverrideATest again with the
+    // default settings.
+    const overrideConfig = {
+      ...callTracesHardhatConfig,
+      solidity: {
+        compilers: [{ version: "0.8.28" }],
+        overrides: {
+          "test/OverrideA.t.sol": {
+            version: "0.8.28",
+            settings: { optimizer: { enabled: true, runs: 1 } },
+          },
+        },
+      },
+    };
+
+    const getTestAGas = async (testFiles: string[]) => {
+      hre = await createHardhatRuntimeEnvironment(overrideConfig);
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ testFiles });
+      assert.equal(result.success, true);
+
+      const testA = result.value.suiteResults
+        .flatMap((s: SuiteResult) => s.testResults)
+        .find((t: TestResult) => t.name === "testA()");
+      assert.ok(testA !== undefined, "expected testA to run");
+      assert.ok("consumedGas" in testA.kind, "expected a standard test");
+
+      return testA.kind.consumedGas;
+    };
+
+    const gasAlone = await getTestAGas(["test/OverrideA.t.sol"]);
+    const gasWithB = await getTestAGas([
+      "test/OverrideA.t.sol",
+      "test/OverrideB.t.sol",
+    ]);
+
+    assert.equal(gasWithB, gasAlone);
+  });
+
+  it("doesn't label a contract with the name of another contract's stale artifact when splitTestsCompilation is true", async () => {
+    const buildHre = await createHardhatRuntimeEnvironment(splitTestsConfig);
+    await buildHre.tasks
+      .getTask(["build"])
+      .run({ files: ["contracts/Counter.sol"] });
+
+    // With noCompile, only the selected tests are built, so Tally has no
+    // artifact.
+    const labels = await getTraceContractLabels(splitTestsConfig, {
+      testFiles: ["test/Tally.t.sol"],
+      noCompile: true,
+    });
+
+    assert.deepEqual(labels, ["TallyTest", "Tally", "Tally", "Tally"]);
   });
 });
 

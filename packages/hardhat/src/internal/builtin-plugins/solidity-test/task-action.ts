@@ -33,7 +33,9 @@ import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/uti
 
 import {
   buildEdrArtifactsWithMetadata,
+  buildEdrArtifactsWithMetadataFromBuildInfos,
   getBuildInfosAndOutputs,
+  mergeCompiledContracts,
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
@@ -207,6 +209,30 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
+  }
+
+  // A build of selected test files only emits artifacts for those files, so
+  // the project contracts they import may have no artifact, or one from an
+  // older build. EDR identifies contracts (e.g. in call traces and invariant
+  // targets) from the artifacts it gets, so we give it the contracts compiled
+  // with the selected tests, instead of any older artifact with the same id.
+  if (testFiles.length > 0) {
+    const testSuiteBuildInfoIds = new Set(
+      testSuiteArtifacts.map(({ buildInfoId }) => buildInfoId),
+    );
+
+    const compiledContracts = await buildEdrArtifactsWithMetadataFromBuildInfos(
+      allBuildInfosAndOutputs.filter(({ buildInfoId }) =>
+        testSuiteBuildInfoIds.has(buildInfoId),
+      ),
+      edrArtifactsWithMetadata,
+    );
+
+    edrArtifactsWithMetadata = mergeCompiledContracts(
+      edrArtifactsWithMetadata,
+      compiledContracts,
+      testSuiteBuildInfoIds,
+    );
   }
 
   const testSuiteIds = testSuiteArtifacts.map(
