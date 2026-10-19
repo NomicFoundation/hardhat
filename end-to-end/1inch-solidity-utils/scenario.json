@@ -6,6 +6,7 @@
   "commit": "7bcea4d79db5bba3e477d9f236e0a4e52d8dc8c0",
   "packageManager": "yarn",
   "submodules": false,
+  "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test mocha",
   "benchmark": {
     "commands": {
