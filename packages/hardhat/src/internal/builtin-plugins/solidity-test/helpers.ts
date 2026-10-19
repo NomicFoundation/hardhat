@@ -7,6 +7,7 @@ import type {
   PathPermission,
   Artifact,
   ObservabilityConfig,
+  IncludeTraces,
 } from "@nomicfoundation/edr";
 import type { Writable } from "node:stream";
 
@@ -34,6 +35,8 @@ interface SolidityTestConfigParams {
   hardfork?: string;
   config: Omit<SolidityTestProfileConfig, "eip712Types">;
   verbosity: number;
+  /** Overrides the traces that `verbosity` would collect, without changing what's printed. */
+  includeTraces?: IncludeTraces;
   observability?: ObservabilityConfig;
   testPattern?: string;
   excludeTestPattern?: string;
@@ -50,6 +53,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   hardfork,
   config,
   verbosity,
+  includeTraces: includeTracesOverride,
   observability,
   testPattern,
   excludeTestPattern,
@@ -100,7 +104,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const localPredeploys = getChainGenesisState(resolvedHardfork, chainType);
 
-  const includeTraces = verbosityToIncludeTraces(verbosity);
+  const includeTraces =
+    includeTracesOverride ?? verbosityToIncludeTraces(verbosity);
 
   const blockGasLimit =
     typeof config.blockGasLimit === "number" ||

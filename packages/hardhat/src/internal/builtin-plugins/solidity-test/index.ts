@@ -47,6 +47,11 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
       })
+      .addFlag({
+        name: "gasProfile",
+        description:
+          "Print a gas summary and write folded stacks for each test",
+      })
       .addOption({
         name: "testSummaryIndex",
         description:
