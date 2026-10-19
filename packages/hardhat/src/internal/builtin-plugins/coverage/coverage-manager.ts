@@ -77,11 +77,13 @@ export class CoverageManagerImplementation implements CoverageManager {
   public data: Map<string, number> = new Map();
 
   readonly #coveragePath: string;
+  readonly #projectRoot: string;
 
   #reportEnabled = true;
 
-  constructor(coveragePath: string) {
+  constructor(coveragePath: string, projectRoot: string) {
     this.#coveragePath = coveragePath;
+    this.#projectRoot = projectRoot;
   }
 
   async #getDataPath(id: string): Promise<string> {
@@ -150,7 +152,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     log(`Saved lcov report to ${lcovReportPath}`);
 
     const htmlReportPath = path.join(this.#coveragePath, "html");
-    await generateHtmlReport(report, htmlReportPath);
+    await generateHtmlReport(report, htmlReportPath, this.#projectRoot);
     console.log(`Saved html report to ${htmlReportPath}`);
 
     console.log(markdownReport);
@@ -199,7 +201,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         const statements = Array.from(fileStatements.values());
 
         const fileContent = await readUtf8File(
-          path.join(process.cwd(), fileRelativePath),
+          path.join(this.#projectRoot, fileRelativePath),
         );
 
         const tags: Set<string> = new Set();
