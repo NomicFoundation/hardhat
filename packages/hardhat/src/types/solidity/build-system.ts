@@ -297,12 +297,17 @@ export interface SolidityBuildSystem {
    * When `solidity.splitTestsCompilation` is `true`, `scope: "contracts"`
    * returns only contract roots and `scope: "tests"` returns only test roots.
    *
+   * Local files are discovered through the `solidity.isRootFile` hook and
+   * classified through `solidity.getScope`. By default only `.sol` files are
+   * discovered. npm roots are always contract roots.
+   *
    * @returns An array of root file paths.
    */
   getRootFilePaths(options?: { scope?: BuildScope }): Promise<string[]>;
 
   /**
-   * Given the filesystem path for a source file, returns the build scope
+   * Given the filesystem path for a source file, returns the build scope,
+   * allowing plugins to customize it through the `solidity.getScope` hook.
    */
   getScope(fsPath: string): Promise<BuildScope>;
 

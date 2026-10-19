@@ -1,6 +1,7 @@
 import type { SolidityCompilerConfig } from "../../../types/config.js";
 import type {
   BuildOptions,
+  BuildScope,
   CompilationJobCreationError,
   FileBuildResult,
   SolidityBuildSystem,
@@ -340,6 +341,45 @@ declare module "../../../types/hooks.js" {
   }
 
   export interface SolidityHooks {
+    /**
+     * Decides whether a file under paths.sources.solidity or paths.tests.solidity
+     * is a build root. The default implementation accepts only `.sol` files.
+     *
+     * This hook is not called for explicitly requested files or npmFilesToBuild.
+     * Accepting a file does not add compiler support for its language: plugins
+     * must handle non-Solidity roots in the build hook.
+     *
+     * @param context The hook context.
+     * @param fsPath The absolute path to the file being considered.
+     * @param next A function to call the next handler for this hook.
+     */
+    isRootFile(
+      context: HookContext,
+      fsPath: string,
+      next: (nextContext: HookContext, nextFsPath: string) => Promise<boolean>,
+    ): Promise<boolean>;
+
+    /**
+     * Determines a local file's build scope, both during root discovery and
+     * when files are explicitly requested. The default implementation uses
+     * the configured source/test paths and the `.sol` and `.t.sol` suffixes.
+     * Plugins accepting other extensions can provide their own scope rules.
+     *
+     * This hook does not change whether a file is accepted as a root.
+     *
+     * @param context The hook context.
+     * @param fsPath The absolute path to the file being classified.
+     * @param next A function to call the next handler for this hook.
+     */
+    getScope(
+      context: HookContext,
+      fsPath: string,
+      next: (
+        nextContext: HookContext,
+        nextFsPath: string,
+      ) => Promise<BuildScope>,
+    ): Promise<BuildScope>;
+
     /**
      * Hook triggered to download compilers needed for compilation.
      * Each handler should download compilers it is responsible for.
