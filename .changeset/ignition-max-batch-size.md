@@ -1,4 +1,5 @@
 ---
+# docs: https://github.com/NomicFoundation/hardhat-website/pull/315
 "@nomicfoundation/ignition-core": minor
 "@nomicfoundation/hardhat-ignition": minor
 "@nomicfoundation/hardhat-errors": patch
