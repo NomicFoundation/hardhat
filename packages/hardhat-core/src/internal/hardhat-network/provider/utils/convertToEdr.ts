@@ -1,4 +1,5 @@
 import type {
+  ChainOverride,
   MineOrdering,
   IntervalRange,
   TracingMessage,
@@ -6,9 +7,11 @@ import type {
   TracingStep,
   HttpHeader,
 } from "@nomicfoundation/edr";
+import type { HardhatNetworkChainsConfig } from "../../../../types";
 import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
+import { getHardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import {
@@ -364,4 +367,33 @@ export function edrRpcDebugTraceToHardhat2(
     returnValue: trace.returnValue === HEX_PREFIX ? "" : trace.returnValue,
     structLogs,
   };
+}
+
+/**
+ * Converts `networks.hardhat.chains` to EDR chain overrides.
+ *
+ * An empty hardfork history is omitted, so that EDR keeps its built-in
+ * activations for that chain.
+ */
+export function hardhatChainsToEdrChainOverrides(
+  chains: HardhatNetworkChainsConfig
+): ChainOverride[] {
+  return Array.from(chains, ([chainId, { hardforkHistory }]) => {
+    const chainOverride: ChainOverride = {
+      chainId: BigInt(chainId),
+      name: "Unknown",
+    };
+
+    if (hardforkHistory.size > 0) {
+      chainOverride.hardforkActivationOverrides = Array.from(
+        hardforkHistory,
+        ([hardfork, blockNumber]) => ({
+          condition: { blockNumber: BigInt(blockNumber) },
+          hardfork: getHardforkName(hardfork),
+        })
+      );
+    }
+
+    return chainOverride;
+  });
 }
