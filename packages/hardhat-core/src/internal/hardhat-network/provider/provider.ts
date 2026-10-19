@@ -78,6 +78,7 @@ import {
   edrTracingStepToMinimalInterpreterStep,
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
+  hardhatChainsToEdrChainOverrides,
   httpHeadersToEdr,
 } from "./utils/convertToEdr";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
@@ -182,24 +183,7 @@ export class EdrProviderWrapper
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
-    const chainOverrides = Array.from(
-      config.chains,
-      ([chainId, hardforkConfig]) => {
-        return {
-          chainId: BigInt(chainId),
-          name: "Unknown",
-          hardforks: Array.from(
-            hardforkConfig.hardforkHistory,
-            ([hardfork, blockNumber]) => {
-              return {
-                condition: { blockNumber: BigInt(blockNumber) },
-                hardfork: getHardforkName(hardfork),
-              };
-            }
-          ),
-        };
-      }
-    );
+    const chainOverrides = hardhatChainsToEdrChainOverrides(config.chains);
 
     const cacheDir = config.forkCachePath;
 
