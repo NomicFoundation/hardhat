@@ -150,9 +150,9 @@ export async function buildEdrArtifactsWithMetadata(
  * EDR identifies contracts (e.g. in call traces and invariant targets) only
  * from the artifacts it gets, so a test run needs these contracts too.
  *
- * Contracts from npm packages are left out: they never get artifacts, and
- * adding them could make a name ambiguous for EDR (e.g. a project `Ownable`
- * and OpenZeppelin's `Ownable`).
+ * Contracts from npm packages are left out: they only get artifacts when
+ * listed in `npmFilesToBuild`, and adding them could make a name ambiguous
+ * for EDR (e.g. a project `Ownable` and OpenZeppelin's `Ownable`).
  *
  * @param buildInfosAndOutputs The build infos whose contracts to return.
  * @param edrArtifactsWithMetadata The artifacts read from the artifacts
