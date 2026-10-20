@@ -277,7 +277,7 @@ Parameters:
 - `txHash`: The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
 - `eventName`: The event name to assert. Autocompleted from `contract.abi`.
-- `args`: Expected event arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate.
+- `args`: Expected event arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate. Indexed `string` and `bytes` arguments are logged only as their keccak256 hash, so they can be given as their value or as that hash, and predicates receive the hash.
 
 Returns:
 
