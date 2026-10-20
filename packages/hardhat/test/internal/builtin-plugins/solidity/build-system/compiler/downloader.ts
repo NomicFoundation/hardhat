@@ -17,6 +17,88 @@ import {
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
 
+describe("Compiler downloader - updateCompilerListIfNeeded", function () {
+  const tmp = createTmpDir("compiler-list", "test");
+  const version = "0.8.31";
+  const stableBuild = {
+    path: "soljson-v0.8.31+commit.fd3a2265.js",
+    version,
+    longVersion: "0.8.31+commit.fd3a2265",
+    sha256: "0x00",
+  };
+  const prereleaseBuild = {
+    ...stableBuild,
+    path: "soljson-v0.8.31-pre.1+commit.b59566f6.js",
+    longVersion: "0.8.31-pre.1+commit.b59566f6",
+    prerelease: "pre.1",
+  };
+
+  for (const stableCached of [false, true]) {
+    it(
+      stableCached
+        ? "should reuse a cached list containing both prerelease and stable builds"
+        : "should refresh a cached list containing only a prerelease for the requested version",
+      async function () {
+        const listPath = path.join(
+          tmp.path,
+          CompilerPlatform.WASM,
+          "list.json",
+        );
+        const builds = stableCached
+          ? [prereleaseBuild, stableBuild]
+          : [prereleaseBuild];
+        await fs.ensureDir(path.dirname(listPath));
+        await fs.writeJsonFile(listPath, {
+          builds,
+          releases: stableCached ? { [version]: stableBuild.path } : {},
+          latestRelease: stableCached ? version : "0.8.30",
+        });
+
+        let downloads = 0;
+        const downloader = new CompilerDownloader(
+          CompilerPlatform.WASM,
+          tmp.path,
+          async (url, destination) => {
+            assert.equal(
+              url,
+              "https://binaries.soliditylang.org/wasm/list.json",
+            );
+            assert.equal(destination, listPath);
+            downloads++;
+            await fs.writeJsonFile(destination, {
+              builds: [prereleaseBuild, stableBuild],
+              releases: { [version]: stableBuild.path },
+              latestRelease: version,
+            });
+          },
+        );
+
+        if (!stableCached) {
+          await assertRejectsWithHardhatError(
+            () => downloader.isCompilerDownloaded(version),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version },
+          );
+        }
+
+        await downloader.updateCompilerListIfNeeded(new Set([version]));
+        assert.equal(downloads, stableCached ? 0 : 1);
+        assert.equal(await downloader.isCompilerDownloaded(version), false);
+
+        await fs.writeUtf8File(
+          path.join(tmp.path, CompilerPlatform.WASM, stableBuild.path),
+          "",
+        );
+        const compiler = await downloader.getCompiler(version);
+        assert.equal(compiler?.longVersion, stableBuild.longVersion);
+
+        await downloader.updateCompilerListIfNeeded(new Set([version]));
+        assert.equal(downloads, stableCached ? 0 : 1);
+      },
+    );
+  }
+});
+
 describe(
   "Compiler downloader",
   {
