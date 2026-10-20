@@ -166,7 +166,7 @@ export default defineConfig({
 
 ### Supported Solidity versions
 
-Each slang release supports a range of Solidity versions. A compiler entry's `version` picks the Solidity version within that range, and the plugin passes it to slang as `settings.solidityVersion`. Leave that setting unset: a value that differs from `version` is a config error.
+Each slang release supports a range of Solidity versions. A compiler entry's `version` picks the Solidity version within that range, and the plugin passes it to slang as `settings.solidityVersion`.
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
