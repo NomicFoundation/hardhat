@@ -354,6 +354,79 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should match an indexed argument against its hash in any hex case", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedString(["hello"]),
+      contract,
+      "WithIndexedString",
+      [`0x${keccak256(toHex("hello")).slice(2).toUpperCase()}`],
+    );
+  });
+
+  it("should match a 32-byte indexed bytes argument against its value", async () => {
+    const contract = await viem.deployContract("Events");
+    const value = keccak256("0x1234");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedBytes([value]),
+      contract,
+      "WithIndexedBytes",
+      [value],
+    );
+  });
+
+  it("should not hash an expected hash again when it does not match", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitIndexedString(["hello"]),
+        contract,
+        "WithIndexedString",
+        [keccak256(toHex("bye"))],
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          "The event arguments do not match the expected ones.",
+          [keccak256(toHex("hello"))],
+          [keccak256(toHex("bye"))],
+        ),
+    );
+  });
+
+  it("should match indexed arguments of events with unnamed parameters", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitIndexedStringNoParamName(["hello"]),
+      contract,
+      "WithIndexedStringNoParamName",
+      ["hello"],
+    );
+  });
+
+  it("should show the hash of an indexed argument when a predicate fails", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitUintAndIndexedString([1n, "hello"]),
+        contract,
+        "WithUintAndIndexedString",
+        [(u: bigint) => u === 2n, "hello"],
+      ),
+      (error) =>
+        [
+          "The event arguments do not match the expected ones",
+          `Expected: ["<predicate>","${keccak256(toHex("hello"))}"]`,
+          `Emitted: ["1","${keccak256(toHex("hello"))}"]`,
+        ].every((msg) => error.message.includes(msg)),
+    );
+  });
+
   it("should not throw if no args are passed and nothing is emitted", async () => {
     const contract = await viem.deployContract("Events");
 

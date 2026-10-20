@@ -5,7 +5,7 @@ import type { Abi, AbiEvent, ContractEventName, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
-import { isHex, keccak256, stringToHex } from "viem";
+import { isHex, keccak256, size, stringToHex } from "viem";
 
 import { settle, stringifyArgs } from "../../helpers.js";
 import { isArgumentMatch } from "../../predicates.js";
@@ -60,6 +60,8 @@ export async function emitWithArgs<
     eventName,
   );
 
+  const expectedTopics = getExpectedTopics(expectedAbiEvent, expectedArgs);
+
   for (const { args: logArgs } of parsedLogs) {
     let emittedArgs: any[] = [];
 
@@ -90,9 +92,9 @@ export async function emitWithArgs<
       }
     }
 
-    const comparableExpectedArgs = hashIndexedStringAndBytesArgs(
-      expectedAbiEvent,
+    const comparableExpectedArgs = resolveIndexedHashArgs(
       expectedArgs,
+      expectedTopics,
       emittedArgs,
     );
 
@@ -105,15 +107,17 @@ export async function emitWithArgs<
 
       if (expectedArgs.some((arg) => typeof arg === "function")) {
         // If there are predicate matchers, we can't use the built-in deepEqual with diff
-        const displayExpectedArgs = expectedArgs.map((expectedArg) => {
-          if (typeof expectedArg === "function") {
-            const hasName =
-              expectedArg.name !== undefined && expectedArg.name !== "";
-            return `<${hasName ? expectedArg.name : "predicate"}>`;
-          } else {
-            return expectedArg;
-          }
-        });
+        const displayExpectedArgs = comparableExpectedArgs.map(
+          (expectedArg) => {
+            if (typeof expectedArg === "function") {
+              const hasName =
+                expectedArg.name !== undefined && expectedArg.name !== "";
+              return `<${hasName ? expectedArg.name : "predicate"}>`;
+            } else {
+              return expectedArg;
+            }
+          },
+        );
 
         assert.fail(
           `The event arguments do not match the expected ones:\nExpected: ${stringifyArgs(displayExpectedArgs)}\nEmitted: ${stringifyArgs(emittedArgs)}`,
@@ -134,28 +138,52 @@ export async function emitWithArgs<
   );
 }
 
-// Indexed `string` and `bytes` event arguments are logged as the keccak256
-// hash of their value, so the expected values are hashed the same way.
-function hashIndexedStringAndBytesArgs(
+// Indexed `string` and `bytes` event arguments are logged only as the keccak256
+// hash of their value. For each of them, this returns the topics the expected
+// arg can match: the hash of the value and, if the value already looks like a
+// hash, the value itself. The last topic is the one shown when nothing matches.
+function getExpectedTopics(
   abiEvent: AbiEvent,
   expectedArgs: readonly unknown[],
-  emittedArgs: readonly unknown[],
-): unknown[] {
+): Array<string[] | undefined> {
   return expectedArgs.map((arg, index) => {
     const { type, indexed } = abiEvent.inputs[index];
 
-    if (
-      indexed !== true ||
-      typeof arg !== "string" ||
-      arg === emittedArgs[index]
-    ) {
+    if (indexed !== true || typeof arg !== "string") {
+      return undefined;
+    }
+
+    let valueHash: string;
+    if (type === "string") {
+      valueHash = keccak256(stringToHex(arg));
+    } else if (type === "bytes" && isHex(arg)) {
+      valueHash = keccak256(arg);
+    } else {
+      return undefined;
+    }
+
+    return isHex(arg) && size(arg) === 32
+      ? [valueHash, arg.toLowerCase()]
+      : [valueHash];
+  });
+}
+
+// Replaces each indexed `string` and `bytes` expected arg with the emitted
+// topic it matches, or with its last expected topic if none does.
+function resolveIndexedHashArgs(
+  expectedArgs: readonly unknown[],
+  expectedTopics: Array<string[] | undefined>,
+  emittedArgs: readonly unknown[],
+): unknown[] {
+  return expectedArgs.map((arg, index) => {
+    const topics = expectedTopics[index];
+
+    if (topics === undefined) {
       return arg;
     }
 
-    if (type === "string") {
-      return keccak256(stringToHex(arg));
-    }
-
-    return type === "bytes" && isHex(arg) ? keccak256(arg) : arg;
+    return (
+      topics.find((topic) => topic === emittedArgs[index]) ?? topics.at(-1)
+    );
   });
 }
