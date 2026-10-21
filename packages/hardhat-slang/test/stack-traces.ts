@@ -15,13 +15,7 @@ const SET_ZERO_CALLDATA = `0x60fe47b1${"0".repeat(64)}`;
 
 describe(
   "hardhat-slang stack traces",
-  {
-    // Needs an EDR that builds stack traces from debugSymbols. Opt in once
-    // Hardhat's does, so this turns on without a code change.
-    skip:
-      process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-      process.env.HARDHAT_SLANG_EXPECT_STACK_TRACES !== "true",
-  },
+  { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
   () => {
     useFixtureProject("with-debug-info");
 
