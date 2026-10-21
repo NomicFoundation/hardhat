@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.4
+
+### Patch Changes
+
+- [#8733](https://github.com/NomicFoundation/hardhat/pull/8733) [`9fdef26`](https://github.com/NomicFoundation/hardhat/commit/9fdef2672b2196d11cdbc1cd34d65c8ba7dc0b72) Thanks [@schaable](https://github.com/schaable)! - Fixed `hardhat verify` failing when the explorer's `apiUrl` has a query string.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
 ## 3.1.3
 
 ### Patch Changes

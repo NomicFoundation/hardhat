@@ -1,5 +1,36 @@
 # hardhat
 
+## 3.21.0
+
+### Minor Changes
+
+- [#8747](https://github.com/NomicFoundation/hardhat/pull/8747) [`5309dcd`](https://github.com/NomicFoundation/hardhat/commit/5309dcd8f60df2d51ab7ef70a56c102e174f912d) Thanks [@kanej](https://github.com/kanej)! - Added experimental EIP-7954 support to the Amsterdam hardfork: deployment transactions may carry up to 128 KiB of init code and deploy up to 64 KiB of contract code.
+
+### Patch Changes
+
+- [#8670](https://github.com/NomicFoundation/hardhat/pull/8670) [`1dbf44d`](https://github.com/NomicFoundation/hardhat/commit/1dbf44d5f0c0d5e36226e9fc3789406ae83136ff) Thanks [@schaable](https://github.com/schaable)! - Fixed a cryptic error when a private key in a network's `accounts` is invalid.
+
+- [#8708](https://github.com/NomicFoundation/hardhat/pull/8708) [`c8e13d7`](https://github.com/NomicFoundation/hardhat/commit/c8e13d79ffa04e86e092916c5b511f1223d05202) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed `--coverage` crashing when generating the report if Hardhat is run from a directory other than the project root (e.g. a subdirectory, or with `--config`).
+
+- [#8747](https://github.com/NomicFoundation/hardhat/pull/8747) [`5309dcd`](https://github.com/NomicFoundation/hardhat/commit/5309dcd8f60df2d51ab7ef70a56c102e174f912d) Thanks [@kanej](https://github.com/kanej)! - Upgraded EDR to v0.24.0.
+
+- [#8747](https://github.com/NomicFoundation/hardhat/pull/8747) [`5309dcd`](https://github.com/NomicFoundation/hardhat/commit/5309dcd8f60df2d51ab7ef70a56c102e174f912d) Thanks [@kanej](https://github.com/kanej)! - Fixed the `GASLIMIT` opcode returning `1_000_000` while the block gas limit is disabled; it now returns the parent block's gas limit, which the mined block's header already carried.
+
+- [#8747](https://github.com/NomicFoundation/hardhat/pull/8747) [`5309dcd`](https://github.com/NomicFoundation/hardhat/commit/5309dcd8f60df2d51ab7ef70a56c102e174f912d) Thanks [@kanej](https://github.com/kanej)! - Added the Amsterdam hardfork activation on Hoodi, so forking Hoodi uses `amsterdam` for blocks after it activates.
+
+- [#8747](https://github.com/NomicFoundation/hardhat/pull/8747) [`5309dcd`](https://github.com/NomicFoundation/hardhat/commit/5309dcd8f60df2d51ab7ef70a56c102e174f912d) Thanks [@kanej](https://github.com/kanej)! - Fixed simulated OP networks not charging the L1 data fee, so transactions now pay it and their receipts report it.
+
+- [#8734](https://github.com/NomicFoundation/hardhat/pull/8734) [`4c2a07c`](https://github.com/NomicFoundation/hardhat/commit/4c2a07c7a1065671e7327163d6ee0a65dcc568a4) Thanks [@mikeua](https://github.com/mikeua)! - Fixed the `node:test` link in the `node:test` + viem project template README.
+
+- [#8655](https://github.com/NomicFoundation/hardhat/pull/8655) [`de7c792`](https://github.com/NomicFoundation/hardhat/commit/de7c79207a28ff20b2e525effa47189a2745f930) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed prompts only receiving the first line when input is piped (e.g. `printf 'password\npassword\nvalue\n' | npx hardhat keystore set KEY`); later prompts now read the following lines instead of the process exiting with an unsettled top-level await.
+
+- [#8743](https://github.com/NomicFoundation/hardhat/pull/8743) [`ac2776f`](https://github.com/NomicFoundation/hardhat/commit/ac2776f4297431da42daa725fb1fe919db47159d) Thanks [@clippytool](https://github.com/clippytool)! - Fixed the solc compiler list cache not refreshing when it only contains a prerelease build for a requested stable version.
+
+- [#8751](https://github.com/NomicFoundation/hardhat/pull/8751) [`0a2a248`](https://github.com/NomicFoundation/hardhat/commit/0a2a248bd5dd23bf04ea4c3e1d6941e5ba278c5d) Thanks [@clippytool](https://github.com/clippytool)! - Fixed peer dependency detection during project initialization when npm's `legacy-peer-deps` or pnpm's `auto-install-peers` is explicitly configured.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
 ## 3.20.0
 
 ### Minor Changes
