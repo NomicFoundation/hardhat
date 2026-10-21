@@ -254,7 +254,7 @@ async function getFromConfig(
     return execSync(`${packageManager} config get ${key}`, {
       cwd: workspace,
       encoding: "utf8",
-    });
+    }).trim();
   } catch (_error) {
     return undefined;
   }
