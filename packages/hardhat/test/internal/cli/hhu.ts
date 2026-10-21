@@ -59,6 +59,8 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 
 AVAILABLE SUBTASKS:
 
+  abi sig                          Print the 4-byte selector of a function or error signature
+  abi sig-event                    Print the 32-byte topic of an event signature
   constants max-value              Print the maximum value of an integer type
   constants min-value              Print the minimum value of an integer type
   constants zero-address           Print the zero address
