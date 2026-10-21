@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import childProcess from "node:child_process";
-import { syncBuiltinESMExports } from "node:module";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
 import {
@@ -93,7 +92,6 @@ describe("installsPeerDependenciesByDefault", () => {
             "execSync",
             () => `${test.value}${lineEnding}`,
           );
-          syncBuiltinESMExports();
 
           try {
             const actual = await installsPeerDependenciesByDefault(
@@ -110,7 +108,6 @@ describe("installsPeerDependenciesByDefault", () => {
             ]);
           } finally {
             execSyncMock.mock.restore();
-            syncBuiltinESMExports();
           }
         });
       }

@@ -1,6 +1,6 @@
 import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
-import { execSync } from "node:child_process";
+import childProcess from "node:child_process";
 
 import { parseVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
@@ -231,7 +231,7 @@ export async function getVersion(
     return parseVersion(version.trim());
   }
   try {
-    const versionString = execSync(`${packageManager} --version`, {
+    const versionString = childProcess.execSync(`${packageManager} --version`, {
       cwd: workspace,
       encoding: "utf8",
     });
@@ -251,10 +251,12 @@ async function getFromConfig(
     return config[key];
   }
   try {
-    return execSync(`${packageManager} config get ${key}`, {
-      cwd: workspace,
-      encoding: "utf8",
-    }).trim();
+    return childProcess
+      .execSync(`${packageManager} config get ${key}`, {
+        cwd: workspace,
+        encoding: "utf8",
+      })
+      .trim();
   } catch (_error) {
     return undefined;
   }
