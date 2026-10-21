@@ -29,6 +29,7 @@ import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getRequest,
   postFormRequest,
+  splitQueryParams,
 } from "@nomicfoundation/hardhat-utils/request";
 
 const log = createDebug("hardhat:verify:blockscout");
@@ -52,6 +53,11 @@ export class Blockscout implements VerificationProvider {
   public readonly dispatcherOrDispatcherOptions?:
     Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  // The `apiUrl` without its query string. Its query params are sent with
+  // every request, before Hardhat's own, so Hardhat's take precedence.
+  readonly #requestUrl: string;
+  readonly #apiUrlQueryParams: Record<string, string>;
 
   public static async resolveConfig({
     chainId,
@@ -177,6 +183,10 @@ export class Blockscout implements VerificationProvider {
     this.url = blockscoutConfig.url;
     this.apiUrl = blockscoutConfig.apiUrl;
 
+    const { url, queryParams } = splitQueryParams(this.apiUrl);
+    this.#requestUrl = url;
+    this.#apiUrlQueryParams = queryParams;
+
     this.dispatcherOrDispatcherOptions = blockscoutConfig.dispatcher ?? {};
 
     this.pollingIntervalMs =
@@ -202,18 +212,21 @@ export class Blockscout implements VerificationProvider {
   }
 
   /**
-   * Adds the API key to the given query params, if one is configured.
+   * Returns the query params of a request: the `apiUrl`'s query params,
+   * overridden by the given ones and by the API key, if one is configured.
    *
    * Note that, unlike Etherscan, the chain id is never sent as a query param:
    * Blockscout instances are addressed by their `apiUrl`, which already
    * encodes the chain id when needed (e.g. `/{chainId}/api` in the Pro API).
    */
-  #withApiKey(queryParams: Record<string, string>): Record<string, string> {
+  #getQueryParams(queryParams: Record<string, string>): Record<string, string> {
+    const mergedQueryParams = { ...this.#apiUrlQueryParams, ...queryParams };
+
     if (this.apiKey === undefined) {
-      return queryParams;
+      return mergedQueryParams;
     }
 
-    return { ...queryParams, apikey: this.apiKey };
+    return { ...mergedQueryParams, apikey: this.apiKey };
   }
 
   public async isVerified(address: string): Promise<boolean> {
@@ -221,9 +234,9 @@ export class Blockscout implements VerificationProvider {
     let responseBody: BlockscoutGetSourceCodeResponse | undefined;
     try {
       response = await getRequest(
-        this.apiUrl,
+        this.#requestUrl,
         {
-          queryParams: this.#withApiKey({
+          queryParams: this.#getQueryParams({
             module: "contract",
             action: "getsourcecode",
             address,
@@ -293,10 +306,10 @@ export class Blockscout implements VerificationProvider {
     let responseBody: BlockscoutResponse | undefined;
     try {
       response = await postFormRequest(
-        this.apiUrl,
+        this.#requestUrl,
         body,
         {
-          queryParams: this.#withApiKey({
+          queryParams: this.#getQueryParams({
             module: "contract",
             action: "verifysourcecode",
           }),
@@ -395,9 +408,9 @@ export class Blockscout implements VerificationProvider {
     let responseBody: BlockscoutResponse | undefined;
     try {
       response = await getRequest(
-        this.apiUrl,
+        this.#requestUrl,
         {
-          queryParams: this.#withApiKey({
+          queryParams: this.#getQueryParams({
             module: "contract",
             action: "checkverifystatus",
             guid,
