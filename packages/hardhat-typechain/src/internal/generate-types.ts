@@ -101,6 +101,8 @@ function addCompiledFilesTransformerIfAbsent(
   ) => {
     let modifiedContent = addJsExtensionsIfNeeded(output);
 
+    modifiedContent = removeOutputObjectSemicolons(modifiedContent);
+
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
     modifiedContent = modifiedContent.replaceAll(
       'from "@nomicfoundation/hardhat-ethers/types"',
@@ -144,6 +146,27 @@ export function addJsExtensionsIfNeeded(content: string): string {
     (_match, imports, quote, importPath) =>
       `import ${imports} from ${quote}${importPath}/index.js${quote};`,
   );
+}
+
+/**
+ * This function is exported solely for testing purposes.
+ *
+ * Removes the semicolon that TypeChain adds after the `OutputObject` interface
+ * of every event namespace. For example:
+ *
+ * export interface OutputObject {by: bigint };
+ * will be converted into:
+ * export interface OutputObject {by: bigint }
+ *
+ * That semicolon is an empty statement, which turns the namespace into runtime
+ * code. Node.js can't strip the types of a file with such a namespace, and
+ * TypeScript rejects it when `erasableSyntaxOnly` is enabled.
+ */
+export function removeOutputObjectSemicolons(content: string): string {
+  const outputObjectSemicolonRegex =
+    /^([ \t]*export interface OutputObject\b.*\})[ \t]*;[ \t]*$/gm;
+
+  return content.replace(outputObjectSemicolonRegex, "$1");
 }
 
 // We expect the structure of the factory files to be:
