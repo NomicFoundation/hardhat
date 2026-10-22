@@ -387,7 +387,9 @@ export class EdrProviderWrapper
 
     const stringifiedArgs = JSON.stringify({
       method: args.method,
-      params,
+      params: isDebugTraceMethod(args.method)
+        ? withHardhat2MemoryDefault(args.method, params)
+        : params,
     });
 
     const responseObject: Response =
@@ -642,6 +644,60 @@ export class EdrProviderWrapper
 
     this.emit("message", message);
   }
+}
+
+type DebugTraceMethod = "debug_traceTransaction" | "debug_traceCall";
+
+const DEBUG_TRACE_OPTIONS_INDEX: Record<DebugTraceMethod, number> = {
+  debug_traceTransaction: 1,
+  debug_traceCall: 2,
+};
+
+function isDebugTraceMethod(method: string): method is DebugTraceMethod {
+  return method === "debug_traceTransaction" || method === "debug_traceCall";
+}
+
+function debugTraceOptions(method: DebugTraceMethod, params: any[]): any {
+  return params[DEBUG_TRACE_OPTIONS_INDEX[method]];
+}
+
+function usesDefaultTracer(options: any): boolean {
+  return (
+    options === undefined ||
+    options === null ||
+    (typeof options === "object" &&
+      (options.tracer === undefined || options.tracer === null))
+  );
+}
+
+/**
+ * Sets `enableMemory` from `disableMemory` unless the options set it. EDR
+ * captures memory only if `enableMemory` is set and ignores `disableMemory`.
+ */
+function withHardhat2MemoryDefault(
+  method: DebugTraceMethod,
+  params: any[]
+): any[] {
+  const options = debugTraceOptions(method, params);
+  if (
+    params.length === 0 ||
+    !usesDefaultTracer(options) ||
+    options?.enableMemory !== undefined
+  ) {
+    return params;
+  }
+
+  const optionsIndex = DEBUG_TRACE_OPTIONS_INDEX[method];
+  const paramsWithOptions = [...params];
+  while (paramsWithOptions.length < optionsIndex) {
+    paramsWithOptions.push(null);
+  }
+  paramsWithOptions[optionsIndex] = {
+    ...options,
+    enableMemory: options?.disableMemory !== true,
+  };
+
+  return paramsWithOptions;
 }
 
 async function clientVersion(edrClientVersion: string): Promise<string> {
