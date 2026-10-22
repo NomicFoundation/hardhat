@@ -88,14 +88,16 @@ function runPackageManager(
 }
 
 /**
- * Drop the monorepo's packages from Yarn Berry's caches before an install.
+ * Drop the monorepo's packages from Yarn Berry's caches and from the
+ * scenario's node_modules before an install.
  *
  * Verdaccio republishes them under versions that repeat across runs (a
  * package missing from npm keeps its own version) with new contents, and
  * Berry reuses a cached zip by name and version when the lockfile has no
- * checksum for it, which a scenario lockfile never has. A persistent runner
- * would then install a previous run's build. Yarn Classic checks the
- * registry's shasum, so it needs nothing.
+ * checksum for it, which a scenario lockfile never has. It also leaves an
+ * installed package in place while its version is unchanged. A persistent
+ * runner would then install, or keep, a previous run's build. Yarn Classic
+ * checks the registry's shasum, so it needs nothing.
  */
 function evictLocalPackagesFromYarnCache(
   workDir: string,
@@ -133,6 +135,12 @@ function evictLocalPackagesFromYarnCache(
       log(`Evicted ${stale.length} local package(s) from ${dir}`);
     }
   }
+
+  const nodeModulesDir = resolve(workDir, "node_modules");
+  const removed = removeInstalledCopies(nodeModulesDir, names);
+  if (removed > 0) {
+    log(`Removed ${removed} installed local package(s) from ${nodeModulesDir}`);
+  }
 }
 
 /** The names of the monorepo packages Verdaccio may serve. */
@@ -153,6 +161,47 @@ function localPackageNames(): string[] {
     )
     .filter((pkg) => pkg.private !== true)
     .map((pkg) => pkg.name);
+}
+
+/**
+ * Delete every copy of `names` under `nodeModulesDir`, at the top level and in
+ * nested node_modules, and return how many were removed.
+ */
+export function removeInstalledCopies(
+  nodeModulesDir: string,
+  names: string[],
+): number {
+  if (!existsSync(nodeModulesDir)) {
+    return 0;
+  }
+
+  let removed = 0;
+  for (const name of names) {
+    const dir = resolve(nodeModulesDir, name);
+    if (existsSync(dir)) {
+      rmSync(dir, { recursive: true, force: true });
+      removed++;
+    }
+  }
+
+  for (const entry of readdirSync(nodeModulesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) {
+      continue;
+    }
+    const packageDirs = entry.name.startsWith("@")
+      ? readdirSync(resolve(nodeModulesDir, entry.name)).map((child) =>
+          resolve(nodeModulesDir, entry.name, child),
+        )
+      : [resolve(nodeModulesDir, entry.name)];
+    for (const packageDir of packageDirs) {
+      removed += removeInstalledCopies(
+        resolve(packageDir, "node_modules"),
+        names,
+      );
+    }
+  }
+
+  return removed;
 }
 
 /**

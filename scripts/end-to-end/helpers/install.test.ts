@@ -1,3 +1,6 @@
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
@@ -6,6 +9,7 @@ import {
   getInstallArgs,
   getUpdateArgs,
   isYarnCacheEntryOf,
+  removeInstalledCopies,
 } from "./install.ts";
 
 const REGISTRY = "http://127.0.0.1:4873";
@@ -160,6 +164,53 @@ describe("isYarnCacheEntryOf", () => {
         "hardhat-deploy-npm-1.0.0-6f76b01394-10c0.zip",
         names,
       ),
+    );
+  });
+});
+
+describe("removeInstalledCopies", () => {
+  const names = ["hardhat", "@nomicfoundation/hardhat-utils"];
+
+  function makePackage(nodeModulesDir: string, name: string): string {
+    const dir = path.join(nodeModulesDir, name);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(path.join(dir, "package.json"), "{}");
+    return dir;
+  }
+
+  it("removes listed packages at the top level and nested, keeps the rest", () => {
+    const nodeModules = path.join(
+      mkdtempSync(path.join(tmpdir(), "remove-installed-copies-")),
+      "node_modules",
+    );
+    const hardhat = makePackage(nodeModules, "hardhat");
+    const utils = makePackage(nodeModules, "@nomicfoundation/hardhat-utils");
+    const verify = makePackage(nodeModules, "@nomicfoundation/hardhat-verify");
+    const nestedUtils = makePackage(
+      path.join(verify, "node_modules"),
+      "@nomicfoundation/hardhat-utils",
+    );
+    const sizer = makePackage(nodeModules, "hardhat-contract-sizer");
+    const deeplyNestedHardhat = makePackage(
+      path.join(sizer, "node_modules", "foo", "node_modules"),
+      "hardhat",
+    );
+
+    assert.equal(removeInstalledCopies(nodeModules, names), 4);
+
+    for (const removed of [hardhat, utils, nestedUtils, deeplyNestedHardhat]) {
+      assert.ok(!existsSync(removed), removed);
+    }
+    assert.ok(existsSync(verify));
+    assert.ok(existsSync(sizer));
+  });
+
+  it("does nothing without a node_modules directory", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "remove-installed-copies-"));
+
+    assert.equal(
+      removeInstalledCopies(path.join(dir, "node_modules"), names),
+      0,
     );
   });
 });
