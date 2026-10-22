@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
 import {
   buildPackageManagerEnv,
+  evictYarnMetadata,
   getInstallArgs,
   getUpdateArgs,
   isYarnCacheEntryOf,
@@ -210,6 +211,50 @@ describe("removeInstalledCopies", () => {
 
     assert.equal(
       removeInstalledCopies(path.join(dir, "node_modules"), names),
+      0,
+    );
+  });
+});
+
+describe("evictYarnMetadata", () => {
+  const names = ["hardhat", "@nomicfoundation/hardhat-slang"];
+
+  function writeEntry(dir: string, file: string): string {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(path.join(dir, file), "{}");
+    return path.join(dir, file);
+  }
+
+  it("removes the registry host's entries for listed packages only", () => {
+    const metadata = mkdtempSync(path.join(tmpdir(), "evict-yarn-metadata-"));
+    const verdaccio = path.join(metadata, "npm", "3fb1ad", "127.0.0.1");
+    const npm = path.join(metadata, "npm", "3fb1ad", "registry.npmjs.org");
+    const hardhat = writeEntry(verdaccio, "hardhat-15.json");
+    const slang = writeEntry(
+      verdaccio,
+      "@nomicfoundation-hardhat-slang-15.json",
+    );
+    const slangSolx = writeEntry(
+      verdaccio,
+      "@nomicfoundation-hardhat-slang-solx-15.json",
+    );
+    const hardhatDeploy = writeEntry(verdaccio, "hardhat-deploy-15.json");
+    const npmHardhat = writeEntry(npm, "hardhat-15.json");
+
+    assert.equal(evictYarnMetadata(metadata, "127.0.0.1", names), 2);
+
+    assert.ok(!existsSync(hardhat));
+    assert.ok(!existsSync(slang));
+    for (const kept of [slangSolx, hardhatDeploy, npmHardhat]) {
+      assert.ok(existsSync(kept), kept);
+    }
+  });
+
+  it("does nothing without a metadata directory", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "evict-yarn-metadata-"));
+
+    assert.equal(
+      evictYarnMetadata(path.join(dir, "metadata"), "127.0.0.1", names),
       0,
     );
   });

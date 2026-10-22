@@ -94,10 +94,12 @@ function runPackageManager(
  * Verdaccio republishes them under versions that repeat across runs (a
  * package missing from npm keeps its own version) with new contents, and
  * Berry reuses a cached zip by name and version when the lockfile has no
- * checksum for it, which a scenario lockfile never has. It also leaves an
- * installed package in place while its version is unchanged. A persistent
- * runner would then install, or keep, a previous run's build. Yarn Classic
- * checks the registry's shasum, so it needs nothing.
+ * checksum for it, which a scenario lockfile never has. It also takes a
+ * version's dependencies from cached registry metadata that lists that
+ * version, and leaves an installed package in place while its version is
+ * unchanged. A persistent runner would then install, or keep, a previous
+ * run's build or dependency ranges. Yarn Classic checks the registry's
+ * shasum, so it needs nothing.
  */
 function evictLocalPackagesFromYarnCache(
   workDir: string,
@@ -136,6 +138,21 @@ function evictLocalPackagesFromYarnCache(
     }
   }
 
+  const metadataDir = resolve(
+    yarn(["config", "get", "globalFolder"]),
+    "metadata",
+  );
+  const evicted = evictYarnMetadata(
+    metadataDir,
+    new URL(VERDACCIO_URL).hostname,
+    names,
+  );
+  if (evicted > 0) {
+    log(
+      `Evicted ${evicted} local package metadata file(s) from ${metadataDir}`,
+    );
+  }
+
   const nodeModulesDir = resolve(workDir, "node_modules");
   const removed = removeInstalledCopies(nodeModulesDir, names);
   if (removed > 0) {
@@ -161,6 +178,49 @@ function localPackageNames(): string[] {
     )
     .filter((pkg) => pkg.private !== true)
     .map((pkg) => pkg.name);
+}
+
+/**
+ * Delete Yarn Berry's cached registry metadata for `names` from every
+ * directory named `registryHost` under `metadataDir` (laid out as
+ * npm/<hash>/<host>/<slug>-<cache version>.json), and return how many files
+ * were removed.
+ */
+export function evictYarnMetadata(
+  metadataDir: string,
+  registryHost: string,
+  names: string[],
+): number {
+  if (!existsSync(metadataDir)) {
+    return 0;
+  }
+
+  let removed = 0;
+  for (const entry of readdirSync(metadataDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    const dir = resolve(metadataDir, entry.name);
+    if (entry.name !== registryHost) {
+      removed += evictYarnMetadata(dir, registryHost, names);
+      continue;
+    }
+    for (const file of readdirSync(dir)) {
+      if (isYarnMetadataEntryOf(file, names)) {
+        rmSync(resolve(dir, file));
+        removed++;
+      }
+    }
+  }
+
+  return removed;
+}
+
+function isYarnMetadataEntryOf(file: string, names: string[]): boolean {
+  const match = /^(.+)-\d+\.json$/.exec(file);
+  return (
+    match !== null && names.some((name) => name.replace("/", "-") === match[1])
+  );
 }
 
 /**
