@@ -2,6 +2,8 @@
 "hardhat": minor
 ---
 
-Changed `debug_traceTransaction` and `debug_traceCall` to return geth's format unchanged. They accept geth's built-in tracers, such as `callTracer` and `prestateTracer`. Stack items, storage keys and storage values are `0x`-prefixed and unpadded. Storage only appears on steps that access storage. The `returnValue` is a `0x`-prefixed hex string, which is `0x` when empty.
+Kept the default tracer's Hardhat 2 format in `debug_traceTransaction` and `debug_traceCall`. Stack items, memory words, storage keys and storage values stay unprefixed and zero-padded. Memory is still captured unless `disableMemory` is set. Storage still appears on every step unless `disableStorage` is set.
 
-BREAKING CHANGE: Memory capture is now disabled by default, as in geth. Set the `enableMemory` tracer option to `true` to capture memory.
+Added support for geth's built-in tracers, such as `callTracer` and `prestateTracer`. These tracers return geth's output unchanged. The new `enableMemory` option takes precedence over `disableMemory`.
+
+The default tracer output differs in a few places. A step that halts now has an `error` message that comes from EDR, so do not match on its exact text. An unknown opcode is now named `Unknown`. A `STOP` at the first step is no longer dropped, so traces can have one more step. Storage no longer shows slots of another contract after a warm `SLOAD`. When `disableStack` is set, storage values can be stale until the next `SLOAD` or `SSTORE`.
