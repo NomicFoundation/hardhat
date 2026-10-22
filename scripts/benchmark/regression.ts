@@ -83,8 +83,9 @@ DESCRIPTION
                  | { "wall"?, "cpu"?, "peakRss"? },  //   for all metrics or per metric
       "warmup":  <integer>,             // optional unmeasured runs first (default 0)
       "prepare": "<shell snippet>",     // optional unmeasured pre-run hook
-      "command": "<shell command>"      // command to benchmark (required)
-    }
+      "command": "<shell command>",     // command to benchmark (required)
+      "ignoreFailure": <boolean>        // optional: tolerate a non-zero exit
+    }                                   //   (known-failing suites)
 
     // step sequence (no per-run prepare)
     {
@@ -102,6 +103,9 @@ DESCRIPTION
   measured step name) becomes the on-disk benchmark name:
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
+
+  Scenarios tagged "solx" are excluded from the default run (they benchmark the
+  experimental solx compiler); select them with --tag solx or --scenarios <id>.
 
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — single command or
@@ -146,6 +150,8 @@ OPTIONS
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
   --peak-rss <method>   Peak-memory method: "gnu-time" (default) or "sampler"
+  --runs <n>            Measure every selected entry n times instead of its
+                        configured "runs"
 
   --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
@@ -176,6 +182,12 @@ EXAMPLES
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const END_TO_END_DIR = path.join(REPO_ROOT, "end-to-end");
 
+// Scenarios carrying this tag are excluded from the default regression run:
+// they benchmark the experimental solx compiler, whose swings shouldn't trip
+// the solc baseline alerts. Select them explicitly with `--tag solx` or
+// `--scenarios <id>`.
+const SOLX_TAG = "solx";
+
 interface RegressionArgs {
   output: string;
   scenarios: string[] | undefined;
@@ -187,6 +199,7 @@ interface RegressionArgs {
   e2eCloneDirectory: string;
   failFast: boolean;
   peakRssMethod: PeakRssMethod;
+  runs: number | undefined;
 }
 
 interface ScenarioEntry {
@@ -283,8 +296,9 @@ async function main(): Promise<void> {
       logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
 
       try {
-        const entries = await runScenario(scenario, args, peakRssMethod);
-        results.push(...entries);
+        // Entries land in `results` as each phase completes, so a scenario
+        // that fails halfway keeps the numbers it already produced.
+        await runScenario(scenario, args, peakRssMethod, results);
       } catch (error) {
         logError(scenarioFailureMessage(scenario.id, error));
         failures.push(scenario.id);
@@ -348,6 +362,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
       "e2e-clone-dir": { type: "string" },
       "fail-fast": { type: "boolean" },
       "peak-rss": { type: "string" },
+      runs: { type: "string" },
     },
   } as const;
   const parsed = parseCliArgs(argv, cli);
@@ -370,6 +385,11 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
           .filter((s) => s.length > 0)
       : undefined;
 
+  const runs = values.runs === undefined ? undefined : Number(values.runs);
+  if (runs !== undefined && (!Number.isInteger(runs) || runs < 1)) {
+    throw cliError(cli, "--runs must be a positive integer");
+  }
+
   return {
     output: resolveInvocationPath(values.output),
     scenarios,
@@ -386,6 +406,7 @@ export function resolveArgs(argv: string[]): RegressionArgs | undefined {
     failFast: values["fail-fast"] === true,
     peakRssMethod:
       parsePeakRssMethod(values["peak-rss"]) ?? PeakRssMethod.GnuTime,
+    runs,
   };
 }
 
@@ -445,6 +466,23 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] | undefined {
       continue;
     }
 
+    const explicitlySelected =
+      (args.scenarios !== undefined && matchesAny(entry.name, scenarioRes)) ||
+      args.tag === SOLX_TAG;
+
+    if (definition.tags.includes(SOLX_TAG) && !explicitlySelected) {
+      // Only warn on the true default run (no filters), where silently
+      // excluding a scenario is surprising. When the user is filtering, the
+      // exclusion is expected — stay quiet.
+      if (args.scenarios === undefined && args.tag === undefined) {
+        logWarning(
+          `Skipping "${entry.name}" (tagged "${SOLX_TAG}"; select it with --tag ${SOLX_TAG} or --scenarios ${entry.name})`,
+        );
+      }
+
+      continue;
+    }
+
     if (!matchesAny(entry.name, scenarioRes)) {
       continue;
     }
@@ -480,7 +518,8 @@ async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
   peakRssMethod: PeakRssMethod,
-): Promise<BenchmarkEntry[]> {
+  results: BenchmarkEntry[],
+): Promise<void> {
   const commands = scenario.definition.benchmark?.commands;
 
   if (commands === undefined || Object.keys(commands).length === 0) {
@@ -496,7 +535,7 @@ async function runScenario(
       `Skipping "${scenario.id}" (no commands or steps matched the filters)`,
     );
 
-    return [];
+    return;
   }
 
   logStep("Initializing scenario");
@@ -517,8 +556,16 @@ async function runScenario(
     scenario.scenarioJsonPath,
   );
 
-  return withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
-    runPhases(scenario.id, scenarioTmpDir, loaded, plan, peakRssMethod),
+  await withReportDir(`hardhat-regression-${scenario.id}-`, (scenarioTmpDir) =>
+    runPhases(
+      scenario.id,
+      scenarioTmpDir,
+      loaded,
+      plan,
+      peakRssMethod,
+      args.runs,
+      results,
+    ),
   );
 }
 
@@ -528,19 +575,19 @@ async function runPhases(
   loaded: Scenario,
   plan: PlannedCommand[],
   peakRssMethod: PeakRssMethod,
-): Promise<BenchmarkEntry[]> {
-  const entries: BenchmarkEntry[] = [];
-
+  runs: number | undefined,
+  results: BenchmarkEntry[],
+): Promise<void> {
   for (const planned of plan) {
     if ("run" in planned) {
-      entries.push(
+      results.push(
         ...(await runStepsPhase(
           scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, runs),
           new Set(planned.run),
           new Set(planned.once),
           new Set(planned.emit),
@@ -548,22 +595,27 @@ async function runPhases(
         )),
       );
     } else {
-      entries.push(
+      results.push(
         ...(await runCommandPhase(
           scenarioId,
           scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
           planned.name,
-          planned.cfg,
+          withRuns(planned.cfg, runs),
           planned.emit,
           peakRssMethod,
         )),
       );
     }
   }
+}
 
-  return entries;
+function withRuns<T extends { runs: number }>(
+  cfg: T,
+  runs: number | undefined,
+): T {
+  return runs === undefined ? cfg : { ...cfg, runs };
 }
 
 /**
@@ -595,7 +647,11 @@ async function runCommandPhase(
         await runPrepare(cfg.prepare, { cwd: workingDir, env });
       }
 
-      await runPlain(cfg.command, { cwd: workingDir, env });
+      await runPlain(cfg.command, {
+        cwd: workingDir,
+        env,
+        ignoreFailure: cfg.ignoreFailure === true,
+      });
 
       return [];
     }
@@ -609,6 +665,7 @@ async function runCommandPhase(
         runs,
         warmup: cfg.warmup,
         prepare: cfg.prepare,
+        ignoreFailure: cfg.ignoreFailure === true,
         peakRssMethod,
         onWarmupCompleted: (i, total) =>
           log(fmt.deemphasize(`  warm-up ${runCounter(i, total)}`)),
