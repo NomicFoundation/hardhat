@@ -62,7 +62,7 @@
       },
       "cold compile forge-1.8.5 solar": {
         "runs": 5,
-        "dependsOn": ["warm forge solar"],
+        "dependsOn": ["relax dependency pragmas", "warm forge solar"],
         "prepare": "./.foundry-solar/forge clean",
         "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_EVM_VERSION=cancun ./.foundry-solar/forge build --skip 'script/**' --offline"
       },
