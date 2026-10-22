@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.1.0
+
+### Minor Changes
+
+- [#8670](https://github.com/NomicFoundation/hardhat/pull/8670) [`dbbf7c0`](https://github.com/NomicFoundation/hardhat/commit/dbbf7c00625f443f75d641872659b027bfffc123) Thanks [@schaable](https://github.com/schaable)! - Added `isPrivateKey` to `@nomicfoundation/hardhat-utils/eth`.
+
+- [#8733](https://github.com/NomicFoundation/hardhat/pull/8733) [`9fdef26`](https://github.com/NomicFoundation/hardhat/commit/9fdef2672b2196d11cdbc1cd34d65c8ba7dc0b72) Thanks [@schaable](https://github.com/schaable)! - Added `splitQueryParams` to `@nomicfoundation/hardhat-utils/request`.
+
 ## 5.0.0
 
 ### Major Changes
