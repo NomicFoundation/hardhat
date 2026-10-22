@@ -90,19 +90,35 @@ console.log("openzeppelin preinstall: renamed BlockhashTest#testFuzzHistoryBlock
 # Measured: OZ warm compile 3.9s solx vs 1.1s solc on the runner; a plain
 # solc profile with runs=201 shows the same penalty, so this is the fork's
 # plugin, not solx. One-line upstream fix, applied here until the fork
-# re-pins (see /workspace/hardhat-solx-footnote-research.md). The slang
-# profile is the exception: hardhat-exposed reads solc's AST and slang emits
-# its own, so under slang the task keeps the default profile, as upstream
-# does. Fail loudly if the anchor moved.
+# re-pins (see /workspace/hardhat-solx-footnote-research.md). Under slang the
+# cache hits come from the slang profile too, but the roots that miss take
+# their jobs from the default profile: hardhat-exposed reads solc's AST and
+# slang emits its own. Fail loudly if an anchor moved.
 node -e '
 const fs = require("fs");
 const p = "hardhat/hardhat-exposed/tasks/generate-exposed-contracts.ts";
 let s = fs.readFileSync(p, "utf8");
-const anchor = "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force })";
-if (s.split(anchor).length !== 2) {
-  console.error("openzeppelin preinstall: expected exactly one getCompilationJobs call in " + p + " — the pinned commit may have changed");
-  process.exit(1);
+const replacements = [
+  [
+    "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force })",
+    "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force, buildProfile: hre.globalOptions.buildProfile })",
+  ],
+  [
+    "  const astOnlyBuildInfos = new Set<SolidityBuildInfo>();",
+    "  const astCompilationJobs = hre.globalOptions.buildProfile === \"slang\" ? await hre.solidity.getCompilationJobs(filteredRootPathsToExpose, { force: true }) : compilationJobs;\n  if (!astCompilationJobs.success) {\n    console.error(\"Failed to generate exposed contracts: couldn\x27t get the solc compilation jobs\");\n    console.error(astCompilationJobs.formattedReason);\n    return errorResult();\n  }\n\n  const astOnlyBuildInfos = new Set<SolidityBuildInfo>();",
+  ],
+  [
+    "compilationJobs.compilationJobsPerFile.get(rootPath)!",
+    "astCompilationJobs.compilationJobsPerFile.get(rootPath)!",
+  ],
+];
+for (const [anchor, replacement] of replacements) {
+  if (s.split(anchor).length !== 2) {
+    console.error("openzeppelin preinstall: expected exactly one \"" + anchor + "\" in " + p + " — the pinned commit may have changed");
+    process.exit(1);
+  }
+  s = s.replace(anchor, replacement);
 }
-fs.writeFileSync(p, s.replace(anchor, "hre.solidity.getCompilationJobs(rootPathsToExpose, { force: args.force, buildProfile: hre.globalOptions.buildProfile === \"slang\" ? undefined : hre.globalOptions.buildProfile })"));
-console.log("openzeppelin preinstall: hardhat-exposed now passes the active build profile (except slang) to getCompilationJobs");
+fs.writeFileSync(p, s);
+console.log("openzeppelin preinstall: hardhat-exposed now checks the active build profile cache (solc jobs for slang misses)");
 '
