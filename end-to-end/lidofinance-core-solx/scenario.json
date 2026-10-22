@@ -10,7 +10,8 @@
   "env": {
     "SKIP_LINT_SOLIDITY": "1",
     "SKIP_INTERFACES_CHECK": "1",
-    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1"
+    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1",
+    "LOCAL_DEVNET_PK": "0x0000000000000000000000000000000000000000000000000000000000000001"
   },
   "defaultCommand": "npx hardhat compile --build-profile solx-via-ir --no-tests",
   "benchmark": {
