@@ -183,8 +183,7 @@ function localPackageNames(): string[] {
 /**
  * Delete Yarn Berry's cached registry metadata for `names` from every
  * directory named `registryHost` under `metadataDir` (laid out as
- * npm/<hash>/<host>/<slug>-<cache version>.json), and return how many files
- * were removed.
+ * npm/<hash>/<host>/<file>), and return how many files were removed.
  */
 export function evictYarnMetadata(
   metadataDir: string,
@@ -216,11 +215,19 @@ export function evictYarnMetadata(
   return removed;
 }
 
+/**
+ * Berry's metadata file name for `name`: "hardhat.json" for an unscoped
+ * package, "@scope-name-<scope length>.json" for a scoped one.
+ */
+function yarnMetadataFileName(name: string): string {
+  const [scope, rest] = name.split("/");
+  return rest === undefined
+    ? `${name}.json`
+    : `${scope}-${rest}-${scope.length - 1}.json`;
+}
+
 function isYarnMetadataEntryOf(file: string, names: string[]): boolean {
-  const match = /^(.+)-\d+\.json$/.exec(file);
-  return (
-    match !== null && names.some((name) => name.replace("/", "-") === match[1])
-  );
+  return names.some((name) => yarnMetadataFileName(name) === file);
 }
 
 /**

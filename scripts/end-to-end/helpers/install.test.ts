@@ -229,7 +229,7 @@ describe("evictYarnMetadata", () => {
     const metadata = mkdtempSync(path.join(tmpdir(), "evict-yarn-metadata-"));
     const verdaccio = path.join(metadata, "npm", "3fb1ad", "127.0.0.1");
     const npm = path.join(metadata, "npm", "3fb1ad", "registry.npmjs.org");
-    const hardhat = writeEntry(verdaccio, "hardhat-15.json");
+    const hardhat = writeEntry(verdaccio, "hardhat.json");
     const slang = writeEntry(
       verdaccio,
       "@nomicfoundation-hardhat-slang-15.json",
@@ -238,8 +238,8 @@ describe("evictYarnMetadata", () => {
       verdaccio,
       "@nomicfoundation-hardhat-slang-solx-15.json",
     );
-    const hardhatDeploy = writeEntry(verdaccio, "hardhat-deploy-15.json");
-    const npmHardhat = writeEntry(npm, "hardhat-15.json");
+    const hardhatDeploy = writeEntry(verdaccio, "hardhat-deploy.json");
+    const npmHardhat = writeEntry(npm, "hardhat.json");
 
     assert.equal(evictYarnMetadata(metadata, "127.0.0.1", names), 2);
 
