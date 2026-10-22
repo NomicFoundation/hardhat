@@ -72,6 +72,7 @@ import {
   MempoolOrder,
 } from "./node-types";
 import {
+  edrRpcDebugTraceToHardhat2,
   edrTracingMessageResultToMinimalEVMResult,
   edrTracingMessageToMinimalMessage,
   edrTracingStepToMinimalInterpreterStep,
@@ -508,9 +509,56 @@ export class EdrProviderWrapper
     // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
       return clientVersion(response.result);
+    } else if (isDebugTraceMethod(args.method)) {
+      return this._debugTraceResultToHardhat2(
+        args.method,
+        params,
+        response.result
+      );
     } else {
       return response.result;
     }
+  }
+
+  private async _debugTraceResultToHardhat2(
+    method: DebugTraceMethod,
+    params: any[],
+    result: any
+  ): Promise<unknown> {
+    const options = debugTraceOptions(method, params);
+    if (!usesDefaultTracer(options)) {
+      return result;
+    }
+
+    const storageEnabled = options?.disableStorage !== true;
+    const rootAddress = storageEnabled
+      ? await this._debugTraceRootAddress(method, params)
+      : undefined;
+
+    return edrRpcDebugTraceToHardhat2(result, storageEnabled, rootAddress);
+  }
+
+  /** Returns the address whose code the traced transaction runs. */
+  private async _debugTraceRootAddress(
+    method: DebugTraceMethod,
+    params: any[]
+  ): Promise<string | undefined> {
+    if (method === "debug_traceCall") {
+      return params[0]?.to ?? undefined;
+    }
+
+    const responseObject = await this._provider.handleRequest(
+      JSON.stringify({
+        method: "eth_getTransactionByHash",
+        params: [params[0]],
+      })
+    );
+    const response =
+      typeof responseObject.data === "string"
+        ? JSON.parse(responseObject.data)
+        : responseObject.data;
+
+    return response.result?.to ?? undefined;
   }
 
   private async _addCompilationResult(
