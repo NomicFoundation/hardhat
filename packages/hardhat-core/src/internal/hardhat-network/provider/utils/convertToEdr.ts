@@ -1,33 +1,11 @@
 import type {
-  SpecId,
+  L1Hardfork,
   MineOrdering,
   IntervalRange,
-  DebugTraceResult,
   TracingMessage,
   TracingMessageResult,
   TracingStep,
   HttpHeader,
-} from "@nomicfoundation/edr";
-import {
-  FRONTIER,
-  HOMESTEAD,
-  DAO_FORK,
-  TANGERINE,
-  SPURIOUS_DRAGON,
-  BYZANTIUM,
-  CONSTANTINOPLE,
-  PETERSBURG,
-  ISTANBUL,
-  MUIR_GLACIER,
-  BERLIN,
-  LONDON,
-  ARROW_GLACIER,
-  GRAY_GLACIER,
-  MERGE,
-  SHANGHAI,
-  CANCUN,
-  PRAGUE,
-  OSAKA,
 } from "@nomicfoundation/edr";
 import { Address } from "@ethereumjs/util";
 
@@ -43,102 +21,13 @@ import {
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
-  switch (hardfork) {
-    case HardforkName.FRONTIER:
-      return FRONTIER;
-    case HardforkName.HOMESTEAD:
-      return HOMESTEAD;
-    case HardforkName.DAO:
-      return DAO_FORK;
-    case HardforkName.TANGERINE_WHISTLE:
-      return TANGERINE;
-    case HardforkName.SPURIOUS_DRAGON:
-      return SPURIOUS_DRAGON;
-    case HardforkName.BYZANTIUM:
-      return BYZANTIUM;
-    case HardforkName.CONSTANTINOPLE:
-      return CONSTANTINOPLE;
-    case HardforkName.PETERSBURG:
-      return PETERSBURG;
-    case HardforkName.ISTANBUL:
-      return ISTANBUL;
-    case HardforkName.MUIR_GLACIER:
-      return MUIR_GLACIER;
-    case HardforkName.BERLIN:
-      return BERLIN;
-    case HardforkName.LONDON:
-      return LONDON;
-    case HardforkName.ARROW_GLACIER:
-      return ARROW_GLACIER;
-    case HardforkName.GRAY_GLACIER:
-      return GRAY_GLACIER;
-    case HardforkName.MERGE:
-      return MERGE;
-    case HardforkName.SHANGHAI:
-      return SHANGHAI;
-    case HardforkName.CANCUN:
-      return CANCUN;
-    case HardforkName.PRAGUE:
-      return PRAGUE;
-    case HardforkName.OSAKA:
-      return OSAKA;
-    default:
-      const _exhaustiveCheck: never = hardfork;
-      throw new Error(
-        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
-      );
-  }
-}
-
-export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
-  const { SpecId } = requireNapiRsModule(
+export function edrSpecIdToEthereumHardfork(specId: L1Hardfork): HardforkName {
+  const { l1HardforkToString } = requireNapiRsModule(
     "@nomicfoundation/edr"
   ) as typeof import("@nomicfoundation/edr");
 
-  switch (specId) {
-    case SpecId.Frontier:
-      return HardforkName.FRONTIER;
-    case SpecId.Homestead:
-      return HardforkName.HOMESTEAD;
-    case SpecId.DaoFork:
-      return HardforkName.DAO;
-    case SpecId.Tangerine:
-      return HardforkName.TANGERINE_WHISTLE;
-    case SpecId.SpuriousDragon:
-      return HardforkName.SPURIOUS_DRAGON;
-    case SpecId.Byzantium:
-      return HardforkName.BYZANTIUM;
-    case SpecId.Constantinople:
-      return HardforkName.CONSTANTINOPLE;
-    case SpecId.Petersburg:
-      return HardforkName.PETERSBURG;
-    case SpecId.Istanbul:
-      return HardforkName.ISTANBUL;
-    case SpecId.MuirGlacier:
-      return HardforkName.MUIR_GLACIER;
-    case SpecId.Berlin:
-      return HardforkName.BERLIN;
-    case SpecId.London:
-      return HardforkName.LONDON;
-    case SpecId.ArrowGlacier:
-      return HardforkName.ARROW_GLACIER;
-    case SpecId.GrayGlacier:
-      return HardforkName.GRAY_GLACIER;
-    case SpecId.Merge:
-      return HardforkName.MERGE;
-    case SpecId.Shanghai:
-      return HardforkName.SHANGHAI;
-    case SpecId.Cancun:
-      return HardforkName.CANCUN;
-    case SpecId.Prague:
-      return HardforkName.PRAGUE;
-    case SpecId.Osaka:
-      return HardforkName.OSAKA;
-
-    default:
-      throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
-  }
+  // EDR's hardfork names match Hardhat's, so no conversion is needed.
+  return l1HardforkToString(specId) as HardforkName;
 }
 
 export function ethereumjsIntervalMiningConfigToEdr(
@@ -174,77 +63,18 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
   }
 }
 
-export function edrRpcDebugTraceToHardhat(
-  rpcDebugTrace: DebugTraceResult
-): RpcDebugTraceOutput {
-  const structLogs = rpcDebugTrace.structLogs.map((log) => {
-    const result: RpcStructLog = {
-      depth: Number(log.depth),
-      gas: Number(log.gas),
-      gasCost: Number(log.gasCost),
-      op: log.opName,
-      pc: Number(log.pc),
-    };
-
-    if (log.memory !== undefined) {
-      result.memory = log.memory;
-    }
-
-    if (log.stack !== undefined) {
-      // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
-      result.stack = log.stack?.map((item) => item.slice(2));
-    }
-
-    if (log.storage !== undefined) {
-      result.storage = Object.fromEntries(
-        Object.entries(log.storage).map(([key, value]) => {
-          return [key.slice(2), value.slice(2)];
-        })
-      );
-    }
-
-    if (log.error !== undefined) {
-      result.error = {
-        message: log.error,
-      };
-    }
-
-    return result;
-  });
-
-  // REVM trace adds initial STOP that Hardhat doesn't expect
-  if (structLogs.length > 0 && structLogs[0].op === "STOP") {
-    structLogs.shift();
-  }
-
-  let returnValue = rpcDebugTrace.output?.toString() ?? "";
-  if (returnValue === "0x") {
-    returnValue = "";
-  }
-
-  return {
-    failed: !rpcDebugTrace.pass,
-    gas: Number(rpcDebugTrace.gasUsed),
-    returnValue,
-    structLogs,
-  };
-}
-
 export function edrTracingStepToMinimalInterpreterStep(
   step: TracingStep
 ): MinimalInterpreterStep {
   const minimalInterpreterStep: MinimalInterpreterStep = {
-    pc: Number(step.pc),
+    pc: step.pc,
     depth: step.depth,
     opcode: {
-      name: step.opcode,
+      name: step.opcode.name,
     },
     stack: step.stack,
+    memory: step.memory,
   };
-
-  if (step.memory !== undefined) {
-    minimalInterpreterStep.memory = step.memory;
-  }
 
   return minimalInterpreterStep;
 }
@@ -252,34 +82,23 @@ export function edrTracingStepToMinimalInterpreterStep(
 export function edrTracingMessageResultToMinimalEVMResult(
   tracingMessageResult: TracingMessageResult
 ): MinimalEVMResult {
-  const { result, contractAddress } = tracingMessageResult.executionResult;
-
-  // only SuccessResult has logs
-  const success = "logs" in result;
+  const execResult = tracingMessageResult.execResult;
 
   const minimalEVMResult: MinimalEVMResult = {
     execResult: {
-      executionGasUsed: result.gasUsed,
-      success,
+      success: execResult.success,
+      executionGasUsed: execResult.executionGasUsed,
+      contractAddress:
+        execResult.contractAddress !== undefined
+          ? new Address(execResult.contractAddress)
+          : undefined,
+      reason: execResult.reason,
+      output:
+        execResult.output !== undefined
+          ? Buffer.from(execResult.output)
+          : undefined,
     },
   };
-
-  // only success and exceptional halt have reason
-  if ("reason" in result) {
-    minimalEVMResult.execResult.reason = result.reason;
-  }
-  if ("output" in result) {
-    const { output } = result;
-    if (output instanceof Uint8Array) {
-      minimalEVMResult.execResult.output = Buffer.from(output);
-    } else {
-      minimalEVMResult.execResult.output = Buffer.from(output.returnValue);
-    }
-  }
-
-  if (contractAddress !== undefined) {
-    minimalEVMResult.execResult.contractAddress = new Address(contractAddress);
-  }
 
   return minimalEVMResult;
 }
@@ -317,4 +136,236 @@ export function httpHeadersToEdr(input?: {
   }
 
   return httpHeaders;
+}
+
+/** A struct log entry of EDR's geth-style default tracer output. */
+export interface EdrGethStructLog {
+  pc: number;
+  op: string;
+  gas: number;
+  gasCost: number;
+  depth: number;
+  error?: string;
+  stack?: string[];
+  returnData?: string;
+  memory?: string[];
+  storage?: Record<string, string>;
+  refund?: number;
+}
+
+/** EDR's geth-style default tracer output. */
+export interface EdrGethDefaultTrace {
+  failed: boolean;
+  gas: number;
+  returnValue: string;
+  structLogs: EdrGethStructLog[];
+}
+
+const HEX_PREFIX = "0x";
+const WORD_HEX_LENGTH = 64;
+const ADDRESS_HEX_LENGTH = 40;
+
+const CALL_OPCODES_WITH_OWN_STORAGE = new Set(["CALL", "STATICCALL"]);
+const CALL_OPCODES_WITH_CALLER_STORAGE = new Set(["DELEGATECALL", "CALLCODE"]);
+const CREATE_OPCODES = new Set(["CREATE", "CREATE2"]);
+
+/**
+ * The target address sits second from the top of the stack, below the gas.
+ * This holds for CALL, CALLCODE, DELEGATECALL and STATICCALL.
+ */
+const CALL_ADDRESS_STACK_OFFSET = 2;
+
+function stripHexPrefix(hex: string): string {
+  return hex.startsWith(HEX_PREFIX) ? hex.slice(HEX_PREFIX.length) : hex;
+}
+
+function edrStackItemToHardhat2(item: string): string {
+  return stripHexPrefix(item).padStart(WORD_HEX_LENGTH, "0");
+}
+
+function edrStorageToHardhat2(
+  storage: Record<string, string>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(storage).map(([key, value]) => [
+      stripHexPrefix(key),
+      stripHexPrefix(value),
+    ])
+  );
+}
+
+function stackItemToAddress(item: string): string {
+  return edrStackItemToHardhat2(item).slice(-ADDRESS_HEX_LENGTH);
+}
+
+function normalizeAddress(address: string): string {
+  return stripHexPrefix(address).toLowerCase();
+}
+
+/**
+ * Tracks the storage that Hardhat 2 reported on every step.
+ *
+ * EDR reports storage only on SLOAD and SSTORE steps. Each report holds every
+ * slot the executing contract has accessed so far in the transaction. This
+ * class repeats that snapshot on every step, keyed by the storage context of
+ * each call frame. The context of a CALL or STATICCALL is its target
+ * address, read from the stack. DELEGATECALL and CALLCODE keep the caller's
+ * context. A CREATE context is renamed to the created address once the frame
+ * returns. Without the stack, each called frame gets a new context, so its
+ * storage values can be stale until the next SLOAD or SSTORE.
+ */
+class StorageTracker {
+  private readonly _storageByContext = new Map<
+    string,
+    Record<string, string>
+  >();
+
+  // The storage context of each active call frame, indexed by depth - 1.
+  private readonly _contexts: string[];
+
+  // The storage context of the frame the previous step entered, if any.
+  private _nextContext: string | undefined;
+
+  // The context of each CREATE awaiting its address, keyed by the depth of
+  // the CREATE step.
+  private readonly _pendingCreateContexts = new Map<number, string>();
+
+  constructor(rootContext: string) {
+    this._contexts = [rootContext];
+  }
+
+  public storageAt(
+    log: EdrGethStructLog,
+    stepIndex: number
+  ): Record<string, string> {
+    this._enterOrLeaveFrames(log, stepIndex);
+
+    const context = this._contexts[this._contexts.length - 1];
+    if (log.storage !== undefined) {
+      this._storageByContext.set(context, edrStorageToHardhat2(log.storage));
+    }
+
+    this._nextContext = this._childContext(log, context, stepIndex);
+
+    return { ...(this._storageByContext.get(context) ?? {}) };
+  }
+
+  private _enterOrLeaveFrames(log: EdrGethStructLog, stepIndex: number): void {
+    if (log.depth > this._contexts.length) {
+      // Without the stack, the frame's storage context is unknown.
+      this._contexts.push(this._nextContext ?? `frame:${stepIndex}`);
+      return;
+    }
+
+    while (log.depth < this._contexts.length) {
+      this._contexts.pop();
+    }
+
+    const createContext = this._pendingCreateContexts.get(log.depth);
+    if (createContext !== undefined) {
+      this._pendingCreateContexts.delete(log.depth);
+      this._renameCreateContext(createContext, log.stack);
+    }
+  }
+
+  private _renameCreateContext(
+    createContext: string,
+    stack: string[] | undefined
+  ): void {
+    const createdAddress = stack?.[stack.length - 1];
+    const storage = this._storageByContext.get(createContext);
+    if (
+      createdAddress === undefined ||
+      BigInt(createdAddress) === 0n ||
+      storage === undefined
+    ) {
+      return;
+    }
+
+    this._storageByContext.delete(createContext);
+    this._storageByContext.set(stackItemToAddress(createdAddress), storage);
+  }
+
+  private _childContext(
+    log: EdrGethStructLog,
+    context: string,
+    stepIndex: number
+  ): string | undefined {
+    if (CALL_OPCODES_WITH_CALLER_STORAGE.has(log.op)) {
+      return context;
+    }
+
+    if (CALL_OPCODES_WITH_OWN_STORAGE.has(log.op)) {
+      const target = log.stack?.[log.stack.length - CALL_ADDRESS_STACK_OFFSET];
+      return target === undefined ? undefined : stackItemToAddress(target);
+    }
+
+    if (CREATE_OPCODES.has(log.op)) {
+      const createContext = `create:${stepIndex}`;
+      this._pendingCreateContexts.set(log.depth, createContext);
+      return createContext;
+    }
+
+    return undefined;
+  }
+}
+
+/**
+ * Converts EDR's geth-style default tracer output to Hardhat 2's debug trace
+ * format.
+ *
+ * @param trace The output of `debug_traceTransaction` or `debug_traceCall`.
+ * @param storageEnabled Whether the request captured storage.
+ * @param rootAddress The address whose code the transaction runs. Omit it for
+ * a contract creation, whose constructor cannot be re-entered.
+ */
+export function edrRpcDebugTraceToHardhat2(
+  trace: EdrGethDefaultTrace,
+  storageEnabled: boolean,
+  rootAddress?: string
+): RpcDebugTraceOutput {
+  const storageTracker = storageEnabled
+    ? new StorageTracker(
+        rootAddress !== undefined ? normalizeAddress(rootAddress) : "root"
+      )
+    : undefined;
+
+  const structLogs = trace.structLogs.map((log, stepIndex) => {
+    const result: RpcStructLog = {
+      depth: log.depth,
+      gas: log.gas,
+      gasCost: log.gasCost,
+      op: log.op,
+      pc: log.pc,
+    };
+
+    if (log.memory !== undefined) {
+      result.memory = log.memory.map(stripHexPrefix);
+    }
+
+    if (log.stack !== undefined) {
+      result.stack = log.stack.map(edrStackItemToHardhat2);
+    }
+
+    if (storageTracker !== undefined) {
+      result.storage = storageTracker.storageAt(log, stepIndex);
+    }
+
+    if (log.error !== undefined) {
+      result.error = { message: log.error };
+    }
+
+    if (log.returnData !== undefined) {
+      result.returnData = log.returnData;
+    }
+
+    return result;
+  });
+
+  return {
+    failed: trace.failed,
+    gas: trace.gas,
+    returnValue: trace.returnValue === HEX_PREFIX ? "" : trace.returnValue,
+    structLogs,
+  };
 }
