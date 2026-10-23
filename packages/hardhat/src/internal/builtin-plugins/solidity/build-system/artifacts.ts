@@ -39,7 +39,8 @@ export function getContractArtifact(
     _format: "hh3-artifact-1",
     contractName,
     sourceName: userSourceName,
-    abi: contract.abi,
+    // Yul sources have no ABI
+    abi: contract.abi ?? [],
     bytecode,
     deployedBytecode,
     linkReferences,
