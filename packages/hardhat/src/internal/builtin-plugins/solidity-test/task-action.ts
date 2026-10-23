@@ -16,6 +16,10 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
+import path from "node:path";
+import { styleText } from "node:util";
+
+import { IncludeTraces } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
@@ -36,6 +40,7 @@ import {
   getBuildInfosAndOutputs,
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
+import { isolationWarning, writeGasProfile } from "./gas-profile/index.js";
 import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
@@ -57,6 +62,7 @@ interface TestActionArguments {
   noCompile: boolean;
   testSummaryIndex: number;
   testProfile?: string;
+  gasProfile: boolean;
 }
 
 export interface SolidityTestRunResult extends TestRunResult {
@@ -72,6 +78,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     noCompile,
     testSummaryIndex,
     testProfile,
+    gasProfile,
   },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
@@ -80,6 +87,27 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const testProfileName = resolveTestProfileName(testProfile);
   const selectedTestProfile = getTestProfile(hre.config, testProfileName);
+
+  const gasStatsEnabled =
+    hre.globalOptions.gasStats || hre.globalOptions.gasStatsJson !== undefined;
+  const isolationSources = [
+    hre.globalOptions.gasStats ? "--gas-stats" : undefined,
+    hre.globalOptions.gasStatsJson !== undefined
+      ? "--gas-stats-json"
+      : undefined,
+    selectedTestProfile.isolate === true ? "the isolate setting" : undefined,
+  ].filter((source) => source !== undefined);
+  const gasProfileIsolation = isolationSources.length > 0;
+  if (gasProfile) {
+    if (hre.globalOptions.coverage) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_PROFILE_WITH_COVERAGE,
+      );
+    }
+    if (gasProfileIsolation) {
+      console.warn(styleText("yellow", isolationWarning(isolationSources)));
+    }
+  }
 
   const verbosity = hre.globalOptions.verbosity;
 
@@ -276,9 +304,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       observability: observabilityConfig,
       testPattern: grep,
       excludeTestPattern: grepExclude,
-      generateGasReport:
-        hre.globalOptions.gasStats ||
-        hre.globalOptions.gasStatsJson !== undefined,
+      // The profile needs every test's trace; what's printed still depends
+      // on the verbosity alone.
+      includeTraces: gasProfile ? IncludeTraces.All : undefined,
+      generateGasReport: gasStatsEnabled,
       eip712CanonicalTypes,
       testSourcePaths,
       testProfile: testProfileName,
@@ -389,6 +418,28 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ["solidity"],
     async () => {},
   );
+
+  if (gasProfile) {
+    console.log();
+    // A failure to profile is reported, but it never changes the test result.
+    try {
+      console.log(
+        await writeGasProfile(
+          suiteResults,
+          path.join(hre.config.paths.cache, "gas-profile"),
+          gasProfileIsolation,
+        ),
+      );
+    } catch (error) {
+      ensureError(error);
+      console.warn(
+        styleText(
+          "yellow",
+          `Warning: the gas profile couldn't be written: ${error.message}`,
+        ),
+      );
+    }
+  }
 
   console.log();
 
