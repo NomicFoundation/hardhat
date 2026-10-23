@@ -153,6 +153,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async getScope(fsPath: string): Promise<BuildScope> {
+    return await this.#hooks.runHandlerChain(
+      "solidity",
+      "getScope",
+      [fsPath],
+      async (_context, nextFsPath) => this.#getDefaultScope(nextFsPath),
+    );
+  }
+
+  #getDefaultScope(fsPath: string): BuildScope {
     const isUnderSources = this.#options.soliditySourcesPaths.some(
       (sourcesPath) => fsPath.startsWith(sourcesPath + path.sep),
     );
@@ -186,8 +195,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#ensureSplitCompilationModeIfTestsScope(scope);
 
     const unified = !this.#options.solidityConfig.splitTestsCompilation;
-    const { localContractFiles, sourceTestFiles } =
-      await this.#getSoliditySourcesRootFilePaths();
+    const { localContractFiles, testFiles } =
+      await this.#getLocalRootFilePaths();
 
     switch (scope) {
       case "contracts": {
@@ -202,73 +211,56 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         // In unified mode, contracts scope returns all roots: contracts,
         // tests, and npm files.
-        const testFiles = [
-          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-            f.endsWith(".sol"),
-          )),
-          ...sourceTestFiles,
-        ];
-
-        // Remove duplicates in case there is an intersection between
-        // the tests.solidity paths and the sources paths
         return Array.from(
           new Set([...localContractFiles, ...npmFilesToBuild, ...testFiles]),
         );
       }
       case "tests": {
-        let rootFilePaths = [
-          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-            f.endsWith(".sol"),
-          )),
-          ...sourceTestFiles,
-        ];
-
-        // NOTE: We remove duplicates in case there is an intersection between
-        // the tests.solidity paths and the sources paths
-        rootFilePaths = Array.from(new Set(rootFilePaths));
-        return rootFilePaths;
+        return testFiles;
       }
     }
   }
 
   /**
-   * Returns all the root files from the different solidity source dirs in the
-   * config, partitioned into contract files and test files according to their
-   * extensions.
+   * Discovers local roots and classifies them using the same scope rules as
+   * explicitly requested files. Paths and files are deduplicated in case source
+   * and test directories overlap.
    */
-  async #getSoliditySourcesRootFilePaths(): Promise<{
+  async #getLocalRootFilePaths(): Promise<{
     localContractFiles: string[];
-    sourceTestFiles: string[];
+    testFiles: string[];
   }> {
-    const sourceFileGroups = await Promise.all(
-      this.#options.soliditySourcesPaths.map(async (dir) => {
-        const localSolidityFiles = await getAllFilesMatching(dir, (f) =>
-          f.endsWith(".sol"),
-        );
-
-        const localContractFiles: string[] = [];
-        const sourceTestFiles: string[] = [];
-
-        for (const file of localSolidityFiles) {
-          if (file.endsWith(".t.sol")) {
-            sourceTestFiles.push(file);
-          } else {
-            localContractFiles.push(file);
-          }
-        }
-
-        return { localContractFiles, sourceTestFiles };
-      }),
+    const directories = new Set([
+      ...this.#options.soliditySourcesPaths,
+      this.#options.solidityTestsPath,
+    ]);
+    const fileGroups = await Promise.all(
+      [...directories].map(
+        async (dir) =>
+          await getAllFilesMatching(
+            dir,
+            async (file) =>
+              await this.#hooks.runHandlerChain(
+                "solidity",
+                "isRootFile",
+                [file],
+                async (_context, nextFsPath) => nextFsPath.endsWith(".sol"),
+              ),
+          ),
+      ),
     );
 
-    return {
-      localContractFiles: sourceFileGroups.flatMap(
-        ({ localContractFiles }) => localContractFiles,
-      ),
-      sourceTestFiles: sourceFileGroups.flatMap(
-        ({ sourceTestFiles }) => sourceTestFiles,
-      ),
-    };
+    const localContractFiles: string[] = [];
+    const testFiles: string[] = [];
+    for (const file of new Set(fileGroups.flat())) {
+      if ((await this.getScope(file)) === "tests") {
+        testFiles.push(file);
+      } else {
+        localContractFiles.push(file);
+      }
+    }
+
+    return { localContractFiles, testFiles };
   }
 
   public isSuccessfulBuildResult(
