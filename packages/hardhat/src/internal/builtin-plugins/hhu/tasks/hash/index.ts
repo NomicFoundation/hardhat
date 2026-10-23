@@ -9,11 +9,11 @@ export function hash(prefix: string[]): UtilsTaskDefinition[] {
   const keccakTask = buildUtilsTask(
     task(
       [...prefix, "hash", "keccak"],
-      "Print the keccak256 hash of 0x-hex bytes or a utf8 string",
+      "Print the keccak256 hash of 0x-hex bytes or a UTF-8 string",
     ).addPositionalArgument({
       name: "value",
       description:
-        "The value to hash: 0x-hex is hashed as bytes, anything else as utf8",
+        "The value to hash: 0x-hex is hashed as bytes, anything else as UTF-8",
     }),
     async () => await import("./keccak.js"),
   );
