@@ -51,6 +51,12 @@ const DEFAULT_PORTS: Map<string, number> = new Map([
   ["https:", 443],
 ]);
 
+// Node tries each resolved address in turn, giving all but the last one only
+// 250ms by default. On hosts without IPv6, the IPv6 addresses fail instantly,
+// so a single lost SYN on IPv4 (resent after 1s) fails the whole request.
+// 1250ms leaves room for that resend plus the round trip.
+export const AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS = 1250;
+
 export async function generateTempFilePath(filePath: string): Promise<string> {
   const { dir, ext, name } = path.parse(filePath);
 
@@ -279,6 +285,9 @@ export async function getProxyDispatcher(
     undici = await import("undici");
   }
 
+  // TODO: ProxyAgent connects to the proxy with its own connector, built from
+  // `proxyTls`, so the `autoSelectFamily` options from `getBaseDispatcherOptions`
+  // don't reach that connection.
   return new undici.ProxyAgent({
     uri: proxy,
     ...options,
@@ -321,6 +330,11 @@ export function getBaseDispatcherOptions(
     headersTimeout: timeout,
     bodyTimeout: timeout,
     connectTimeout: timeout,
+    // `true` is already Node's default, but undici only forwards the attempt
+    // timeout when `autoSelectFamily` is set
+    autoSelectFamily: true,
+    autoSelectFamilyAttemptTimeout:
+      AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
     ...keepAliveTimeouts,
   };
 }
