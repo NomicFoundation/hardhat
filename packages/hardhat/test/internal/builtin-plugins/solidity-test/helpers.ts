@@ -84,6 +84,19 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
+  it("should let an includeTraces override win over the verbosity", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      verbosity: 0,
+      includeTraces: IncludeTraces.All,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.includeTraces, IncludeTraces.All);
+  });
+
   it("should only collect stack traces at verbosity 5 and above", async () => {
     for (const verbosity of [1, 2, 3, 4, 5, 6, 7]) {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
