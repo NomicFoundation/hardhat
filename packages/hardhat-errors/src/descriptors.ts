@@ -1794,6 +1794,14 @@ Please try again. If it persists, please open an issue in the Hardhat repository
         websiteDescription:
           "Hardhat Ignition needs to migrate the artifacts to the new format. Please run `npx hardhat ignition migrate {deploymentId}`",
       },
+      INVALID_MAX_BATCH_SIZE: {
+        number: 10003,
+        messageTemplate:
+          "Invalid maxBatchSize: {value}. Expected a positive safe integer.",
+        websiteTitle: "Invalid maximum batch size",
+        websiteDescription:
+          "The Ignition maxBatchSize option must be a positive safe integer. Omit it to leave the batch size unlimited.",
+      },
     },
     INTERNAL: {
       INTERNAL_ERROR: {
