@@ -224,7 +224,7 @@ export function setLengthLeft(
 
   // if the string is longer than the desired length, truncate it
   if (unprefixedHexString.length > length) {
-    return `0x${unprefixedHexString.slice(-length)}`;
+    return length === 0 ? "0x" : `0x${unprefixedHexString.slice(-length)}`;
   }
 
   const paddedHexString = unprefixedHexString.padStart(length, "0");
