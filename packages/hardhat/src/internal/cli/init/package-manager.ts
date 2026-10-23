@@ -174,7 +174,8 @@ export async function installsPeerDependenciesByDefault(
         "legacy-peer-deps",
         config,
       );
-      // If we couldn't retrieve the npm version, we assume it is higher than 7
+      // If we couldn't retrieve the npm version, assume npm 7+ behavior,
+      // while still honoring legacy-peer-deps.
       if (npmVersion === undefined || npmVersion[0] >= 7) {
         // If legacy-peer-deps hasn't been explicitly set to true,
         // peer dependencies are installed by default
@@ -195,7 +196,8 @@ export async function installsPeerDependenciesByDefault(
         "auto-install-peers",
         config,
       );
-      // If we couldn't retrieve the pnpm version, we assume it is higher than 8
+      // If we couldn't retrieve the pnpm version, assume pnpm 8+ behavior,
+      // while still honoring auto-install-peers.
       if (pnpmVersion === undefined || pnpmVersion[0] >= 8) {
         // If auto-install-peers hasn't been explicitly set to false,
         // peer dependencies are installed by default
