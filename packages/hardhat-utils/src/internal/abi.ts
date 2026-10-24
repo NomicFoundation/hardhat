@@ -351,8 +351,7 @@ function normalizeBytes(
     isPrefixedHexString(value) &&
     isHexString(value)
   ) {
-    const unprefixed = getUnprefixedHexString(value);
-    if (unprefixed.length % 2 !== 0) {
+    if (getUnprefixedHexString(value).length % 2 !== 0) {
       throw new InvalidAbiValueError(
         path,
         type,
@@ -360,8 +359,7 @@ function normalizeBytes(
         "invalid bytes value, the hex string has an odd length",
       );
     }
-    bytes =
-      unprefixed.length === 0 ? new Uint8Array() : hexStringToBytes(unprefixed);
+    bytes = hexStringToBytes(value);
   } else {
     throw new InvalidAbiValueError(
       path,
