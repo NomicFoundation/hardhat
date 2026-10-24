@@ -310,6 +310,12 @@ describe("hex", () => {
   });
 
   describe("setLengthLeft", () => {
+    it("Should truncate to an empty hex string when the length is zero", () => {
+      assert.equal(setLengthLeft("0xabcd", 0), "0x");
+      assert.equal(setLengthLeft("abcd", 0), "0x");
+      assert.equal(setLengthLeft("0x", 0), "0x");
+    });
+
     it("Should set the length of a hexadecimal string", () => {
       assert.equal(setLengthLeft("0x0", 1), "0x0"); // Same length
       assert.equal(setLengthLeft("0x0", 2), "0x00");
