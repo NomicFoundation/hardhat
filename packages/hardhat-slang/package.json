@@ -61,7 +61,7 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-utils": "workspace:^5.1.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
-    "zod": "^3.23.8"
+    "zod": "^4.0.0"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.15.0"

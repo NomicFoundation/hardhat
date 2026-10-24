@@ -62,7 +62,7 @@
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "ethereum-cryptography": "^3.0.0",
     "ethers": "^6.14.0",
-    "zod": "^3.23.8"
+    "zod": "^4.0.0"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.18.0"
