@@ -454,6 +454,29 @@ describe("LocalAccountsHandler", () => {
           "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c",
         );
       });
+
+      it("should sign 0x as an empty message", async () => {
+        // This test was created by using ethers 6.17.0 and calling
+        // wallet.signMessage(new Uint8Array())
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        ]);
+
+        const jsonRpcRequest = getJsonRpcRequest(1, "personal_sign", [
+          "0x",
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ]);
+
+        const res = await localAccountsHandler.handle(jsonRpcRequest);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+
+        assert.equal(
+          res.result,
+          "0xc1977b761f1dd36c29795783460d241885c8e7f9d962dbe7bba2753fd94e89b444a1cd9ed855dd09afa3b73f7c2bd097ec9abc2d2775d737505a02d3f0cafa591b",
+        );
+      });
     });
   });
 
@@ -679,6 +702,38 @@ describe("LocalAccountsHandler", () => {
         "56a74a7ee82fc78271f1ff19df";
 
       assert.equal(rawTransaction, expectedRaw);
+    });
+
+    it("should sign 'data' 0x as empty data, like an undefined 'data'", async () => {
+      const tx = {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        data: "0x",
+        gas: numberToHexString(100000),
+        nonce: numberToHexString(0),
+        value: numberToHexString(1),
+        chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+        maxFeePerGas: numberToHexString(12),
+        maxPriorityFeePerGas: numberToHexString(2),
+      };
+
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
+
+      await localAccountsHandler.handle(jsonRpcRequest);
+
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
+
+      // The same raw transaction as in the test without 'data'
+      const expectedRaw =
+        "0x02f8637b80020c830186a094b5bc06d4548a3ac17d72b372ae1e416bf6" +
+        "5b8ead0180c001a0db0f3cf6ea38dc6f9da98bbaf7dd1476ad86278eb56d" +
+        "d6173253689481b021fea01b4c3f357eb05a54913fd832c1450b0e169007" +
+        "56a74a7ee82fc78271f1ff19df";
+
+      assert.equal(jsonRpcRequest.params[0], expectedRaw);
     });
 
     it("should throw if both 'to' and 'data' are undefined", async () => {
