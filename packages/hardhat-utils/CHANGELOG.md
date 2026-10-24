@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.1.1
+
+### Patch Changes
+
+- [#8757](https://github.com/NomicFoundation/hardhat/pull/8757) [`69ba19b`](https://github.com/NomicFoundation/hardhat/commit/69ba19b9dcd54079758814f7c9f8606fc8490949) Thanks [@fengxueweilai](https://github.com/fengxueweilai)! - Fixed `setLengthLeft` returning the whole hex string instead of `0x` when truncating to a length of `0`.
+
 ## 5.1.0
 
 ### Minor Changes
