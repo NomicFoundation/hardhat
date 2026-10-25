@@ -334,6 +334,20 @@ export function parseAbiEventSignature(signature: string): AbiEventSignature {
 }
 
 /**
+ * Parses a single human-readable parameter, like `uint256`, `address payable`
+ * or `(address to, uint256 amount)[]`, accepting the same syntax as the
+ * parameters of `parseAbiSignature`.
+ *
+ * @param parameter The parameter to parse.
+ * @returns The parsed parameter.
+ * @throws InvalidAbiSignatureError If the parameter is invalid, or isn't a
+ * single one.
+ */
+export function parseAbiParameter(parameter: string): AbiParameter {
+  return new AbiSignatureParser(parameter).parseSingleParameter();
+}
+
+/**
  * Returns the selector of a function or error: the first 4 bytes of the
  * keccak256 hash of its canonical signature.
  *
