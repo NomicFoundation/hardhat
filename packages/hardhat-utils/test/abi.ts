@@ -1073,6 +1073,76 @@ describe("abi", () => {
       });
     });
 
+    it("Should parse error as a name, as it isn't a reserved keyword", () => {
+      const expected = {
+        name: "error",
+        inputs: [{ type: "string" }],
+        outputs: [],
+      };
+
+      assert.deepEqual(parseAbiSignature("error(string)"), expected);
+      assert.deepEqual(parseAbiSignature("function error(string)"), expected);
+      assert.deepEqual(parseAbiSignature("error error(string)"), expected);
+      assert.deepEqual(parseAbiSignature("event error(string)"), expected);
+    });
+
+    it("Should parse a constructor declaration without a name", () => {
+      assert.deepEqual(
+        parseAbiSignature("constructor(address owner, uint256) payable"),
+        {
+          name: "",
+          inputs: [{ type: "address", name: "owner" }, { type: "uint256" }],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse the function type", () => {
+      assert.deepEqual(parseAbiSignature("cb(function f, function[2])"), {
+        name: "cb",
+        inputs: [{ type: "function", name: "f" }, { type: "function[2]" }],
+        outputs: [],
+      });
+    });
+
+    it("Should normalize byte to bytes1", () => {
+      assert.deepEqual(parseAbiSignature("f(byte, byte[2] b)"), {
+        name: "f",
+        inputs: [{ type: "bytes1" }, { type: "bytes1[2]", name: "b" }],
+        outputs: [],
+      });
+    });
+
+    it("Should parse names that are only keywords in some contexts", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "Failure(uint error, address from, bool tuple, uint receive, uint fallback)",
+        ),
+        {
+          name: "Failure",
+          inputs: [
+            { type: "uint256", name: "error" },
+            { type: "address", name: "from" },
+            { type: "bool", name: "tuple" },
+            { type: "uint256", name: "receive" },
+            { type: "uint256", name: "fallback" },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse indexed and a data location in any order", () => {
+      assert.deepEqual(parseAbiSignature("E(string memory indexed s)"), {
+        name: "E",
+        inputs: [{ type: "string", name: "s", indexed: true }],
+        outputs: [],
+      });
+    });
+
+    const unknownType = (type: string) =>
+      `unknown type "${type}"; write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type`;
+
     for (const [signature, reason] of [
       ["", "it's incomplete"],
       ["transfer", "it's incomplete"],
@@ -1087,14 +1157,24 @@ describe("abi", () => {
       ["f(uint256[0])", 'unexpected "["'],
       ["f(uint256[)", 'unexpected "["'],
       ["f(uint256) external; }", 'unexpected "}"'],
-      ["f(unit256)", 'unknown type "unit256"'],
-      ["f(uint7)", 'unknown type "uint7"'],
-      ["f(uint512)", 'unknown type "uint512"'],
-      ["f(bytes0)", 'unknown type "bytes0"'],
-      ["f(bytes01)", 'unknown type "bytes01"'],
-      ["f(bytes33)", 'unknown type "bytes33"'],
-      ["f(MyStruct)", 'unknown type "MyStruct"'],
+      ["f(unit256)", unknownType("unit256")],
+      ["f(uint7)", unknownType("uint7")],
+      ["f(uint512)", unknownType("uint512")],
+      ["f(bytes0)", unknownType("bytes0")],
+      ["f(bytes01)", unknownType("bytes01")],
+      ["f(bytes33)", unknownType("bytes33")],
+      ["f(MyStruct)", unknownType("MyStruct")],
+      ["f(DataTypes.ReserveData)", unknownType("DataTypes.ReserveData")],
       ["f() returns (DataTypes.)", 'unexpected ")"'],
+      [
+        "f(function (uint256) external returns (bool) cb)",
+        'write function types as just "function"',
+      ],
+      ["f(uint256 returns)", 'unexpected "returns"'],
+      ["f(uint256 function)", 'unexpected "function"'],
+      ["f(address payable payable)", 'unexpected "payable"'],
+      ["E(address indexed indexed x)", 'unexpected "indexed"'],
+      ["f(string memory calldata s)", 'unexpected "calldata"'],
     ]) {
       it(`Should throw for "${signature}"`, () => {
         assertInvalidSignature(signature, reason);
@@ -1132,6 +1212,19 @@ describe("abi", () => {
       assert.equal(
         await getAbiSelector(parseAbiSignature("error Error(string)")),
         "0x08c379a0",
+      );
+    });
+
+    it("Should match solc's selectors of a function named error and of the function type", async () => {
+      // From `solc --hashes` (0.8.35) on `function error(string memory)` and
+      // `function cb(function (uint256) external returns (uint256) f)`
+      assert.equal(
+        await getAbiSelector(parseAbiSignature("error(string)")),
+        "0x24c93343",
+      );
+      assert.equal(
+        await getAbiSelector(parseAbiSignature("cb(function)")),
+        "0x568eba10",
       );
     });
   });

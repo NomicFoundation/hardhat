@@ -82,7 +82,8 @@ describe("hhu utils abi tasks", () => {
         {
           value: "transfer(address,unit256)",
           name: "signature",
-          reason: 'unknown type "unit256"',
+          reason:
+            'unknown type "unit256"; write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type',
         },
       );
     });

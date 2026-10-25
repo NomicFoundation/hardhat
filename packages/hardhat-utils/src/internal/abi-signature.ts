@@ -13,16 +13,39 @@ const TOKEN_PATTERN = /\s*(?:[A-Za-z_$][\w$]*|\[(?:[1-9]\d*)?\]|\S)/gy;
 const ARRAY_SUFFIX_PATTERN = /^\[(?:[1-9]\d*)?\]$/;
 
 // The elementary types that aren't integers nor fixed-size bytes
-const ELEMENTARY_TYPE_NAMES = new Set(["address", "bool", "string", "bytes"]);
+const ELEMENTARY_TYPE_NAMES = new Set([
+  "address",
+  "bool",
+  "string",
+  "bytes",
+  "function",
+]);
 
-const DECLARATION_KEYWORDS = new Set(["function", "event", "error"]);
+// The type aliases other than the integer ones, which `parseIntType` handles
+const TYPE_ALIASES = new Map([["byte", "bytes1"]]);
 
-const PARAMETER_MODIFIERS = new Set([
+// The reserved keywords that start a declaration
+const DECLARATION_KEYWORDS = new Set(["function", "event", "constructor"]);
+
+const DATA_LOCATIONS = new Set(["memory", "calldata", "storage"]);
+
+// The keywords that can't be parameter names. Others, like `error` or `from`,
+// are only keywords in some contexts, so they can.
+const RESERVED_KEYWORDS = new Set([
+  "payable",
   "indexed",
+  "anonymous",
   "memory",
   "calldata",
   "storage",
+  "returns",
+  "function",
+  "event",
+  "constructor",
 ]);
+
+const UNKNOWN_TYPE_HINT =
+  "write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type";
 
 /**
  * Returns the canonical form of a signature, as used to compute its selector
@@ -80,7 +103,13 @@ export class AbiSignatureParser {
   }
 
   public parse(): AbiSignature {
-    if (DECLARATION_KEYWORDS.has(this.#peek())) {
+    // `error` can also be a function's name, like in `error(string)`, as it
+    // isn't reserved. It starts a declaration only when a name follows it.
+    const keyword = this.#peek();
+    if (
+      DECLARATION_KEYWORDS.has(keyword) ||
+      (keyword === "error" && isWord(this.#peek(1)))
+    ) {
       this.#position++;
     }
 
@@ -171,22 +200,29 @@ export class AbiSignatureParser {
       type += this.#next();
     }
 
-    const modifiers: string[] = [];
-    while (PARAMETER_MODIFIERS.has(this.#peek())) {
-      modifiers.push(this.#next());
+    // At most one `indexed` and one data location, in any order
+    let indexed = false;
+    let hasDataLocation = false;
+    while (
+      (!indexed && this.#peek() === "indexed") ||
+      (!hasDataLocation && DATA_LOCATIONS.has(this.#peek()))
+    ) {
+      if (this.#next() === "indexed") {
+        indexed = true;
+      } else {
+        hasDataLocation = true;
+      }
     }
 
-    // A type isn't a name, but the next parameter after a missing ","
-    const name =
-      isWord(this.#peek()) && !isElementaryType(this.#peek())
-        ? this.#next()
-        : undefined;
+    // A type or a keyword isn't a name, but what follows a missing "," or a
+    // repeated modifier
+    const name = isParameterName(this.#peek()) ? this.#next() : undefined;
 
     return {
       type,
       ...(components !== undefined && { components }),
       ...(name !== undefined && { name }),
-      ...(modifiers.includes("indexed") && { indexed: true }),
+      ...(indexed && { indexed: true }),
     };
   }
 
@@ -202,17 +238,23 @@ export class AbiSignatureParser {
       return `${intType.signed ? "" : "u"}int${intType.bits}`;
     }
 
+    const alias = TYPE_ALIASES.get(word);
+    if (alias !== undefined) {
+      return alias;
+    }
+
     if (isElementaryType(word)) {
       // `address payable` is encoded as `address`
       if (word === "address") {
         this.#consume("payable");
       }
 
-      return word;
-    }
+      // A function type is encoded as `function`, whatever its parameters
+      if (word === "function" && this.#peek() === "(") {
+        this.#fail('write function types as just "function"');
+      }
 
-    if (!this.#allowCustomTypes) {
-      this.#fail(`unknown type "${word}"`);
+      return word;
     }
 
     // Custom types can be qualified, like `DataTypes.ReserveData`
@@ -225,12 +267,16 @@ export class AbiSignatureParser {
       type += `.${this.#next()}`;
     }
 
+    if (!this.#allowCustomTypes) {
+      this.#fail(`unknown type "${type}"; ${UNKNOWN_TYPE_HINT}`);
+    }
+
     return type;
   }
 
-  // Returns "" at the end of the signature
-  #peek(): string {
-    return this.#tokens[this.#position] ?? "";
+  // Returns "" past the end of the signature
+  #peek(offset = 0): string {
+    return this.#tokens[this.#position + offset] ?? "";
   }
 
   #next(): string {
@@ -268,8 +314,15 @@ export class AbiSignatureParser {
 function isElementaryType(word: string): boolean {
   return (
     ELEMENTARY_TYPE_NAMES.has(word) ||
+    TYPE_ALIASES.has(word) ||
     parseIntType(word) !== undefined ||
     parseFixedBytesType(word) !== undefined
+  );
+}
+
+function isParameterName(token: string): boolean {
+  return (
+    isWord(token) && !isElementaryType(token) && !RESERVED_KEYWORDS.has(token)
   );
 }
 
