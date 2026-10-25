@@ -6,7 +6,11 @@ import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
 } from "./errors/abi.js";
-import { getPrefixedHexString } from "./hex.js";
+import { bytesToHexString, getPrefixedHexString } from "./hex.js";
+import {
+  AbiSignatureParser,
+  hashCanonicalAbiSignature,
+} from "./internal/abi-signature.js";
 import {
   assertNoDuplicateAbiParameterNames,
   normalizeAbiValue,
@@ -24,6 +28,7 @@ export interface AbiParameter {
   readonly name?: string;
   readonly type: string;
   readonly components?: readonly AbiParameter[];
+  readonly indexed?: boolean;
 }
 
 /**
@@ -34,6 +39,21 @@ export interface AbiFragment {
   readonly type?: string;
   readonly name?: string;
   readonly inputs?: readonly AbiParameter[];
+}
+
+/**
+ * A parsed human-readable signature of a function, event or error.
+ */
+export interface AbiSignature {
+  /** The name, or "" for a bare parameter list, like `(uint256,bool)`. */
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /**
+   * The return types, written as `f(uint256)(bool)` or
+   * `f(uint256) returns (bool)`. They can hold custom types, like `IPool`, kept
+   * as written, which aren't ABI types and must be resolved before decoding.
+   */
+  readonly outputs: readonly AbiParameter[];
 }
 
 /**
@@ -185,12 +205,59 @@ export async function encodeAbiParameters(
   return getPrefixedHexString(encoded);
 }
 
+/**
+ * Parses a human-readable signature, like `transfer(address,uint256)`.
+ *
+ * It also accepts parameter names, the `indexed` and data location keywords,
+ * tuples written as `(...)` or `tuple(...)`, and whole Solidity declarations,
+ * like `function balanceOf(address owner) external view returns (uint256);`.
+ * Integer type aliases are normalized, so `uint` becomes `uint256`. Custom
+ * types, like structs or contracts, are only accepted as return types, as
+ * resolving them to ABI types needs their definitions.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid.
+ */
+export function parseAbiSignature(signature: string): AbiSignature {
+  return new AbiSignatureParser(signature).parse();
+}
+
+/**
+ * Returns the selector of a function or error: the first 4 bytes of the
+ * keccak256 hash of its canonical signature.
+ *
+ * @param signature The parsed signature.
+ * @returns The 4-byte selector, like `0xa9059cbb`.
+ */
+export async function getAbiSelector(
+  signature: AbiSignature,
+): Promise<PrefixedHexString> {
+  const hash = await hashCanonicalAbiSignature(signature);
+
+  return bytesToHexString(hash.subarray(0, 4));
+}
+
+/**
+ * Returns the topic of an event: the keccak256 hash of its canonical
+ * signature, which non-anonymous events log as their first topic.
+ *
+ * @param signature The parsed signature.
+ * @returns The 32-byte topic.
+ */
+export async function getAbiEventTopic(
+  signature: AbiSignature,
+): Promise<PrefixedHexString> {
+  return bytesToHexString(await hashCanonicalAbiSignature(signature));
+}
+
 export {
   AbiEncodingError,
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
   DuplicateAbiParameterNameError,
+  InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   isAbiEncodingError,

@@ -154,3 +154,15 @@ export function isAbiEncodingError<KindT extends AbiEncodingErrorKind>(
 ): error is Extract<AnyAbiEncodingError, { kind: KindT }> {
   return error instanceof Error && "kind" in error && error.kind === kind;
 }
+
+/**
+ * Thrown when a human-readable ABI signature can't be parsed.
+ */
+export class InvalidAbiSignatureError extends CustomError {
+  constructor(
+    public readonly input: string,
+    public readonly reason: string,
+  ) {
+    super(`The ABI signature "${input}" is invalid: ${reason}.`);
+  }
+}
