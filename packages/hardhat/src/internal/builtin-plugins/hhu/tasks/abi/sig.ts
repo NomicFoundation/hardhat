@@ -1,8 +1,12 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  getAbiSelector,
+  parseAbiSignature,
+} from "@nomicfoundation/hardhat-utils/abi";
 
-import { hashSignature } from "./signature.js";
+import { parseSignatureArgument } from "./arguments.js";
 
 interface SigActionArguments {
   signature: string;
@@ -11,9 +15,21 @@ interface SigActionArguments {
 const sigAction: NewUtilsTaskActionFunction<SigActionArguments> = async ({
   signature,
 }) => {
-  const hash = await hashSignature(signature);
+  const parsed = parseSignatureArgument(
+    parseAbiSignature,
+    signature,
+    "signature",
+  );
 
-  console.log(bytesToHexString(hash.subarray(0, 4)));
+  if (parsed.name === "") {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
+      value: signature,
+      name: "signature",
+      reason: "it must include a name",
+    });
+  }
+
+  console.log(await getAbiSelector(parsed));
 };
 
 export default sigAction;

@@ -5,15 +5,20 @@ import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
+  InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   encodeAbiParameters,
   getAbiConstructorParameters,
+  getAbiEventTopic,
+  getAbiSelector,
   getIntTypeRange,
   isAbiEncodingError,
+  parseAbiSignature,
   parseIntType,
 } from "../src/abi.js";
 import { getUnprefixedHexString } from "../src/hex.js";
+import { getCanonicalAbiSignature } from "../src/internal/abi-signature.js";
 
 /** Encodes and returns the result without the "0x" prefix, for readability. */
 async function encode(
@@ -46,6 +51,22 @@ async function assertEncodingError(
     }
     return true;
   });
+}
+
+/** Asserts that parsing a signature throws for the given reason. */
+function assertInvalidSignature(signature: string, reason: string): void {
+  assert.throws(
+    () => parseAbiSignature(signature),
+    (error: unknown) => {
+      assert.ok(
+        error instanceof InvalidAbiSignatureError,
+        `expected an InvalidAbiSignatureError, got ${String(error)}`,
+      );
+      assert.equal(error.input, signature);
+      assert.equal(error.reason, reason);
+      return true;
+    },
+  );
 }
 
 describe("abi", () => {
@@ -892,6 +913,235 @@ describe("abi", () => {
           `${String(value)} should not match any kind`,
         );
       }
+    });
+  });
+
+  describe("parseAbiSignature", () => {
+    it("Should parse a name and its input types, normalizing integer aliases", () => {
+      assert.deepEqual(parseAbiSignature("f(uint,int,address,bool,bytes32)"), {
+        name: "f",
+        inputs: [
+          { type: "uint256" },
+          { type: "int256" },
+          { type: "address" },
+          { type: "bool" },
+          { type: "bytes32" },
+        ],
+        outputs: [],
+      });
+    });
+
+    it("Should parse an empty parameter list", () => {
+      assert.deepEqual(parseAbiSignature("f()"), {
+        name: "f",
+        inputs: [],
+        outputs: [],
+      });
+    });
+
+    it("Should parse a bare parameter list without a name", () => {
+      assert.deepEqual(parseAbiSignature("(uint256,string)"), {
+        name: "",
+        inputs: [{ type: "uint256" }, { type: "string" }],
+        outputs: [],
+      });
+    });
+
+    it("Should parse parameter names, and the indexed and data location keywords", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "E(address indexed from, string memory name, bytes calldata, address payable to, address payable[] storage tos)",
+        ),
+        {
+          name: "E",
+          inputs: [
+            { type: "address", name: "from", indexed: true },
+            { type: "string", name: "name" },
+            { type: "bytes" },
+            { type: "address", name: "to" },
+            { type: "address[]", name: "tos" },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse arrays and nested tuples, in both tuple syntaxes", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "f(uint8[2][] xs, (address a, tuple(bool, bytes)[3] b)[] t)",
+        ),
+        {
+          name: "f",
+          inputs: [
+            { type: "uint8[2][]", name: "xs" },
+            {
+              type: "tuple[]",
+              name: "t",
+              components: [
+                { type: "address", name: "a" },
+                {
+                  type: "tuple[3]",
+                  name: "b",
+                  components: [{ type: "bool" }, { type: "bytes" }],
+                },
+              ],
+            },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse return types, with and without the returns keyword", () => {
+      const expected = {
+        name: "f",
+        inputs: [{ type: "uint256" }],
+        outputs: [{ type: "bool" }, { type: "uint256" }],
+      };
+
+      assert.deepEqual(parseAbiSignature("f(uint256)(bool,uint)"), expected);
+      assert.deepEqual(
+        parseAbiSignature("f(uint256) returns (bool,uint)"),
+        expected,
+      );
+    });
+
+    it("Should parse whole Solidity declarations", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "  function balanceOf(address owner) external view returns (uint256 balance);  ",
+        ),
+        {
+          name: "balanceOf",
+          inputs: [{ type: "address", name: "owner" }],
+          outputs: [{ type: "uint256", name: "balance" }],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function supportsInterface(bytes4 id) public view virtual override(ERC165, AccessControl) returns (bool) {",
+        ),
+        {
+          name: "supportsInterface",
+          inputs: [{ type: "bytes4", name: "id" }],
+          outputs: [{ type: "bool" }],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function mint(address to, uint256 amount) external onlyRole(getRoleAdmin(MINTER_ROLE)) initializer(2) whenNotPaused { _mint(to, amount); }",
+        ),
+        {
+          name: "mint",
+          inputs: [
+            { type: "address", name: "to" },
+            { type: "uint256", name: "amount" },
+          ],
+          outputs: [],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function getPool(address asset) external view returns (IPool pool, DataTypes.ReserveData memory)",
+        ),
+        {
+          name: "getPool",
+          inputs: [{ type: "address", name: "asset" }],
+          outputs: [
+            { type: "IPool", name: "pool" },
+            { type: "DataTypes.ReserveData" },
+          ],
+        },
+      );
+
+      assert.deepEqual(parseAbiSignature("event Ping() anonymous;"), {
+        name: "Ping",
+        inputs: [],
+        outputs: [],
+      });
+
+      assert.deepEqual(parseAbiSignature("error Unauthorized(address)"), {
+        name: "Unauthorized",
+        inputs: [{ type: "address" }],
+        outputs: [],
+      });
+    });
+
+    for (const [signature, reason] of [
+      ["", "it's incomplete"],
+      ["transfer", "it's incomplete"],
+      ["f(uint256", "it's incomplete"],
+      ["f(uint256) returns", "it's incomplete"],
+      ["f(uint256,)", 'unexpected ")"'],
+      ["f(uint256))", 'unexpected ")"'],
+      ["f(uint256) onlyRole(ROLE", "it's incomplete"],
+      ["f(address uint256)", 'unexpected "uint256"'],
+      ["f(uint256,address bool)", 'unexpected "bool"'],
+      ["f(uint256 #)", 'unexpected "#"'],
+      ["f(uint256[0])", 'unexpected "["'],
+      ["f(uint256[)", 'unexpected "["'],
+      ["f(uint256) external; }", 'unexpected "}"'],
+      ["f(unit256)", 'unknown type "unit256"'],
+      ["f(uint7)", 'unknown type "uint7"'],
+      ["f(uint512)", 'unknown type "uint512"'],
+      ["f(bytes33)", 'unknown type "bytes33"'],
+      ["f(MyStruct)", 'unknown type "MyStruct"'],
+      ["f() returns (DataTypes.)", 'unexpected ")"'],
+    ]) {
+      it(`Should throw for "${signature}"`, () => {
+        assertInvalidSignature(signature, reason);
+      });
+    }
+  });
+
+  describe("getCanonicalAbiSignature", () => {
+    it("Should return the canonical signature, without names nor return types", () => {
+      assert.equal(
+        getCanonicalAbiSignature(
+          parseAbiSignature(
+            "function f(uint a, (address b, (bool c)[2] d)[] e) returns (bool)",
+          ),
+        ),
+        "f(uint256,(address,(bool)[2])[])",
+      );
+    });
+  });
+
+  describe("getAbiSelector", () => {
+    it("Should return the selector of a function or error", async () => {
+      assert.equal(
+        await getAbiSelector(parseAbiSignature("transfer(address,uint256)")),
+        "0xa9059cbb",
+      );
+      assert.equal(
+        await getAbiSelector(
+          parseAbiSignature(
+            "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))",
+          ),
+        ),
+        "0x414bf389",
+      );
+      assert.equal(
+        await getAbiSelector(parseAbiSignature("error Error(string)")),
+        "0x08c379a0",
+      );
+    });
+  });
+
+  describe("getAbiEventTopic", () => {
+    it("Should return the topic of an event", async () => {
+      assert.equal(
+        await getAbiEventTopic(
+          parseAbiSignature(
+            "event Transfer(address indexed from, address indexed to, uint256 value)",
+          ),
+        ),
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+      );
     });
   });
 });

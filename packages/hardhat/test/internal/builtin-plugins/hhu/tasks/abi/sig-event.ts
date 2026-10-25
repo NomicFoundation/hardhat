@@ -17,7 +17,7 @@ const TRANSFER_TOPIC =
 
 // The hhu plugin is unreleased and de-registered from the builtin plugins, so
 // it's injected explicitly to test the integrated (`hardhat utils ...`) path.
-// The signature grammar is covered by the signature parser tests.
+// The signature grammar is covered by the hardhat-utils abi tests.
 describe("hhu utils abi tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 

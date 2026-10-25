@@ -1,33 +1,9 @@
-import type { AbiParameter } from "@nomicfoundation/hardhat-utils/abi";
+import type { AbiParameter, AbiSignature } from "../abi.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { parseIntType } from "@nomicfoundation/hardhat-utils/abi";
-import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
-import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
-
-/**
- * A parameter of a parsed signature.
- */
-export interface SignatureParameter extends AbiParameter {
-  readonly components?: readonly SignatureParameter[];
-  /** Only set for event parameters declared with the `indexed` keyword. */
-  readonly indexed?: boolean;
-}
-
-/**
- * A parsed function, event, or error signature.
- */
-export interface ParsedSignature {
-  /** The name, or "" for a bare parameter list, like `(uint256,bool)`. */
-  readonly name: string;
-  readonly inputs: readonly SignatureParameter[];
-  /**
-   * The return types, written as `f(uint256)(bool)` or `f(uint256) returns (bool)`.
-   * Custom types, like `IPool`, are kept as written, so they must be resolved
-   * before decoding.
-   */
-  readonly outputs: readonly SignatureParameter[];
-}
+import { parseIntType } from "../abi.js";
+import { utf8StringToBytes } from "../bytes.js";
+import { keccak256 } from "../crypto.js";
+import { InvalidAbiSignatureError } from "../errors/abi.js";
 
 // A word, an array suffix, or any other character, after optional whitespace
 const TOKEN_PATTERN = /\s*(?:[A-Za-z_$][\w$]*|\[(?:[1-9]\d*)?\]|\S)/gy;
@@ -47,66 +23,48 @@ const PARAMETER_MODIFIERS = new Set([
 ]);
 
 /**
- * Parses a human-readable signature, like `transfer(address,uint256)`.
- *
- * It also accepts parameter names, the `indexed` and data location keywords,
- * tuples written as `(...)` or `tuple(...)`, and whole Solidity declarations,
- * like `function balanceOf(address owner) external view returns (uint256);`.
- * Integer type aliases are normalized, so `uint` becomes `uint256`. Custom
- * types, like structs or contracts, are only accepted as return types, as
- * resolving them to ABI types needs their definitions.
- *
- * @param signature The signature to parse.
- * @returns The parsed signature.
- * @throws HardhatError If the signature is invalid.
- */
-export function parseSignature(signature: string): ParsedSignature {
-  return new SignatureParser(signature).parse();
-}
-
-/**
  * Returns the canonical form of a signature, as used to compute its selector
  * or topic: its name and input types, without spaces nor parameter names.
  *
  * @param signature The parsed signature.
  * @returns The canonical signature, like `transfer(address,uint256)`.
  */
-export function formatSignature({ name, inputs }: ParsedSignature): string {
-  return `${name}(${inputs.map(formatType).join(",")})`;
+export function getCanonicalAbiSignature({
+  name,
+  inputs,
+}: AbiSignature): string {
+  return `${name}(${inputs.map(getCanonicalAbiType).join(",")})`;
 }
 
 /**
  * Returns the keccak256 hash of a signature's canonical form. Its first 4 bytes
  * are a function's or error's selector, and the whole hash is an event's topic.
  *
- * @param signature The signature to hash.
+ * @param signature The parsed signature.
  * @returns The 32-byte hash.
- * @throws HardhatError If the signature is invalid or has no name.
  */
-export async function hashSignature(signature: string): Promise<Uint8Array> {
-  const parsed = parseSignature(signature);
-
-  if (parsed.name === "") {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value: signature,
-      name: "signature",
-      reason: "it must include a name",
-    });
-  }
-
-  return await keccak256(utf8StringToBytes(formatSignature(parsed)));
+export async function hashCanonicalAbiSignature(
+  signature: AbiSignature,
+): Promise<Uint8Array> {
+  return await keccak256(
+    utf8StringToBytes(getCanonicalAbiSignature(signature)),
+  );
 }
 
-function formatType({ type, components }: SignatureParameter): string {
+function getCanonicalAbiType({ type, components }: AbiParameter): string {
   if (components === undefined) {
     return type;
   }
 
   // Keep the array suffix of types like `tuple[2][]`
-  return `(${components.map(formatType).join(",")})${type.slice("tuple".length)}`;
+  return `(${components.map(getCanonicalAbiType).join(",")})${type.slice("tuple".length)}`;
 }
 
-class SignatureParser {
+/**
+ * A parser of human-readable ABI signatures. See `parseAbiSignature` for the
+ * syntax it accepts.
+ */
+export class AbiSignatureParser {
   readonly #signature: string;
   readonly #tokens: string[];
   #position = 0;
@@ -119,7 +77,7 @@ class SignatureParser {
     );
   }
 
-  public parse(): ParsedSignature {
+  public parse(): AbiSignature {
     if (DECLARATION_KEYWORDS.has(this.#peek())) {
       this.#position++;
     }
@@ -131,7 +89,7 @@ class SignatureParser {
     // that matters here, and declarations often return custom types
     this.#allowCustomTypes = true;
 
-    let outputs: SignatureParameter[] = [];
+    let outputs: AbiParameter[] = [];
     if (this.#peek() === "(") {
       outputs = this.#parseParameterList();
     } else {
@@ -179,10 +137,10 @@ class SignatureParser {
     } while (depth > 0);
   }
 
-  #parseParameterList(): SignatureParameter[] {
+  #parseParameterList(): AbiParameter[] {
     this.#expect("(");
 
-    const parameters: SignatureParameter[] = [];
+    const parameters: AbiParameter[] = [];
     if (this.#consume(")")) {
       return parameters;
     }
@@ -196,9 +154,9 @@ class SignatureParser {
     return parameters;
   }
 
-  #parseParameter(): SignatureParameter {
+  #parseParameter(): AbiParameter {
     let type: string;
-    let components: SignatureParameter[] | undefined;
+    let components: AbiParameter[] | undefined;
 
     if (this.#consume("tuple") || this.#peek() === "(") {
       type = "tuple";
@@ -301,11 +259,7 @@ class SignatureParser {
   }
 
   #fail(reason: string): never {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value: this.#signature,
-      name: "signature",
-      reason,
-    });
+    throw new InvalidAbiSignatureError(this.#signature, reason);
   }
 }
 
