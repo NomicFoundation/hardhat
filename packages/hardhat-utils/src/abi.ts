@@ -211,9 +211,10 @@ export async function encodeAbiParameters(
  * It also accepts parameter names, the `indexed` and data location keywords,
  * tuples written as `(...)` or `tuple(...)`, and whole Solidity declarations,
  * like `function balanceOf(address owner) external view returns (uint256);`.
- * Integer type aliases are normalized, so `uint` becomes `uint256`. Custom
- * types, like structs or contracts, are only accepted as return types, as
- * resolving them to ABI types needs their definitions.
+ * Type aliases are normalized, so `uint` becomes `uint256` and `byte` becomes
+ * `bytes1`, and function types must be written as `function`. Custom types,
+ * like structs or contracts, are only accepted as return types, as resolving
+ * them to ABI types needs their definitions.
  *
  * @param signature The signature to parse.
  * @returns The parsed signature.
