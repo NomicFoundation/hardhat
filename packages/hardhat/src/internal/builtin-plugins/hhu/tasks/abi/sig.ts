@@ -1,9 +1,8 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   getAbiSelector,
-  parseAbiSignature,
+  parseAbiFunctionSignature,
 } from "@nomicfoundation/hardhat-utils/abi";
 
 import { parseSignatureArgument } from "./arguments.js";
@@ -16,18 +15,10 @@ const sigAction: NewUtilsTaskActionFunction<SigActionArguments> = async ({
   signature,
 }) => {
   const parsed = parseSignatureArgument(
-    parseAbiSignature,
+    parseAbiFunctionSignature,
     signature,
     "signature",
   );
-
-  if (parsed.name === "") {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value: signature,
-      name: "signature",
-      reason: "it must include a name",
-    });
-  }
 
   console.log(await getAbiSelector(parsed));
 };

@@ -24,9 +24,6 @@ const ELEMENTARY_TYPE_NAMES = new Set([
 // The type aliases other than the integer ones, which `parseIntType` handles
 const TYPE_ALIASES = new Map([["byte", "bytes1"]]);
 
-// The reserved keywords that start a declaration
-const DECLARATION_KEYWORDS = new Set(["function", "event", "constructor"]);
-
 const DATA_LOCATIONS = new Set(["memory", "calldata", "storage"]);
 
 // The keywords that can't be parameter names. Others, like `error` or `from`,
@@ -57,7 +54,7 @@ const UNKNOWN_TYPE_HINT =
 export function getCanonicalAbiSignature({
   name,
   inputs,
-}: AbiSignature): string {
+}: Pick<AbiSignature, "name" | "inputs">): string {
   return `${name}(${inputs.map(getCanonicalAbiType).join(",")})`;
 }
 
@@ -69,7 +66,7 @@ export function getCanonicalAbiSignature({
  * @returns The 32-byte hash.
  */
 export async function hashCanonicalAbiSignature(
-  signature: AbiSignature,
+  signature: Pick<AbiSignature, "name" | "inputs">,
 ): Promise<Uint8Array> {
   return await keccak256(
     utf8StringToBytes(getCanonicalAbiSignature(signature)),
@@ -90,11 +87,19 @@ function getCanonicalAbiType({ type, components }: AbiParameter): string {
  * syntax it accepts.
  */
 export class AbiSignatureParser {
+  /** The signature being parsed, used to report errors. */
   readonly #signature: string;
+
+  /** The signature split into words, array suffixes and single characters. */
   readonly #tokens: string[];
+
+  /** The index of the current token, the next one to read. */
   #position = 0;
+
+  /** Whether custom types, like `IPool`, are accepted. Only outputs can be. */
   #allowCustomTypes = false;
 
+  /** Splits the signature into tokens. Call `parse` to parse it. */
   constructor(signature: string) {
     this.#signature = signature;
     this.#tokens = Array.from(signature.matchAll(TOKEN_PATTERN), ([token]) =>
@@ -102,45 +107,53 @@ export class AbiSignatureParser {
     );
   }
 
+  /** Parses the whole signature, failing if anything is left after it. */
   public parse(): AbiSignature {
-    // `error` can also be a function's name, like in `error(string)`, as it
-    // isn't reserved. It starts a declaration only when a name follows it.
-    const keyword = this.#peek();
-    if (
-      DECLARATION_KEYWORDS.has(keyword) ||
-      (keyword === "error" && isWord(this.#peek(1)))
-    ) {
-      this.#position++;
+    const kind = this.#parseDeclarationKeyword();
+
+    // A constructor has no name
+    const name =
+      kind !== "constructor" && isWord(this.#peek()) ? this.#next() : "";
+
+    if (name === "" && kind !== undefined && kind !== "constructor") {
+      this.#fail("it must include a name");
     }
 
-    const name = isWord(this.#peek()) ? this.#next() : "";
     const inputs = this.#parseParameterList();
 
-    // Return types don't affect the signature, so they can't be wrong in a way
-    // that matters here, and declarations often return custom types
-    this.#allowCustomTypes = true;
-
     let outputs: AbiParameter[] = [];
-    if (this.#peek() === "(") {
-      outputs = this.#parseParameterList();
-    } else {
-      // Skip a declaration's modifiers, like `external` or `override(A, B)`, as
-      // they don't affect the signature
-      while (isWord(this.#peek()) && this.#peek() !== "returns") {
-        this.#position++;
+    let anonymous = false;
 
-        if (this.#peek() === "(") {
-          this.#skipModifierArguments();
-        }
-      }
+    if (kind === "event") {
+      anonymous = this.#consume("anonymous");
+    } else if (kind !== "error") {
+      // Return types don't affect the signature, so they can't be wrong in a
+      // way that matters here, and declarations often return custom types
+      this.#allowCustomTypes = true;
 
-      if (this.#consume("returns")) {
+      if (this.#peek() === "(") {
         outputs = this.#parseParameterList();
+      } else {
+        // Skip a declaration's modifiers, like `external` or `override(A, B)`,
+        // as they don't affect the signature
+        while (isWord(this.#peek()) && this.#peek() !== "returns") {
+          if (this.#next() === "anonymous") {
+            anonymous = true;
+          }
+
+          if (this.#peek() === "(") {
+            this.#skipModifierArguments();
+          }
+        }
+
+        if (this.#consume("returns")) {
+          outputs = this.#parseParameterList();
+        }
       }
     }
 
-    // Ignore a declaration's body, or its trailing ";"
-    if (!this.#consume("{")) {
+    // Ignore a function's body, or a declaration's trailing ";"
+    if (kind === "event" || kind === "error" || !this.#consume("{")) {
       this.#consume(";");
 
       if (this.#peek() !== "") {
@@ -148,10 +161,38 @@ export class AbiSignatureParser {
       }
     }
 
-    return { name, inputs, outputs };
+    return {
+      ...(kind !== undefined && { kind }),
+      name,
+      inputs,
+      outputs,
+      ...(anonymous && { anonymous }),
+    };
   }
 
-  // Skips a parenthesized list that can be nested, like `(getRoleAdmin(role))`
+  /** Consumes the keyword that starts a declaration, if any, and returns it. */
+  #parseDeclarationKeyword(): AbiSignature["kind"] {
+    const keyword = this.#peek();
+
+    // `error` can also be a function's name, like in `error(string)`, as it
+    // isn't reserved. It starts a declaration only when a name follows it.
+    if (
+      keyword === "function" ||
+      keyword === "event" ||
+      keyword === "constructor" ||
+      (keyword === "error" && isWord(this.#peek(1)))
+    ) {
+      this.#position++;
+      return keyword;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Skips a modifier's arguments: a parenthesized list that can be nested,
+   * like `(getRoleAdmin(role))`.
+   */
   #skipModifierArguments(): void {
     let depth = 0;
 
@@ -168,6 +209,7 @@ export class AbiSignatureParser {
     } while (depth > 0);
   }
 
+  /** Parses a parenthesized and comma-separated list of parameters. */
   #parseParameterList(): AbiParameter[] {
     this.#expect("(");
 
@@ -185,6 +227,7 @@ export class AbiSignatureParser {
     return parameters;
   }
 
+  /** Parses a parameter: its type, array suffixes, modifiers and name. */
   #parseParameter(): AbiParameter {
     let type: string;
     let components: AbiParameter[] | undefined;
@@ -226,6 +269,10 @@ export class AbiSignatureParser {
     };
   }
 
+  /**
+   * Parses a type name other than a tuple, normalizing aliases. Custom types
+   * are only accepted if `#allowCustomTypes` is set.
+   */
   #parseTypeName(): string {
     if (!isWord(this.#peek())) {
       this.#failUnexpected();
@@ -274,17 +321,19 @@ export class AbiSignatureParser {
     return type;
   }
 
-  // Returns "" past the end of the signature
+  /** Returns the token `offset` positions ahead, or "" past the end. */
   #peek(offset = 0): string {
     return this.#tokens[this.#position + offset] ?? "";
   }
 
+  /** Returns the current token and moves past it. */
   #next(): string {
     const token = this.#peek();
     this.#position++;
     return token;
   }
 
+  /** If the current token is the given one, moves past it and returns true. */
   #consume(token: string): boolean {
     if (this.#peek() !== token) {
       return false;
@@ -294,18 +343,21 @@ export class AbiSignatureParser {
     return true;
   }
 
+  /** Moves past the current token, failing if it isn't the given one. */
   #expect(token: string): void {
     if (!this.#consume(token)) {
       this.#failUnexpected();
     }
   }
 
+  /** Fails on the current token, or because the signature ended early. */
   #failUnexpected(): never {
     const token = this.#peek();
 
     this.#fail(token === "" ? "it's incomplete" : `unexpected "${token}"`);
   }
 
+  /** Throws an `InvalidAbiSignatureError` for the given reason. */
   #fail(reason: string): never {
     throw new InvalidAbiSignatureError(this.#signature, reason);
   }

@@ -5,6 +5,7 @@ import { ensureError } from "./error.js";
 import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
+  InvalidAbiSignatureError,
 } from "./errors/abi.js";
 import { bytesToHexString, getPrefixedHexString } from "./hex.js";
 import {
@@ -45,7 +46,12 @@ export interface AbiFragment {
  * A parsed human-readable signature of a function, event or error.
  */
 export interface AbiSignature {
-  /** The name, or "" for a bare parameter list, like `(uint256,bool)`. */
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "function" | "event" | "error" | "constructor";
+  /**
+   * The name, or "" for a constructor or a bare parameter list, like
+   * `(uint256,bool)`.
+   */
   readonly name: string;
   readonly inputs: readonly AbiParameter[];
   /**
@@ -54,6 +60,32 @@ export interface AbiSignature {
    * as written, which aren't ABI types and must be resolved before decoding.
    */
   readonly outputs: readonly AbiParameter[];
+  /** Set to true if the signature has the `anonymous` modifier of events. */
+  readonly anonymous?: boolean;
+}
+
+/**
+ * A parsed human-readable signature of a function or error.
+ */
+export interface AbiFunctionSignature {
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "function" | "error";
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /** The return types. See `AbiSignature#outputs`. */
+  readonly outputs: readonly AbiParameter[];
+}
+
+/**
+ * A parsed human-readable signature of an event.
+ */
+export interface AbiEventSignature {
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "event";
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /** Whether the event is anonymous, so it doesn't log its topic. */
+  readonly anonymous: boolean;
 }
 
 /**
@@ -225,6 +257,83 @@ export function parseAbiSignature(signature: string): AbiSignature {
 }
 
 /**
+ * Parses a human-readable signature of a function or error, like
+ * `transfer(address,uint256)` or `error Unauthorized(address)`, accepting the
+ * same syntax as `parseAbiSignature`.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid, has no name, or
+ * is of an event or a constructor.
+ */
+export function parseAbiFunctionSignature(
+  signature: string,
+): AbiFunctionSignature {
+  const { kind, name, inputs, outputs, anonymous } =
+    parseAbiSignature(signature);
+
+  if (kind === "event" || anonymous === true) {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "it's an event, not a function or error",
+    );
+  }
+
+  if (kind === "constructor") {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "it's a constructor, not a function or error",
+    );
+  }
+
+  if (name === "") {
+    throw new InvalidAbiSignatureError(signature, "it must include a name");
+  }
+
+  return { ...(kind !== undefined && { kind }), name, inputs, outputs };
+}
+
+/**
+ * Parses a human-readable signature of an event, like
+ * `Transfer(address,address,uint256)`, accepting the same syntax as
+ * `parseAbiSignature`.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid, has no name, has
+ * return types, or is of a function, error or constructor.
+ */
+export function parseAbiEventSignature(signature: string): AbiEventSignature {
+  const { kind, name, inputs, outputs, anonymous } =
+    parseAbiSignature(signature);
+
+  if (kind === "function" || kind === "error" || kind === "constructor") {
+    throw new InvalidAbiSignatureError(
+      signature,
+      `it's ${kind === "error" ? "an" : "a"} ${kind}, not an event`,
+    );
+  }
+
+  if (outputs.length > 0) {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "events can't have return types",
+    );
+  }
+
+  if (name === "") {
+    throw new InvalidAbiSignatureError(signature, "it must include a name");
+  }
+
+  return {
+    ...(kind !== undefined && { kind }),
+    name,
+    inputs,
+    anonymous: anonymous === true,
+  };
+}
+
+/**
  * Returns the selector of a function or error: the first 4 bytes of the
  * keccak256 hash of its canonical signature.
  *
@@ -232,7 +341,7 @@ export function parseAbiSignature(signature: string): AbiSignature {
  * @returns The 4-byte selector, like `0xa9059cbb`.
  */
 export async function getAbiSelector(
-  signature: AbiSignature,
+  signature: AbiFunctionSignature,
 ): Promise<PrefixedHexString> {
   const hash = await hashCanonicalAbiSignature(signature);
 
@@ -247,7 +356,7 @@ export async function getAbiSelector(
  * @returns The 32-byte topic.
  */
 export async function getAbiEventTopic(
-  signature: AbiSignature,
+  signature: AbiEventSignature,
 ): Promise<PrefixedHexString> {
   return bytesToHexString(await hashCanonicalAbiSignature(signature));
 }
