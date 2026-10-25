@@ -3,7 +3,7 @@ import type { NewUtilsTaskActionFunction } from "../../types.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   getAbiEventTopic,
-  parseAbiSignature,
+  parseAbiEventSignature,
 } from "@nomicfoundation/hardhat-utils/abi";
 
 import { parseSignatureArgument } from "./arguments.js";
@@ -16,16 +16,16 @@ const sigEventAction: NewUtilsTaskActionFunction<
   SigEventActionArguments
 > = async ({ signature }) => {
   const parsed = parseSignatureArgument(
-    parseAbiSignature,
+    parseAbiEventSignature,
     signature,
     "signature",
   );
 
-  if (parsed.name === "") {
+  if (parsed.anonymous) {
     throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
       value: signature,
       name: "signature",
-      reason: "it must include a name",
+      reason: "anonymous events have no topic",
     });
   }
 

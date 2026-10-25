@@ -12,12 +12,10 @@ import {
 import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
-const TRANSFER_TOPIC =
-  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-
 // The hhu plugin is unreleased and de-registered from the builtin plugins, so
 // it's injected explicitly to test the integrated (`hardhat utils ...`) path.
-// The signature grammar is covered by the hardhat-utils abi tests.
+// Parsing and hashing signatures is covered by the hardhat-utils abi tests;
+// these tests only verify the task wiring and how parsing errors are reported.
 describe("hhu utils abi tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
@@ -39,26 +37,31 @@ describe("hhu utils abi tasks", () => {
     it("prints the topic of an event signature", async () => {
       await runSigEvent({ signature: "Transfer(address,address,uint256)" });
 
-      assert.deepEqual(capture.lines, [TRANSFER_TOPIC]);
+      assert.deepEqual(capture.lines, [
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+      ]);
     });
 
-    it("prints the same topic for a whole Solidity declaration", async () => {
-      await runSigEvent({
-        signature:
-          "event Transfer(address indexed from, address indexed to, uint value);",
-      });
-
-      assert.deepEqual(capture.lines, [TRANSFER_TOPIC]);
-    });
-
-    it("throws when the signature has no name", async () => {
+    it("throws when the signature is of a function", async () => {
       await assertRejectsWithHardhatError(
-        runSigEvent({ signature: "(address,address,uint256)" }),
+        runSigEvent({ signature: "function transfer(address,uint256)" }),
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
         {
-          value: "(address,address,uint256)",
+          value: "function transfer(address,uint256)",
           name: "signature",
-          reason: "it must include a name",
+          reason: "it's a function, not an event",
+        },
+      );
+    });
+
+    it("throws when the event is anonymous", async () => {
+      await assertRejectsWithHardhatError(
+        runSigEvent({ signature: "event Ping() anonymous;" }),
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
+        {
+          value: "event Ping() anonymous;",
+          name: "signature",
+          reason: "anonymous events have no topic",
         },
       );
     });

@@ -14,7 +14,8 @@ import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/
 
 // The hhu plugin is unreleased and de-registered from the builtin plugins, so
 // it's injected explicitly to test the integrated (`hardhat utils ...`) path.
-// The signature grammar is covered by the hardhat-utils abi tests.
+// Parsing and hashing signatures is covered by the hardhat-utils abi tests;
+// these tests only verify the task wiring and how parsing errors are reported.
 describe("hhu utils abi tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
@@ -39,51 +40,14 @@ describe("hhu utils abi tasks", () => {
       assert.deepEqual(capture.lines, ["0xa9059cbb"]);
     });
 
-    it("prints the same selector for a whole Solidity declaration", async () => {
-      await runSig({
-        signature:
-          "function transfer(address to, uint amount) external returns (bool);",
-      });
-
-      assert.deepEqual(capture.lines, ["0xa9059cbb"]);
-    });
-
-    it("prints the selector of a signature with a tuple", async () => {
-      await runSig({
-        signature:
-          "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))",
-      });
-
-      assert.deepEqual(capture.lines, ["0x414bf389"]);
-    });
-
-    it("prints the selector of an error signature", async () => {
-      await runSig({ signature: "error Error(string)" });
-
-      assert.deepEqual(capture.lines, ["0x08c379a0"]);
-    });
-
-    it("throws when the signature has no name", async () => {
+    it("throws when the signature is of an event", async () => {
       await assertRejectsWithHardhatError(
-        runSig({ signature: "(address,uint256)" }),
+        runSig({ signature: "event Transfer(address,address,uint256)" }),
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
         {
-          value: "(address,uint256)",
+          value: "event Transfer(address,address,uint256)",
           name: "signature",
-          reason: "it must include a name",
-        },
-      );
-    });
-
-    it("throws when the signature is invalid", async () => {
-      await assertRejectsWithHardhatError(
-        runSig({ signature: "transfer(address,unit256)" }),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
-        {
-          value: "transfer(address,unit256)",
-          name: "signature",
-          reason:
-            'unknown type "unit256"; write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type',
+          reason: "it's an event, not a function or error",
         },
       );
     });
