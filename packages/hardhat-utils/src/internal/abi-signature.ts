@@ -5,13 +5,15 @@ import { utf8StringToBytes } from "../bytes.js";
 import { keccak256 } from "../crypto.js";
 import { InvalidAbiSignatureError } from "../errors/abi.js";
 
+import { parseFixedBytesType } from "./abi.js";
+
 // A word, an array suffix, or any other character, after optional whitespace
 const TOKEN_PATTERN = /\s*(?:[A-Za-z_$][\w$]*|\[(?:[1-9]\d*)?\]|\S)/gy;
 
 const ARRAY_SUFFIX_PATTERN = /^\[(?:[1-9]\d*)?\]$/;
 
-const ELEMENTARY_TYPE_PATTERN =
-  /^(?:address|bool|string|bytes(?:[1-9]|[12]\d|3[0-2])?)$/;
+// The elementary types that aren't integers nor fixed-size bytes
+const ELEMENTARY_TYPE_NAMES = new Set(["address", "bool", "string", "bytes"]);
 
 const DECLARATION_KEYWORDS = new Set(["function", "event", "error"]);
 
@@ -264,7 +266,11 @@ export class AbiSignatureParser {
 }
 
 function isElementaryType(word: string): boolean {
-  return parseIntType(word) !== undefined || ELEMENTARY_TYPE_PATTERN.test(word);
+  return (
+    ELEMENTARY_TYPE_NAMES.has(word) ||
+    parseIntType(word) !== undefined ||
+    parseFixedBytesType(word) !== undefined
+  );
 }
 
 function isWord(token: string): boolean {
