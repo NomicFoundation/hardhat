@@ -837,6 +837,8 @@ describe("abi", () => {
         for (const type of [
           "fixed128x18",
           "function",
+          "bytes0",
+          "bytes01",
           "bytes33",
           "uint7",
           "notAType",
@@ -1088,6 +1090,8 @@ describe("abi", () => {
       ["f(unit256)", 'unknown type "unit256"'],
       ["f(uint7)", 'unknown type "uint7"'],
       ["f(uint512)", 'unknown type "uint512"'],
+      ["f(bytes0)", 'unknown type "bytes0"'],
+      ["f(bytes01)", 'unknown type "bytes01"'],
       ["f(bytes33)", 'unknown type "bytes33"'],
       ["f(MyStruct)", 'unknown type "MyStruct"'],
       ["f() returns (DataTypes.)", 'unexpected ")"'],
