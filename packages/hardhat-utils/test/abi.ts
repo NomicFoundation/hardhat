@@ -16,6 +16,7 @@ import {
   isAbiEncodingError,
   parseAbiEventSignature,
   parseAbiFunctionSignature,
+  parseAbiParameter,
   parseAbiSignature,
   parseIntType,
 } from "../src/abi.js";
@@ -1300,6 +1301,44 @@ describe("abi", () => {
     ]) {
       it(`Should throw for "${signature}"`, () => {
         assertInvalidSignature(signature, reason, parseAbiEventSignature);
+      });
+    }
+  });
+
+  describe("parseAbiParameter", () => {
+    it("Should parse a single parameter", () => {
+      assert.deepEqual(parseAbiParameter("uint"), { type: "uint256" });
+      assert.deepEqual(parseAbiParameter(" address payable "), {
+        type: "address",
+      });
+      assert.deepEqual(parseAbiParameter("string memory s"), {
+        type: "string",
+        name: "s",
+      });
+      assert.deepEqual(parseAbiParameter("(address a, bool b)[] pairs"), {
+        type: "tuple[]",
+        name: "pairs",
+        components: [
+          { type: "address", name: "a" },
+          { type: "bool", name: "b" },
+        ],
+      });
+    });
+
+    const singleTypeReason =
+      "it must be a single type, like uint256 or (address,bool)[]";
+
+    for (const [parameter, reason] of [
+      ["", "it's incomplete"],
+      ["uint256,bool", singleTypeReason],
+      ["uint256 a b", singleTypeReason],
+      ["uint256) returns (bool", singleTypeReason],
+      ["(uint256", "it's incomplete"],
+      ["MyStruct", unknownType("MyStruct")],
+      ["transfer(address)", unknownType("transfer")],
+    ]) {
+      it(`Should throw for "${parameter}"`, () => {
+        assertInvalidSignature(parameter, reason, parseAbiParameter);
       });
     }
   });

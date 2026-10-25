@@ -83,14 +83,14 @@ function getCanonicalAbiType({ type, components }: AbiParameter): string {
 }
 
 /**
- * A parser of human-readable ABI signatures. See `parseAbiSignature` for the
- * syntax it accepts.
+ * A parser of human-readable ABI signatures, or of a single parameter of one.
+ * See `parseAbiSignature` for the syntax it accepts.
  */
 export class AbiSignatureParser {
-  /** The signature being parsed, used to report errors. */
-  readonly #signature: string;
+  /** The signature or parameter being parsed, used to report errors. */
+  readonly #input: string;
 
-  /** The signature split into words, array suffixes and single characters. */
+  /** The input split into words, array suffixes and single characters. */
   readonly #tokens: string[];
 
   /** The index of the current token, the next one to read. */
@@ -99,15 +99,29 @@ export class AbiSignatureParser {
   /** Whether custom types, like `IPool`, are accepted. Only outputs can be. */
   #allowCustomTypes = false;
 
-  /** Splits the signature into tokens. Call `parse` to parse it. */
-  constructor(signature: string) {
-    this.#signature = signature;
-    this.#tokens = Array.from(signature.matchAll(TOKEN_PATTERN), ([token]) =>
+  /**
+   * Splits the input into tokens. Call `parse` to parse it as a signature, or
+   * `parseSingleParameter` to parse it as a parameter.
+   */
+  constructor(input: string) {
+    this.#input = input;
+    this.#tokens = Array.from(input.matchAll(TOKEN_PATTERN), ([token]) =>
       token.trim(),
     );
   }
 
-  /** Parses the whole signature, failing if anything is left after it. */
+  /** Parses the whole input as a single parameter, like `uint256 amount`. */
+  public parseSingleParameter(): AbiParameter {
+    const parameter = this.#parseParameter();
+
+    if (this.#peek() !== "") {
+      this.#fail("it must be a single type, like uint256 or (address,bool)[]");
+    }
+
+    return parameter;
+  }
+
+  /** Parses the whole input as a signature, like `transfer(address,uint)`. */
   public parse(): AbiSignature {
     const kind = this.#parseDeclarationKeyword();
 
@@ -350,7 +364,7 @@ export class AbiSignatureParser {
     }
   }
 
-  /** Fails on the current token, or because the signature ended early. */
+  /** Fails on the current token, or because the input ended early. */
   #failUnexpected(): never {
     const token = this.#peek();
 
@@ -359,7 +373,7 @@ export class AbiSignatureParser {
 
   /** Throws an `InvalidAbiSignatureError` for the given reason. */
   #fail(reason: string): never {
-    throw new InvalidAbiSignatureError(this.#signature, reason);
+    throw new InvalidAbiSignatureError(this.#input, reason);
   }
 }
 
