@@ -260,6 +260,22 @@ test("scenarioProjectDir follows the scenario's workingDirectory", (t: TestConte
   assert.equal(scenarioProjectDir(clone, scenarioJson), clone);
 });
 
+test("scenarioProjectDir follows a monorepo scenario's workdir", (t: TestContext) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const scenarioJson = path.join(dir, "scenario.json");
+  const clone = path.join(dir, "clone");
+
+  fs.writeFileSync(
+    scenarioJson,
+    JSON.stringify({ workdir: "packages/horizon" }),
+  );
+  assert.equal(
+    scenarioProjectDir(clone, scenarioJson),
+    path.join(clone, "packages/horizon"),
+  );
+});
+
 test("scenarioProjectDir falls back to the clone without a readable scenario.json", (t: TestContext) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));

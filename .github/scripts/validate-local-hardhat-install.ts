@@ -224,19 +224,20 @@ export function classifyScenario(
 }
 
 // The directory a scenario's clone installs hardhat in: the clone itself, or
-// the scenario's `workingDirectory` inside it. A clone whose scenario.json is
-// missing or unreadable (e.g. a scenario since removed) falls back to the
-// clone itself.
+// the scenario's `workingDirectory` (or a monorepo scenario's `workdir`)
+// inside it. A clone whose scenario.json is missing or unreadable (e.g. a
+// scenario since removed) falls back to the clone itself.
 export function scenarioProjectDir(
   cloneDir: string,
   scenarioJsonPath: string,
 ): string {
   try {
-    const { workingDirectory } = JSON.parse(
+    const { workingDirectory, workdir } = JSON.parse(
       fs.readFileSync(scenarioJsonPath, "utf8"),
     );
-    return typeof workingDirectory === "string"
-      ? path.join(cloneDir, workingDirectory)
+    const projectDir = workingDirectory ?? workdir;
+    return typeof projectDir === "string"
+      ? path.join(cloneDir, projectDir)
       : cloneDir;
   } catch {
     return cloneDir;
