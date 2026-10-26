@@ -153,6 +153,21 @@ jobs:
         # warnings instead of errors so it can never regress the benchmark.
         run: node .github/scripts/validate-local-hardhat-install.ts
 
+      # Slang's standard-JSON inputs, for replaying without Hardhat (solx's
+      # compile benchmark vendors its fixtures from this artifact). Only an
+      # unfiltered dispatch has initialized every scenario the dump compiles.
+      - name: Dump slang standard JSON
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.scenario-filter == '*' }}
+        run: pnpm bench:dump-standard-json --tag solx --compiler slang --out slang-standard-json
+
+      - name: Upload slang standard JSON
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.scenario-filter == '*' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slang-standard-json
+          path: slang-standard-json/
+          if-no-files-found: warn
+
       # Persist the (possibly partial) benchmark output in the job log so it
       # survives cleanup and is available for debugging.
       - name: Dump regression report on failure
