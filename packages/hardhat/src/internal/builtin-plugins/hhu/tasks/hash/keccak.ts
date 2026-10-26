@@ -28,8 +28,7 @@ const keccakAction: NewUtilsTaskActionFunction<KeccakActionArguments> = async ({
       );
     }
 
-    const unprefixed = getUnprefixedHexString(value);
-    if (unprefixed.length % 2 !== 0) {
+    if (getUnprefixedHexString(value).length % 2 !== 0) {
       throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
         value,
         name: "value",
@@ -37,9 +36,7 @@ const keccakAction: NewUtilsTaskActionFunction<KeccakActionArguments> = async ({
       });
     }
 
-    // hexStringToBytes maps "" to 0x00, but "0x" must hash as empty bytes
-    bytes =
-      unprefixed.length === 0 ? new Uint8Array() : hexStringToBytes(unprefixed);
+    bytes = hexStringToBytes(value);
   } else {
     bytes = utf8StringToBytes(value);
   }

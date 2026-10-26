@@ -192,7 +192,7 @@ describe("hex", () => {
 
   describe("hexStringToBytes", () => {
     it("Should convert a hexadecimal string to a Uint8Array", () => {
-      assert.deepEqual(hexStringToBytes("0x"), new Uint8Array([0]));
+      assert.deepEqual(hexStringToBytes("0x"), new Uint8Array());
       assert.deepEqual(hexStringToBytes("0x0"), new Uint8Array([0]));
       assert.deepEqual(hexStringToBytes("0x1"), new Uint8Array([1]));
       assert.deepEqual(hexStringToBytes("0x0f"), new Uint8Array([15]));
@@ -207,7 +207,7 @@ describe("hex", () => {
         new Uint8Array([0, 1, 15, 16, 255]),
       );
 
-      assert.deepEqual(hexStringToBytes(""), new Uint8Array([0]));
+      assert.deepEqual(hexStringToBytes(""), new Uint8Array());
       assert.deepEqual(hexStringToBytes("0"), new Uint8Array([0]));
       assert.deepEqual(hexStringToBytes("1"), new Uint8Array([1]));
       assert.deepEqual(hexStringToBytes("0f"), new Uint8Array([15]));
