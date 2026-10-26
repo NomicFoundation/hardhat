@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-viem
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8651](https://github.com/NomicFoundation/hardhat/pull/8651) [`e51a37d`](https://github.com/NomicFoundation/hardhat/commit/e51a37d61f3c3dacd58d987a6d61082d52cd16af) Thanks [@rxdrccq](https://github.com/rxdrccq)! - Added a `viemChain` option to `chainDescriptors` to set the full viem `Chain` used by `hardhat-viem`.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
 ## 3.0.10
 
 ### Patch Changes

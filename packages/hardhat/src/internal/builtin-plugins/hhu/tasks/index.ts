@@ -5,6 +5,7 @@ import { emptyTask } from "../../../core/config.js";
 import { constants } from "./constants/index.js";
 import { convert } from "./convert/index.js";
 import { fetch } from "./fetch/index.js";
+import { hash } from "./hash/index.js";
 
 export interface GenerateTasksOptions {
   /**
@@ -20,7 +21,7 @@ export interface GenerateTasksOptions {
  * id prefix to nest its tasks under and returns its task definitions. Adding a
  * new category is a single entry here.
  */
-const CATEGORIES = [constants, convert, fetch];
+const CATEGORIES = [constants, convert, fetch, hash];
 
 export function generateTasks(
   options: GenerateTasksOptions,
