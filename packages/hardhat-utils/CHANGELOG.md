@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.1.1
+
+### Patch Changes
+
+- [#8765](https://github.com/NomicFoundation/hardhat/pull/8765) [`7de90f0`](https://github.com/NomicFoundation/hardhat/commit/7de90f062be9997e68992232a681ba7803766443) Thanks [@schaable](https://github.com/schaable)! - Fixed `hexStringToBytes` converting `0x` and the empty string to a zero byte instead of empty bytes.
+
+- [#8757](https://github.com/NomicFoundation/hardhat/pull/8757) [`69ba19b`](https://github.com/NomicFoundation/hardhat/commit/69ba19b9dcd54079758814f7c9f8606fc8490949) Thanks [@fengxueweilai](https://github.com/fengxueweilai)! - Fixed `setLengthLeft` returning the whole hex string instead of `0x` when truncating to a length of `0`.
+
 ## 5.1.0
 
 ### Minor Changes
