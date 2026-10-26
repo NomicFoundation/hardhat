@@ -5,8 +5,9 @@
 // distinguish this run's tarball from a stale one served out of a
 // package-manager cache on the self-hosted runner; the stamp can.
 //
-// Diagnostic only: emits GitHub warning annotations and always exits 0, so it
-// can never regress the benchmark runner.
+// Emits GitHub warning annotations and exits 0, so it can never regress the
+// benchmark runner. With --strict, any warning exits 1, so a run that may have
+// measured a stale hardhat is not published.
 //
 // Inputs (environment):
 //   BENCH_RUN_STAMP  the stamp embedded before the benchmark
@@ -244,7 +245,12 @@ export function scenarioProjectDir(
   }
 }
 
+const strict = process.argv.includes("--strict");
+
 function warn(message: string): void {
+  if (strict) {
+    process.exitCode = 1;
+  }
   // GitHub annotations render only the first line; collapse for readability.
   console.log(`::warning::${message.replace(/\r?\n/g, " ")}`);
 }
