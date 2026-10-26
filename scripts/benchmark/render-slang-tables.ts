@@ -117,10 +117,19 @@ function cellRow(
 
 // The slang cell a cell is compared with: the same kind over the same
 // sources (OZ's forge-scope "parity" set, lido-vaults' "upgrade" tree).
-function slangCounterpart(label: string, prefix: string): string | undefined {
+// forge builds only the forge-scope set wherever a scenario defines one.
+function slangCounterpart(
+  label: string,
+  prefix: string,
+  cells: ReadonlyMap<string, CellResult>,
+): string | undefined {
   const cell = label.slice(prefix.length);
   if (cell.startsWith(SLANG)) {
     return undefined;
+  }
+  const forgeScope = prefix + SLANG + " parity";
+  if (cell.startsWith("forge") && cells.has(forgeScope)) {
+    return forgeScope;
   }
   const scope = / (parity|upgrade)$/.exec(cell)?.[0] ?? "";
   return prefix + SLANG + scope;
@@ -187,7 +196,9 @@ export function renderSlangTables(
     for (const label of labels) {
       const kind = KINDS[kindOf(label)];
       const counterpart =
-        kind === undefined ? undefined : slangCounterpart(label, kind.prefix);
+        kind === undefined
+          ? undefined
+          : slangCounterpart(label, kind.prefix, cells);
       const slang =
         counterpart === undefined ? undefined : cells.get(counterpart);
       lines.push(cellRow(label, cells.get(label)!, slang));

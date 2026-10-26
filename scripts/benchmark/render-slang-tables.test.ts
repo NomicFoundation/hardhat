@@ -150,4 +150,18 @@ describe("renderSlangTables", () => {
     );
     assert.match(oz, /\| cold compile slang parity \| 9\.0 \|.*\| {2}\|/);
   });
+
+  it("compares forge cells with slang's forge-scope cell where there is one", () => {
+    const oz = renderSlangTables([
+      wall("openzeppelin-contracts-0.34 / cold compile slang", 23),
+      wall("openzeppelin-contracts-0.34 / cold compile slang parity", 9),
+      wall("openzeppelin-contracts-0.34 / cold compile forge-1.7.1", 18),
+      wall("openzeppelin-contracts-0.34 / cold compile forge-1.7.1 via-ir", 36),
+    ]);
+    assert.match(oz, /\| cold compile forge-1\.7\.1 \| 18\.0 \|.*\| 2\.0x \|/);
+    assert.match(
+      oz,
+      /\| cold compile forge-1\.7\.1 via-ir \| 36\.0 \|.*\| 4\.0x \|/,
+    );
+  });
 });
