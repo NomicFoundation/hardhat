@@ -3,11 +3,71 @@ import type { UserInterruptionHooks } from "../../../../src/types/hooks.js";
 import assert from "node:assert/strict";
 import { PassThrough, Readable } from "node:stream";
 import { afterEach, beforeEach, describe, it } from "node:test";
+import { setImmediate } from "node:timers/promises";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
+
+// The default handlers use process.stdin and process.stdout directly, so the
+// tests below replace them. We save their descriptors instead of reading them,
+// as reading process.stdin initializes it, which can keep the process alive.
+const originalStdinDescriptor = Object.getOwnPropertyDescriptor(
+  process,
+  "stdin",
+);
+const originalStdoutDescriptor = Object.getOwnPropertyDescriptor(
+  process,
+  "stdout",
+);
+
+let stdout: PassThrough;
+
+function replaceStdio(stdin: Readable, stdoutIsTTY = false): void {
+  Object.defineProperty(process, "stdin", {
+    value: stdin,
+    configurable: true,
+    writable: true,
+  });
+
+  stdout = Object.assign(new PassThrough(), { isTTY: stdoutIsTTY });
+  Object.defineProperty(process, "stdout", {
+    value: stdout,
+    configurable: true,
+    writable: true,
+  });
+}
+
+function restoreStdio(): void {
+  assert(
+    originalStdinDescriptor !== undefined,
+    "process.stdin descriptor not found",
+  );
+  assert(
+    originalStdoutDescriptor !== undefined,
+    "process.stdout descriptor not found",
+  );
+
+  Object.defineProperty(process, "stdin", originalStdinDescriptor);
+  Object.defineProperty(process, "stdout", originalStdoutDescriptor);
+}
+
+// Returns what has been written to stdout since the last call. Since Node
+// 26, `read()` returns a single chunk instead of the whole buffer.
+function readStdout(): string {
+  let output = "";
+
+  for (
+    let chunk: unknown = stdout.read();
+    chunk !== null;
+    chunk = stdout.read()
+  ) {
+    output += String(chunk);
+  }
+
+  return output;
+}
 
 describe("UserInterruptionManager", () => {
   describe("displayMessage", () => {
@@ -102,65 +162,12 @@ describe("UserInterruptionManager", () => {
   });
 
   describe("default handlers when stdin ends before an answer arrives", () => {
-    // The default handlers use process.stdin and process.stdout directly, so
-    // we replace them. We save their descriptors instead of reading them, as
-    // reading process.stdin initializes it, which can keep the process alive.
-    const originalStdinDescriptor = Object.getOwnPropertyDescriptor(
-      process,
-      "stdin",
-    );
-    const originalStdoutDescriptor = Object.getOwnPropertyDescriptor(
-      process,
-      "stdout",
-    );
-
-    let stdout: PassThrough;
-
-    // Returns what has been written to stdout since the last call. Since Node
-    // 26, `read()` returns a single chunk instead of the whole buffer.
-    function readStdout(): string {
-      let output = "";
-
-      for (
-        let chunk: unknown = stdout.read();
-        chunk !== null;
-        chunk = stdout.read()
-      ) {
-        output += String(chunk);
-      }
-
-      return output;
-    }
-
     beforeEach(() => {
       // An input that ends without any data, like `< /dev/null`
-      Object.defineProperty(process, "stdin", {
-        value: Readable.from([]),
-        configurable: true,
-        writable: true,
-      });
-
-      stdout = new PassThrough();
-      Object.defineProperty(process, "stdout", {
-        value: stdout,
-        configurable: true,
-        writable: true,
-      });
+      replaceStdio(Readable.from([]));
     });
 
-    afterEach(() => {
-      assert(
-        originalStdinDescriptor !== undefined,
-        "process.stdin descriptor not found",
-      );
-      assert(
-        originalStdoutDescriptor !== undefined,
-        "process.stdout descriptor not found",
-      );
-
-      Object.defineProperty(process, "stdin", originalStdinDescriptor);
-      Object.defineProperty(process, "stdout", originalStdoutDescriptor);
-    });
+    afterEach(restoreStdio);
 
     it("Should reject requestInput with an error", async () => {
       const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
@@ -253,5 +260,181 @@ describe("UserInterruptionManager", () => {
       // The second prompt is never shown, so there's no line to end
       assert.equal(readStdout(), "");
     });
+  });
+
+  describe("default handlers when the answers are piped", () => {
+    // The default handlers buffer the piped answers in module state, so the
+    // ones a failing test leaves unread would be read by the next test
+    afterEach(async function drainBufferedAnswers() {
+      replaceStdio(Readable.from([]));
+      const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
+
+      try {
+        // Once the buffer is empty the prompt reads stdin, which has ended
+        while (true) {
+          await hre.interruptions.requestInput("test-interruptor", "drain");
+        }
+      } catch (error) {
+        if (
+          !HardhatError.isHardhatError(
+            error,
+            HardhatError.ERRORS.CORE.GENERAL.PROMPT_CLOSED_BEFORE_ANSWER,
+          )
+        ) {
+          throw error;
+        }
+      } finally {
+        restoreStdio();
+      }
+    });
+
+    // Every prompt is shown, even when its answer was already read by a
+    // previous prompt, and the piped answers are never echoed
+    function assertPromptsShown(
+      output: string,
+      inputDescriptions: string[],
+    ): void {
+      for (const inputDescription of inputDescriptions) {
+        assert.ok(
+          output.includes(`${inputDescription}: `),
+          `The prompt for ${inputDescription} should be shown`,
+        );
+      }
+
+      assert.ok(!output.includes("answer"), "The answers should not be echoed");
+    }
+
+    // In terminal mode readline drops the lines after the first answer, so
+    // stdout being a terminal must not put it in that mode
+    for (const stdoutIsTTY of [false, true]) {
+      describe(`when stdout.isTTY is ${stdoutIsTTY}`, () => {
+        it("Should answer consecutive prompts from a single chunk", async () => {
+          // Piped input usually arrives in a single chunk
+          replaceStdio(
+            Readable.from(["first-answer\nsecret-answer\nsecond-answer\n"]),
+            stdoutIsTTY,
+          );
+          const hre = await HardhatRuntimeEnvironmentImplementation.create(
+            {},
+            {},
+          );
+
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "first-input",
+            ),
+            "first-answer",
+          );
+          assert.equal(
+            await hre.interruptions.requestSecretInput(
+              "test-interruptor",
+              "secret-input",
+            ),
+            "secret-answer",
+          );
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "second-input",
+            ),
+            "second-answer",
+          );
+
+          assertPromptsShown(readStdout(), [
+            "first-input",
+            "secret-input",
+            "second-input",
+          ]);
+        });
+
+        it("Should keep the piped answers when the first prompt is secret", async () => {
+          replaceStdio(
+            Readable.from(["secret-answer\nfirst-answer\nsecond-answer\n"]),
+            stdoutIsTTY,
+          );
+          const hre = await HardhatRuntimeEnvironmentImplementation.create(
+            {},
+            {},
+          );
+
+          assert.equal(
+            await hre.interruptions.requestSecretInput(
+              "test-interruptor",
+              "secret-input",
+            ),
+            "secret-answer",
+          );
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "first-input",
+            ),
+            "first-answer",
+          );
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "second-input",
+            ),
+            "second-answer",
+          );
+
+          assertPromptsShown(readStdout(), [
+            "secret-input",
+            "first-input",
+            "second-input",
+          ]);
+        });
+
+        it("Should answer prompts from answers piped in several chunks", async () => {
+          const stdin = new PassThrough();
+          replaceStdio(stdin, stdoutIsTTY);
+          const hre = await HardhatRuntimeEnvironmentImplementation.create(
+            {},
+            {},
+          );
+
+          stdin.write("first-answer\n");
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "first-input",
+            ),
+            "first-answer",
+          );
+
+          const secret = hre.interruptions.requestSecretInput(
+            "test-interruptor",
+            "secret-input",
+          );
+
+          // The next chunk is only written once the second prompt is waiting
+          // for it
+          await setImmediate();
+          const output = readStdout();
+          assert.ok(
+            output.endsWith("secret-input: "),
+            "The second prompt should be waiting for input",
+          );
+          stdin.end("secret-answer\nsecond-answer\n");
+
+          assert.equal(await secret, "secret-answer");
+          assert.equal(
+            await hre.interruptions.requestInput(
+              "test-interruptor",
+              "second-input",
+            ),
+            "second-answer",
+          );
+
+          assertPromptsShown(output + readStdout(), [
+            "first-input",
+            "secret-input",
+            "second-input",
+          ]);
+        });
+      });
+    }
   });
 });

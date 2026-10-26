@@ -15,7 +15,7 @@ const config: HardhatUserConfig = {
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-01",
+    version: "0.1.0-pre.2026-10-14",
   },
   plugins: [HardhatSlangPlugin],
 };

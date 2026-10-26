@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8752](https://github.com/NomicFoundation/hardhat/pull/8752) [`a963ea8`](https://github.com/NomicFoundation/hardhat/commit/a963ea89c7decffeadd212d546aa030b94fce929) Thanks [@schaable](https://github.com/schaable)! - Removed the unused `tsx` dependency.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
 ## 3.1.1
 
 ### Patch Changes

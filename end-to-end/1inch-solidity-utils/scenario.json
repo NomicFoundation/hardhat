@@ -1,0 +1,60 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch Solidity utility libraries on Hardhat 3, including their Mocha test suite.",
+  "tags": ["external-repo", "mocha"],
+  "repo": "1inch/solidity-utils",
+  "commit": "7bcea4d79db5bba3e477d9f236e0a4e52d8dc8c0",
+  "packageManager": "yarn",
+  "submodules": false,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat test mocha",
+  "benchmark": {
+    "commands": {
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- contracts/tests/mocks/CalldataPtrMock.sol contracts/tests/mocks/SafeERC20Helper.sol contracts/libraries/RevertReasonForwarder.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity mock with min deps: contracts/tests/mocks/CalldataPtrMock.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/tests/mocks/CalldataPtrMock.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity mock with max deps: contracts/tests/mocks/SafeERC20Helper.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/tests/mocks/SafeERC20Helper.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract: contracts/libraries/RevertReasonForwarder.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/libraries/RevertReasonForwarder.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          }
+        }
+      },
+      "warm compile": {
+        "runs": 2,
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --no-compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha -vvv": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --no-compile -vvv",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha -vvvv": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --no-compile -vvvv",
+        "dependsOn": ["cold compile"]
+      }
+    }
+  }
+}

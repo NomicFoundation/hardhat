@@ -17,10 +17,10 @@ import {
 function assetNames(version: string, release: SlangRelease): string[] {
   const suffix = release.assetOverride?.assetSuffix ?? `v${version}`;
   return [
-    `solx-linux-amd64-gnu-${suffix}`,
-    `solx-linux-arm64-gnu-${suffix}`,
-    `solx-macosx-${suffix}`,
-    `solx-windows-amd64-gnu-${suffix}.exe`,
+    `slang-linux-amd64-gnu-${suffix}`,
+    `slang-linux-arm64-gnu-${suffix}`,
+    `slang-macosx-${suffix}`,
+    `slang-windows-amd64-gnu-${suffix}.exe`,
   ];
 }
 

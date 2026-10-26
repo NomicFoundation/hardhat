@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.1.5
+
+### Patch Changes
+
+- [#8718](https://github.com/NomicFoundation/hardhat/pull/8718) [`8c6a335`](https://github.com/NomicFoundation/hardhat/commit/8c6a335282f8ed9e8d22bc70a3550aa2749671c5) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Fixed `emitWithArgs` failing to match indexed `string` and `bytes` event arguments against their value.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
 ## 3.1.4
 
 ### Patch Changes

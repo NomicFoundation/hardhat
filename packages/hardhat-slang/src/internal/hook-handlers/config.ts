@@ -33,7 +33,7 @@ import {
   SUPPORTED_SLANG_EVM_VERSIONS,
   SUPPORTED_SLANG_OPTIMIZER_MODES,
 } from "../constants.js";
-import { addSlangDebugInfoSelectors } from "../slang-compiler.js";
+import { addSlangStackTraceSelectors } from "../slang-compiler.js";
 
 const log = createDebug("hardhat:slang:hook-handlers:config");
 
@@ -176,7 +176,18 @@ const slangUserConfigType = z
       .optional(),
   })
   .superRefine((config, ctx) => {
-    const entries = collectSlangEntriesToDownload(config.solidity);
+    const slangEntries = collectSlangEntries(config.solidity);
+    for (const { version, solidityVersion, path } of slangEntries) {
+      if (solidityVersion !== undefined && solidityVersion !== version) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [...path, "settings", "solidityVersion"],
+          message: `settings.solidityVersion (${String(solidityVersion)}) must match the compiler entry's version (${version}). slang compiles the entry's version; leave settings.solidityVersion unset.`,
+        });
+      }
+    }
+
+    const entries = slangEntries.filter((entry) => !entry.hasCustomPath);
     if (entries.length === 0) {
       return;
     }
@@ -208,30 +219,34 @@ const slangUserConfigType = z
     }
   });
 
-interface SlangEntryToDownload {
+interface SlangEntry {
   version: string;
+  solidityVersion: unknown;
+  /** Whether the entry brings its own binary instead of the pinned release. */
+  hasCustomPath: boolean;
   path: Array<string | number>;
 }
 
 /**
- * Collects every compiler entry with `type: "slang"` and no custom `path`
- * from any of the shapes `solidity` can take, along with the config path of
- * the entry, so that errors point at the right place.
+ * Collects every compiler entry with `type: "slang"` from any of the shapes
+ * `solidity` can take, along with the config path of the entry, so that
+ * errors point at the right place.
  */
-function collectSlangEntriesToDownload(
-  solidity: unknown,
-): SlangEntryToDownload[] {
-  const entries: SlangEntryToDownload[] = [];
+function collectSlangEntries(solidity: unknown): SlangEntry[] {
+  const entries: SlangEntry[] = [];
 
   function visit(entry: unknown, path: Array<string | number>): void {
-    if (
-      !isObject(entry) ||
-      entry.type !== SLANG_COMPILER_TYPE ||
-      (typeof entry.path === "string" && entry.path.length > 0)
-    ) {
+    if (!isObject(entry) || entry.type !== SLANG_COMPILER_TYPE) {
       return;
     }
-    entries.push({ version: String(entry.version), path });
+    entries.push({
+      version: String(entry.version),
+      solidityVersion: isObject(entry.settings)
+        ? entry.settings.solidityVersion
+        : undefined,
+      hasCustomPath: typeof entry.path === "string" && entry.path.length > 0,
+      path,
+    });
   }
 
   function visitVersionsConfig(
@@ -310,8 +325,8 @@ export async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
-  // Add slang debugInfo selectors so the cached solcInput, build-info,
-  // and build-ID hash all include them.
+  // Add the slang debugInfo and debugSymbols selectors so the cached
+  // solcInput, build-info, and build-ID hash all include them.
   const profiles = await augmentSlangOutputSelectionInProfiles(
     resolvedConfig.solidity.profiles,
   );
@@ -337,7 +352,8 @@ export async function resolveUserConfig(
 
 /**
  * For each compiler entry whose `type === "slang"`, augments
- * `settings.outputSelection` with the slang debugInfo selectors.
+ * `settings.outputSelection` with the slang debugInfo and debugSymbols
+ * selectors.
  * Non-slang entries pass through unchanged.
  */
 async function augmentSlangOutputSelectionInProfiles(
@@ -368,7 +384,11 @@ async function augmentSlangOutputSelectionInProfiles(
 // `CommonSolidityCompilerConfig`), so we use the same here — narrowing
 // would require type assertions that the repo's eslint config forbids.
 async function augmentIfSlang<
-  T extends { type?: string; settings?: Record<string, unknown> },
+  T extends {
+    type?: string;
+    version: string;
+    settings?: Record<string, unknown>;
+  },
 >(entry: T): Promise<T> {
   if (entry.type !== SLANG_COMPILER_TYPE) {
     return entry;
@@ -382,12 +402,14 @@ async function augmentIfSlang<
     settings: {
       ...settings,
       // Defaults added here instead of in SlangCompiler.compile so this reaches
-      // the solcInput and hence the build-id hash.
+      // the solcInput and hence the build-id hash. One slang binary compiles a
+      // range of Solidity versions, so the entry's version is part of it too.
+      solidityVersion: entry.version,
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
       },
-      outputSelection: await addSlangDebugInfoSelectors(
+      outputSelection: await addSlangStackTraceSelectors(
         entry.settings?.outputSelection,
       ),
     },

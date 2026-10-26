@@ -148,7 +148,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
       return new SlangCompiler(customSlangVersion, compilerConfig.path, {
         release: getReleaseForCustomPath(context.config),
-        targetSolidityVersion: compilerConfig.version,
       });
     }
 
@@ -165,9 +164,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       `Creating SlangCompiler for Solidity ${compilerConfig.version} (slang ${slangVersion}) at ${binaryPath}`,
     );
 
-    return new SlangCompiler(slangVersion, binaryPath, {
-      release,
-      targetSolidityVersion: compilerConfig.version,
-    });
+    return new SlangCompiler(slangVersion, binaryPath, { release });
   },
 });
