@@ -182,7 +182,11 @@ function dumpSlang(
     flags.push("--no-tests");
   }
 
-  execSync("npx hardhat clean", { cwd: compileCwd, stdio: "ignore" });
+  execSync("npx hardhat clean", {
+    cwd: compileCwd,
+    stdio: "ignore",
+    env: { ...process.env, ...definition.env },
+  });
   const startedAt = Date.now();
   try {
     execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
@@ -362,7 +366,11 @@ function main(): void {
 
     for (const { file, flags, env } of variantsFor(definition)) {
       const dumpPath = path.join(scenarioOutDir, file);
-      execSync("npx hardhat clean", { cwd: compileCwd, stdio: "ignore" });
+      execSync("npx hardhat clean", {
+        cwd: compileCwd,
+        stdio: "ignore",
+        env: { ...process.env, ...definition.env },
+      });
       // definition.env carries scenario-level compile requirements (e.g.
       // aave-v4-solx's EVM_DISABLE_MEMORY_SAFE_ASM_CHECK); without it the
       // dump compile fails where the benchmarked cells succeed.
