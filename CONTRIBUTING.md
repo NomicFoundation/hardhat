@@ -4,7 +4,25 @@ This document contains some tips on how to collaborate in this project.
 
 ## Filing an issue
 
-If you find a bug or want to propose a new feature, please [open an issue](https://github.com/NomicFoundation/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
+If you find a bug or want to propose a new feature, please [open an issue](https://github.com/NomicFoundation/hardhat/issues/new). Pull requests are welcome, but read the rules below first: they determine whether we can accept your PR.
+
+### Bugs
+
+We fix bugs that real users can hit in real projects. Before filing a bug or sending a fix, make sure the scenario can actually happen in practice, not just in theory (e.g. inputs no tool produces, or environments nobody uses). Small fixes for real bugs are always welcome and don't need prior discussion. Include a test that reproduces the bug.
+
+### New features and core changes
+
+New features need, in this order:
+
+1. An issue describing the feature and the use case behind it.
+2. Approval from the Hardhat team on that issue, before any implementation starts.
+3. Usually, a design doc reviewed by the team. We'll tell you in the issue whether one is needed.
+
+The same applies to any change to Hardhat's core (`packages/hardhat/src/internal/core/`), even if it isn't a user-facing feature.
+
+Once approved, the issue gets the `status:approved` label. Link it from your PR description with `Closes #<issue>`. A bot automatically closes feature PRs from external contributors that don't link an open, approved issue.
+
+We can't accept PRs for features or core changes that weren't approved first, no matter their quality.
 
 ## GitHub project
 
