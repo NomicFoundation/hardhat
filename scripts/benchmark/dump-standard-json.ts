@@ -31,8 +31,8 @@ DESCRIPTION
   With --compiler slang, it compiles the "slang" profile of every scenario
   with a "cold compile slang" cell instead, and takes each slang job's input
   from its build info: a build that splits into several compilation jobs dumps
-  one file per job (slang.json, or slang-<build id>.json when there are
-  several), where slang's single SLANG_STANDARD_JSON_DEBUG path would keep
+  one file per job (slang.json, or slang-<sha256 prefix>.json when there
+  are several), where slang's single SLANG_STANDARD_JSON_DEBUG path would keep
   only the last job. This
   reuses the scenario working directories that bench:regression already cloned
   and installed, so it runs after the timing benchmark. Dumps are written to a
@@ -209,22 +209,22 @@ function dumpSlang(
     )
     .filter((f) => statSync(f).mtimeMs >= startedAt)
     .map((f) => JSON.parse(readFileSync(f, "utf8")) as BuildInfo)
-    .filter((info) => info.compilerType === "slang")
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .filter((info) => info.compilerType === "slang");
 
   if (jobs.length === 0) {
     throw new Error(`${id}: the slang compile wrote no slang build info`);
   }
 
-  for (const job of jobs) {
+  // Named by content: Hardhat's build ids differ between machines for the
+  // same input.
+  for (const input of jobs.map((job) => JSON.stringify(job.input))) {
+    const hash = createHash("sha256").update(input).digest("hex");
     const file =
-      jobs.length === 1
-        ? "slang.json"
-        : `slang-${job.id.split("-").at(-1)?.slice(0, 8)}.json`;
+      jobs.length === 1 ? "slang.json" : `slang-${hash.slice(0, 8)}.json`;
     const dumpPath = path.join(scenarioOutDir, file);
-    writeFileSync(dumpPath, JSON.stringify(job.input));
+    writeFileSync(dumpPath, input);
     console.log(`${id}/${file}: ${statSync(dumpPath).size} B`);
-    manifestScenario.files[file] = sha256(dumpPath);
+    manifestScenario.files[file] = hash;
   }
   return jobs.length;
 }
