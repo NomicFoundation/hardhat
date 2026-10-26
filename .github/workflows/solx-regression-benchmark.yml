@@ -104,6 +104,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y hyperfine
 
+      - name: Configure per-run package-manager caches
+        # The benchmark republishes the monorepo's packages to Verdaccio under
+        # versions that repeat across runs with new contents, so a cache that
+        # persists on the self-hosted runner can serve a prior run's build.
+        # Bun's install cache and Yarn Berry's global folder (zip cache and
+        # registry metadata) move to a temp dir removed at the end of the job;
+        # YARN_* env vars override any .yarnrc.yml.
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER_CACHES="${RUNNER_TEMP:?}/package-manager-caches"
+          {
+            echo "PACKAGE_MANAGER_CACHES=$PACKAGE_MANAGER_CACHES"
+            echo "BUN_INSTALL_CACHE_DIR=$PACKAGE_MANAGER_CACHES/bun-install"
+            echo "YARN_GLOBAL_FOLDER=$PACKAGE_MANAGER_CACHES/yarn-global"
+          } >> "$GITHUB_ENV"
+
       - name: Install packages
         run: sfw pnpm install --frozen-lockfile --prefer-offline
 
@@ -143,6 +159,13 @@ jobs:
       # The solx binary downloads from solx-releases-mirror.hardhat.org during
       # the scenario's first compile (the "prime solx" step). This runs inside
       # bench:regression, not under `sfw`, so no firewall allowlist is needed.
+      - name: Clear stale pnpm metadata cache
+        # pnpm ignores npm_config_cache_dir, so its registry metadata cache
+        # can't move per run; a prior run's metadata pins the integrity of a
+        # republished hardhat and fails the install (ERR_PNPM_TARBALL_INTEGRITY).
+        # The content-addressable store is keyed by integrity hash and stays.
+        run: rm -rf "${HOME:?}/.cache/pnpm"
+
       - name: Run solx regression benchmark
         env:
           # Empty on push/PR events; the fallbacks keep those runs on the
@@ -392,3 +415,8 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+
+      - name: Clean up package-manager caches
+        # Self-hosted runners don't wipe RUNNER_TEMP between jobs.
+        if: always()
+        run: rm -rf "${PACKAGE_MANAGER_CACHES:?}"
