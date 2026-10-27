@@ -1,5 +1,6 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { InvalidAbiSignatureError } from "@nomicfoundation/hardhat-utils/abi";
+import { isInvalidAbiSignatureError } from "@nomicfoundation/hardhat-utils/abi";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 /**
  * Parses the value of a task argument (i.e. what the user wrote on the command
@@ -22,7 +23,9 @@ export function parseSignatureArgument<ParsedT>(
   try {
     return parse(value);
   } catch (error) {
-    if (!(error instanceof InvalidAbiSignatureError)) {
+    ensureError(error);
+
+    if (!isInvalidAbiSignatureError(error)) {
       throw error;
     }
 

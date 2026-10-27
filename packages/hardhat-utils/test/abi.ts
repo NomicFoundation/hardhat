@@ -14,6 +14,7 @@ import {
   getAbiSelector,
   getIntTypeRange,
   isAbiEncodingError,
+  isInvalidAbiSignatureError,
   parseAbiEventSignature,
   parseAbiFunctionSignature,
   parseAbiParameter,
@@ -71,7 +72,7 @@ function assertInvalidSignature(
     () => parse(signature),
     (error: unknown) => {
       assert.ok(
-        error instanceof InvalidAbiSignatureError,
+        isInvalidAbiSignatureError(error),
         `expected an InvalidAbiSignatureError, got ${String(error)}`,
       );
       assert.equal(error.input, signature);
@@ -930,6 +931,21 @@ describe("abi", () => {
     });
   });
 
+  describe("isInvalidAbiSignatureError", () => {
+    it("Should recognize the error by its kind, not its class", () => {
+      const error = new InvalidAbiSignatureError("f(", "it's incomplete");
+      assert.equal(isInvalidAbiSignatureError(error), true);
+      assert.equal(
+        isInvalidAbiSignatureError(
+          Object.assign(new Error(), { kind: "invalid-signature" }),
+        ),
+        true,
+      );
+      assert.equal(isInvalidAbiSignatureError(new Error()), false);
+      assert.equal(isInvalidAbiSignatureError("invalid-signature"), false);
+    });
+  });
+
   describe("parseAbiSignature", () => {
     it("Should parse a name and its input types, normalizing integer aliases", () => {
       assert.deepEqual(parseAbiSignature("f(uint,int,address,bool,bytes32)"), {
@@ -964,7 +980,7 @@ describe("abi", () => {
     it("Should parse parameter names, and the indexed and data location keywords", () => {
       assert.deepEqual(
         parseAbiSignature(
-          "E(address indexed from, string memory name, bytes calldata, address payable to, address payable[] storage tos)",
+          "E(address indexed from, string memory name, bytes calldata, address payable to, address payable[] calldata tos)",
         ),
         {
           name: "E",
@@ -1210,6 +1226,16 @@ describe("abi", () => {
       ["f(address payable payable)", 'unexpected "payable"'],
       ["E(address indexed indexed x)", 'unexpected "indexed"'],
       ["f(string memory calldata s)", 'unexpected "calldata"'],
+      [
+        "function push(uint256[] storage self, uint256 v) external",
+        '"storage" parameters aren\'t supported, as library selectors follow different rules',
+      ],
+      ["address(uint256)", '"address" can\'t be a name'],
+      ["function function()", '"function" can\'t be a name'],
+      ["function f() anonymous", 'unexpected "anonymous"'],
+      ["constructor() anonymous", 'unexpected "anonymous"'],
+      ["f() anonymous returns (bool)", 'unexpected "returns"'],
+      ["f() anonymous {}", 'unexpected "{"'],
       ["function(uint256)", "it must include a name"],
       ["event (uint256)", "it must include a name"],
       ["constructor C(uint256)", 'unexpected "C"'],
@@ -1257,6 +1283,10 @@ describe("abi", () => {
       ["(uint256)", "it must include a name"],
       ["event E(uint256)", "it's an event, not a function or error"],
       ["E(uint256) anonymous", "it's an event, not a function or error"],
+      [
+        "Transfer(address indexed from, address indexed to, uint256 value)",
+        "it's an event, not a function or error",
+      ],
       ["constructor(uint256)", "it's a constructor, not a function or error"],
       ["f(uint7)", unknownType("uint7")],
     ]) {
