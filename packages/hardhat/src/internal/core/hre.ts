@@ -1,4 +1,5 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types.js";
+import type { TypeScriptMode } from "./typescript-mode.js";
 import type { ArtifactManager } from "../../types/artifacts.js";
 import type {
   HardhatUserConfig,
@@ -43,6 +44,7 @@ import { HookManagerImplementation } from "./hook-manager.js";
 import { LazyUserInterruptionManager } from "./lazy-user-interruptions.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
+import { readTypeScriptMode } from "./typescript-mode.js";
 
 export class HardhatRuntimeEnvironmentImplementation implements HardhatRuntimeEnvironment {
   // NOTE: This is a small architectural violation, as these shouldn't be needed
@@ -72,6 +74,10 @@ export class HardhatRuntimeEnvironmentImplementation implements HardhatRuntimeEn
       unsafeOptions?.resolvedPlugins ??
       (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
+    const typescriptMode =
+      unsafeOptions?.typescript ??
+      (await readTypeScriptMode(resolvedProjectRoot));
+
     const [hardhatVersion, edrVersion] = await Promise.all([
       getHardhatVersion(),
       getEdrVersion(),
@@ -92,6 +98,7 @@ export class HardhatRuntimeEnvironmentImplementation implements HardhatRuntimeEn
       resolvedProjectRoot,
       userProvidedGlobalOptions.config,
       resolvedPlugins,
+      typescriptMode,
     );
 
     if (!configResolutionResult.success) {
@@ -208,6 +215,8 @@ export async function resolveProjectRoot(
  * @param userProvidedConfigPath - The user provided Hardhat config file path.
  * @param resolvedPlugins - The list of plugins, we do not want the plugins
  * overwriting them so we re-add them to the final HardhatConfig.
+ * @param typescriptMode - The project's TypeScript mode, which we also re-add
+ * to the final HardhatConfig, so that plugins can't change it.
  * @returns Either an object containing the resolved HardhatConfig and the
  * extended version of the user config, or a list of validation errors.
  */
@@ -217,6 +226,7 @@ export async function resolveUserConfigToHardhatConfig(
   resolvedProjectRoot: string,
   userProvidedConfigPath: string | undefined,
   resolvedPlugins: HardhatPlugin[],
+  typescriptMode: TypeScriptMode,
 ): Promise<
   | {
       success: true;
@@ -255,11 +265,12 @@ export async function resolveUserConfigToHardhatConfig(
     userProvidedConfigPath,
     hooks,
     resolvedPlugins,
+    typescriptMode,
     extendedUserConfig,
   );
 
-  // We override the plugins and the project root, as we want to prevent
-  // the plugins from changing them
+  // We override the plugins, the project root, and the TypeScript mode, as we
+  // want to prevent the plugins from changing them
   const config: HardhatConfig = {
     ...resolvedConfig,
     paths: {
@@ -267,6 +278,7 @@ export async function resolveUserConfigToHardhatConfig(
       root: resolvedProjectRoot,
     },
     plugins: resolvedPlugins,
+    typescript: typescriptMode,
   };
 
   // Validate the resolved config (post-resolution checks).
@@ -307,6 +319,7 @@ async function resolveUserConfig(
   configPath: string | undefined,
   hooks: HookManager,
   sortedPlugins: HardhatPlugin[],
+  typescriptMode: TypeScriptMode,
   config: HardhatUserConfig,
 ): Promise<HardhatConfig> {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -318,6 +331,7 @@ async function resolveUserConfig(
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
     paths: resolvePaths(projectRoot, configPath, config.paths),
+    typescript: typescriptMode,
   } as HardhatConfig;
 
   return await hooks.runHandlerChain(
