@@ -24,10 +24,12 @@ const ELEMENTARY_TYPE_NAMES = new Set([
 // The type aliases other than the integer ones, which `parseIntType` handles
 const TYPE_ALIASES = new Map([["byte", "bytes1"]]);
 
-const DATA_LOCATIONS = new Set(["memory", "calldata", "storage"]);
+// Only library functions have `storage` parameters, and their selectors follow
+// different rules, so it isn't accepted
+const DATA_LOCATIONS = new Set(["memory", "calldata"]);
 
-// The keywords that can't be parameter names. Others, like `error` or `from`,
-// are only keywords in some contexts, so they can.
+// The keywords that can't be names. Others, like `error` or `tuple`, are only
+// keywords in some contexts, so they can.
 const RESERVED_KEYWORDS = new Set([
   "payable",
   "indexed",
@@ -126,8 +128,14 @@ export class AbiSignatureParser {
     const kind = this.#parseDeclarationKeyword();
 
     // A constructor has no name
-    const name =
-      kind !== "constructor" && isWord(this.#peek()) ? this.#next() : "";
+    let name = "";
+    if (kind !== "constructor" && isWord(this.#peek())) {
+      if (!isName(this.#peek())) {
+        this.#fail(`"${this.#peek()}" can't be a name`);
+      }
+
+      name = this.#next();
+    }
 
     if (name === "" && kind !== undefined && kind !== "constructor") {
       this.#fail("it must include a name");
@@ -151,13 +159,24 @@ export class AbiSignatureParser {
         // Skip a declaration's modifiers, like `external` or `override(A, B)`,
         // as they don't affect the signature
         while (isWord(this.#peek()) && this.#peek() !== "returns") {
-          if (this.#next() === "anonymous") {
+          if (this.#peek() === "anonymous") {
+            // Only a signature without a keyword can be an event's
+            if (kind !== undefined) {
+              this.#failUnexpected();
+            }
+
             anonymous = true;
           }
+
+          this.#next();
 
           if (this.#peek() === "(") {
             this.#skipModifierArguments();
           }
+        }
+
+        if (anonymous && this.#peek() === "returns") {
+          this.#failUnexpected();
         }
 
         if (this.#consume("returns")) {
@@ -167,7 +186,12 @@ export class AbiSignatureParser {
     }
 
     // Ignore a function's body, or a declaration's trailing ";"
-    if (kind === "event" || kind === "error" || !this.#consume("{")) {
+    if (
+      kind === "event" ||
+      kind === "error" ||
+      anonymous ||
+      !this.#consume("{")
+    ) {
       this.#consume(";");
 
       if (this.#peek() !== "") {
@@ -271,9 +295,15 @@ export class AbiSignatureParser {
       }
     }
 
+    if (this.#peek() === "storage") {
+      this.#fail(
+        '"storage" parameters aren\'t supported, as library selectors follow different rules',
+      );
+    }
+
     // A type or a keyword isn't a name, but what follows a missing "," or a
     // repeated modifier
-    const name = isParameterName(this.#peek()) ? this.#next() : undefined;
+    const name = isName(this.#peek()) ? this.#next() : undefined;
 
     return {
       type,
@@ -386,7 +416,8 @@ function isElementaryType(word: string): boolean {
   );
 }
 
-function isParameterName(token: string): boolean {
+/** Whether a token can be a signature's or a parameter's name. */
+function isName(token: string): boolean {
   return (
     isWord(token) && !isElementaryType(token) && !RESERVED_KEYWORDS.has(token)
   );

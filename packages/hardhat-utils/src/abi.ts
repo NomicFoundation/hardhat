@@ -272,7 +272,11 @@ export function parseAbiFunctionSignature(
   const { kind, name, inputs, outputs, anonymous } =
     parseAbiSignature(signature);
 
-  if (kind === "event" || anonymous === true) {
+  if (
+    kind === "event" ||
+    anonymous === true ||
+    inputs.some((input) => input.indexed === true)
+  ) {
     throw new InvalidAbiSignatureError(
       signature,
       "it's an event, not a function or error",
@@ -385,6 +389,7 @@ export {
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   isAbiEncodingError,
+  isInvalidAbiSignatureError,
   type AbiEncodingErrorKind,
   type AnyAbiEncodingError,
 } from "./errors/abi.js";
