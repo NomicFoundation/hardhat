@@ -18,7 +18,8 @@ const ONE =
 
 // The hhu plugin is unreleased and de-registered from the builtin plugins, so
 // it's injected explicitly to test the integrated (`hardhat utils ...`) path.
-// The signature grammar is covered by the signature parser tests.
+// Parsing and hashing signatures is covered by the hardhat-utils abi tests;
+// these tests only verify the task wiring and how parsing errors are reported.
 describe("hhu utils abi tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 

@@ -35,9 +35,28 @@ export interface UnnamedAbiParameter {
 // In Solidity the rightmost suffix is the outermost array, so `uint256[2][]` is
 // a dynamic array of `uint256[2]`. The greedy `.+` matches that last suffix.
 const ARRAY_REGEX = /^(.+)(\[(\d+)?\])$/;
-const BYTES_N_REGEX = /^bytes([0-9]{1,2})$/;
+const FIXED_BYTES_TYPE_REGEX = /^bytes([1-9]\d?)$/;
 const DECIMAL_REGEX = /^\d+$/;
 const HEX_REGEX = /^0x[0-9a-f]+$/i;
+
+/**
+ * Parses a Solidity fixed-size bytes type name, like `bytes32`, into its size.
+ *
+ * @param type The type name to parse.
+ * @returns The size in bytes, from 1 to 32, or `undefined` if it isn't a
+ * fixed-size bytes type.
+ */
+export function parseFixedBytesType(type: string): number | undefined {
+  const match = FIXED_BYTES_TYPE_REGEX.exec(type);
+
+  if (match === null) {
+    return undefined;
+  }
+
+  const size = Number(match[1]);
+
+  return size <= 32 ? size : undefined;
+}
 
 /**
  * Throws if two of the given parameters share a name.
@@ -136,13 +155,9 @@ export async function normalizeAbiValue(
     return normalizeBytes(value, path, type, undefined);
   }
 
-  const bytesNMatch = BYTES_N_REGEX.exec(type);
-  if (bytesNMatch !== null) {
-    const length = Number(bytesNMatch[1]);
-    if (length < 1 || length > 32) {
-      throw new UnsupportedAbiTypeError(path, type);
-    }
-    return normalizeBytes(value, path, type, length);
+  const fixedBytesSize = parseFixedBytesType(type);
+  if (fixedBytesSize !== undefined) {
+    return normalizeBytes(value, path, type, fixedBytesSize);
   }
 
   const intType = parseIntType(type);
@@ -351,8 +366,7 @@ function normalizeBytes(
     isPrefixedHexString(value) &&
     isHexString(value)
   ) {
-    const unprefixed = getUnprefixedHexString(value);
-    if (unprefixed.length % 2 !== 0) {
+    if (getUnprefixedHexString(value).length % 2 !== 0) {
       throw new InvalidAbiValueError(
         path,
         type,
@@ -360,8 +374,7 @@ function normalizeBytes(
         "invalid bytes value, the hex string has an odd length",
       );
     }
-    bytes =
-      unprefixed.length === 0 ? new Uint8Array() : hexStringToBytes(unprefixed);
+    bytes = hexStringToBytes(value);
   } else {
     throw new InvalidAbiValueError(
       path,

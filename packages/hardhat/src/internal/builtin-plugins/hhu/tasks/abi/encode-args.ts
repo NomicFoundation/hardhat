@@ -1,7 +1,9 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
+import { parseAbiSignature } from "@nomicfoundation/hardhat-utils/abi";
+
+import { parseSignatureArgument } from "./arguments.js";
 import { encodeArguments } from "./encode.js";
-import { parseSignature } from "./signature.js";
 
 interface EncodeArgsActionArguments {
   signature: string;
@@ -11,7 +13,11 @@ interface EncodeArgsActionArguments {
 const encodeArgsAction: NewUtilsTaskActionFunction<
   EncodeArgsActionArguments
 > = async ({ signature, values }) => {
-  const { inputs } = parseSignature(signature);
+  const { inputs } = parseSignatureArgument(
+    parseAbiSignature,
+    signature,
+    "signature",
+  );
 
   console.log(await encodeArguments(inputs, values, "values"));
 };

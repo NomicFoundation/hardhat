@@ -1,8 +1,11 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  getAbiSelector,
+  parseAbiFunctionSignature,
+} from "@nomicfoundation/hardhat-utils/abi";
 
-import { hashSignature } from "./signature.js";
+import { parseSignatureArgument } from "./arguments.js";
 
 interface SigActionArguments {
   signature: string;
@@ -11,9 +14,13 @@ interface SigActionArguments {
 const sigAction: NewUtilsTaskActionFunction<SigActionArguments> = async ({
   signature,
 }) => {
-  const hash = await hashSignature(signature);
+  const parsed = parseSignatureArgument(
+    parseAbiFunctionSignature,
+    signature,
+    "signature",
+  );
 
-  console.log(bytesToHexString(hash.subarray(0, 4)));
+  console.log(await getAbiSelector(parsed));
 };
 
 export default sigAction;

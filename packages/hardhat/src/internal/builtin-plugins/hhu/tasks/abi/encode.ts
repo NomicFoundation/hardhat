@@ -1,4 +1,4 @@
-import type { SignatureParameter } from "./signature.js";
+import type { AbiParameter } from "@nomicfoundation/hardhat-utils/abi";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -20,7 +20,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
  * @throws HardhatError If a value is missing, malformed or out of range.
  */
 export async function encodeArguments(
-  parameters: readonly SignatureParameter[],
+  parameters: readonly AbiParameter[],
   values: string[],
   name: string,
 ): Promise<PrefixedHexString> {
@@ -42,7 +42,7 @@ export async function encodeArguments(
 }
 
 function parseValue(
-  parameter: SignatureParameter | undefined,
+  parameter: AbiParameter | undefined,
   value: string,
   name: string,
 ): unknown {

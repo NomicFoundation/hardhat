@@ -26,6 +26,7 @@ import {
   getDispatcher,
   shouldUseProxy,
   isValidUrl,
+  splitQueryParams,
   getProxyUrl,
 } from "../src/request.js";
 
@@ -1040,6 +1041,83 @@ describe("Requests util", () => {
       assert.equal(isValidUrl("example"), false);
       assert.equal(isValidUrl(""), false);
       assert.equal(isValidUrl("/relative/path"), false);
+    });
+  });
+
+  describe("splitQueryParams", () => {
+    it("should return a url without a query string unchanged", () => {
+      assert.deepEqual(splitQueryParams("https://example.com/api"), {
+        url: "https://example.com/api",
+        queryParams: {},
+      });
+    });
+
+    it("should not normalize a url without a query string", () => {
+      assert.deepEqual(splitQueryParams("https://example.com"), {
+        url: "https://example.com",
+        queryParams: {},
+      });
+    });
+
+    it("should split the query params from the url", () => {
+      assert.deepEqual(
+        splitQueryParams("https://example.com/v2/api?chainid=143&foo=bar"),
+        {
+          url: "https://example.com/v2/api",
+          queryParams: { chainid: "143", foo: "bar" },
+        },
+      );
+    });
+
+    it("should decode the query params", () => {
+      assert.deepEqual(splitQueryParams("https://example.com/api?name=a%20b"), {
+        url: "https://example.com/api",
+        queryParams: { name: "a b" },
+      });
+    });
+
+    it("should keep the last value of a repeated query param", () => {
+      assert.deepEqual(
+        splitQueryParams("https://example.com/api?foo=1&foo=2"),
+        {
+          url: "https://example.com/api",
+          queryParams: { foo: "2" },
+        },
+      );
+    });
+
+    it("should return a url with an empty query string unchanged", () => {
+      assert.deepEqual(splitQueryParams("https://example.com/api?"), {
+        url: "https://example.com/api?",
+        queryParams: {},
+      });
+    });
+
+    it("should drop the fragment after the query string", () => {
+      assert.deepEqual(
+        splitQueryParams("https://example.com/api?foo=bar#section"),
+        {
+          url: "https://example.com/api",
+          queryParams: { foo: "bar" },
+        },
+      );
+    });
+
+    it("should not treat a question mark in the fragment as a query string", () => {
+      assert.deepEqual(
+        splitQueryParams("https://example.com/api#section?foo=bar"),
+        {
+          url: "https://example.com/api#section?foo=bar",
+          queryParams: {},
+        },
+      );
+    });
+
+    it("should return an invalid url unchanged", () => {
+      assert.deepEqual(splitQueryParams("not a url?foo=bar"), {
+        url: "not a url?foo=bar",
+        queryParams: {},
+      });
     });
   });
 

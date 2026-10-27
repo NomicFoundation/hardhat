@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "5.0.0",
+  "version": "5.1.1",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-utils",
   "repository": {
