@@ -93,5 +93,4 @@ export function abi(prefix: string[]): UtilsTaskDefinition[] {
     sigTask,
     sigEventTask,
   ];
-  return [abiTask, sigTask, sigEventTask];
 }
