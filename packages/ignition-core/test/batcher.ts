@@ -152,6 +152,89 @@ describe("batcher", () => {
     ]);
   });
 
+  it("should wait for the futures of a module's submodules when the module is passed in `after`", () => {
+    const submodule = buildModule("Submodule", (m) => {
+      const contract1 = m.contract("Contract1");
+      m.call(contract1, "configure");
+
+      return { contract1 };
+    });
+
+    const indexModule = buildModule("IndexModule", (m) => {
+      const { contract1 } = m.useModule(submodule);
+
+      return { contract1 };
+    });
+
+    const ignitionModule = buildModule("Module", (m) => {
+      const contract2 = m.contract("Contract2", [], { after: [indexModule] });
+
+      return { contract2 };
+    });
+
+    assertBatching({ ignitionModule }, [
+      ["Submodule#Contract1"],
+      ["Submodule#Contract1.configure"],
+      ["Module#Contract2"],
+    ]);
+  });
+
+  it("should wait for the futures of the submodules of a dependency's module", () => {
+    const submodule = buildModule("Submodule", (m) => {
+      const contract1 = m.contract("Contract1");
+      m.call(contract1, "configure");
+
+      return { contract1 };
+    });
+
+    const indexModule = buildModule("IndexModule", (m) => {
+      m.useModule(submodule);
+      const contract2 = m.contract("Contract2");
+
+      return { contract2 };
+    });
+
+    const ignitionModule = buildModule("Module", (m) => {
+      const { contract2 } = m.useModule(indexModule);
+      const contract3 = m.contract("Contract3", [contract2]);
+
+      return { contract3 };
+    });
+
+    assertBatching({ ignitionModule }, [
+      ["IndexModule#Contract2", "Submodule#Contract1"],
+      ["Submodule#Contract1.configure"],
+      ["Module#Contract3"],
+    ]);
+  });
+
+  it("should not wait for the futures of a module whose id starts with the id of a module passed in `after`", () => {
+    const tokenModule = buildModule("Token", (m) => {
+      const token = m.contract("Token");
+
+      return { token };
+    });
+
+    const tokenSaleModule = buildModule("TokenSale", (m) => {
+      const sale = m.contract("TokenSale");
+      m.call(sale, "open");
+
+      return { sale };
+    });
+
+    const ignitionModule = buildModule("Module", (m) => {
+      m.useModule(tokenSaleModule);
+      const contract1 = m.contract("Contract1", [], { after: [tokenModule] });
+
+      return { contract1 };
+    });
+
+    assertBatching({ ignitionModule }, [
+      ["Token#Token", "TokenSale#TokenSale"],
+      ["Module#Contract1", "TokenSale#TokenSale.open"],
+    ]);
+  });
+
   it("should bypass intermediary successful nodes", () => {
     const ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
