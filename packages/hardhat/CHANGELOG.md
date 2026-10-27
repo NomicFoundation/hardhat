@@ -1,5 +1,37 @@
 # hardhat
 
+## 3.21.1
+
+### Patch Changes
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Upgraded EDR to v0.25.0.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed cheatcodes added in forge-std v1.17.0 being reported by their raw selector instead of their name when they are not yet supported.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed calls and gas estimates at the fork block and earlier blocks of a forked network being checked against the transaction gas cap of the local network instead of the cap of the remote chain's hardfork at that block; replays by `debug_traceCall` and `debug_traceTransaction` at those blocks use it too.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Removed the Amsterdam hardfork activation on Hoodi, because the upgrade was postponed without a new date, so forking Hoodi no longer uses `amsterdam` for blocks after the previously scheduled time.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed a crash on macOS when the EDR native addon is loaded from two different paths in one process.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed consecutive `startSnapshotGas` regions in one Solidity test function including the cheatcode overhead of the previous region in their value.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed calls in Solidity tests run with `isolate` reverting when the gas forwarded to them is below the EIP-7623 floor of their calldata, while the same call succeeds without `isolate`.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed calls and creates in Solidity tests run with `isolate` being checked against the transaction gas cap and the block gas limit, which the enclosing test transaction already satisfies.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Changed `Vm.Gas.gasTotalUsed` in Solidity tests run with `isolate` to report the regular gas of the transaction before refunds, with `gasRefunded` reported separately.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed calls and creates in Solidity tests run with `isolate` paying a flat 21,000 intrinsic gas instead of the real intrinsic gas of their transaction, which ignored calldata, access lists, authorizations and init code on every hardfork.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed calls and creates in Solidity tests run with `isolate` reporting zero gas and returning the forwarded gas to the caller when their intrinsic gas or calldata floor exceeded it; they now consume their whole budget.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Changed `snapshotGasLastCall`, `snapshotGasLastFrame` and `startSnapshotGas`/`stopSnapshotGas` in Solidity tests run with `isolate` to report the receipt gas of the transaction, so the value no longer depends on the gas forwarded to the call or on refunds.
+
+- [#8753](https://github.com/NomicFoundation/hardhat/pull/8753) [`cd4766d`](https://github.com/NomicFoundation/hardhat/commit/cd4766da7f58681a48720ce66880d921dde34a5b) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Fixed EIP-8037 state gas not being accounted for in Solidity tests running on the Amsterdam hardfork, so `Vm.Gas.gasStateUsed` is now reported, and `Vm.Gas.gasTotalUsed` excludes state gas that spilled past the reservoir.
+
+- [#8765](https://github.com/NomicFoundation/hardhat/pull/8765) [`7de90f0`](https://github.com/NomicFoundation/hardhat/commit/7de90f062be9997e68992232a681ba7803766443) Thanks [@schaable](https://github.com/schaable)! - Fixed local accounts signing `data: "0x"` as calldata `0x00`, and `personal_sign` of `0x` as a one-byte message.
+
 ## 3.21.0
 
 ### Minor Changes
