@@ -968,6 +968,21 @@ describe("edr-provider", () => {
       });
     });
 
+    describe("defaultTransactionGasLimit", () => {
+      // EDR resolves it from the hardfork of each request's block, which a
+      // single value can't match for the remote blocks of a fork
+      it("should leave defaultTransactionGasLimit unset", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, hardfork: "prague" },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.defaultTransactionGasLimit, undefined);
+      });
+    });
+
     describe("gasEstimationMode", () => {
       // The full mode-to-enum mapping is unit tested in convert-to-edr.ts;
       // here we only check that the configured mode reaches EDR, using the

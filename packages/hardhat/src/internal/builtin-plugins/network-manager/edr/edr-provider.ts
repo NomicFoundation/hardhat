@@ -85,10 +85,13 @@ interface EdrProviderConfig {
 
 export class EdrProvider extends BaseProvider {
   /**
-   * The value the underlying EDR provider was configured with, applied to
-   * RPC call and transaction requests that omit a `gas` field. Exposed so
-   * that the automatic gas handler's estimation fallback can reuse it
-   * instead of recomputing it.
+   * The default transaction gas limit of the configured hardfork, used by the
+   * automatic gas handler's estimation fallback.
+   *
+   * EDR isn't given this value. It resolves the default itself, from the
+   * hardfork of the block each request runs at, which differs from this one
+   * for remote blocks of a fork. Transactions sent with automatic gas run at
+   * the pending block, where both resolve to the same value.
    */
   public readonly defaultTransactionGasLimit: bigint;
 
@@ -203,9 +206,16 @@ export class EdrProvider extends BaseProvider {
         );
       }
 
+      const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
+        chainType: networkConfig.chainType,
+        hardfork: networkConfig.hardfork,
+        blockGasLimit: resolveGenesisBlockGasLimit(networkConfig),
+        transactionGasCap: networkConfig.transactionGasCap,
+      });
+
       edrProvider = new EdrProvider(
         provider,
-        providerConfig.defaultTransactionGasLimit,
+        defaultTransactionGasLimit,
         // EDR only enforces a block gas limit when it was given a mining one,
         // which `blockGasLimit: false` omits
         providerConfig.mining.blockGasLimit !== undefined,
@@ -505,16 +515,13 @@ export async function getProviderConfig(
   gasReportConfig: GasReportConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
   includeCallTraces?: IncludeTraces,
-): Promise<RequireField<ProviderConfig, "defaultTransactionGasLimit">> {
+): Promise<ProviderConfig> {
   const hardforkName = getHardforkName(
     networkConfig.hardfork,
     networkConfig.chainType,
   );
 
-  const genesisBlockGasLimit =
-    typeof networkConfig.blockGasLimit === "bigint"
-      ? networkConfig.blockGasLimit
-      : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
+  const genesisBlockGasLimit = resolveGenesisBlockGasLimit(networkConfig);
 
   // EDR's mining block gas limit can be disabled in user config explicitly
   const miningBlockGasLimit =
@@ -541,13 +548,6 @@ export async function getProviderConfig(
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
-  const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
-    chainType: networkConfig.chainType,
-    hardfork: networkConfig.hardfork,
-    blockGasLimit: genesisBlockGasLimit,
-    transactionGasCap: networkConfig.transactionGasCap,
-  });
-
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
     allowUnlimitedContractSize:
@@ -556,7 +556,6 @@ export async function getProviderConfig(
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
-    defaultTransactionGasLimit,
     gasEstimationMode: hardhatGasEstimationModeToEdrGasEstimationMode(
       networkConfig.gasEstimationMode,
     ),
@@ -587,4 +586,10 @@ export async function getProviderConfig(
     precompileOverrides: [],
     transactionGasCap: networkConfig.transactionGasCap,
   };
+}
+
+function resolveGenesisBlockGasLimit(networkConfig: EdrNetworkConfig): bigint {
+  return typeof networkConfig.blockGasLimit === "bigint"
+    ? networkConfig.blockGasLimit
+    : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
 }
