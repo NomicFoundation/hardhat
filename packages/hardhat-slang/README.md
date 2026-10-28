@@ -175,3 +175,5 @@ Each slang release supports a range of Solidity versions. A compiler entry's `ve
 ### EVM version support
 
 slang supports EVM versions `cancun`, `prague`, and `osaka`. Using an older EVM target (e.g., `paris`, `shanghai`) with compiler type `"slang"` will result in a validation error.
+
+If you don't set `evmVersion`, Hardhat picks one from the Solidity version. For Solidity versions below `0.8.25`, where that would be older than `cancun`, the plugin uses `cancun` instead.
