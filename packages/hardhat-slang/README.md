@@ -1,8 +1,10 @@
 # Hardhat Slang plugin
 
+> ⚠️ Warning: `slang` is an experimental compiler. Key functionality, such as validation of incorrect code, is still under active development. Keep using solc for production builds and anything you deploy.
+
 This plugin enables the new `slang` Solidity compiler in Hardhat.
 
-The `slang` compiler is experimental and is not ready for production use-cases. Use it for test builds and test execution locally, and keep using `solc` for production use-cases (including during deployment, for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `slang` in other build profiles, see the configuration flags below.
+The `slang` compiler is experimental and is not ready for production use-cases. Use it to explore test builds and test execution locally, and keep using `solc` for production use-cases (including during deployment, for example with `hardhat-ignition` and in your CI). Care should be taken before enabling compilation with `slang` in other build profiles, see the configuration flags below.
 
 ## Installation
 
@@ -42,14 +44,14 @@ The `default` profile uses solc as usual. The `slang` profile uses the slang com
 Run tests or compile using the slang build profile:
 
 ```bash
-hardhat test --build-profile slang
-hardhat build --build-profile slang
+npx hardhat test --build-profile slang
+npx hardhat build --build-profile slang
 ```
 
 The default profile continues to use solc as usual:
 
 ```bash
-hardhat build    # uses solc (default profile)
+npx hardhat build    # uses solc (default profile)
 ```
 
 ## Configuration
@@ -170,7 +172,7 @@ Each slang release supports a range of Solidity versions. A compiler entry's `ve
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
-| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from GitHub. |
+| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the solx releases mirror. |
 
 ### EVM version support
 
