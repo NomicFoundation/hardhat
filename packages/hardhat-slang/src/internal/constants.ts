@@ -6,7 +6,6 @@ import type { SolidityCompilerType } from "hardhat/types/config";
  */
 export const SLANG_COMPILER_TYPE: SolidityCompilerType = "slang";
 
-// TODO: revisit before release to finalize.
 export const SLANG_RELEASES_BASE_URL =
   "https://solx-releases-mirror.hardhat.org";
 
@@ -49,11 +48,10 @@ export interface SlangRelease {
   /** CLI arguments passed on every compile, after `--standard-json`. */
   extraArgs: readonly string[];
   /**
-   * Where to download the release from, when it isn't served by the mirror
-   * under the standard `v${version}` asset naming.
+   * The asset naming on the mirror, when the release isn't published under
+   * the standard `v${version}` suffix.
    */
   assetOverride?: {
-    baseUrl: string;
     assetSuffix: string;
   };
 }
@@ -68,8 +66,6 @@ export const SLANG_RELEASES: Record<string, SlangRelease> = {
     maxSolidity: "0.8.37",
     extraArgs: ["--no-import-callback"],
     assetOverride: {
-      baseUrl:
-        "https://github.com/NomicFoundation/solx/releases/download/5e6ec5e1",
       assetSuffix: "debug-fast",
     },
   },
