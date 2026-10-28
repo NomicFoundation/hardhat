@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-slang",
-  "version": "3.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "Hardhat plugin for using the slang compiler in test builds",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-slang",
   "repository": {
