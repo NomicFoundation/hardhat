@@ -24,7 +24,13 @@ type ScenarioName =
   | "create"
   | "createAndCall"
   | "revert"
-  | "traceCall";
+  | "traceCall"
+  | "precompileCall"
+  | "codelessCall"
+  | "creation"
+  | "creationCall"
+  | "revertCall"
+  | "singleCall";
 
 /**
  * Traces recorded with Hardhat 2.29.1 and EDR 0.12.0-next.23, the last
@@ -39,6 +45,26 @@ const HARDHAT_2_TRACES: Record<ScenarioName, RpcDebugTraceOutput> =
 
 const TX_GAS = numberToRpcQuantity(1_000_000);
 const SENDER = DEFAULT_ACCOUNTS_ADDRESSES[0];
+const RECIPIENT = DEFAULT_ACCOUNTS_ADDRESSES[1];
+
+/** The gas of a transaction that runs no code. */
+const INTRINSIC_GAS = 21_000;
+
+/** The wei sent by a value transfer. */
+const TRANSFER_VALUE = numberToRpcQuantity(1);
+
+const CALL_TRACER = "callTracer";
+const UNSUPPORTED_TRACER = "unsupportedTracer";
+/** EDR treats an unknown tracer name as JavaScript code. */
+const UNSUPPORTED_TRACER_ERROR = "JS Tracer is not enabled";
+
+/** Hardhat 2's trace of a value transfer. */
+const VALUE_TRANSFER_TRACE: RpcDebugTraceOutput = {
+  gas: INTRINSIC_GAS,
+  failed: false,
+  returnValue: "",
+  structLogs: [],
+};
 
 function address(index: number): string {
   return `0x${index.toString(16).padStart(40, "0")}`;
@@ -57,15 +83,41 @@ const CALLCODE_ADDRESS = address(0x10f);
 const CREATE_AND_CALL_ADDRESS = address(0x110);
 const INFINITE_LOOP_ADDRESS = address(0x111);
 const UNKNOWN_OPCODE_ADDRESS = address(0x112);
+const PRECOMPILE_CALLER_ADDRESS = address(0x113);
+const CODELESS_CALLER_ADDRESS = address(0x114);
+/** An account that never gets code. */
+const CODELESS_ADDRESS = address(0x115);
+const SINGLE_CALL_ADDRESS = address(0x116);
+const ECRECOVER_PRECOMPILE_ADDRESS = address(0x1);
+const IDENTITY_PRECOMPILE_ADDRESS = address(0x4);
 const ELONGATED_MEMORY_ADDRESS = "0x1234567890123456789012345678901234567890";
+
+/** The size of an EVM memory word in bytes. */
+const WORD_SIZE = 32;
 
 function withoutPrefix(hex: string): string {
   return hex.slice(2);
 }
 
-/** Calls `target` without calldata, keeping 32 bytes of its output. */
-function call(target: string): string {
-  return `6020600060006000600073${withoutPrefix(target)}5af150`;
+/** Formats a number below 256 as two hex digits, the operand of a PUSH1. */
+function hexByte(n: number): string {
+  return n.toString(16).padStart(2, "0");
+}
+
+/** Returns the size in bytes of unprefixed hex. */
+function byteLength(hex: string): number {
+  return hex.length / 2;
+}
+
+/**
+ * Calls `target` with `inputSize` bytes of memory at `inputOffset` as
+ * calldata, keeping 32 bytes of its output. `inputOffset` and `inputSize`
+ * must each be below 256.
+ */
+function call(target: string, inputOffset = 0, inputSize = 0): string {
+  return `6020600060${hexByte(inputSize)}60${hexByte(
+    inputOffset
+  )}600073${withoutPrefix(target)}5af150`;
 }
 
 function staticcall(target: string): string {
@@ -80,12 +132,20 @@ function callcode(target: string): string {
   return `6000600060006000600073${withoutPrefix(target)}5af250`;
 }
 
-/** Init code that sets slot 0 to 1 and deploys `PUSH1 0 SLOAD POP STOP`. */
-const SLOT_READER_INIT_CODE = "60016000556460005450006000526005601bf3";
-/** The init code's size in bytes, as one hex byte. */
-const SLOT_READER_INIT_CODE_SIZE = "13";
-/** The init code's offset in memory, 32 bytes minus its 19 bytes. */
-const SLOT_READER_INIT_CODE_OFFSET = "0d";
+/** Sets slot 0 to 1. */
+const STORE_SLOT_0 = "6001600055";
+
+/** Loads slot 0 and stops. */
+const LOAD_SLOT_0 = "6000545000";
+
+/** Init code that sets slot 0 to 1, loads it and deploys no code. */
+const STORAGE_INIT_CODE = `0x${STORE_SLOT_0}${LOAD_SLOT_0}`;
+
+/** Init code that sets slot 0 to 1 and deploys `LOAD_SLOT_0`. */
+const SLOT_READER_INIT_CODE = `${STORE_SLOT_0}64${LOAD_SLOT_0}6000526005601bf3`;
+const SLOT_READER_INIT_CODE_SIZE = byteLength(SLOT_READER_INIT_CODE);
+/** The init code's offset at the end of the first memory word. */
+const SLOT_READER_INIT_CODE_OFFSET = WORD_SIZE - SLOT_READER_INIT_CODE_SIZE;
 
 /** Stores the init code at the end of the first memory word. */
 const STORE_SLOT_READER_INIT_CODE = `72${SLOT_READER_INIT_CODE}600052`;
@@ -93,13 +153,32 @@ const STORE_SLOT_READER_INIT_CODE = `72${SLOT_READER_INIT_CODE}600052`;
 /** Calls the address in the second memory word. */
 const CALL_STORED_ADDRESS = "600060006000600060006020515af150";
 
+/** Three bytes of calldata. */
+const CALL_INPUT = "aabbcc";
+const CALL_INPUT_SIZE = byteLength(CALL_INPUT);
+/** The calldata's offset at the end of the first memory word. */
+const CALL_INPUT_OFFSET = WORD_SIZE - CALL_INPUT_SIZE;
+
+/**
+ * Sets slot 0 to 1, calls `target` with `CALL_INPUT` and loads slot 0. The
+ * steps after the call show whether it switched the storage context.
+ */
+function callBetweenStorageAccesses(target: string): string {
+  return [
+    "0x",
+    STORE_SLOT_0,
+    `62${CALL_INPUT}600052`,
+    call(target, CALL_INPUT_OFFSET, CALL_INPUT_SIZE),
+    LOAD_SLOT_0,
+  ].join("");
+}
+
 const CODE: Record<string, string> = {
   // Increments slot 0, sets slot 1 to 0x42 and returns slot 0.
   [STORAGE_ADDRESS]: "0x600054600101600055604260015560005460005260206000f3",
   // Sets slot 2 to 0x77.
   [LIBRARY_ADDRESS]: "0x607760025500",
-  // Loads slot 0.
-  [READER_ADDRESS]: "0x6000545000",
+  [READER_ADDRESS]: `0x${LOAD_SLOT_0}`,
   // Loads slot 5, delegatecalls the library, calls the storage contract
   // twice, loads slot 6 and returns the storage contract's output.
   [MAIN_ADDRESS]: [
@@ -138,12 +217,12 @@ const CODE: Record<string, string> = {
   [CREATE_AND_CALL_ADDRESS]: [
     "0x",
     STORE_SLOT_READER_INIT_CODE,
-    `60${SLOT_READER_INIT_CODE_SIZE}`,
-    `60${SLOT_READER_INIT_CODE_OFFSET}6000f0602052`,
+    `60${hexByte(SLOT_READER_INIT_CODE_SIZE)}`,
+    `60${hexByte(SLOT_READER_INIT_CODE_OFFSET)}6000f0602052`,
     CALL_STORED_ADDRESS,
     STORE_SLOT_READER_INIT_CODE,
-    `600060${SLOT_READER_INIT_CODE_SIZE}`,
-    `60${SLOT_READER_INIT_CODE_OFFSET}6000f5602052`,
+    `600060${hexByte(SLOT_READER_INIT_CODE_SIZE)}`,
+    `60${hexByte(SLOT_READER_INIT_CODE_OFFSET)}6000f5602052`,
     CALL_STORED_ADDRESS,
     "6460006000fd6000526005601b6000f05000",
   ].join(""),
@@ -154,6 +233,14 @@ const CODE: Record<string, string> = {
   // PUSH0 PUSH0 MSTORE PUSH0
   [ELONGATED_MEMORY_ADDRESS]: "0x5F5F525F",
   [STOP_ADDRESS]: "0x00",
+  // Sets slot 0, calls the identity precompile and loads slot 0.
+  [PRECOMPILE_CALLER_ADDRESS]: callBetweenStorageAccesses(
+    IDENTITY_PRECOMPILE_ADDRESS
+  ),
+  // Sets slot 0, calls an account without code and loads slot 0.
+  [CODELESS_CALLER_ADDRESS]: callBetweenStorageAccesses(CODELESS_ADDRESS),
+  // Calls the storage contract once.
+  [SINGLE_CALL_ADDRESS]: `0x${call(STORAGE_ADDRESS)}00`,
 };
 
 async function setCode(provider: EthereumProvider): Promise<void> {
@@ -165,7 +252,7 @@ async function setCode(provider: EthereumProvider): Promise<void> {
 /** Sends a transaction and returns its hash, even if it failed. */
 async function sendTransaction(
   provider: EthereumProvider,
-  tx: { from?: string; to: string; data?: string; gas?: string }
+  tx: { from?: string; to?: string; data?: string; gas?: string }
 ): Promise<string> {
   try {
     return await provider.send("eth_sendTransaction", [
@@ -178,6 +265,21 @@ async function sendTransaction(
     ]);
     return block.transactions[0];
   }
+}
+
+/** The fields of geth's callTracer output that the tests check. */
+interface CallTracerFrame {
+  type: string;
+  to: string;
+  calls: unknown[];
+}
+
+/** Asserts that `trace` is the callTracer frame of a call to `MAIN_ADDRESS`. */
+function assertMainCallTracerFrame(trace: CallTracerFrame): void {
+  assert.equal(trace.type, "CALL");
+  assert.equal(trace.to, MAIN_ADDRESS);
+  assert.lengthOf(trace.calls, 3);
+  assert.notProperty(trace, "structLogs");
 }
 
 type OptionalStructLogField = "memory" | "stack" | "storage";
@@ -204,11 +306,11 @@ describe("Debug module", function () {
       });
 
       describe("debug_traceTransaction", function () {
-        async function traceTransaction(
+        async function traceTransaction<Trace = RpcDebugTraceOutput>(
           provider: EthereumProvider,
           txHash: string,
           options?: object
-        ): Promise<RpcDebugTraceOutput> {
+        ): Promise<Trace> {
           const params = options === undefined ? [txHash] : [txHash, options];
           return provider.send("debug_traceTransaction", params);
         }
@@ -222,25 +324,23 @@ describe("Debug module", function () {
 
         it("returns an empty trace for value transfers", async function () {
           const txHash = await sendTransaction(this.provider, {
-            to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: RECIPIENT,
           });
 
-          assert.deepEqual(await traceTransaction(this.provider, txHash), {
-            gas: 21_000,
-            failed: false,
-            returnValue: "",
-            structLogs: [],
-          });
+          assert.deepEqual(
+            await traceTransaction(this.provider, txHash),
+            VALUE_TRANSFER_TRACE
+          );
         });
 
         it("matches Hardhat 2's trace of a contract call", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`,
-            DEFAULT_ACCOUNTS_ADDRESSES[1]
+            RECIPIENT
           );
           const txHash = await sendTransaction(this.provider, {
-            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            from: RECIPIENT,
             to: contractAddress,
             data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
           });
@@ -254,7 +354,7 @@ describe("Debug module", function () {
         const SCENARIOS: Array<{
           scenario: ScenarioName;
           description: string;
-          tx: { from?: string; to: string };
+          tx: { from?: string; to?: string; data?: string };
         }> = [
           {
             scenario: "elongatedMemory",
@@ -298,6 +398,26 @@ describe("Debug module", function () {
             scenario: "revert",
             description: "a reverted transaction",
             tx: { to: REVERT_ADDRESS },
+          },
+          {
+            scenario: "precompileCall",
+            description: "storage around a CALL to a precompile",
+            tx: { to: PRECOMPILE_CALLER_ADDRESS },
+          },
+          {
+            scenario: "codelessCall",
+            description: "storage around a CALL to an account without code",
+            tx: { to: CODELESS_CALLER_ADDRESS },
+          },
+          {
+            scenario: "creation",
+            description: "storage written by a contract-creation transaction",
+            tx: { data: STORAGE_INIT_CODE },
+          },
+          {
+            scenario: "singleCall",
+            description: "a single nested call",
+            tx: { to: SINGLE_CALL_ADDRESS },
           },
         ];
 
@@ -350,6 +470,19 @@ describe("Debug module", function () {
             );
           });
         }
+
+        it("keeps storage per frame with disableStack when each contract is entered once", async function () {
+          const txHash = await sendTransaction(this.provider, {
+            to: SINGLE_CALL_ADDRESS,
+          });
+
+          assert.deepEqual(
+            await traceTransaction(this.provider, txHash, {
+              disableStack: true,
+            }),
+            withoutFields(HARDHAT_2_TRACES.singleCall, ["stack"])
+          );
+        });
 
         it("captures memory with disableMemory set to false", async function () {
           const txHash = await sendTransaction(this.provider, {
@@ -475,24 +608,70 @@ describe("Debug module", function () {
           );
         });
 
-        it("returns geth's output for built-in tracers", async function () {
+        it("returns geth's callTracer output", async function () {
           const txHash = await sendTransaction(this.provider, {
             to: MAIN_ADDRESS,
           });
 
-          const trace: any = await traceTransaction(this.provider, txHash, {
-            tracer: "callTracer",
+          const trace = await traceTransaction<CallTracerFrame>(
+            this.provider,
+            txHash,
+            { tracer: CALL_TRACER }
+          );
+
+          assertMainCallTracerFrame(trace);
+        });
+
+        it("rejects an unsupported tracer", async function () {
+          const txHash = await sendTransaction(this.provider, {
+            to: MAIN_ADDRESS,
           });
 
-          assert.equal(trace.type, "CALL");
-          assert.equal(trace.to, MAIN_ADDRESS);
-          assert.lengthOf(trace.calls, 3);
-          assert.notProperty(trace, "structLogs");
+          await assert.isRejected(
+            traceTransaction(this.provider, txHash, {
+              tracer: UNSUPPORTED_TRACER,
+            }),
+            UNSUPPORTED_TRACER_ERROR
+          );
+        });
+
+        it("returns a failed trace without steps when a precompile call runs out of gas", async function () {
+          const txHash = await sendTransaction(this.provider, {
+            to: ECRECOVER_PRECOMPILE_ADDRESS,
+            gas: numberToRpcQuantity(INTRINSIC_GAS),
+          });
+
+          assert.deepEqual(await traceTransaction(this.provider, txHash), {
+            ...VALUE_TRANSFER_TRACE,
+            failed: true,
+          });
         });
       });
 
       describe("debug_traceCall", function () {
         const CALL = { from: SENDER, to: STORAGE_ADDRESS, gas: TX_GAS };
+
+        const TRACE_CALL_SCENARIOS: Array<{
+          scenario: ScenarioName;
+          description: string;
+          call: { to?: string; data?: string };
+        }> = [
+          {
+            scenario: "reentrancyCall",
+            description: "storage written by a reentrant call",
+            call: { to: REENTRANCY_ADDRESS },
+          },
+          {
+            scenario: "creationCall",
+            description: "a call without a recipient",
+            call: { to: undefined, data: STORAGE_INIT_CODE },
+          },
+          {
+            scenario: "revertCall",
+            description: "a reverted call",
+            call: { to: REVERT_ADDRESS },
+          },
+        ];
 
         it("matches Hardhat 2's trace", async function () {
           assert.deepEqual(
@@ -501,13 +680,29 @@ describe("Debug module", function () {
           );
         });
 
-        it("matches Hardhat 2's trace of storage written by a reentrant call", async function () {
+        for (const {
+          scenario,
+          description,
+          call: callFields,
+        } of TRACE_CALL_SCENARIOS) {
+          it(`matches Hardhat 2's trace of ${description}`, async function () {
+            assert.deepEqual(
+              await this.provider.send("debug_traceCall", [
+                { ...CALL, ...callFields },
+                "latest",
+              ]),
+              HARDHAT_2_TRACES[scenario]
+            );
+          });
+        }
+
+        it("returns an empty trace for value transfers", async function () {
           assert.deepEqual(
             await this.provider.send("debug_traceCall", [
-              { ...CALL, to: REENTRANCY_ADDRESS },
+              { ...CALL, to: RECIPIENT, value: TRANSFER_VALUE },
               "latest",
             ]),
-            HARDHAT_2_TRACES.reentrancyCall
+            VALUE_TRANSFER_TRACE
           );
         });
 
@@ -532,6 +727,26 @@ describe("Debug module", function () {
               "stack",
               "storage",
             ])
+          );
+        });
+
+        it("returns geth's callTracer output", async function () {
+          const trace: CallTracerFrame = await this.provider.send(
+            "debug_traceCall",
+            [{ ...CALL, to: MAIN_ADDRESS }, "latest", { tracer: CALL_TRACER }]
+          );
+
+          assertMainCallTracerFrame(trace);
+        });
+
+        it("rejects an unsupported tracer", async function () {
+          await assert.isRejected(
+            this.provider.send("debug_traceCall", [
+              CALL,
+              "latest",
+              { tracer: UNSUPPORTED_TRACER },
+            ]),
+            UNSUPPORTED_TRACER_ERROR
           );
         });
       });
