@@ -1175,7 +1175,7 @@ importers:
         specifier: 9.39.5
         version: 9.39.5(supports-color@8.1.1)
       hardhat:
-        specifier: workspace:^3.15.0
+        specifier: workspace:^3.21.1
         version: link:../hardhat
       prettier:
         specifier: 3.9.10
