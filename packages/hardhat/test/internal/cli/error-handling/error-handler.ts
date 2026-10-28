@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import path from "node:path";
+import { before, describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import {
   DispatcherError,
   InvalidProxyUrlError,
@@ -337,6 +340,65 @@ describe("error-handler", () => {
           "Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828).",
           { cause },
         );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines[2], error);
+      });
+    });
+
+    describe("with a .js import of a TypeScript file", () => {
+      const project = createTmpDir("error-handler-ts-extension", "describe");
+
+      before(async () => {
+        await writeUtf8File(path.join(project.path, "helper.ts"), "");
+      });
+
+      function createError(): Error {
+        return Object.assign(
+          new Error(
+            `Cannot find module '${path.join(project.path, "helper.js")}' imported from ${path.join(project.path, "main.ts")}`,
+          ),
+          { code: "ERR_MODULE_NOT_FOUND" },
+        );
+      }
+
+      it("is categorized as HHE35, with the original error preserved for the stack trace", async () => {
+        const expected = new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
+          {
+            importPath: path.join(project.path, "helper.js"),
+            importerPath: path.join(project.path, "main.ts"),
+            suggestedPath: path.join(project.path, "helper.ts"),
+          },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(
+          createError(),
+          false,
+          (msg: string | Error) => {
+            lines.push(msg);
+          },
+        );
+
+        assert.equal(lines.length, 3);
+        assert.equal(
+          lines[0],
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
+      });
+
+      it("still prints the original (uncategorized) error for the stack trace", async () => {
+        const error = createError();
 
         const lines: Array<string | Error> = [];
         await printErrorMessages(error, true, (msg: string | Error) => {

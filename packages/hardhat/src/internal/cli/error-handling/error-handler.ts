@@ -10,6 +10,7 @@ import {
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../../constants.js";
 
 import { detectInvalidProxyUrl } from "./invalid-proxy-url-error.js";
+import { detectMissingTsExtension } from "./missing-ts-extension-error.js";
 import { detectNativeBindingFailure } from "./native-binding-error.js";
 
 // The classifier may import many unrelated things top-level to do its job, so
@@ -193,6 +194,22 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
         {
           parentPackage: nativeBindingFailure.parentPackage,
           missingPackage: nativeBindingFailure.missingPackage,
+        },
+        error,
+      ),
+    };
+  }
+
+  const missingTsExtension = await detectMissingTsExtension(error);
+  if (missingTsExtension !== undefined) {
+    return {
+      category: ErrorCategory.HARDHAT,
+      categorizedError: new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
+        {
+          importPath: missingTsExtension.importPath,
+          importerPath: missingTsExtension.importerPath,
+          suggestedPath: missingTsExtension.suggestedPath,
         },
         error,
       ),

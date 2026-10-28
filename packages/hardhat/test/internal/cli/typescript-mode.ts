@@ -117,8 +117,9 @@ async function writePackageJson(
 }
 
 /**
- * Writes a project with a TypeScript config, and a TypeScript script that
- * imports another TypeScript file with a `.ts` extension.
+ * Writes a project with a TypeScript config, a TypeScript script that imports
+ * another TypeScript file with a `.ts` extension, and one that imports it with
+ * a `.js` extension.
  */
 async function writeProject(
   projectPath: string,
@@ -153,6 +154,14 @@ export default config;
 const name: string = "the script";
 
 console.log(greet(name));
+`,
+  );
+
+  await writeUtf8File(
+    path.join(projectPath, "scripts", "js-extension.ts"),
+    `import { greet } from "./helper.js";
+
+console.log(greet("the .js import"));
 `,
   );
 }
@@ -257,6 +266,21 @@ describe("TypeScript mode", () => {
         assert.doesNotMatch(output, /tsx was loaded/);
       },
     );
+
+    it("should suggest the .ts extension for a .js import of a TypeScript file", async () => {
+      const { exitCode, output } = await runCli(
+        project.path,
+        ["run", "scripts/js-extension.ts"],
+        { preventTsx: true },
+      );
+
+      assert.notEqual(exitCode, 0, output);
+      assert.match(output, /HHE35/);
+      assert.ok(
+        output.includes(path.join(project.path, "scripts", "helper.ts")),
+        output,
+      );
+    });
   });
 
   describe(`"tsx" mode`, () => {
@@ -297,6 +321,17 @@ describe("TypeScript mode", () => {
 
       assert.equal(exitCode, 0, output);
       assert.match(output, /hello from the script/);
+    });
+
+    it("should resolve a .js import of a TypeScript file", async () => {
+      const { exitCode, output } = await runCli(
+        project.path,
+        ["run", "scripts/js-extension.ts"],
+        { preventTsx: false },
+      );
+
+      assert.equal(exitCode, 0, output);
+      assert.match(output, /hello from the \.js import/);
     });
 
     it(
