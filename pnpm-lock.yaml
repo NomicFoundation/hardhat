@@ -1144,20 +1144,20 @@ importers:
   packages/hardhat-slang:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.1.0
+        specifier: workspace:^3.1.4
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^5.1.0
+        specifier: workspace:^5.1.1
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.5
+        specifier: workspace:^3.0.8
         version: link:../hardhat-zod-utils
       zod:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.1.0
+        specifier: workspace:^3.1.1
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-slang-solx':
         specifier: workspace:^
