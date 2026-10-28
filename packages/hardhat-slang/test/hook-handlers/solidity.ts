@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- test */
-import type { SolidityCompilerConfig } from "hardhat/types/config";
+import type {
+  SolidityCompilerConfig,
+  SolidityCompilerType,
+} from "hardhat/types/config";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
@@ -23,6 +26,7 @@ import { SLANG_RELEASES } from "../../src/internal/constants.js";
 import { getSlangBinaryPath } from "../../src/internal/downloader.js";
 import solidityHookHandlers, {
   parseSlangVersion,
+  resetSlangWarning,
 } from "../../src/internal/hook-handlers/solidity.js";
 import { SlangCompiler } from "../../src/internal/slang-compiler.js";
 
@@ -419,6 +423,143 @@ describe("hardhat-slang solidity hook handler", () => {
       // Version should be parsed from the binary, not from config
       assert.match(compiler.version, /^\d+\.\d+\.\d+/);
       assert.equal(compiler.longVersion, `${compiler.version}+slang`);
+    });
+  });
+
+  describe("build", () => {
+    // A hook context with the given build profiles, each a list of compiler
+    // types plus optional override types
+    function createBuildContext(
+      profiles: Record<
+        string,
+        {
+          compilers: SolidityCompilerType[];
+          overrides?: SolidityCompilerType[];
+        }
+      >,
+    ): any {
+      return {
+        config: {
+          solidity: {
+            profiles: Object.fromEntries(
+              Object.entries(profiles).map(([name, p]) => [
+                name,
+                {
+                  compilers: p.compilers.map((type) =>
+                    createSolidityCompilerConfig({ type }),
+                  ),
+                  overrides: Object.fromEntries(
+                    (p.overrides ?? []).map((type, i) => [
+                      `contracts/Override${i}.sol`,
+                      createSolidityCompilerConfig({ type }),
+                    ]),
+                  ),
+                },
+              ]),
+            ),
+          },
+        },
+      };
+    }
+
+    function createBuildMockNext() {
+      let calls = 0;
+      return {
+        next: async (): Promise<Map<string, any>> => {
+          calls++;
+          return new Map();
+        },
+        callCount: () => calls,
+      };
+    }
+
+    beforeEach(() => {
+      resetSlangWarning();
+    });
+
+    it("warns once for a profile that compiles with slang, across builds", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["solc"] },
+        slang: { compilers: ["slang"] },
+      });
+      const mockNext = createBuildMockNext();
+
+      await hooks.build!(context, [], { buildProfile: "slang" }, mockNext.next);
+      await hooks.build!(context, [], { buildProfile: "slang" }, mockNext.next);
+
+      assert.equal(warn.mock.callCount(), 1);
+      assert.match(
+        String(warn.mock.calls[0].arguments[0]),
+        /experimental compiler/,
+      );
+      assert.equal(mockNext.callCount(), 2);
+    });
+
+    it("does not warn for a profile that only uses solc", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["solc"] },
+        slang: { compilers: ["slang"] },
+      });
+      const mockNext = createBuildMockNext();
+
+      await hooks.build!(context, [], undefined, mockNext.next);
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "default" },
+        mockNext.next,
+      );
+
+      assert.equal(warn.mock.callCount(), 0);
+      assert.equal(mockNext.callCount(), 2);
+    });
+
+    it("warns for a profile whose only slang entry is an override", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        slang: { compilers: ["solc"], overrides: ["slang"] },
+      });
+
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "slang" },
+        createBuildMockNext().next,
+      );
+
+      assert.equal(warn.mock.callCount(), 1);
+    });
+
+    it("warns for slang in the default profile when no profile is given", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["slang"] },
+      });
+
+      await hooks.build!(context, [], undefined, createBuildMockNext().next);
+
+      assert.equal(warn.mock.callCount(), 1);
+    });
+
+    it("warns even when the build is quiet", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({ slang: { compilers: ["slang"] } });
+
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "slang", quiet: true },
+        createBuildMockNext().next,
+      );
+
+      assert.equal(warn.mock.callCount(), 1);
     });
   });
 });

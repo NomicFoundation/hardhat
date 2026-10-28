@@ -3,7 +3,7 @@ import type { HardhatConfig } from "hardhat/types/config";
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { promisify, styleText } from "node:util";
 
 import {
   HardhatError,
@@ -19,6 +19,15 @@ import { SlangCompiler } from "../slang-compiler.js";
 const log = createDebug("hardhat:slang:hook-handlers:solidity");
 
 const execFileAsync = promisify(execFile);
+
+// One command can run several builds (e.g. `test solidity`), so the warning
+// is printed at most once per process.
+let hasWarnedAboutSlang = false;
+
+// NOTE: This function is exported for testing purposes
+export function resetSlangWarning(): void {
+  hasWarnedAboutSlang = false;
+}
 
 // NOTE: This function is exported for testing purposes
 export function parseSlangVersion(versionOutput: string): string {
@@ -60,6 +69,25 @@ function getPinnedRelease(config: HardhatConfig): {
   );
 
   return { version, release };
+}
+
+/**
+ * Whether the build profile compiles anything with slang, through either its
+ * compilers or its overrides. An unknown profile is left for the build system
+ * to reject.
+ */
+function buildProfileUsesSlang(
+  config: HardhatConfig,
+  buildProfile: string,
+): boolean {
+  const profile = config.solidity.profiles[buildProfile];
+  if (profile === undefined) {
+    return false;
+  }
+
+  return [...profile.compilers, ...Object.values(profile.overrides)].some(
+    (c) => c.type === SLANG_COMPILER_TYPE,
+  );
 }
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
@@ -141,5 +169,24 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     );
 
     return new SlangCompiler(slangVersion, binaryPath);
+  },
+
+  build: async (context, rootFilePaths, options, next) => {
+    // The build system falls back to the "default" profile when none is given
+    const buildProfile = options?.buildProfile ?? "default";
+
+    // Printed even when quiet, like compiler warnings
+    if (
+      !hasWarnedAboutSlang &&
+      buildProfileUsesSlang(context.config, buildProfile)
+    ) {
+      hasWarnedAboutSlang = true;
+
+      console.warn(
+        `${styleText(["yellow", "bold"], "Warning:")} This build compiles with slang, an experimental compiler. Key functionality, such as validation of incorrect code, is still under active development. Keep using solc for production builds and anything you deploy.\n`,
+      );
+    }
+
+    return await next(context, rootFilePaths, options);
   },
 });
