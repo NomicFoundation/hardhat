@@ -40,7 +40,6 @@ const TEST_SLANG_VERSION = "0.0.1-test";
 const TEST_RELEASE: SlangRelease = {
   minSolidity: "0.8.0",
   maxSolidity: "0.8.36",
-  extraArgs: [],
 };
 
 const PINNED_VERSION = "0.1.0-pre.2026-10-14";

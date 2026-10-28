@@ -1,4 +1,3 @@
-import type { SlangRelease } from "./constants.js";
 import type {
   Compiler,
   CompilerInput,
@@ -21,8 +20,6 @@ export const SLANG_DEBUG_SYMBOLS_SELECTORS: readonly string[] = [
 ] as const;
 
 export interface SlangCompilerOptions {
-  /** The release table row of the slang binary being driven. */
-  release: SlangRelease;
   /** Intended for tests. */
   spawnCompile?: typeof defaultSpawnCompile;
 }
@@ -33,29 +30,25 @@ export class SlangCompiler implements Compiler {
   public readonly compilerPath: string;
   public readonly isSolcJs: boolean = false;
 
-  /** The CLI arguments passed to the binary on every compile. */
-  public readonly args: readonly string[];
-
   readonly #spawnCompile: typeof defaultSpawnCompile;
 
   constructor(
     slangVersion: string,
     compilerPath: string,
-    options: SlangCompilerOptions,
+    options: SlangCompilerOptions = {},
   ) {
-    const { release, spawnCompile = defaultSpawnCompile } = options;
+    const { spawnCompile = defaultSpawnCompile } = options;
 
     this.version = slangVersion;
     this.longVersion = `${slangVersion}+slang`;
     this.compilerPath = compilerPath;
-    this.args = ["--standard-json", ...release.extraArgs];
     this.#spawnCompile = spawnCompile;
   }
 
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
     return await this.#spawnCompile(
       this.compilerPath,
-      [...this.args],
+      ["--standard-json"],
       withoutAst(input),
     );
   }

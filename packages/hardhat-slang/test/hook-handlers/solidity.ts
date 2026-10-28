@@ -288,23 +288,6 @@ describe("hardhat-slang solidity hook handler", () => {
       assert.equal(compiler.isSolcJs, false);
     });
 
-    it("drives the binary with the pinned release's args", async () => {
-      const hooks = await solidityHookHandlers();
-      await cacheFakePinnedBinary();
-
-      const compiler = await hooks.getCompiler!(
-        createContext(),
-        createSolidityCompilerConfig({ type: "slang", version: "0.8.20" }),
-        createGetCompilerMockNext().next,
-      );
-
-      assert.ok(compiler instanceof SlangCompiler, "expected a SlangCompiler");
-      assert.deepEqual(compiler.args, [
-        "--standard-json",
-        ...PINNED_RELEASE.extraArgs,
-      ]);
-    });
-
     it("throws an invariant error when the pinned binary isn't cached", async () => {
       const hooks = await solidityHookHandlers();
 
@@ -367,7 +350,7 @@ describe("hardhat-slang solidity hook handler", () => {
     });
 
     it(
-      "reads the version from a custom-path binary and drives it with the newest release's args when nothing is pinned",
+      "reads the version from a custom-path binary when nothing is pinned",
       { skip: process.platform === "win32" },
       async () => {
         const hooks = await solidityHookHandlers();
@@ -399,11 +382,6 @@ describe("hardhat-slang solidity hook handler", () => {
         assert.equal(compiler.compilerPath, fakeBinaryPath);
         assert.equal(compiler.version, "0.0.1-fake");
         assert.equal(compiler.longVersion, "0.0.1-fake+slang");
-        const newest = Object.values(SLANG_RELEASES).at(-1)!;
-        assert.deepEqual(compiler.args, [
-          "--standard-json",
-          ...newest.extraArgs,
-        ]);
       },
     );
 
