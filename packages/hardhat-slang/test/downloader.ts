@@ -155,10 +155,10 @@ describe("hardhat-slang downloader", () => {
     );
   });
 
-  it("downloads the pinned prerelease from its GitHub prerelease URL under its own asset name", async () => {
-    const { baseUrl, assetSuffix } = PINNED_RELEASE.assetOverride ?? {};
+  it("downloads the pinned prerelease from the mirror under its own asset name", async () => {
+    const assetSuffix = PINNED_RELEASE.assetOverride?.assetSuffix;
     assert.ok(
-      baseUrl !== undefined && assetSuffix !== undefined,
+      assetSuffix !== undefined,
       "the prerelease row must carry an asset override",
     );
     const pinnedAsset = getSlangAssetName(PINNED_VERSION, PINNED_RELEASE);
@@ -167,15 +167,8 @@ describe("hardhat-slang downloader", () => {
       `the prerelease asset should use the override suffix, got ${pinnedAsset}`,
     );
 
-    // The GitHub origin, not the mirror, must receive both requests.
-    const githubInterceptor = mockAgent.get(new URL(baseUrl).origin);
-    const assetPath = `${new URL(baseUrl).pathname}/${pinnedAsset}`;
-    githubInterceptor
-      .intercept({ path: `${assetPath}.sha256`, method: "GET" })
-      .reply(200, expectedDigest);
-    githubInterceptor
-      .intercept({ path: assetPath, method: "GET" })
-      .reply(200, BINARY_CONTENTS);
+    interceptChecksum(mockedInterceptor, expectedDigest, 1, pinnedAsset);
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS, 1, pinnedAsset);
 
     const binaryPath = await downloadSlang(
       PINNED_VERSION,

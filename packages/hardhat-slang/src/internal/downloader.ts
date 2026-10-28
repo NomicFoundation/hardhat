@@ -102,8 +102,7 @@ export async function downloadSlang(
     path.join(globalCacheDir, `slang-download-${slangVersion}`),
   );
   const assetName = getSlangAssetName(slangVersion, release);
-  const baseUrl = release.assetOverride?.baseUrl ?? SLANG_RELEASES_BASE_URL;
-  const url = `${baseUrl}/${assetName}`;
+  const url = `${SLANG_RELEASES_BASE_URL}/${assetName}`;
 
   // The checksum is required, we fail immediately if we can't get it.
   const expectedChecksum = await downloadExpectedChecksum(

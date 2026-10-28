@@ -31,16 +31,14 @@ describe(
   { skip: process.env.HARDHAT_RUN_MIRROR_TESTS !== "true" },
   () => {
     for (const [slangVersion, release] of Object.entries(SLANG_RELEASES)) {
-      const baseUrl = release.assetOverride?.baseUrl ?? SLANG_RELEASES_BASE_URL;
-
-      it(`serves every slang ${slangVersion} asset and checksum from ${baseUrl}`, async () => {
+      it(`serves every slang ${slangVersion} asset and checksum from ${SLANG_RELEASES_BASE_URL}`, async () => {
         const missing: string[] = [];
         for (const asset of assetNames(slangVersion, release)) {
           // Sidecars too: the downloader refuses to use a binary it can't verify
           for (const file of [asset, `${asset}.sha256`]) {
             try {
               const response = await getRequest(
-                `${baseUrl}/${file}`,
+                `${SLANG_RELEASES_BASE_URL}/${file}`,
                 // 1-byte range: don't pull the ~100 MB binaries.
                 { extraHeaders: { Range: "bytes=0-0" } },
                 // isTestDispatcher drops keep-alive to 10ms; these dispatchers
