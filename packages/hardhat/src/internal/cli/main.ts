@@ -1,5 +1,7 @@
 import type { DebugLogger } from "@nomicfoundation/hardhat-utils/debug";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -12,7 +14,6 @@ import {
   findDependencyPackageJson,
   readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
-import { register } from "tsx/esm/api";
 
 import { isResult } from "../../utils/result.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
@@ -25,6 +26,7 @@ import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { warnAboutUnusedLoadedPlugins } from "../core/plugins/unused-plugins-warning.js";
+import { getTypeScriptMode } from "../core/typescript-mode.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
 
@@ -174,17 +176,21 @@ export async function main(
 
     const projectRoot = await resolveProjectRoot(configPath);
 
-    const esmErrorPrinted = await printEsmErrorMessageIfNecessary(
-      projectRoot,
-      print,
-    );
+    const packageJson = await readClosestPackageJson(projectRoot);
 
-    if (esmErrorPrinted) {
+    if (printEsmErrorMessageIfNecessary(packageJson, print)) {
       process.exitCode = 1;
       return;
     }
 
-    if (options.registerTsx === true) {
+    const typescriptMode = getTypeScriptMode(
+      packageJson,
+      path.join(projectRoot, "package.json"),
+    );
+
+    if (typescriptMode === "tsx" && options.registerTsx === true) {
+      // tsx is imported dynamically because the "node" mode must never load it
+      const { register } = await import("tsx/esm/api");
       register();
     }
 
@@ -224,7 +230,7 @@ export async function main(
         ...userProvidedGlobalOptions,
       },
       projectRoot,
-      { resolvedPlugins, globalOptionDefinitions },
+      { resolvedPlugins, globalOptionDefinitions, typescript: typescriptMode },
     );
 
     if (options.warnAboutUnusedPlugins) {
@@ -382,12 +388,10 @@ async function isHardhatInstalledLocallyOrLinked(
  * Prints an error message if the user is running Hardhat on CJS mode, returning
  * `true` if the message was printed.
  */
-async function printEsmErrorMessageIfNecessary(
-  projectRoot: string,
+function printEsmErrorMessageIfNecessary(
+  packageJson: PackageJson,
   print: (message: string) => void,
-): Promise<boolean> {
-  const packageJson = await readClosestPackageJson(projectRoot);
-
+): boolean {
   if (packageJson.type !== "module") {
     print(`Hardhat only supports ESM projects.
 

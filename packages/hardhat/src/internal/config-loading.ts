@@ -8,7 +8,10 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, findUp, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+
+import { readTypeScriptMode } from "./core/typescript-mode.js";
 
 const log = createDebug("hardhat:core:config-loading");
 
@@ -152,6 +155,15 @@ async function importConfigFileWithTsxFallback(configPath: string) {
         configPath.endsWith(".ts")
       ) {
         const realPath = await getRealPath(fileURLToPath(configPath));
+
+        // The "node" TypeScript mode must never load tsx.
+        const typescriptMode = await readTypeScriptMode(
+          await findClosestPackageRoot(realPath),
+        );
+
+        if (typescriptMode === "node") {
+          throw error;
+        }
 
         if (compiledConfigFile.has(realPath)) {
           return compiledConfigFile.get(realPath);
