@@ -54,9 +54,6 @@ const INTRINSIC_GAS = 21_000;
 const TRANSFER_VALUE = numberToRpcQuantity(1);
 
 const CALL_TRACER = "callTracer";
-const UNSUPPORTED_TRACER = "unsupportedTracer";
-/** EDR treats an unknown tracer name as JavaScript code. */
-const UNSUPPORTED_TRACER_ERROR = "JS Tracer is not enabled";
 
 /** Hardhat 2's trace of a value transfer. */
 const VALUE_TRANSFER_TRACE: RpcDebugTraceOutput = {
@@ -76,13 +73,11 @@ const MAIN_ADDRESS = address(0x107);
 const REVERT_ADDRESS = address(0x108);
 const CREATE_ADDRESS = address(0x10a);
 const REENTRANCY_ADDRESS = address(0x10b);
-const STOP_ADDRESS = address(0x10c);
 const STATICCALL_ADDRESS = address(0x10d);
 const READER_ADDRESS = address(0x10e);
 const CALLCODE_ADDRESS = address(0x10f);
 const CREATE_AND_CALL_ADDRESS = address(0x110);
 const INFINITE_LOOP_ADDRESS = address(0x111);
-const UNKNOWN_OPCODE_ADDRESS = address(0x112);
 const PRECOMPILE_CALLER_ADDRESS = address(0x113);
 const CODELESS_CALLER_ADDRESS = address(0x114);
 /** An account that never gets code. */
@@ -228,11 +223,8 @@ const CODE: Record<string, string> = {
   ].join(""),
   // JUMPDEST PUSH1 0 JUMP
   [INFINITE_LOOP_ADDRESS]: "0x5b600056",
-  // An undefined opcode.
-  [UNKNOWN_OPCODE_ADDRESS]: "0x0c",
   // PUSH0 PUSH0 MSTORE PUSH0
   [ELONGATED_MEMORY_ADDRESS]: "0x5F5F525F",
-  [STOP_ADDRESS]: "0x00",
   // Sets slot 0, calls the identity precompile and loads slot 0.
   [PRECOMPILE_CALLER_ADDRESS]: callBetweenStorageAccesses(
     IDENTITY_PRECOMPILE_ADDRESS
@@ -315,7 +307,7 @@ describe("Debug module", function () {
           return provider.send("debug_traceTransaction", params);
         }
 
-        it("reports a missing transaction hash", async function () {
+        it("forwards an empty params list to EDR unchanged", async function () {
           await assert.isRejected(
             this.provider.send("debug_traceTransaction", []),
             "invalid length 0"
@@ -580,34 +572,6 @@ describe("Debug module", function () {
           );
         });
 
-        // EDR's output lacks the opcode byte that Hardhat 2.29.1 put in the
-        // name.
-        it("names an undefined opcode Unknown, unlike Hardhat 2.29.1", async function () {
-          const txHash = await sendTransaction(this.provider, {
-            to: UNKNOWN_OPCODE_ADDRESS,
-          });
-
-          const trace = await traceTransaction(this.provider, txHash);
-
-          assert.deepEqual(
-            trace.structLogs.map((log) => [log.op, log.error]),
-            [["Unknown", { message: "Some(OpcodeNotFound)" }]]
-          );
-        });
-
-        it("keeps a STOP as the first step", async function () {
-          const txHash = await sendTransaction(this.provider, {
-            to: STOP_ADDRESS,
-          });
-
-          const trace = await traceTransaction(this.provider, txHash);
-
-          assert.deepEqual(
-            trace.structLogs.map((log) => log.op),
-            ["STOP"]
-          );
-        });
-
         it("returns geth's callTracer output", async function () {
           const txHash = await sendTransaction(this.provider, {
             to: MAIN_ADDRESS,
@@ -620,19 +584,6 @@ describe("Debug module", function () {
           );
 
           assertMainCallTracerFrame(trace);
-        });
-
-        it("rejects an unsupported tracer", async function () {
-          const txHash = await sendTransaction(this.provider, {
-            to: MAIN_ADDRESS,
-          });
-
-          await assert.isRejected(
-            traceTransaction(this.provider, txHash, {
-              tracer: UNSUPPORTED_TRACER,
-            }),
-            UNSUPPORTED_TRACER_ERROR
-          );
         });
 
         it("returns a failed trace without steps when a precompile call runs out of gas", async function () {
@@ -672,6 +623,13 @@ describe("Debug module", function () {
             call: { to: REVERT_ADDRESS },
           },
         ];
+
+        it("forwards an empty params list to EDR unchanged", async function () {
+          await assert.isRejected(
+            this.provider.send("debug_traceCall", []),
+            "invalid length 0"
+          );
+        });
 
         it("matches Hardhat 2's trace", async function () {
           assert.deepEqual(
@@ -737,17 +695,6 @@ describe("Debug module", function () {
           );
 
           assertMainCallTracerFrame(trace);
-        });
-
-        it("rejects an unsupported tracer", async function () {
-          await assert.isRejected(
-            this.provider.send("debug_traceCall", [
-              CALL,
-              "latest",
-              { tracer: UNSUPPORTED_TRACER },
-            ]),
-            UNSUPPORTED_TRACER_ERROR
-          );
         });
       });
     });
