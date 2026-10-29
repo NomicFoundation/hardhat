@@ -7,7 +7,7 @@ import { useProvider } from "../helpers/useProvider";
 
 const MAINNET_CHAIN_ID = 1;
 
-/** A pre-merge mainnet block, so EDR's built-in history resolves it to London. */
+/** A pre-merge mainnet block, which EDR runs under London rules. */
 const HISTORICAL_BLOCK_NUMBER = 15_000_000;
 const FORK_BLOCK_NUMBER = HISTORICAL_BLOCK_NUMBER + 100;
 
@@ -36,7 +36,7 @@ describe("Hardhat Network chains config", function () {
   describe("without a chains entry for the forked chain", function () {
     useProvider({ forkConfig });
 
-    it("uses EDR's built-in hardfork history", async function () {
+    it("rejects PUSH0 at a pre-Shanghai block", async function () {
       await assert.isRejected(
         callPush0AtHistoricalBlock.call(this),
         /invalid opcode/
@@ -44,18 +44,33 @@ describe("Hardhat Network chains config", function () {
     });
   });
 
+  const chains = new Map([
+    [
+      MAINNET_CHAIN_ID,
+      { hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]) },
+    ],
+  ]);
+
   describe("with a chains entry for the forked chain", function () {
-    useProvider({
-      forkConfig,
-      chains: new Map([
-        [
-          MAINNET_CHAIN_ID,
-          { hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]) },
-        ],
-      ]),
+    useProvider({ forkConfig, chains });
+
+    it("executes PUSH0 at a pre-Shanghai block when the history starts Shanghai at 0", async function () {
+      assert.equal(await callPush0AtHistoricalBlock.call(this), "0x");
     });
 
-    it("uses the configured hardfork history", async function () {
+    it("executes PUSH0 at a pre-Shanghai block after a forking hardhat_reset", async function () {
+      await this.provider.send("hardhat_reset", [{ forking: forkConfig }]);
+
+      assert.equal(await callPush0AtHistoricalBlock.call(this), "0x");
+    });
+  });
+
+  describe("with a chains entry and no initial fork", function () {
+    useProvider({ chains });
+
+    it("executes PUSH0 at a pre-Shanghai block after a forking hardhat_reset", async function () {
+      await this.provider.send("hardhat_reset", [{ forking: forkConfig }]);
+
       assert.equal(await callPush0AtHistoricalBlock.call(this), "0x");
     });
   });
