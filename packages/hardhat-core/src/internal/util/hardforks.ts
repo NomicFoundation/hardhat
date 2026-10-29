@@ -22,7 +22,8 @@ export enum HardforkName {
   OSAKA = "osaka",
 }
 
-const HARDFORKS_ORDER: HardforkName[] = [
+/** All hardforks, from oldest to newest. */
+export const HARDFORKS_ORDER: HardforkName[] = [
   HardforkName.FRONTIER,
   HardforkName.HOMESTEAD,
   HardforkName.DAO,
