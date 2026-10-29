@@ -69,7 +69,6 @@ export interface SlangRelease {
 /**
  * The slang releases this plugin can pin via `slang.version`.
  */
-// TODO: revisit before release to finalize.
 export const SLANG_RELEASES: Record<string, SlangRelease> = {
   "0.1.0-pre.2026-10-14": {
     minSolidity: "0.8.0",
