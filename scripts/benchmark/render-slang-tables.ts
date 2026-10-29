@@ -57,7 +57,6 @@ export const CELL_NOTES: Record<string, string> = {
   "cold compile lidofinance-core-solx|solx-0.1.8": "n/a³",
   "cold compile lidofinance-vaults-solx|solc": "n/a³",
   "cold compile lidofinance-vaults-solx|solx-0.1.8": "n/a³",
-  "cold compile 1inch-swap-vm-solx|slang": "✗ does not compile¹",
   "cold compile 1inch-swap-vm-solx|solx-0.1.8 via-ir": "✗ does not compile¹",
   "cold compile lidofinance-vaults-solx|solc via-ir upgrade":
     "✗ does not compile²",
@@ -70,10 +69,9 @@ export const CELL_NOTES: Record<string, string> = {
 };
 
 const FOOTNOTES = [
-  "¹ LLVM's stackification fails on SwapVM's recursive `runLoop`: it reports a " +
+  "¹ solx 0.1.8 cannot compile SwapVM's recursive `runLoop`: LLVM reports a " +
     "stackification failure for a recursive function with stack-too-deep " +
-    "errors, under slang and solx alike. The repo is via-IR only, so solc " +
-    "via-IR is its only number.",
+    "errors. slang's LLVM spills in recursive functions and compiles it.",
   "² lido's contracts/upgrade hits a Yul stack-too-deep in solc from 0.8.26 " +
     "on, at every optimizer setting; slang compiles it.",
   "³ The repo builds via-IR only (its sources don't compile on the legacy " +

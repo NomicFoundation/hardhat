@@ -60,7 +60,6 @@ const OZ_SUBSET = "openzeppelin-contracts (forge-compatible subset)";
 // solc, solx, slang, forge, per pipeline.
 const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   "via-IR": {
-    "1inch-swap-vm-solx|slang": "does not compile",
     "1inch-swap-vm-solx|solx": "does not compile",
     [`${OZ}|forge`]: "incompatible",
     [`${OZ}|forgeSolar`]: "incompatible",
