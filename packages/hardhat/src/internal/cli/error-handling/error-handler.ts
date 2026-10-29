@@ -164,6 +164,24 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
     };
   }
 
+  // Also checked before the guards below, as a wrapper would hide it, e.g. the
+  // error thrown when a task action can't be imported.
+  const missingTsExtension = await detectMissingTsExtension(error);
+  if (missingTsExtension !== undefined) {
+    return {
+      category: ErrorCategory.HARDHAT,
+      categorizedError: new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
+        {
+          importPath: missingTsExtension.importPath,
+          importerPath: missingTsExtension.importerPath,
+          suggestedPath: missingTsExtension.suggestedPath,
+        },
+        error,
+      ),
+    };
+  }
+
   if (HardhatError.isHardhatError(error)) {
     if (error.pluginId === undefined) {
       return {
@@ -194,22 +212,6 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
         {
           parentPackage: nativeBindingFailure.parentPackage,
           missingPackage: nativeBindingFailure.missingPackage,
-        },
-        error,
-      ),
-    };
-  }
-
-  const missingTsExtension = await detectMissingTsExtension(error);
-  if (missingTsExtension !== undefined) {
-    return {
-      category: ErrorCategory.HARDHAT,
-      categorizedError: new HardhatError(
-        HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
-        {
-          importPath: missingTsExtension.importPath,
-          importerPath: missingTsExtension.importerPath,
-          suggestedPath: missingTsExtension.suggestedPath,
         },
         error,
       ),

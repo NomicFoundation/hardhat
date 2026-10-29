@@ -27,6 +27,7 @@ const MAIN_URL = new URL(
   import.meta.url,
 ).href;
 const INDEX_URL = new URL("../../../dist/src/index.js", import.meta.url).href;
+const CONFIG_URL = new URL("../../../dist/src/config.js", import.meta.url).href;
 
 /**
  * The flag that disables Node.js type stripping, which is what makes Hardhat
@@ -120,6 +121,9 @@ async function writePackageJson(
  * Writes a project with a TypeScript config, a TypeScript script that imports
  * another TypeScript file with a `.ts` extension, and one that imports it with
  * a `.js` extension.
+ *
+ * The config also has a `js-extension` task, whose action is a TypeScript file
+ * imported with a `.js` extension.
  */
 async function writeProject(
   projectPath: string,
@@ -129,11 +133,29 @@ async function writeProject(
 
   await writeUtf8File(
     path.join(projectPath, "hardhat.config.ts"),
-    `console.log("config imported");
+    `import { task } from ${JSON.stringify(CONFIG_URL)};
 
-const config: object = {};
+console.log("config imported");
+
+const config: object = {
+  tasks: [
+    task("js-extension")
+      .setAction(() => import("./tasks/js-extension.js"))
+      .build(),
+  ],
+};
 
 export default config;
+`,
+  );
+
+  await mkdir(path.join(projectPath, "tasks"));
+
+  await writeUtf8File(
+    path.join(projectPath, "tasks", "js-extension.ts"),
+    `export default async function (): Promise<void> {
+  console.log("hello from the task");
+}
 `,
   );
 
@@ -281,6 +303,21 @@ describe("TypeScript mode", () => {
         output,
       );
     });
+
+    it("should suggest the .ts extension for a .js import of a task action", async () => {
+      const { exitCode, output } = await runCli(
+        project.path,
+        ["js-extension"],
+        { preventTsx: true },
+      );
+
+      assert.notEqual(exitCode, 0, output);
+      assert.match(output, /HHE35/);
+      assert.ok(
+        output.includes(path.join(project.path, "tasks", "js-extension.ts")),
+        output,
+      );
+    });
   });
 
   describe(`"tsx" mode`, () => {
@@ -332,6 +369,17 @@ describe("TypeScript mode", () => {
 
       assert.equal(exitCode, 0, output);
       assert.match(output, /hello from the \.js import/);
+    });
+
+    it("should resolve a .js import of a task action", async () => {
+      const { exitCode, output } = await runCli(
+        project.path,
+        ["js-extension"],
+        { preventTsx: false },
+      );
+
+      assert.equal(exitCode, 0, output);
+      assert.match(output, /hello from the task/);
     });
 
     it(

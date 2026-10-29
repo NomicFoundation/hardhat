@@ -366,7 +366,7 @@ describe("error-handler", () => {
         );
       }
 
-      it("is categorized as HHE35, with the original error preserved for the stack trace", async () => {
+      async function assertPrintsTsExtensionError(error: Error): Promise<void> {
         const expected = new HardhatError(
           HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
           {
@@ -377,13 +377,9 @@ describe("error-handler", () => {
         );
 
         const lines: Array<string | Error> = [];
-        await printErrorMessages(
-          createError(),
-          false,
-          (msg: string | Error) => {
-            lines.push(msg);
-          },
-        );
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
 
         assert.equal(lines.length, 3);
         assert.equal(
@@ -395,6 +391,10 @@ describe("error-handler", () => {
           lines[2],
           `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
         );
+      }
+
+      it("is categorized as HHE35, with the original error preserved for the stack trace", async () => {
+        await assertPrintsTsExtensionError(createError());
       });
 
       it("still prints the original (uncategorized) error for the stack trace", async () => {
@@ -406,6 +406,26 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines[2], error);
+      });
+
+      it("converts a task action import HardhatError wrapping the same cause to HHE35", async () => {
+        await assertPrintsTsExtensionError(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_IMPORT,
+            { task: "hello" },
+            createError(),
+          ),
+        );
+      });
+
+      it("takes precedence over a community plugin error wrapping the same cause", async () => {
+        await assertPrintsTsExtensionError(
+          new HardhatPluginError(
+            "community-plugin",
+            "Couldn't import the module",
+            createError(),
+          ),
+        );
       });
     });
 
