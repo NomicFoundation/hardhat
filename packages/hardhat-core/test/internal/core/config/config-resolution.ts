@@ -721,9 +721,43 @@ describe("Config resolution", () => {
       });
 
       describe("chains", function () {
-        it("should default to no chains", function () {
+        it("should default to the default chains", function () {
           const resolvedConfig = resolveConfig(__filename, {});
-          assert.equal(resolvedConfig.networks.hardhat.chains.size, 0);
+          assert.deepEqual(
+            resolvedConfig.networks.hardhat.chains,
+            defaultHardhatNetworkParams.chains
+          );
+        });
+        describe("mixing defaults and user configs", function () {
+          const OPTIMISM_CHAIN_ID = 10;
+          const resolvedConfig = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                chains: {
+                  [OPTIMISM_CHAIN_ID]: { hardforkHistory: { london: 999 } },
+                },
+              },
+            },
+          });
+          it("should replace the default entry of a chain the user configures", function () {
+            assert.deepEqual(
+              resolvedConfig.networks.hardhat.chains.get(OPTIMISM_CHAIN_ID),
+              { hardforkHistory: new Map([[HardforkName.LONDON, 999]]) }
+            );
+          });
+          it("should keep the default entries of the other chains", function () {
+            for (const [
+              chainId,
+              chainConfig,
+            ] of defaultHardhatNetworkParams.chains) {
+              if (chainId !== OPTIMISM_CHAIN_ID) {
+                assert.deepEqual(
+                  resolvedConfig.networks.hardhat.chains.get(chainId),
+                  chainConfig
+                );
+              }
+            }
+          });
         });
         it("should use the user's values for a chain", function () {
           const resolvedConfig = resolveConfig(__filename, {

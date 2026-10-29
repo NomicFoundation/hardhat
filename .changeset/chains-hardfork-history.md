@@ -2,6 +2,6 @@
 "hardhat": patch
 ---
 
-Fixed `networks.hardhat.chains` hardfork histories being ignored when forking.
-They are now passed to EDR and replace its built-in activations for that chain.
-Removed the remaining default hardfork histories, because EDR's own tables cover those chains.
+- Fixed `networks.hardhat.chains` hardfork histories being ignored.
+- Changed a configured hardfork history to replace EDR's built-in activations for that chain, so it must list every hardfork the forked range needs.
+- Removed the default `networks.hardhat.chains` entry for Sepolia.
