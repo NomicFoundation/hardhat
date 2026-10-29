@@ -372,8 +372,9 @@ export function edrRpcDebugTraceToHardhat2(
 /**
  * Converts `networks.hardhat.chains` to EDR chain overrides.
  *
- * An empty hardfork history is omitted, so that EDR keeps its built-in
- * activations for that chain.
+ * A non-empty hardfork history replaces EDR's activations for that chain.
+ * An empty history sets no activations. EDR then keeps its own for a chain it
+ * knows, and has none for a chain it does not.
  */
 export function hardhatChainsToEdrChainOverrides(
   chains: HardhatNetworkChainsConfig
