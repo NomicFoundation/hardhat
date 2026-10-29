@@ -9,6 +9,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   mkdir,
+  symlink,
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -316,6 +317,71 @@ describe("TypeScript mode", () => {
       assert.ok(
         output.includes(path.join(project.path, "tasks", "js-extension.ts")),
         output,
+      );
+    });
+
+    describe("with a config symlinked from a package in the tsx mode", () => {
+      const symlinkedConfigProject = createTmpDir(
+        "typescript-mode-node-symlinked-config",
+        "describe",
+      );
+
+      let projectPath: string;
+
+      before(async () => {
+        projectPath = path.join(symlinkedConfigProject.path, "project");
+        const sharedConfigPath = path.join(
+          symlinkedConfigProject.path,
+          "shared-config",
+        );
+
+        await mkdir(projectPath);
+        await mkdir(sharedConfigPath);
+
+        await writePackageJson(projectPath, { typescript: "node" });
+        await writePackageJson(sharedConfigPath, undefined);
+
+        await writeUtf8File(
+          path.join(sharedConfigPath, "hardhat.config.ts"),
+          `const config: object = {};
+
+export default config;
+`,
+        );
+
+        await symlink(
+          path.join(sharedConfigPath, "hardhat.config.ts"),
+          path.join(projectPath, "hardhat.config.ts"),
+        );
+      });
+
+      it("should use the project's mode", async () => {
+        const { exitCode, output } = await runNode(
+          projectPath,
+          PRINT_TYPESCRIPT_MODE_CODE,
+          { preventTsx: true },
+        );
+
+        assert.equal(exitCode, 0, output);
+        assert.match(output, /typescript mode: node/);
+      });
+
+      it(
+        "shouldn't fall back to tsx to import the config when Node.js can't strip types",
+        { skip: NO_STRIP_TYPES_FLAG === undefined },
+        async () => {
+          assert.ok(NO_STRIP_TYPES_FLAG !== undefined, "Unreachable");
+
+          const { exitCode, output } = await runNode(
+            projectPath,
+            PRINT_TYPESCRIPT_MODE_CODE,
+            { preventTsx: true, nodeArgs: [NO_STRIP_TYPES_FLAG] },
+          );
+
+          assert.notEqual(exitCode, 0, output);
+          assert.match(output, /ERR_UNKNOWN_FILE_EXTENSION/);
+          assert.doesNotMatch(output, /tsx was loaded/);
+        },
       );
     });
   });
