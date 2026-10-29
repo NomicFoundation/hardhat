@@ -19,14 +19,14 @@ DESCRIPTION
   be benchmarked.
 
 OPTIONS
-  --tag <tag>             Required. Release tag (e.g. 5e6ec5e1)
+  --tag <tag>             Required. Release tag (e.g. d95c1150)
   --asset-suffix <sfx>    Required. Asset name suffix after the platform
-                          (e.g. debug-fast)
+                          (e.g. 2026-10-29)
   --out <path>            Required. Where to install the binary
 
 EXAMPLE
-  node scripts/benchmark/provision-slang.ts --tag 5e6ec5e1 \\
-    --asset-suffix debug-fast --out "$PWD/.solx/slang"
+  node scripts/benchmark/provision-slang.ts --tag d95c1150 \\
+    --asset-suffix 2026-10-29 --out "$PWD/.solx/slang"
 `;
 
 const RELEASES_BASE_URL = "https://github.com/NomicFoundation/solx/releases";

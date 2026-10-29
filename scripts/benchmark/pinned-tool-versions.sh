@@ -27,7 +27,8 @@ FORGE_PINNED_VERSION="1.7.1"
 # above, whose release predates solar.
 FORGE_SOLAR_PINNED_VERSION="1.8.5"
 # The slang release the "slang" profiles download (provision-slang.ts): the
-# solx main prerelease at 5e6ec5e1 (slang v0.2.0), the one hardhat-slang pins.
+# solx main prerelease at d95c1150 (2026-10-29), hardhat-slang's
+# 0.1.0-pre.2026-10-29.
 # HARDHAT_SLANG_BENCH_BINARY overrides it with a local build.
-SLANG_PINNED_TAG="5e6ec5e1"
-SLANG_PINNED_ASSET_SUFFIX="debug-fast"
+SLANG_PINNED_TAG="d95c1150"
+SLANG_PINNED_ASSET_SUFFIX="2026-10-29"
