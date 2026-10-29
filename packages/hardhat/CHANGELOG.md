@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.21.2
+
+### Patch Changes
+
+- [#8732](https://github.com/NomicFoundation/hardhat/pull/8732) [`44ff2b5`](https://github.com/NomicFoundation/hardhat/commit/44ff2b524302b05ed218164dfa16b921ab6b76f8) Thanks [@kanej](https://github.com/kanej)! - Updated the project templates to forge-std v1.17.0.
+
 ## 3.21.1
 
 ### Patch Changes
