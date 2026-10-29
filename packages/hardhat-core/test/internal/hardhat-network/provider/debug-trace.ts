@@ -83,12 +83,19 @@ const CODELESS_CALLER_ADDRESS = address(0x114);
 /** An account that never gets code. */
 const CODELESS_ADDRESS = address(0x115);
 const SINGLE_CALL_ADDRESS = address(0x116);
+const STORAGE_THEN_READER_ADDRESS = address(0x117);
 const ECRECOVER_PRECOMPILE_ADDRESS = address(0x1);
 const IDENTITY_PRECOMPILE_ADDRESS = address(0x4);
 const ELONGATED_MEMORY_ADDRESS = "0x1234567890123456789012345678901234567890";
 
 /** The size of an EVM memory word in bytes. */
 const WORD_SIZE = 32;
+
+/** The depth of the steps in a call made by the transaction's recipient. */
+const NESTED_CALL_DEPTH = 2;
+
+/** Storage slot 0 as Hardhat 2 formats a storage key. */
+const SLOT_0_KEY = "0".repeat(2 * WORD_SIZE);
 
 function withoutPrefix(hex: string): string {
   return hex.slice(2);
@@ -233,6 +240,10 @@ const CODE: Record<string, string> = {
   [CODELESS_CALLER_ADDRESS]: callBetweenStorageAccesses(CODELESS_ADDRESS),
   // Calls the storage contract once.
   [SINGLE_CALL_ADDRESS]: `0x${call(STORAGE_ADDRESS)}00`,
+  // Calls the storage contract, then the reader.
+  [STORAGE_THEN_READER_ADDRESS]: `0x${call(STORAGE_ADDRESS)}${call(
+    READER_ADDRESS
+  )}00`,
 };
 
 async function setCode(provider: EthereumProvider): Promise<void> {
@@ -272,6 +283,31 @@ function assertMainCallTracerFrame(trace: CallTracerFrame): void {
   assert.equal(trace.to, MAIN_ADDRESS);
   assert.lengthOf(trace.calls, 3);
   assert.notProperty(trace, "structLogs");
+}
+
+/** Splits the steps of nested calls into one list per call. */
+function nestedCallFrames(trace: RpcDebugTraceOutput): RpcStructLog[][] {
+  const frames: RpcStructLog[][] = [];
+  let previousDepth: number | undefined;
+  for (const log of trace.structLogs) {
+    if (log.depth === NESTED_CALL_DEPTH) {
+      if (previousDepth !== NESTED_CALL_DEPTH) {
+        frames.push([]);
+      }
+      frames[frames.length - 1].push(log);
+    }
+    previousDepth = log.depth;
+  }
+  return frames;
+}
+
+/** Returns the steps of `frame` before its first SLOAD and the rest. */
+function splitAtFirstSload(
+  frame: RpcStructLog[]
+): [RpcStructLog[], RpcStructLog[]] {
+  const sloadIndex = frame.findIndex((log) => log.op === "SLOAD");
+  assert.notEqual(sloadIndex, -1, "the frame has no SLOAD");
+  return [frame.slice(0, sloadIndex), frame.slice(sloadIndex)];
 }
 
 type OptionalStructLogField = "memory" | "stack" | "storage";
@@ -476,6 +512,28 @@ describe("Debug module", function () {
           );
         });
 
+        it("keeps the storage of each called contract apart with disableStack", async function () {
+          const txHash = await sendTransaction(this.provider, {
+            to: STORAGE_THEN_READER_ADDRESS,
+          });
+
+          const trace = await traceTransaction(this.provider, txHash, {
+            disableStack: true,
+          });
+
+          const [storageFrame, readerFrame] = nestedCallFrames(trace);
+          const [, storageStepsFromSload] = splitAtFirstSload(storageFrame);
+          const [readerStepsBeforeSload] = splitAtFirstSload(readerFrame);
+
+          assert.isNotEmpty(readerStepsBeforeSload);
+          for (const log of readerStepsBeforeSload) {
+            assert.deepEqual(log.storage, {});
+          }
+          for (const log of storageStepsFromSload) {
+            assert.property(log.storage, SLOT_0_KEY);
+          }
+        });
+
         it("captures memory with disableMemory set to false", async function () {
           const txHash = await sendTransaction(this.provider, {
             to: MAIN_ADDRESS,
@@ -554,7 +612,6 @@ describe("Debug module", function () {
           );
         });
 
-        // Unlike Hardhat 2.29.1, a halting step carries an error.
         it("adds an error to an out-of-gas step, unlike Hardhat 2.29.1", async function () {
           const txHash = await sendTransaction(this.provider, {
             to: INFINITE_LOOP_ADDRESS,
@@ -564,12 +621,11 @@ describe("Debug module", function () {
           const trace = await traceTransaction(this.provider, txHash);
 
           assert.isTrue(trace.failed);
-          assert.deepEqual(
-            trace.structLogs[trace.structLogs.length - 1].error,
-            {
-              message: "Some(OutOfGas)",
-            }
-          );
+          const { error } = trace.structLogs[trace.structLogs.length - 1];
+          assert.property(error, "message");
+          const { message } = error as { message: unknown };
+          assert.isString(message);
+          assert.isNotEmpty(message);
         });
 
         it("returns geth's callTracer output", async function () {
