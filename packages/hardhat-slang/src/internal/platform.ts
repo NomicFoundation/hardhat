@@ -15,7 +15,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  *   slang-windows-amd64-gnu-v0.2.0.exe
  */
 export function getSlangBinaryBaseName(): string {
-  // TODO: revisit before release to finalize.
   const platform = os.platform();
   const arch = os.arch();
 
