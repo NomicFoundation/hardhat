@@ -255,7 +255,7 @@ export default defineConfig({
     ],
   },
   slang: {
-    version: "0.1.0-pre.2026-10-14",
+    version: "0.1.0-pre.2026-10-29",
   },
   typechain: {
     tsNocheck: false,

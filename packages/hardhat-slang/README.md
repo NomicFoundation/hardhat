@@ -32,7 +32,7 @@ export default defineConfig({
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-14",
+    version: "0.1.0-pre.2026-10-29",
   },
 });
 ```
@@ -84,7 +84,7 @@ export default defineConfig({
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-14",
+    version: "0.1.0-pre.2026-10-29",
   },
 });
 ```
@@ -110,7 +110,7 @@ export default defineConfig({
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-14",
+    version: "0.1.0-pre.2026-10-29",
     dangerouslyAllowSlangInProduction: true,
   },
 });
@@ -161,7 +161,7 @@ export default defineConfig({
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-14",
+    version: "0.1.0-pre.2026-10-29",
   },
 });
 ```
@@ -172,6 +172,7 @@ Each slang release supports a range of Solidity versions. A compiler entry's `ve
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
+| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `d95c1150`, 2026-10-29) downloaded from the solx releases mirror. |
 | `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the solx releases mirror. |
 
 ### EVM version support

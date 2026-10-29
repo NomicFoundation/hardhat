@@ -9,7 +9,7 @@ import {
   getSlangBinaryBaseName,
 } from "../src/internal/platform.js";
 
-const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-14"];
+const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-29"];
 
 // A release served by the mirror under the standard `v${version}` naming.
 const MIRROR_RELEASE: SlangRelease = {
@@ -55,8 +55,8 @@ describe("hardhat-slang platform detection", () => {
 
   it("names the pinned prerelease's asset with its override suffix instead of the version", () => {
     assert.equal(
-      getSlangAssetName("0.1.0-pre.2026-10-14", PINNED_RELEASE),
-      `${getSlangBinaryBaseName()}-debug-fast${EXE}`,
+      getSlangAssetName("0.1.0-pre.2026-10-29", PINNED_RELEASE),
+      `${getSlangBinaryBaseName()}-2026-10-29${EXE}`,
     );
   });
 });

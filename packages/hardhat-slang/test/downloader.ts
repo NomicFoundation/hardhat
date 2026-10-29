@@ -42,7 +42,7 @@ const TEST_RELEASE: SlangRelease = {
   maxSolidity: "0.8.36",
 };
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-14";
+const PINNED_VERSION = "0.1.0-pre.2026-10-29";
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 const BINARY_CONTENTS = "#!/bin/sh\necho slang 0.0.1-test\n";
