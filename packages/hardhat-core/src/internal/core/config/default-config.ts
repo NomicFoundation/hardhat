@@ -54,7 +54,43 @@ export const defaultHardhatNetworkParams: Omit<
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   minGasPrice: 0n,
-  chains: new Map(),
+  // TODO: these entries are a temporary workaround,
+  // see https://github.com/NomicFoundation/edr/issues/522
+  chains: new Map([
+    [
+      10, // optimism mainnet
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      11155420, // optimism sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      42161, // arbitrum one
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      43114, // avalanche
+      {
+        hardforkHistory: new Map([
+          [HardforkName.SHANGHAI, 11_404_279],
+          [HardforkName.CANCUN, 41_263_126],
+        ]),
+      },
+    ],
+    [
+      421614, // arbitrum sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+  ]),
 };
 
 export const defaultHttpNetworkParams = {
