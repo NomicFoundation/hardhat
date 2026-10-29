@@ -687,7 +687,7 @@ describe("Config resolution", () => {
           },
           hardfork: "hola",
           initialDate: "today",
-          chains: {},
+          chains: { 999: { hardforkHistory: { london: 1234 } } },
         };
 
         const config = resolveConfig(__filename, {
@@ -716,7 +716,10 @@ describe("Config resolution", () => {
           },
           hardfork: "hola",
           initialDate: "today",
-          chains: defaultHardhatNetworkParams.chains,
+          chains: new Map([
+            ...defaultHardhatNetworkParams.chains,
+            [999, { hardforkHistory: new Map([[HardforkName.LONDON, 1234]]) }],
+          ]),
         });
       });
 
@@ -727,6 +730,14 @@ describe("Config resolution", () => {
             resolvedConfig.networks.hardhat.chains,
             defaultHardhatNetworkParams.chains
           );
+        });
+        it("should resolve an entry without a history to an empty history", function () {
+          const resolvedConfig = resolveConfig(__filename, {
+            networks: { hardhat: { chains: { 999: {} } } },
+          });
+          assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(999), {
+            hardforkHistory: new Map(),
+          });
         });
         describe("mixing defaults and user configs", function () {
           const OPTIMISM_CHAIN_ID = 10;

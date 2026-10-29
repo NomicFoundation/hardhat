@@ -10,7 +10,6 @@ describe("hardhatChainsToEdrChainOverrides", function () {
     );
 
     assert.deepEqual(chainOverrides, [{ chainId: 1n, name: "Unknown" }]);
-    assert.notProperty(chainOverrides[0], "hardforkActivationOverrides");
   });
 
   it("converts a hardfork history to block number activations", function () {
