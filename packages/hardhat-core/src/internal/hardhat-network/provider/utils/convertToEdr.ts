@@ -1,5 +1,4 @@
 import type {
-  L1Hardfork,
   MineOrdering,
   IntervalRange,
   TracingMessage,
@@ -10,7 +9,6 @@ import type {
 import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
-import { HardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import {
@@ -20,15 +18,6 @@ import {
 } from "../vm/types";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
-
-export function edrSpecIdToEthereumHardfork(specId: L1Hardfork): HardforkName {
-  const { l1HardforkToString } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
-
-  // EDR's hardfork names match Hardhat's, so no conversion is needed.
-  return l1HardforkToString(specId) as HardforkName;
-}
 
 export function ethereumjsIntervalMiningConfigToEdr(
   config: IntervalMiningConfig
