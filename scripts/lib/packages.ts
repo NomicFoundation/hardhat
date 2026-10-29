@@ -13,9 +13,6 @@ export async function readAllReleasablePackages() {
         "example-project",
         "template-package",
         "hardhat-test-utils",
-        // hardhat-slang is not published yet, see the publish filter in
-        // release.yml; drop this once it is part of the release flow.
-        "hardhat-slang",
       ].includes(file),
   );
 
