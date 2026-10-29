@@ -16,6 +16,7 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   greaterThanOrEqual,
+  lowerThan,
   lowerThanOrEqual,
   parseVersion,
 } from "@nomicfoundation/hardhat-utils/fast-semver";
@@ -27,7 +28,9 @@ import {
 import { z } from "zod";
 
 import {
+  DEFAULT_SLANG_EVM_VERSION,
   DEFAULT_SLANG_OPTIMIZER_MODE,
+  FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT,
   SLANG_COMPILER_TYPE,
   SLANG_RELEASES,
   SUPPORTED_SLANG_EVM_VERSIONS,
@@ -405,6 +408,14 @@ async function augmentIfSlang<
       // the solcInput and hence the build-id hash. One slang binary compiles a
       // range of Solidity versions, so the entry's version is part of it too.
       solidityVersion: entry.version,
+      // Only set when Hardhat's own default would be older than slang
+      // supports; otherwise Hardhat's default still applies downstream.
+      // TODO: if hardhat-slang becomes a built-in we should use the evm version
+      //   mapping code available in core
+      ...(settings.evmVersion === undefined &&
+      hasPreCancunHardhatDefault(entry.version)
+        ? { evmVersion: DEFAULT_SLANG_EVM_VERSION }
+        : {}),
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
@@ -414,6 +425,18 @@ async function augmentIfSlang<
       ),
     },
   };
+}
+
+function hasPreCancunHardhatDefault(solidityVersion: string): boolean {
+  const parsed = parseVersion(solidityVersion);
+  const first = parseVersion(FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT);
+
+  assertHardhatInvariant(
+    first !== undefined,
+    `Invalid FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT: ${FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT}`,
+  );
+
+  return parsed !== undefined && lowerThan(parsed, first);
 }
 
 export async function validateResolvedConfig(

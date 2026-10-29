@@ -69,7 +69,6 @@ describe(
       const compiler = new SlangCompiler(
         slangVersion,
         await getSlangBinaryPath(slangVersion, release),
-        { release },
       );
       const mismatchedSettings = {
         ...input.settings,

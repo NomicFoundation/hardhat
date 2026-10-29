@@ -15,7 +15,6 @@ const PINNED_RELEASE = SLANG_RELEASES["0.1.0-pre.2026-10-14"];
 const MIRROR_RELEASE: SlangRelease = {
   minSolidity: "0.8.0",
   maxSolidity: "0.8.36",
-  extraArgs: [],
 };
 
 const EXE = process.platform === "win32" ? ".exe" : "";
