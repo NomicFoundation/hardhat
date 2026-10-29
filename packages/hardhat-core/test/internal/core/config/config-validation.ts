@@ -1851,6 +1851,23 @@ describe("Config validation", function () {
           });
         }, ERRORS.GENERAL.INVALID_CONFIG);
       });
+      it("should reject an empty hardfork history", function () {
+        expectHardhatError(
+          () => {
+            validateConfig({
+              networks: {
+                hardhat: {
+                  chains: {
+                    1: { hardforkHistory: {} },
+                  },
+                },
+              },
+            });
+          },
+          ERRORS.GENERAL.INVALID_CONFIG,
+          "HardhatConfig.networks.hardhat.chains[1].hardforkHistory"
+        );
+      });
     });
 
     describe("enableTransientStorage", function () {

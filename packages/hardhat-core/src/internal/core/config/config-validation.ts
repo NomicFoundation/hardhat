@@ -520,11 +520,18 @@ export function getValidationErrors(config: any): string[] {
           ];
           const { hardforkHistory } = chainConfig;
           if (hardforkHistory !== undefined) {
-            Object.keys(hardforkHistory).forEach((hardforkName) => {
+            const hardforkHistoryPath = `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chains[${chainId}].hardforkHistory`;
+            const hardforkNames = Object.keys(hardforkHistory);
+            if (hardforkNames.length === 0) {
+              errors.push(
+                `Invalid value {} for ${hardforkHistoryPath} - Expected at least one hardfork activation.`
+              );
+            }
+            hardforkNames.forEach((hardforkName) => {
               if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
                 errors.push(
                   getErrorMessage(
-                    `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chains[${chainId}].hardforkHistory`,
+                    hardforkHistoryPath,
                     hardforkName,
                     `"${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join('" | "')}"`
                   )
