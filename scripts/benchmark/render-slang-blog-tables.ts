@@ -77,7 +77,6 @@ const TEST_NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
     "aave-v4-solx|solc": "tests do not compile",
     "aave-v4-solx|forge": "tests do not compile",
     "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",
-    "lidofinance-core-solx|slang": "tests do not compile",
   },
   legacy: {
     "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",

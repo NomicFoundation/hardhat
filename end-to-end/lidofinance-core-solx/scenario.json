@@ -89,6 +89,16 @@
         "prepare": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat compile --build-profile solc-via-ir",
         "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solc-via-ir"
       },
+      "warm test slang": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat compile --build-profile slang",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile slang"
+      },
       "warm test forge-1.7.1 via-ir": {
         "runs": 1,
         "dependsOn": ["warm forge solc cache"],
@@ -112,6 +122,16 @@
         ],
         "prepare": "npx hardhat clean",
         "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile solc-via-ir"
+      },
+      "cold test slang": {
+        "runs": 1,
+        "dependsOn": [
+          "assert fresh hardhat-slang-solx",
+          "assert fresh hardhat-slang",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "LIDO_BENCH_INCLUDE_TESTS=1 npx hardhat test solidity --build-profile slang"
       },
       "warm compile solx-0.1.8 via-ir": {
         "runs": 3,

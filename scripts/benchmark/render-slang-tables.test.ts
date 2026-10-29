@@ -63,8 +63,8 @@ describe("renderSlangTables", () => {
       output,
       /\| Aave v4 \| [^|]+ \| [^|]+ \| not run \(EIP-712 cheatcodes\) \|/,
     );
-    assert.match(output, /\| warm test slang \| not run⁵ \|/);
-    assert.match(output, /⁵ 149 of aave's 1559 tests/);
+    assert.match(output, /\| warm test slang \| not run⁴ \|/);
+    assert.match(output, /⁴ 149 of aave's 1559 tests/);
   });
 
   it("compares each cell with slang's cell of the same kind", () => {
@@ -131,7 +131,7 @@ describe("renderSlangTables", () => {
       wall("lidofinance-core-solx / cold compile solc via-ir", 60),
       wall("lidofinance-core-solx / cold compile slang", 20),
     ]);
-    assert.match(lido, /\| cold compile forge-1\.8\.5 solar \| n\/a⁷ \|/);
+    assert.match(lido, /\| cold compile forge-1\.8\.5 solar \| n\/a⁶ \|/);
     assert.match(lido, /\| lido-core \|.*\| n\/a \(0\.4\/0\.6 sources\) \|\n/);
   });
 

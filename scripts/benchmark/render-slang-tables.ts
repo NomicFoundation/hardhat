@@ -62,10 +62,9 @@ export const CELL_NOTES: Record<string, string> = {
     "✗ does not compile²",
   "warm test lidofinance-core-solx|solc": "n/a³",
   "warm test lidofinance-core-solx|solx-0.1.8": "n/a³",
-  "warm test lidofinance-core-solx|slang": "✗ tests do not compile⁴",
-  "warm test aave-v4-solx|slang": "not run⁵",
-  "warm test aave-v4-solx|solc via-ir": "✗ tests do not compile⁶",
-  "cold compile lidofinance-core-solx|forge-1.8.5 solar": "n/a⁷",
+  "warm test aave-v4-solx|slang": "not run⁴",
+  "warm test aave-v4-solx|solc via-ir": "✗ tests do not compile⁵",
+  "cold compile lidofinance-core-solx|forge-1.8.5 solar": "n/a⁶",
 };
 
 const FOOTNOTES = [
@@ -76,16 +75,13 @@ const FOOTNOTES = [
     "on, at every optimizer setting; slang compiles it.",
   "³ The repo builds via-IR only (its sources don't compile on the legacy " +
     "pipeline), so it has no legacy cells.",
-  "⁴ slang rejects lido-core's test sources: a storage fixed-size array of " +
-    "structs does not bind to an attached library function's `memory` " +
-    "parameter (NomicFoundation/slang#2251); solc accepts it.",
-  "⁵ 149 of aave's 1559 tests use the `vm.eip712HashStruct` / " +
+  "⁴ 149 of aave's 1559 tests use the `vm.eip712HashStruct` / " +
     "`vm.eip712HashType` cheatcodes, whose type table Hardhat builds from the " +
     "solc AST; a slang build info has none, so those tests fail. The cell " +
     "is left out until slang's output carries struct definitions.",
-  "⁶ solc via-IR cannot compile aave's Foundry test sources (a Yul " +
+  "⁵ solc via-IR cannot compile aave's Foundry test sources (a Yul " +
     "stack-too-deep in its vendored assembly), so the suite cannot run.",
-  "⁷ lido-core also compiles 0.4.24 and 0.6 sources; forge runs solar as " +
+  "⁶ lido-core also compiles 0.4.24 and 0.6 sources; forge runs solar as " +
     "its only compiler, so the repo has no forge + solar cell.",
 ];
 
