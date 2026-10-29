@@ -154,6 +154,12 @@ const HEX_PREFIX = "0x";
 const WORD_HEX_LENGTH = 64;
 const ADDRESS_HEX_LENGTH = 40;
 
+/**
+ * The address that a failed CREATE or CREATE2 pushes, in the unprefixed form
+ * that `stackItemToAddress` returns.
+ */
+const FAILED_CREATE_ADDRESS = "0".repeat(ADDRESS_HEX_LENGTH);
+
 const CALL_OPCODES_WITH_OWN_STORAGE = new Set(["CALL", "STATICCALL"]);
 const CALL_OPCODES_WITH_CALLER_STORAGE = new Set(["DELEGATECALL", "CALLCODE"]);
 const CREATE_OPCODES = new Set(["CREATE", "CREATE2"]);
@@ -261,18 +267,19 @@ class StorageTracker {
     createContext: string,
     stack: string[] | undefined
   ): void {
-    const createdAddress = stack?.[stack.length - 1];
+    const createdStackItem = stack?.[stack.length - 1];
     const storage = this._storageByContext.get(createContext);
-    if (
-      createdAddress === undefined ||
-      BigInt(createdAddress) === 0n ||
-      storage === undefined
-    ) {
+    if (createdStackItem === undefined || storage === undefined) {
+      return;
+    }
+
+    const createdAddress = stackItemToAddress(createdStackItem);
+    if (createdAddress === FAILED_CREATE_ADDRESS) {
       return;
     }
 
     this._storageByContext.delete(createContext);
-    this._storageByContext.set(stackItemToAddress(createdAddress), storage);
+    this._storageByContext.set(createdAddress, storage);
   }
 
   private _childContext(

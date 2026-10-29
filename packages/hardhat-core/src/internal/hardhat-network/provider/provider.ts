@@ -352,8 +352,6 @@ export class EdrProviderWrapper
       genesisBlockTime
     );
 
-    // Assigned after construction, which is why the callback above reaches the
-    // wrapper through a binding rather than capturing it.
     wrapperWeakRef = new WeakRef(wrapper);
 
     return wrapper;
@@ -461,11 +459,8 @@ export class EdrProviderWrapper
       if (stackTrace?.kind === "StackTrace") {
         error = encodeSolidityStackTrace(
           response.error.message,
-          // EDR's `SolidityStackTraceEntry` union includes
-          // `CheatcodeErrorStackTraceEntry`, which Hardhat's local copy
-          // doesn't know about. Cheatcodes only fire from solidity-test
-          // runs, never from the network-provider path; the cast is safe
-          // at runtime.
+          // Cheatcode entries only occur in Solidity tests, never in
+          // provider requests, so the cast cannot see one.
           stackTrace.entries as SolidityStackTrace
         );
         // Pass data and transaction hash from the original error
