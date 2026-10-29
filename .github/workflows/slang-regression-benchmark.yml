@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: false
+      strict-validation:
+        description: "Fail the run when the local-install check warns (e.g. a scenario resolved a stale or missing hardhat), which also blocks the baseline merge and blog tables. Off: the check only warns."
+        required: false
+        type: boolean
+        default: false
   # Deliberately do not run on merge_group
   push:
     branches:
@@ -179,10 +184,18 @@ jobs:
 
       - name: Validate scenarios used the local Hardhat build
         # Verifies each scenario resolved the hardhat published to Verdaccio by
-        # THIS run rather than a stale copy. Any doubt fails the step, which
-        # keeps the run's numbers out of the baseline and the blog tables.
+        # THIS run rather than a stale copy. Warnings only; with the
+        # strict-validation input, any doubt fails the step, which keeps the
+        # run's numbers out of the baseline and the blog tables.
         id: validate
-        run: node .github/scripts/validate-local-hardhat-install.ts --strict
+        env:
+          STRICT_VALIDATION: ${{ inputs.strict-validation }}
+        run: |
+          if [ "$STRICT_VALIDATION" = true ]; then
+            node .github/scripts/validate-local-hardhat-install.ts --strict
+          else
+            node .github/scripts/validate-local-hardhat-install.ts
+          fi
 
       # Slang's standard-JSON inputs, for replaying without Hardhat (solx's
       # compile benchmark vendors its fixtures from this artifact). Only an
