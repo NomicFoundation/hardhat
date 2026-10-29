@@ -11,7 +11,7 @@ import type { HardhatNetworkChainsConfig } from "../../../../types";
 import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
-import { getHardforkName } from "../../../util/hardforks";
+import { getHardforkName, HARDFORKS_ORDER } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import {
@@ -385,13 +385,24 @@ export function hardhatChainsToEdrChainOverrides(
     };
 
     if (hardforkHistory.size > 0) {
+      // EDR assumes activations in ascending order.
       chainOverride.hardforkActivationOverrides = Array.from(
         hardforkHistory,
         ([hardfork, blockNumber]) => ({
-          condition: { blockNumber: BigInt(blockNumber) },
           hardfork: getHardforkName(hardfork),
+          blockNumber,
         })
-      );
+      )
+        .sort((a, b) =>
+          a.blockNumber !== b.blockNumber
+            ? a.blockNumber - b.blockNumber
+            : HARDFORKS_ORDER.indexOf(a.hardfork) -
+              HARDFORKS_ORDER.indexOf(b.hardfork)
+        )
+        .map(({ hardfork, blockNumber }) => ({
+          condition: { blockNumber: BigInt(blockNumber) },
+          hardfork,
+        }));
     }
 
     return chainOverride;
