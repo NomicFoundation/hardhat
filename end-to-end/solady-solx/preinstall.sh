@@ -87,3 +87,29 @@ if (s.split(anchor).length !== 2) {
 fs.writeFileSync(p, s.replace(anchor, "function skipBlockHash("));
 console.log("solady preinstall: renamed BlockHashLibTest#testBlockHash out of discovery");
 '
+
+# ERC6551Test#testExecute expects a revert from a random non-owner caller, but
+# _randomNonZeroAddress draws from a small address set and TestPlus's PRNG
+# hashes the free memory pointer, so under slang the draw is the owner and
+# the call succeeds. Redraw while it equals the owner, as solady's ERC20 tests
+# do; solc and solx never collide here, so their draws are unchanged.
+node -e '
+const fs = require("fs");
+const p = "test/ERC6551.t.sol";
+let s = fs.readFileSync(p, "utf8");
+const anchor = `        vm.prank(_randomNonZeroAddress());
+        vm.expectRevert(ERC6551.Unauthorized.selector);
+        t.account.execute(target, 123, abi.encodeWithSignature("setData(bytes)", data), 0);`;
+if (s.split(anchor).length !== 2) {
+  console.error("solady preinstall: expected exactly one unauthorized execute in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+const patched = anchor.replace(
+  "        vm.prank(_randomNonZeroAddress());",
+  `        address notOwner = _randomNonZeroAddress();
+        while (notOwner == t.owner) notOwner = _randomNonZeroAddress();
+        vm.prank(notOwner);`,
+);
+fs.writeFileSync(p, s.replace(anchor, patched));
+console.log("solady preinstall: ERC6551Test#testExecute redraws an owner-colliding caller");
+'
