@@ -393,8 +393,9 @@ export class EdrProviderWrapper
         : params,
     });
 
+    const provider = this._provider;
     const responseObject: Response =
-      await this._provider.handleRequest(stringifiedArgs);
+      await provider.handleRequest(stringifiedArgs);
 
     let response;
     if (typeof responseObject.data === "string") {
@@ -511,6 +512,7 @@ export class EdrProviderWrapper
       return clientVersion(response.result);
     } else if (isDebugTraceMethod(args.method)) {
       return this._debugTraceResultToHardhat2(
+        provider,
         args.method,
         params,
         response.result
@@ -521,6 +523,7 @@ export class EdrProviderWrapper
   }
 
   private async _debugTraceResultToHardhat2(
+    provider: EdrProviderT,
     method: DebugTraceMethod,
     params: any[],
     result: any
@@ -532,7 +535,7 @@ export class EdrProviderWrapper
 
     const storageEnabled = options?.disableStorage !== true;
     const rootAddress = storageEnabled
-      ? await this._debugTraceRootAddress(method, params)
+      ? await this._debugTraceRootAddress(provider, method, params)
       : undefined;
 
     return edrRpcDebugTraceToHardhat2(result, storageEnabled, rootAddress);
@@ -540,6 +543,7 @@ export class EdrProviderWrapper
 
   /** Returns the address whose code the traced transaction runs. */
   private async _debugTraceRootAddress(
+    provider: EdrProviderT,
     method: DebugTraceMethod,
     params: any[]
   ): Promise<string | undefined> {
@@ -547,10 +551,11 @@ export class EdrProviderWrapper
       return params[0]?.to ?? undefined;
     }
 
-    const responseObject = await this._provider.handleRequest(
+    const transactionHash = params[0];
+    const responseObject = await provider.handleRequest(
       JSON.stringify({
         method: "eth_getTransactionByHash",
-        params: [params[0]],
+        params: [transactionHash],
       })
     );
     const response =
@@ -558,7 +563,24 @@ export class EdrProviderWrapper
         ? JSON.parse(responseObject.data)
         : responseObject.data;
 
-    return response.result?.to ?? undefined;
+    if (isErrorResponse(response)) {
+      log(
+        "Failed to look up the root address of transaction %s, so its trace uses a placeholder storage context: %O",
+        transactionHash,
+        response.error.message
+      );
+      return undefined;
+    }
+
+    if (response.result === null || response.result === undefined) {
+      log(
+        "Transaction %s was not found, so its trace uses a placeholder storage context",
+        transactionHash
+      );
+      return undefined;
+    }
+
+    return response.result.to ?? undefined;
   }
 
   private async _addCompilationResult(
