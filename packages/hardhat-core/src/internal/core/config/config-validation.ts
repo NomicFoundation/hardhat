@@ -64,6 +64,36 @@ function getErrorMessage(path: string, value: any, expectedType: string) {
   )} for ${path} - Expected a value of type ${expectedType}.`;
 }
 
+/**
+ * The smallest minimum of a `mining.interval` range, in milliseconds, that
+ * EDR accepts.
+ */
+const MIN_MINING_INTERVAL_RANGE_START = 1;
+
+function validateMiningIntervalRange(
+  interval: unknown,
+  network: string,
+  errors: string[]
+) {
+  if (
+    !Array.isArray(interval) ||
+    interval.length !== 2 ||
+    typeof interval[0] !== "number" ||
+    typeof interval[1] !== "number"
+  ) {
+    return;
+  }
+
+  const [min, max] = interval;
+  if (min < MIN_MINING_INTERVAL_RANGE_START || min > max) {
+    errors.push(
+      `Invalid value ${stringify(
+        interval
+      )} for HardhatConfig.networks.${network}.mining.interval - Expected a range [min, max] with ${MIN_MINING_INTERVAL_RANGE_START} <= min <= max.`
+    );
+  }
+}
+
 function getPrivateKeyError(index: number, network: string, message: string) {
   return `Invalid account: #${index} for network: ${network} - ${message}`;
 }
@@ -459,6 +489,12 @@ export function getValidationErrors(config: any): string[] {
           )
         );
       }
+
+      validateMiningIntervalRange(
+        hardhatNetwork.mining?.interval,
+        HARDHAT_NETWORK_NAME,
+        errors
+      );
 
       const hardfork =
         hardhatNetwork.hardfork ?? defaultHardhatNetworkParams.hardfork;
