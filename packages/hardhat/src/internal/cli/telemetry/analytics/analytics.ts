@@ -3,6 +3,7 @@ import type {
   Payload,
   TelemetryConfigPayload,
 } from "./types.js";
+import type { TypeScriptMode } from "../../../core/typescript-mode.js";
 
 import os from "node:os";
 
@@ -55,12 +56,14 @@ export async function sendTelemetryConfigAnalytics(
 export async function sendTaskAnalytics(
   taskId: string[],
   command: "hardhat" | "hhu",
+  typescriptMode?: TypeScriptMode,
 ): Promise<boolean> {
   const taskAnalyticsEvent: AnalyticsEvent = {
     name: "task",
     params: {
       task: taskId.join(", "),
       command,
+      typescriptMode,
     },
   };
 
