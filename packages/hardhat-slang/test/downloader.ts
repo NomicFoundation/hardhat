@@ -33,6 +33,7 @@ import {
   getSlangBinaryPath,
 } from "../src/internal/downloader.js";
 import { getSlangAssetName } from "../src/internal/platform.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
 const TEST_SLANG_VERSION = "0.0.1-test";
 
@@ -42,8 +43,8 @@ const TEST_RELEASE: SlangRelease = {
   maxSolidity: "0.8.36",
 };
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
-const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+const LATEST_SLANG_RELEASE = SLANG_RELEASES[LATEST_SLANG_VERSION];
 
 const BINARY_CONTENTS = "#!/bin/sh\necho slang 0.0.1-test\n";
 
@@ -154,24 +155,27 @@ describe("hardhat-slang downloader", () => {
     );
   });
 
-  it("downloads the pinned prerelease from the mirror under its own asset name", async () => {
-    const assetSuffix = PINNED_RELEASE.assetOverride?.assetSuffix;
+  it("downloads the latest release from the mirror under its own asset name", async () => {
+    const assetSuffix = LATEST_SLANG_RELEASE.assetOverride?.assetSuffix;
     assert.ok(
       assetSuffix !== undefined,
       "the prerelease row must carry an asset override",
     );
-    const pinnedAsset = getSlangAssetName(PINNED_VERSION, PINNED_RELEASE);
+    const latestAsset = getSlangAssetName(
+      LATEST_SLANG_VERSION,
+      LATEST_SLANG_RELEASE,
+    );
     assert.ok(
-      pinnedAsset.includes(assetSuffix),
-      `the prerelease asset should use the override suffix, got ${pinnedAsset}`,
+      latestAsset.includes(assetSuffix),
+      `the prerelease asset should use the override suffix, got ${latestAsset}`,
     );
 
-    interceptChecksum(mockedInterceptor, expectedDigest, 1, pinnedAsset);
-    interceptBinary(mockedInterceptor, BINARY_CONTENTS, 1, pinnedAsset);
+    interceptChecksum(mockedInterceptor, expectedDigest, 1, latestAsset);
+    interceptBinary(mockedInterceptor, BINARY_CONTENTS, 1, latestAsset);
 
     const binaryPath = await downloadSlang(
-      PINNED_VERSION,
-      PINNED_RELEASE,
+      LATEST_SLANG_VERSION,
+      LATEST_SLANG_RELEASE,
       noop,
       {
         dispatcher: mockAgent,
@@ -183,8 +187,8 @@ describe("hardhat-slang downloader", () => {
       path.join(
         tmpDir,
         "compilers-v3",
-        `slang-v${PINNED_VERSION}`,
-        pinnedAsset,
+        `slang-v${LATEST_SLANG_VERSION}`,
+        latestAsset,
       ),
     );
     assert.ok(await exists(binaryPath), "the binary should have been kept");

@@ -48,20 +48,15 @@ async function getSlangVersionFromBinary(binaryPath: string): Promise<string> {
 }
 
 /**
- * Returns the slang release pinned in the config. Config validation already
- * guarantees it is set and known whenever a `type: "slang"` entry needs a
- * download, so both checks are invariants here.
+ * Returns the slang release the config resolved to, pinned or the latest.
+ * Config validation already rejects an unknown release, so that check is an
+ * invariant here.
  */
-function getPinnedRelease(config: HardhatConfig): {
+function getSlangRelease(config: HardhatConfig): {
   version: string;
   release: SlangRelease;
 } {
   const version = config.slang.version;
-  assertHardhatInvariant(
-    version !== undefined,
-    `slang.version is not set — this should have been caught by config validation`,
-  );
-
   const release = SLANG_RELEASES[version];
   assertHardhatInvariant(
     release !== undefined,
@@ -93,7 +88,7 @@ function buildProfileUsesSlang(
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (context, compilerConfigs, quiet) => {
     // Every type: "slang" entry without a custom path shares the single
-    // pinned release, whatever its Solidity version, so there is at most one
+    // slang release, whatever its Solidity version, so there is at most one
     // binary to download.
     const needsDownload = compilerConfigs.some((c) => {
       if (c.type !== SLANG_COMPILER_TYPE) {
@@ -112,7 +107,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       return;
     }
 
-    const { version: slangVersion, release } = getPinnedRelease(context.config);
+    const { version: slangVersion, release } = getSlangRelease(context.config);
 
     const binaryPath = await getSlangBinaryPath(slangVersion, release);
     if (await exists(binaryPath)) {
@@ -155,7 +150,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       return new SlangCompiler(customSlangVersion, compilerConfig.path);
     }
 
-    const { version: slangVersion, release } = getPinnedRelease(context.config);
+    const { version: slangVersion, release } = getSlangRelease(context.config);
 
     const binaryPath = await getSlangBinaryPath(slangVersion, release);
 

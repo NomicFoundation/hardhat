@@ -12,7 +12,7 @@ The `slang` compiler is experimental and is not ready for production use-cases. 
 npm install --save-dev @nomicfoundation/hardhat-slang
 ```
 
-Then add the plugin to your `hardhat.config.ts`, pin a `slang` release, and create a `slang` build profile. You must use the build profiles config format, which requires both a `default` and a `slang` profile:
+Then add the plugin to your `hardhat.config.ts` and create a `slang` build profile. You must use the build profiles config format, which requires both a `default` and a `slang` profile:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
@@ -31,13 +31,10 @@ export default defineConfig({
       },
     },
   },
-  slang: {
-    version: "0.1.0-pre.2026-10-29",
-  },
 });
 ```
 
-The `default` profile uses solc as usual. The `slang` profile uses the slang compiler, identified by `type: "slang"`. The `version` of a `type: "slang"` entry is still the Solidity version, exactly as with solc: Hardhat uses it to resolve pragmas and group files into compilation jobs. Which `slang` binary compiles them is decided separately, by `slang.version`.
+The `default` profile uses solc as usual. The `slang` profile uses the slang compiler, identified by `type: "slang"`. The `version` of a `type: "slang"` entry is still the Solidity version, exactly as with solc: Hardhat uses it to resolve pragmas and group files into compilation jobs. The `slang` release will be the latest available within the plugin, unless you pin a specific version with `slang.version` (see [Pinning a slang release](#pinning-a-slang-release)).
 
 ## Usage
 
@@ -58,9 +55,20 @@ npx hardhat build    # uses solc (default profile)
 
 ### Pinning a slang release
 
-Unlike solc, one `slang` binary compiles a range of Solidity versions (`0.8.x`). The plugin therefore downloads a single release, the one pinned in `slang.version`, and uses it for every `type: "slang"` compiler entry. Each entry's Solidity `version` must fall inside the range supported by the pinned release (see [Supported Solidity versions](#supported-solidity-versions)); anything outside is a validation error.
+Unlike solc, one `slang` binary compiles a range of Solidity versions (`0.8.x`). The plugin therefore downloads a single slang release and uses it for every `type: "slang"` compiler entry.
 
-`slang.version` is required whenever a `type: "slang"` entry needs a download. Entries with a custom `path` (see below) don't.
+By default, that is the latest release available within this version of the plugin: the first row of [Supported Solidity versions](#supported-solidity-versions). Upgrading the plugin can therefore upgrade slang, and your next build recompiles with the new release.
+
+To stay on a specific release of `slang`, pin it with `slang.version`. A pinned release keeps being used even after upgrading the plugin:
+
+```typescript
+export default defineConfig({
+  // ...
+  slang: {
+    version: "0.1.0-pre.2026-10-14",
+  },
+});
+```
 
 ### Multi-version example
 
@@ -76,22 +84,19 @@ export default defineConfig({
       },
       slang: {
         compilers: [
-          { type: "slang", version: "0.8.34" }, // compiled by the pinned slang release
+          { type: "slang", version: "0.8.34" }, // compiled by the slang release
           { type: "slang", version: "0.8.20" }, // same binary, different Solidity version
           { version: "0.7.6" }, // uses solc; outside the slang range
         ],
       },
     },
   },
-  slang: {
-    version: "0.1.0-pre.2026-10-29",
-  },
 });
 ```
 
 ### Options
 
-- `version` (`string`), the slang release to download and compile with. See [Supported Solidity versions](#supported-solidity-versions) for the known releases.
+- `version` (`string`, default: the latest release available in this version of the plugin), pins the slang release to download and compile with. See [Supported Solidity versions](#supported-solidity-versions) for the known releases.
 - `dangerouslyAllowSlangInProduction` (`boolean`, default: `false`), allows compiler type `"slang"` in build profiles other than `slang`. By default, using `type: "slang"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
@@ -110,7 +115,6 @@ export default defineConfig({
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-29",
     dangerouslyAllowSlangInProduction: true,
   },
 });
@@ -160,9 +164,6 @@ export default defineConfig({
       },
     },
   },
-  slang: {
-    version: "0.1.0-pre.2026-10-29",
-  },
 });
 ```
 
@@ -172,8 +173,8 @@ Each slang release supports a range of Solidity versions. A compiler entry's `ve
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
-| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `d95c1150`, 2026-10-29) downloaded from the solx releases mirror. |
-| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the solx releases mirror. |
+| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (tag `d95c1150`, 2026-10-29) downloaded from the releases mirror. |
+| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (tag `5e6ec5e1`, 2026-10-14) downloaded from the releases mirror. |
 
 ### EVM version support
 

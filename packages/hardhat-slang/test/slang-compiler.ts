@@ -9,8 +9,9 @@ import {
   SlangCompiler,
   addSlangStackTraceSelectors,
 } from "../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
 
 // Track calls to the fake spawnCompile
 let spawnCompileCalls: Array<{
@@ -41,16 +42,16 @@ describe("SlangCompiler", () => {
   });
 
   it("implements the Compiler interface", async () => {
-    const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang");
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang");
 
-    assert.equal(compiler.version, PINNED_VERSION);
-    assert.equal(compiler.longVersion, `${PINNED_VERSION}+slang`);
+    assert.equal(compiler.version, LATEST_SLANG_VERSION);
+    assert.equal(compiler.longVersion, `${LATEST_SLANG_VERSION}+slang`);
     assert.equal(compiler.compilerPath, "/path/to/slang");
     assert.equal(compiler.isSolcJs, false);
   });
 
   it("forwards binary path, --standard-json, and the input to spawnCompile", async () => {
-    const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang", {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
       spawnCompile: fakeSpawnCompile,
     });
 
@@ -67,7 +68,7 @@ describe("SlangCompiler", () => {
   });
 
   it("drops the ast output and keeps every other selector", async () => {
-    const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang", {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
       spawnCompile: fakeSpawnCompile,
     });
     const input: CompilerInput = {
@@ -97,7 +98,7 @@ describe("SlangCompiler", () => {
   });
 
   it("returns the output from spawnCompile", async () => {
-    const compiler = new SlangCompiler(PINNED_VERSION, "/path/to/slang", {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
       spawnCompile: fakeSpawnCompile,
     });
 

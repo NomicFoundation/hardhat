@@ -92,7 +92,6 @@ async function createHre(
           slang: slangCompiler,
         },
       },
-      slang: { version: "0.1.0-pre.2026-10-29" },
       plugins: [(await import("../src/index.js")).default],
     },
     { buildProfile },
