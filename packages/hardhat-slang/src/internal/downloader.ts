@@ -77,7 +77,7 @@ export interface DownloadSlangOptions {
  * Downloads the binary of the given slang release if not already cached.
  * Returns the path to the binary on disk.
  *
- * @param slangVersion - The slang version to download (e.g. "0.1.0-pre.2026-10-14")
+ * @param slangVersion - The slang version to download
  * @param release - The release table row for that version
  * @param onBinaryDownloadStart - A callback invoked once the compiler download is about to start
  * @param options - See {@link DownloadSlangOptions}.
