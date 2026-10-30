@@ -5,8 +5,9 @@
 // distinguish this run's tarball from a stale one served out of a
 // package-manager cache on the self-hosted runner; the stamp can.
 //
-// Diagnostic only: emits GitHub warning annotations and always exits 0, so it
-// can never regress the benchmark runner.
+// Emits GitHub warning annotations and exits 0, so it can never regress the
+// benchmark runner. With --strict, any warning exits 1, so a run that may have
+// measured a stale hardhat is not published.
 //
 // Inputs (environment):
 //   BENCH_RUN_STAMP  the stamp embedded before the benchmark
@@ -224,26 +225,32 @@ export function classifyScenario(
 }
 
 // The directory a scenario's clone installs hardhat in: the clone itself, or
-// the scenario's `workingDirectory` inside it. A clone whose scenario.json is
-// missing or unreadable (e.g. a scenario since removed) falls back to the
-// clone itself.
+// the scenario's `workingDirectory` (or a monorepo scenario's `workdir`)
+// inside it. A clone whose scenario.json is missing or unreadable (e.g. a
+// scenario since removed) falls back to the clone itself.
 export function scenarioProjectDir(
   cloneDir: string,
   scenarioJsonPath: string,
 ): string {
   try {
-    const { workingDirectory } = JSON.parse(
+    const { workingDirectory, workdir } = JSON.parse(
       fs.readFileSync(scenarioJsonPath, "utf8"),
     );
-    return typeof workingDirectory === "string"
-      ? path.join(cloneDir, workingDirectory)
+    const projectDir = workingDirectory ?? workdir;
+    return typeof projectDir === "string"
+      ? path.join(cloneDir, projectDir)
       : cloneDir;
   } catch {
     return cloneDir;
   }
 }
 
+const strict = process.argv.includes("--strict");
+
 function warn(message: string): void {
+  if (strict) {
+    process.exitCode = 1;
+  }
   // GitHub annotations render only the first line; collapse for readability.
   console.log(`::warning::${message.replace(/\r?\n/g, " ")}`);
 }
