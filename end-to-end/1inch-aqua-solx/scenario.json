@@ -102,6 +102,12 @@
         "prepare": "./.foundry-solar/forge clean",
         "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false ./.foundry-solar/forge build --skip script --offline"
       },
+      "warm test forge-1.8.5 solar": {
+        "runs": 3,
+        "dependsOn": ["warm forge solar"],
+        "prepare": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false ./.foundry-solar/forge build --skip script --offline",
+        "command": "FOUNDRY_SOLC=./.foundry-solar/solar FOUNDRY_LINT_LINT_ON_BUILD=false FOUNDRY_FUZZ_SEED=0x736f6c782d746573742d657865637574696f6e2d6576616c756174696f6e2e31 ./.foundry-solar/forge test --skip script --offline"
+      },
       "warm test solx-0.1.8": {
         "runs": 3,
         "dependsOn": [
