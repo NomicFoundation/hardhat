@@ -6,6 +6,8 @@ import { describe, it } from "node:test";
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
+
 // Hardhat fills in an EVM version for each Solidity version when the user
 // doesn't set one, and below 0.8.25 that is older than any slang supports.
 // These assert the compiler *input*, without spawning slang. Creating the
@@ -92,7 +94,7 @@ async function createHre(
           slang: slangCompiler,
         },
       },
-      slang: { version: "0.1.0-pre.2026-10-29" },
+      slang: { version: getLatestSlangVersion() },
       plugins: [(await import("../src/index.js")).default],
     },
     { buildProfile },

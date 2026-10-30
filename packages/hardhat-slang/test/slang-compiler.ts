@@ -9,8 +9,9 @@ import {
   SlangCompiler,
   addSlangStackTraceSelectors,
 } from "../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
+const PINNED_VERSION = getLatestSlangVersion();
 
 // Track calls to the fake spawnCompile
 let spawnCompileCalls: Array<{

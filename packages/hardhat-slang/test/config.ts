@@ -15,8 +15,9 @@ import {
   SLANG_DEBUG_INFO_SELECTORS,
   SLANG_DEBUG_SYMBOLS_SELECTORS,
 } from "../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
+const PINNED_VERSION = getLatestSlangVersion();
 const { minSolidity: PINNED_MIN, maxSolidity: PINNED_MAX } =
   SLANG_RELEASES[PINNED_VERSION];
 

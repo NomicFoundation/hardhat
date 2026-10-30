@@ -1,6 +1,7 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
 import HardhatSlangPlugin from "../../../src/index.js";
+import { getLatestSlangVersion } from "../../../src/internal/utils/slang-release-version.js";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -15,7 +16,7 @@ const config: HardhatUserConfig = {
     },
   },
   slang: {
-    version: "0.1.0-pre.2026-10-29",
+    version: getLatestSlangVersion(),
   },
   plugins: [HardhatSlangPlugin],
 };

@@ -29,8 +29,9 @@ import solidityHookHandlers, {
   resetSlangWarning,
 } from "../../src/internal/hook-handlers/solidity.js";
 import { SlangCompiler } from "../../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
+const PINNED_VERSION = getLatestSlangVersion();
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 // Helper to create a compiler config

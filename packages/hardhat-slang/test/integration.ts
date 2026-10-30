@@ -8,6 +8,10 @@ import {
   resolveHardhatConfigPath,
 } from "hardhat/hre";
 
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
+
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+
 describe("hardhat-slang integration", () => {
   useFixtureProject("simple");
 
@@ -20,7 +24,7 @@ describe("hardhat-slang integration", () => {
   it("resolves plugin config through the HRE", async () => {
     const hre = await createHre();
     assert.equal(hre.config.slang.dangerouslyAllowSlangInProduction, false);
-    assert.equal(hre.config.slang.version, "0.1.0-pre.2026-10-29");
+    assert.equal(hre.config.slang.version, LATEST_SLANG_VERSION);
   });
 
   it("resolves plugin config with defaults when not specified", async () => {
@@ -36,7 +40,7 @@ describe("hardhat-slang integration", () => {
           },
         },
       },
-      slang: { version: "0.1.0-pre.2026-10-29" },
+      slang: { version: LATEST_SLANG_VERSION },
       plugins: [(await import("../src/index.js")).default],
     });
 
@@ -60,7 +64,7 @@ describe("hardhat-slang integration", () => {
           },
         },
       },
-      slang: { version: "0.1.0-pre.2026-10-29" },
+      slang: { version: LATEST_SLANG_VERSION },
       plugins: [
         (await import("../src/index.js")).default,
         (await import("@nomicfoundation/hardhat-slang-solx")).default,
@@ -72,7 +76,7 @@ describe("hardhat-slang integration", () => {
       ["slang", "slang-solx", "solc"],
       "both plugins register their compiler type",
     );
-    assert.equal(hre.config.slang.version, "0.1.0-pre.2026-10-29");
+    assert.equal(hre.config.slang.version, LATEST_SLANG_VERSION);
     assert.equal(
       hre.config["slang-solx"].dangerouslyAllowSlangSolxInProduction,
       false,

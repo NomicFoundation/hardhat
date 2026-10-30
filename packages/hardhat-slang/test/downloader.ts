@@ -33,6 +33,7 @@ import {
   getSlangBinaryPath,
 } from "../src/internal/downloader.js";
 import { getSlangAssetName } from "../src/internal/platform.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
 const TEST_SLANG_VERSION = "0.0.1-test";
 
@@ -42,7 +43,7 @@ const TEST_RELEASE: SlangRelease = {
   maxSolidity: "0.8.36",
 };
 
-const PINNED_VERSION = "0.1.0-pre.2026-10-29";
+const PINNED_VERSION = getLatestSlangVersion();
 const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
 
 const BINARY_CONTENTS = "#!/bin/sh\necho slang 0.0.1-test\n";
