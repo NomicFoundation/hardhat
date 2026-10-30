@@ -10,7 +10,10 @@ export interface CellResult {
   peakRssMb?: number;
   /** Taken from the baseline report because the run didn't measure it. */
   fromBaseline?: boolean;
-  /** The run that measured it, recorded by merge-baseline-report.ts. */
+  /**
+   * The run that measured it: recorded by merge-baseline-report.ts for a
+   * baseline cell, or the run being rendered when parseReport is given it.
+   */
   run?: string;
 }
 
@@ -37,16 +40,24 @@ export function cellKey(name: string): string {
  * A cell the report lacks is taken from `baseline` when that has it, marked
  * `fromBaseline`: a quick run measures only a few cells and borrows the rest
  * from the runs that last measured them. Every baseline cell must name that
- * run.
+ * run. `run` is the URL of the run that wrote `entries`; its cells name it.
  */
 export function parseReport(
   entries: BenchmarkEntry[],
   baseline: BenchmarkEntry[] = [],
+  run?: string,
 ): {
   report: SlangReport;
   unparsed: BenchmarkEntry[];
 } {
   const own = groupEntries(entries);
+  if (run !== undefined) {
+    for (const cells of own.report.values()) {
+      for (const result of cells.values()) {
+        result.run ??= run;
+      }
+    }
+  }
   const base = groupEntries(baseline);
   for (const [scenario, cells] of base.report) {
     const ownCells = own.report.get(scenario) ?? new Map<string, CellResult>();
@@ -119,37 +130,62 @@ function groupEntries(entries: BenchmarkEntry[]): {
 
 /**
  * The reference-link label of a run, its URL's last path segment (the run
- * id): a † links `[†][<label>]`, so the URL is written once per table set
- * rather than once per borrowed value.
+ * id): a mark links `[†][<label>]`, so the URL is written once per table set
+ * rather than once per value.
  */
 export function runLabel(run: string): string {
   return run.replace(/\/+$/, "").split("/").at(-1) ?? run;
 }
 
 /**
- * The † footnote for the borrowed cells of `report`, followed by the link
- * definitions their labels need; empty when nothing was borrowed.
+ * The run behind a value derived from `results`: † and the first borrowed
+ * cell's run when any is borrowed, else ‡ and the run being rendered; empty
+ * when no cell names a run.
  */
-export function baselineFootnote(report: SlangReport): string[] {
-  const runs = new Set<string>();
+export function runMark(...results: Array<CellResult | undefined>): string {
+  const borrowed = results.find((r) => r?.fromBaseline === true);
+  if (borrowed !== undefined) {
+    return `[†][${runLabel(borrowed.run!)}]`;
+  }
+  const own = results.find((r) => r?.run !== undefined);
+  return own === undefined ? "" : `[‡][${runLabel(own.run!)}]`;
+}
+
+/**
+ * The ‡ and † footnotes for the runs `report`'s cells name, followed by the
+ * link definitions their labels need; empty when no cell names a run.
+ */
+export function runFootnotes(report: SlangReport): string[] {
+  const own = new Set<string>();
+  const borrowed = new Set<string>();
   for (const cells of report.values()) {
     for (const result of cells.values()) {
-      if (result.fromBaseline === true && result.run !== undefined) {
-        runs.add(result.run);
+      if (result.run !== undefined) {
+        (result.fromBaseline === true ? borrowed : own).add(result.run);
       }
     }
   }
-  if (runs.size === 0) {
-    return [];
+  const labels = (runs: Set<string>) =>
+    [...runs]
+      .sort()
+      .map((r) => `[${runLabel(r)}]`)
+      .join(", ");
+  const lines: string[] = [];
+  if (own.size > 0) {
+    lines.push(`‡ measured in this run: ${labels(own)}.`, "");
   }
-  const sorted = [...runs].sort();
-  return [
-    "† taken from the baseline, not measured in this run; each † links the " +
-      `run that measured it: ${sorted.map((r) => `[${runLabel(r)}]`).join(", ")}.`,
-    "",
-    ...sorted.map((r) => `[${runLabel(r)}]: ${r}`),
-    "",
-  ];
+  if (borrowed.size > 0) {
+    lines.push(
+      "† taken from the baseline, not measured in this run; each † links the " +
+        `run that measured it: ${labels(borrowed)}.`,
+      "",
+    );
+  }
+  const all = [...new Set([...own, ...borrowed])].sort();
+  if (all.length > 0) {
+    lines.push(...all.map((r) => `[${runLabel(r)}]: ${r}`), "");
+  }
+  return lines;
 }
 
 /**

@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type { BenchmarkEntry } from "./helpers/entries.ts";
 import {
-  baselineFootnote,
   parseReport,
-  runLabel,
+  runFootnotes,
+  runMark,
   speedup,
   type CellResult,
 } from "./helpers/slang-report.ts";
@@ -26,7 +26,8 @@ DESCRIPTION
 
 OPTIONS
   --report <path>    Required. Report JSON to render
-  --run-url <url>    Link to the producing workflow run
+  --run-url <url>    Link to the producing workflow run; its values are
+                     marked ‡ with a link to it
   --head-sha <sha>   Commit the run measured
   --status <status>  Producing job status; anything but "success" adds a
                      partial-results warning
@@ -97,12 +98,6 @@ function seconds(n: number | undefined): string {
   return n === undefined ? "—" : n.toFixed(1);
 }
 
-// Marks a value taken from the baseline, linking the run that measured it.
-function mark(...results: Array<CellResult | undefined>): string {
-  const borrowed = results.find((r) => r?.fromBaseline === true);
-  return borrowed === undefined ? "" : `[†][${runLabel(borrowed.run!)}]`;
-}
-
 function cellRow(
   label: string,
   r: CellResult,
@@ -111,8 +106,8 @@ function cellRow(
   const vs =
     slang === undefined || slang === r
       ? ""
-      : `${speedup(r, slang)}${mark(r, slang)}`;
-  return `| ${label} | ${seconds(r.wall)}${mark(r)} | ${seconds(r.cpu)} | ${
+      : `${speedup(r, slang)}${runMark(r, slang)}`;
+  return `| ${label} | ${seconds(r.wall)}${runMark(r)} | ${seconds(r.cpu)} | ${
     r.peakRssMb === undefined ? "—" : r.peakRssMb.toFixed(0)
   } | ${r.runs} | ${vs} |`;
 }
@@ -146,7 +141,7 @@ export function renderSlangTables(
     baseline?: BenchmarkEntry[];
   } = {},
 ): string {
-  const { report, unparsed } = parseReport(entries, opts.baseline);
+  const { report, unparsed } = parseReport(entries, opts.baseline, opts.runUrl);
 
   const lines: string[] = [COMMENT_MARKER, "## slang benchmarks", ""];
   if (opts.status !== undefined && opts.status !== "success") {
@@ -218,7 +213,7 @@ export function renderSlangTables(
   }
 
   lines.push(...FOOTNOTES.map((f) => `${f}\n`));
-  lines.push(...baselineFootnote(report));
+  lines.push(...runFootnotes(report));
 
   if (unparsed.length > 0) {
     lines.push(

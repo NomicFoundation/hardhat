@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type { BenchmarkEntry } from "./helpers/entries.ts";
 import {
-  baselineFootnote,
   parseReport,
-  runLabel,
+  runFootnotes,
+  runMark,
   speedup,
   type CellResult,
   type SlangReport,
@@ -127,15 +127,9 @@ interface Row {
   inTotal: boolean;
 }
 
-// Marks a value taken from the baseline, linking the run that measured it.
-function mark(...results: Array<CellResult | undefined>): string {
-  const borrowed = results.find((r) => r?.fromBaseline === true);
-  return borrowed === undefined ? "" : `[†][${runLabel(borrowed.run!)}]`;
-}
-
 function wallText(r: CellResult | undefined, note: string | undefined): string {
   if (r !== undefined) {
-    return `${r.wall.toFixed(1)}s${mark(r)}`;
+    return `${r.wall.toFixed(1)}s${runMark(r)}`;
   }
   return note ?? "not measured";
 }
@@ -262,7 +256,7 @@ function renderTable(
     const vs = (base: CellResult | undefined) =>
       base === undefined || r.slang === undefined
         ? "-"
-        : `${speedup(base, r.slang)}${mark(base, r.slang)}`;
+        : `${speedup(base, r.slang)}${runMark(base, r.slang)}`;
     const cols = solx
       ? [
           wallText(r.solc, r.notes.solc),
@@ -301,7 +295,7 @@ export function renderSlangBlogTables(
   ];
 
   lines.push(...renderBlogSections(report));
-  lines.push(...baselineFootnote(report));
+  lines.push(...runFootnotes(report));
   return lines.join("\n");
 }
 

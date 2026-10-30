@@ -61,4 +61,5 @@ Dispatch **Slang Regression Benchmark** on the branch, then copy its
   the merged artifact is still produced.
 - PR runs measure only slang and solx-0.1.8 and borrow every other cell from
   the baseline. Each borrowed value's † links the run that measured it,
-  which `merge-baseline-report.ts` records per cell.
+  which `merge-baseline-report.ts` records per cell; each value the PR run
+  measured itself is marked ‡ with a link to that run.

@@ -141,6 +141,35 @@ describe("renderSlangTables", () => {
     );
   });
 
+  it("links every value to the run that measured it", () => {
+    const md = renderSlangTables(
+      [
+        wall("uniswap-v4-core-solx / cold compile slang", 2),
+        wall("uniswap-v4-core-solx / cold compile solx-0.1.8", 11),
+      ],
+      {
+        runUrl: "https://example.com/runs/200",
+        baseline: [
+          measuredIn(
+            wall("uniswap-v4-core-solx / cold compile solc via-ir", 75),
+            "https://example.com/runs/100",
+          ),
+        ],
+      },
+    );
+    assert.match(
+      md,
+      /\| Uniswap v4 \| 75\.0s\[†\]\[100\] \| not measured \| 2\.0s\[‡\]\[200\] \| 37\.5x\[†\]\[100\] \|/,
+    );
+    assert.match(
+      md,
+      /\| cold compile solx-0\.1\.8 \| 11\.0\[‡\]\[200\] \|.*\| 5\.5x\[‡\]\[200\] \|/,
+    );
+    assert.match(md, /^‡ measured in this run: \[200\]\.$/m);
+    assert.match(md, /^\[100\]: https:\/\/example\.com\/runs\/100$/m);
+    assert.match(md, /^\[200\]: https:\/\/example\.com\/runs\/200$/m);
+  });
+
   it("gives run counts per cell, not per scenario", () => {
     const single = {
       ...wall("lidofinance-core-solx / cold test slang", 104),
