@@ -742,7 +742,7 @@ describe("hardhat-slang Solidity version validation", () => {
     assert.equal(errors.length, 1, "exactly one error is expected");
     assert.equal(
       errors[0].message,
-      `Solidity version 0.7.6 is not supported by slang ${LATEST_SLANG_VERSION} (the latest release; set slang.version to use another), which supports versions from ${LATEST_MIN} to ${LATEST_MAX}`,
+      `Solidity version 0.7.6 is not supported by slang ${LATEST_SLANG_VERSION}, which supports versions from ${LATEST_MIN} to ${LATEST_MAX}`,
     );
   });
 

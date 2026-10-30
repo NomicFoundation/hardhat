@@ -209,7 +209,7 @@ const slangUserConfigType = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [...path, "version"],
-          message: `Solidity version ${version} is not supported by slang ${slangVersion}${pinnedVersion === undefined ? " (the latest release; set slang.version to use another)" : ""}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
+          message: `Solidity version ${version} is not supported by slang ${slangVersion}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
         });
       }
     }
