@@ -31,8 +31,8 @@ import solidityHookHandlers, {
 import { SlangCompiler } from "../../src/internal/slang-compiler.js";
 import { getLatestSlangVersion } from "../../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = getLatestSlangVersion();
-const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+const LATEST_SLANG_RELEASE = SLANG_RELEASES[LATEST_SLANG_VERSION];
 
 // Helper to create a compiler config
 function createSolidityCompilerConfig(
@@ -49,7 +49,9 @@ function createSolidityCompilerConfig(
 }
 
 // A hook context whose config pins the given slang release, or none for null
-function createContext(slangVersion: string | null = PINNED_VERSION): any {
+function createContext(
+  slangVersion: string | null = LATEST_SLANG_VERSION,
+): any {
   return { config: { slang: { version: slangVersion ?? undefined } } };
 }
 
@@ -131,10 +133,13 @@ describe("hardhat-slang solidity hook handler", () => {
     await safeRemoveTmpDir(tmpDir);
   });
 
-  // Puts a fake binary where the downloader would cache the pinned prerelease, so
+  // Puts a fake binary where the downloader would cache the latest release, so
   // the hooks take their cached path and never reach the network.
   async function cacheFakePinnedBinary(): Promise<string> {
-    const binaryPath = await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE);
+    const binaryPath = await getSlangBinaryPath(
+      LATEST_SLANG_VERSION,
+      LATEST_SLANG_RELEASE,
+    );
     await ensureDir(path.dirname(binaryPath));
     await writeFile(binaryPath, "#!/bin/sh\necho fake slang\n");
     return binaryPath;
@@ -163,7 +168,9 @@ describe("hardhat-slang solidity hook handler", () => {
       await hooks.downloadCompilers!(createContext(null), configs, true);
 
       assert.equal(
-        await exists(await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)),
+        await exists(
+          await getSlangBinaryPath(LATEST_SLANG_VERSION, LATEST_SLANG_RELEASE),
+        ),
         false,
         "nothing should have been downloaded",
       );
@@ -184,7 +191,9 @@ describe("hardhat-slang solidity hook handler", () => {
       await hooks.downloadCompilers!(createContext(null), configs, true);
 
       assert.equal(
-        await exists(await getSlangBinaryPath(PINNED_VERSION, PINNED_RELEASE)),
+        await exists(
+          await getSlangBinaryPath(LATEST_SLANG_VERSION, LATEST_SLANG_RELEASE),
+        ),
         false,
         "nothing should have been downloaded",
       );
@@ -288,8 +297,8 @@ describe("hardhat-slang solidity hook handler", () => {
         "next should NOT have been called for slang type",
       );
       assert.equal(compiler.compilerPath, binaryPath);
-      assert.equal(compiler.version, PINNED_VERSION);
-      assert.equal(compiler.longVersion, `${PINNED_VERSION}+slang`);
+      assert.equal(compiler.version, LATEST_SLANG_VERSION);
+      assert.equal(compiler.longVersion, `${LATEST_SLANG_VERSION}+slang`);
       assert.equal(compiler.isSolcJs, false);
     });
 
@@ -303,8 +312,8 @@ describe("hardhat-slang solidity hook handler", () => {
       const mockNext = createGetCompilerMockNext();
 
       const binaryPath = await getSlangBinaryPath(
-        PINNED_VERSION,
-        PINNED_RELEASE,
+        LATEST_SLANG_VERSION,
+        LATEST_SLANG_RELEASE,
       );
 
       await assertRejectsWithHardhatError(
@@ -394,8 +403,8 @@ describe("hardhat-slang solidity hook handler", () => {
       // Use the real prerelease binary if it is in the global cache, skip otherwise
       resetMockCacheDir();
       const cachedPath = await getSlangBinaryPath(
-        PINNED_VERSION,
-        PINNED_RELEASE,
+        LATEST_SLANG_VERSION,
+        LATEST_SLANG_RELEASE,
       );
       if (!(await exists(cachedPath))) {
         return;

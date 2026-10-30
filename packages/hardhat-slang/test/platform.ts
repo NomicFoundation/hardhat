@@ -10,8 +10,8 @@ import {
 } from "../src/internal/platform.js";
 import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = getLatestSlangVersion();
-const PINNED_RELEASE = SLANG_RELEASES[PINNED_VERSION];
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+const LATEST_SLANG_RELEASE = SLANG_RELEASES[LATEST_SLANG_VERSION];
 
 // A release served by the mirror under the standard `v${version}` naming.
 const MIRROR_RELEASE: SlangRelease = {
@@ -55,14 +55,14 @@ describe("hardhat-slang platform detection", () => {
     );
   });
 
-  it("names the pinned prerelease's asset with its override suffix instead of the version", () => {
-    const assetSuffix = PINNED_RELEASE.assetOverride?.assetSuffix;
+  it("names the latest release's asset with its override suffix instead of the version", () => {
+    const assetSuffix = LATEST_SLANG_RELEASE.assetOverride?.assetSuffix;
     assert.ok(
       assetSuffix !== undefined,
-      "the pinned prerelease row must carry an asset override",
+      "the latest release row must carry an asset override",
     );
     assert.equal(
-      getSlangAssetName(PINNED_VERSION, PINNED_RELEASE),
+      getSlangAssetName(LATEST_SLANG_VERSION, LATEST_SLANG_RELEASE),
       `${getSlangBinaryBaseName()}-${assetSuffix}${EXE}`,
     );
   });

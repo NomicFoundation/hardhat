@@ -17,13 +17,13 @@ import {
 } from "../src/internal/slang-compiler.js";
 import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
 
-const PINNED_VERSION = getLatestSlangVersion();
-const { minSolidity: PINNED_MIN, maxSolidity: PINNED_MAX } =
-  SLANG_RELEASES[PINNED_VERSION];
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+const { minSolidity: LATEST_MIN, maxSolidity: LATEST_MAX } =
+  SLANG_RELEASES[LATEST_SLANG_VERSION];
 
 /**
  * A user config with a `slang` build profile holding the given compiler
- * entries, pinned to the slang prerelease unless told otherwise. Pass
+ * entries, pinned to the latest slang release unless told otherwise. Pass
  * `slangVersion: null` to leave `slang.version` out entirely.
  */
 function slangProfileConfig(
@@ -33,7 +33,7 @@ function slangProfileConfig(
     slangVersion?: string | null;
   } = {},
 ): HardhatUserConfig {
-  const { overrides, slangVersion = PINNED_VERSION } = options;
+  const { overrides, slangVersion = LATEST_SLANG_VERSION } = options;
   return {
     solidity: {
       profiles: {
@@ -88,7 +88,7 @@ describe("hardhat-slang plugin config validation", () => {
 
   it("accepts a known slang.version", async () => {
     const errors = await validateUserConfig({
-      slang: { version: PINNED_VERSION },
+      slang: { version: LATEST_SLANG_VERSION },
     });
     assert.deepEqual(errors, []);
   });
@@ -101,7 +101,7 @@ describe("hardhat-slang plugin config validation", () => {
     assert.deepEqual(errors[0].path, ["slang", "version"]);
     assert.match(errors[0].message, /Unknown slang version "9\.9\.9"/);
     assert.ok(
-      errors[0].message.includes(PINNED_VERSION),
+      errors[0].message.includes(LATEST_SLANG_VERSION),
       `the error should list the known releases, got: ${errors[0].message}`,
     );
   });
@@ -174,7 +174,7 @@ describe("hardhat-slang plugin config resolution", () => {
 
   it("resolves the pinned slang.version from user config", async () => {
     const resolvedConfig = await resolveUserConfig(
-      { slang: { version: PINNED_VERSION } },
+      { slang: { version: LATEST_SLANG_VERSION } },
       undefined as any,
       makeNext({
         default: {
@@ -186,7 +186,7 @@ describe("hardhat-slang plugin config resolution", () => {
       }),
     );
 
-    assert.equal(resolvedConfig.slang.version, PINNED_VERSION);
+    assert.equal(resolvedConfig.slang.version, LATEST_SLANG_VERSION);
   });
 
   it("registers 'slang' as a compiler type", async () => {
@@ -375,7 +375,7 @@ describe("hardhat-slang plugin config resolution", () => {
 
   it("augments every slang-typed compiler when several Solidity versions use slang", async () => {
     const resolvedConfig = await resolveUserConfig(
-      { slang: { version: PINNED_VERSION } },
+      { slang: { version: LATEST_SLANG_VERSION } },
       undefined as any,
       makeNext({
         slang: {
@@ -665,7 +665,7 @@ describe("hardhat-slang Solidity version validation", () => {
     assert.deepEqual(errors[0].path, ["slang", "version"]);
     assert.match(errors[0].message, /slang\.version is required/);
     assert.ok(
-      errors[0].message.includes(PINNED_VERSION),
+      errors[0].message.includes(LATEST_SLANG_VERSION),
       `the error should list the known releases, got: ${errors[0].message}`,
     );
   });
@@ -687,16 +687,16 @@ describe("hardhat-slang Solidity version validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it(`accepts the lowest Solidity version of the pinned prerelease, ${PINNED_MIN}`, async () => {
+  it(`accepts the lowest Solidity version of the latest release, ${LATEST_MIN}`, async () => {
     const errors = await validateUserConfig(
-      slangProfileConfig([{ version: PINNED_MIN, type: "slang" }]),
+      slangProfileConfig([{ version: LATEST_MIN, type: "slang" }]),
     );
     assert.deepEqual(errors, []);
   });
 
-  it(`accepts the highest Solidity version of the pinned prerelease, ${PINNED_MAX}`, async () => {
+  it(`accepts the highest Solidity version of the latest release, ${LATEST_MAX}`, async () => {
     const errors = await validateUserConfig(
-      slangProfileConfig([{ version: PINNED_MAX, type: "slang" }]),
+      slangProfileConfig([{ version: LATEST_MAX, type: "slang" }]),
     );
     assert.deepEqual(errors, []);
   });
@@ -724,7 +724,7 @@ describe("hardhat-slang Solidity version validation", () => {
     assert.match(
       errors[0].message,
       new RegExp(
-        `0\\.7\\.6 is not supported by slang ${PINNED_VERSION}.*${PINNED_MIN}.*${PINNED_MAX}`,
+        `0\\.7\\.6 is not supported by slang ${LATEST_SLANG_VERSION}.*${LATEST_MIN}.*${LATEST_MAX}`,
       ),
     );
   });
@@ -779,7 +779,7 @@ describe("hardhat-slang Solidity version validation", () => {
           slang: { type: "slang", version: "0.7.6" },
         },
       },
-      slang: { version: PINNED_VERSION },
+      slang: { version: LATEST_SLANG_VERSION },
     });
     const paths = rangeErrors(errors).map((e) => e.path);
     assert.deepEqual(paths, [["solidity", "profiles", "slang", "version"]]);
@@ -790,7 +790,7 @@ describe("hardhat-slang Solidity version validation", () => {
       solidity: {
         compilers: [{ type: "slang", version: "0.7.6" }],
       },
-      slang: { version: PINNED_VERSION },
+      slang: { version: LATEST_SLANG_VERSION },
     });
     const paths = rangeErrors(errors).map((e) => e.path);
     assert.deepEqual(paths, [["solidity", "compilers", 0, "version"]]);
@@ -915,7 +915,7 @@ describe("hardhat-slang resolved config validation", () => {
         registeredCompilerTypes: ["solc", "slang"],
       },
       slang: {
-        version: PINNED_VERSION,
+        version: LATEST_SLANG_VERSION,
         dangerouslyAllowSlangInProduction:
           opts?.dangerouslyAllowSlangInProduction ?? false,
       },
