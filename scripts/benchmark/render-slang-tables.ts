@@ -175,17 +175,16 @@ export function renderSlangTables(
 
   lines.push(
     "forge solar = forge 1.8.5 building with the solar its release ships: " +
-      "experimental codegen, one pipeline, lint-on-build off. Compile tables " +
-      "only.",
+      "experimental codegen, one pipeline, lint-on-build off. Its test " +
+      "column is filled only where the whole Foundry suite passes under it.",
     "",
   );
   lines.push(...renderBlogSections(report, { solx: true, forgeSolar: true }));
 
   for (const id of [...report.keys()].sort()) {
     const cells = report.get(id)!;
-    const runs = [...cells.values()][0]?.runs;
     lines.push(
-      `### ${id}${runs === undefined ? "" : ` <sub>(${runs} run${runs === 1 ? "" : "s"}/cell)</sub>`}`,
+      `### ${id}`,
       "",
       "| cell | wall s | CPU s | peak RSS MB | runs | slang speedup |",
       "|---|---|---|---|---|---|",

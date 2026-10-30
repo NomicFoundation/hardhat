@@ -141,6 +141,29 @@ describe("renderSlangTables", () => {
     );
   });
 
+  it("gives run counts per cell, not per scenario", () => {
+    const single = {
+      ...wall("lidofinance-core-solx / cold test slang", 104),
+      extra: JSON.stringify({ times: [104] }),
+    };
+    const md = renderSlangTables([
+      wall("lidofinance-core-solx / cold compile slang", 40),
+      single,
+    ]);
+    assert.match(md, /^### lidofinance-core-solx\n/m);
+    assert.match(md, /\| cold compile slang \| 40\.0 \| — \| — \| 3 \|/);
+    assert.match(md, /\| cold test slang \| 104\.0 \| — \| — \| 1 \|/);
+  });
+
+  it("says where forge + solar's test column is filled", () => {
+    const md = renderSlangTables(entries);
+    assert.doesNotMatch(md, /Compile tables only/);
+    assert.match(
+      md,
+      /test column is filled only where the whole Foundry suite passes/,
+    );
+  });
+
   it("points lido-vaults' test rows at lido-core", () => {
     const vaults = renderSlangTables([
       wall("lidofinance-vaults-solx / cold compile solc via-ir", 16),
