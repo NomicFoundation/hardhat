@@ -46,6 +46,25 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_PINN
 rm -rf "$WORKDIR/.foundry-solar"
 node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version "$FORGE_SOLAR_PINNED_VERSION" --with-solar --out "$WORKDIR/.foundry-solar/forge"
 
+# Take TWAPSwapTest#test_TWAP_CumulativeSoldTracking_Multiple_Swaps out of
+# test discovery for every compiler (rename: not test-prefixed => neither EDR
+# nor forge runs it). It caches block.timestamp in a local and warps relative
+# to it; solc via-IR re-reads TIMESTAMP after each vm.warp, so its warps
+# compound, and the expected amounts only hold under that. slang keeps the
+# local and warps where the source says, so the trade misses its minimum.
+node -e '
+const fs = require("fs");
+const p = "test/TWAPSwap.t.sol";
+let s = fs.readFileSync(p, "utf8");
+const anchor = "function test_TWAP_CumulativeSoldTracking_Multiple_Swaps(";
+if (s.split(anchor).length !== 2) {
+  console.error("1inch-swap-vm preinstall: expected exactly one test_TWAP_CumulativeSoldTracking_Multiple_Swaps in " + p + " — the pinned commit may have changed");
+  process.exit(1);
+}
+fs.writeFileSync(p, s.replace(anchor, "function skip_TWAP_CumulativeSoldTracking_Multiple_Swaps("));
+console.log("1inch-swap-vm preinstall: renamed TWAPSwapTest#test_TWAP_CumulativeSoldTracking_Multiple_Swaps out of discovery");
+'
+
 # Prime-step helper for the @1inch dependency pragmas — see its header.
 cp "$E2E_TEST_DIR/relax-dep-pragmas.cjs" "$WORKDIR/relax-dep-pragmas.cjs"
 
