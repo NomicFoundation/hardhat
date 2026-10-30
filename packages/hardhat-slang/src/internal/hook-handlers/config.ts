@@ -37,6 +37,7 @@ import {
   SUPPORTED_SLANG_OPTIMIZER_MODES,
 } from "../constants.js";
 import { addSlangStackTraceSelectors } from "../slang-compiler.js";
+import { getLatestSlangVersion } from "../utils/slang-release-version.js";
 
 const log = createDebug("hardhat:slang:hook-handlers:config");
 
@@ -196,16 +197,8 @@ const slangUserConfigType = z
     }
 
     const pinnedVersion = config.slang?.version;
-    if (pinnedVersion === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["slang", "version"],
-        message: `slang.version is required when a compiler entry uses type: "${SLANG_COMPILER_TYPE}" without a custom path. Known slang releases: ${KNOWN_SLANG_VERSIONS.join(", ")}`,
-      });
-      return;
-    }
-
-    const release = SLANG_RELEASES[pinnedVersion];
+    const slangVersion = pinnedVersion ?? getLatestSlangVersion();
+    const release = SLANG_RELEASES[slangVersion];
     if (release === undefined) {
       // Already reported by slangVersionType.
       return;
@@ -216,7 +209,7 @@ const slangUserConfigType = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [...path, "version"],
-          message: `Solidity version ${version} is not supported by slang ${pinnedVersion}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
+          message: `Solidity version ${version} is not supported by slang ${slangVersion}${pinnedVersion === undefined ? " (the latest release; set slang.version to use another)" : ""}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
         });
       }
     }
@@ -225,7 +218,7 @@ const slangUserConfigType = z
 interface SlangEntry {
   version: string;
   solidityVersion: unknown;
-  /** Whether the entry brings its own binary instead of the pinned release. */
+  /** Whether the entry brings its own binary instead of the slang release. */
   hasCustomPath: boolean;
   path: Array<string | number>;
 }
@@ -494,7 +487,7 @@ export async function validateResolvedConfig(
 
 function resolveSlangConfig(userConfig?: SlangUserConfig): SlangConfig {
   return {
-    version: userConfig?.version,
+    version: userConfig?.version ?? getLatestSlangVersion(),
     dangerouslyAllowSlangInProduction:
       userConfig?.dangerouslyAllowSlangInProduction ?? false,
   };

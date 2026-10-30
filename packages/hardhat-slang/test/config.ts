@@ -21,10 +21,15 @@ const LATEST_SLANG_VERSION = getLatestSlangVersion();
 const { minSolidity: LATEST_MIN, maxSolidity: LATEST_MAX } =
   SLANG_RELEASES[LATEST_SLANG_VERSION];
 
+// A release other than the latest, to check that a pin is honoured
+const OLDER_SLANG_VERSION = Object.keys(SLANG_RELEASES).find(
+  (version) => version !== LATEST_SLANG_VERSION,
+);
+
 /**
  * A user config with a `slang` build profile holding the given compiler
  * entries, pinned to the latest slang release unless told otherwise. Pass
- * `slangVersion: null` to leave `slang.version` out entirely.
+ * `slangVersion: null` to leave `slang.version` out and use the default.
  */
 function slangProfileConfig(
   compilers: any[],
@@ -137,7 +142,7 @@ describe("hardhat-slang plugin config resolution", () => {
     });
   }
 
-  it("resolves with defaults when no plugin config provided", async () => {
+  it("resolves with defaults, including the latest slang release, when no plugin config provided", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -152,7 +157,7 @@ describe("hardhat-slang plugin config resolution", () => {
     );
 
     assert.equal(resolvedConfig.slang.dangerouslyAllowSlangInProduction, false);
-    assert.equal(resolvedConfig.slang.version, undefined);
+    assert.equal(resolvedConfig.slang.version, LATEST_SLANG_VERSION);
   });
 
   it("resolves dangerouslyAllowSlangInProduction from user config", async () => {
@@ -187,6 +192,28 @@ describe("hardhat-slang plugin config resolution", () => {
     );
 
     assert.equal(resolvedConfig.slang.version, LATEST_SLANG_VERSION);
+  });
+
+  it("keeps a pinned slang.version older than the latest release", async () => {
+    assert.ok(
+      OLDER_SLANG_VERSION !== undefined,
+      "the release table should have a release other than the latest",
+    );
+
+    const resolvedConfig = await resolveUserConfig(
+      { slang: { version: OLDER_SLANG_VERSION } },
+      undefined as any,
+      makeNext({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", settings: {} }],
+          overrides: {},
+        },
+      }),
+    );
+
+    assert.equal(resolvedConfig.slang.version, OLDER_SLANG_VERSION);
   });
 
   it("registers 'slang' as a compiler type", async () => {
@@ -655,34 +682,11 @@ describe("hardhat-slang EVM version validation", () => {
 });
 
 describe("hardhat-slang Solidity version validation", () => {
-  it("rejects type: 'slang' entries when slang.version is missing", async () => {
+  it("accepts type: 'slang' entries without slang.version", async () => {
     const errors = await validateUserConfig(
       slangProfileConfig([{ version: "0.8.34", type: "slang" }], {
         slangVersion: null,
       }),
-    );
-    assert.equal(errors.length, 1, "exactly one error is expected");
-    assert.deepEqual(errors[0].path, ["slang", "version"]);
-    assert.match(errors[0].message, /slang\.version is required/);
-    assert.ok(
-      errors[0].message.includes(LATEST_SLANG_VERSION),
-      `the error should list the known releases, got: ${errors[0].message}`,
-    );
-  });
-
-  it("does not require slang.version when every slang entry has a custom path", async () => {
-    const errors = await validateUserConfig(
-      slangProfileConfig(
-        [{ version: "0.8.34", type: "slang", path: "/tmp/slang-custom" }],
-        { slangVersion: null },
-      ),
-    );
-    assert.deepEqual(errors, []);
-  });
-
-  it("does not require slang.version when no entry uses type: 'slang'", async () => {
-    const errors = await validateUserConfig(
-      slangProfileConfig([{ version: "0.8.34" }], { slangVersion: null }),
     );
     assert.deepEqual(errors, []);
   });
@@ -726,6 +730,19 @@ describe("hardhat-slang Solidity version validation", () => {
       new RegExp(
         `0\\.7\\.6 is not supported by slang ${LATEST_SLANG_VERSION}.*${LATEST_MIN}.*${LATEST_MAX}`,
       ),
+    );
+  });
+
+  it("checks the range of the latest release when slang.version isn't set", async () => {
+    const errors = await validateUserConfig(
+      slangProfileConfig([{ version: "0.7.6", type: "slang" }], {
+        slangVersion: null,
+      }),
+    );
+    assert.equal(errors.length, 1, "exactly one error is expected");
+    assert.equal(
+      errors[0].message,
+      `Solidity version 0.7.6 is not supported by slang ${LATEST_SLANG_VERSION} (the latest release; set slang.version to use another), which supports versions from ${LATEST_MIN} to ${LATEST_MAX}`,
     );
   });
 

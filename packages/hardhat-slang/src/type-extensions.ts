@@ -48,7 +48,8 @@ declare module "hardhat/types/config" {
      * with `type: "slang"` and no custom `path` uses this one binary, and its
      * Solidity `version` must fall inside the release's supported range.
      *
-     * Required when any such entry exists.
+     * Defaults to the latest release this plugin version records. Set it to stay
+     * on a release across plugin upgrades.
      */
     version?: string;
 
@@ -61,10 +62,10 @@ declare module "hardhat/types/config" {
 
   export interface SlangConfig {
     /**
-     * The pinned slang release, or `undefined` when the user didn't set one
-     * (only valid when no `type: "slang"` entry needs a download).
+     * The slang release to use: the one the user pinned, or the latest release
+     * this plugin version records.
      */
-    version: string | undefined;
+    version: string;
     dangerouslyAllowSlangInProduction: boolean;
   }
 

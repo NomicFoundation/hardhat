@@ -48,7 +48,8 @@ function createSolidityCompilerConfig(
   };
 }
 
-// A hook context whose config pins the given slang release, or none for null
+// A hook context whose config uses the given slang release. null leaves it
+// unset, which resolved configs no longer do, to show a hook never reads it.
 function createContext(
   slangVersion: string | null = LATEST_SLANG_VERSION,
 ): any {
@@ -215,23 +216,6 @@ describe("hardhat-slang solidity hook handler", () => {
       assert.equal(configs[0].path, undefined, "paths must not be mutated");
       assert.equal(configs[1].path, undefined, "paths must not be mutated");
     });
-
-    it("throws an invariant error when slang.version isn't pinned but a download is needed", async () => {
-      const hooks = await solidityHookHandlers();
-
-      const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig({ type: "slang", version: "0.8.34" }),
-      ];
-
-      await assertRejectsWithHardhatError(
-        hooks.downloadCompilers!(createContext(null), configs, true),
-        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
-        {
-          message:
-            "slang.version is not set — this should have been caught by config validation",
-        },
-      );
-    });
   });
 
   describe("getCompiler", () => {
@@ -321,25 +305,6 @@ describe("hardhat-slang solidity hook handler", () => {
         HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: `slang binary not found at ${binaryPath} — downloadCompilers should have been called first`,
-        },
-      );
-    });
-
-    it("throws an invariant error when slang.version isn't pinned", async () => {
-      const hooks = await solidityHookHandlers();
-
-      const compilerConfig = createSolidityCompilerConfig({
-        type: "slang",
-        version: "0.8.34",
-      });
-      const mockNext = createGetCompilerMockNext();
-
-      await assertRejectsWithHardhatError(
-        hooks.getCompiler!(createContext(null), compilerConfig, mockNext.next),
-        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
-        {
-          message:
-            "slang.version is not set — this should have been caught by config validation",
         },
       );
     });

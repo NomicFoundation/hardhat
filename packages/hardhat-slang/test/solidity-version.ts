@@ -64,7 +64,6 @@ describe(
       // The same input at a version below the pragma must be refused, which
       // only happens if the binary compiles at settings.solidityVersion.
       const slangVersion = hre.config.slang.version;
-      assert.ok(slangVersion !== undefined, "the fixture pins slang.version");
       const release = SLANG_RELEASES[slangVersion];
       const compiler = new SlangCompiler(
         slangVersion,

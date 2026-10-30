@@ -40,11 +40,11 @@ describe("hardhat-slang integration", () => {
           },
         },
       },
-      slang: { version: LATEST_SLANG_VERSION },
       plugins: [(await import("../src/index.js")).default],
     });
 
     assert.equal(hre.config.slang.dangerouslyAllowSlangInProduction, false);
+    assert.equal(hre.config.slang.version, LATEST_SLANG_VERSION);
   });
 
   it("coexists with hardhat-slang-solx in the same config", async () => {
@@ -64,7 +64,6 @@ describe("hardhat-slang integration", () => {
           },
         },
       },
-      slang: { version: LATEST_SLANG_VERSION },
       plugins: [
         (await import("../src/index.js")).default,
         (await import("@nomicfoundation/hardhat-slang-solx")).default,
