@@ -65,6 +65,10 @@ export const CELL_NOTES: Record<string, string> = {
   "warm test aave-v4-solx|slang": "not run⁴",
   "warm test aave-v4-solx|solc via-ir": "✗ tests do not compile⁵",
   "cold compile lidofinance-core-solx|forge-1.8.5 solar": "n/a⁶",
+  "warm test 1inch-swap-vm-solx|forge-1.8.5 solar": "✗ 1 test runs out of gas⁷",
+  "warm test aave-v4-solx|forge-1.8.5 solar": "✗ 208 tests fail⁷",
+  "warm test graph-horizon-solx|forge-1.8.5 solar": "✗ 14 tests fail⁷",
+  "warm test solady-solx|forge-1.8.5 solar": "✗ 4 tests fail⁷",
 };
 
 const FOOTNOTES = [
@@ -83,6 +87,10 @@ const FOOTNOTES = [
     "stack-too-deep in its vendored assembly), so the suite cannot run.",
   "⁶ lido-core also compiles 0.4.24 and 0.6 sources; forge runs solar as " +
     "its only compiler, so the repo has no forge + solar cell.",
+  "⁷ solar's code generation is experimental: these Foundry tests fail " +
+    "under forge + solar but pass under forge with solc, so the cell is left " +
+    "out. On SwapVM, a 1000-round fee-tracking test uses about 39% more gas " +
+    "under solar than under solc and exceeds forge's per-test gas limit.",
 ];
 
 function seconds(n: number | undefined): string {

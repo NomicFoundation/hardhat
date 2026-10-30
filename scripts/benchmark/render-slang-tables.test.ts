@@ -93,14 +93,17 @@ describe("renderSlangTables", () => {
     assert.match(quick, /each † links the run that measured it/);
   });
 
-  it("adds forge + solar's wall to the compile tables only", () => {
+  it("adds forge + solar's wall to the compile and test tables", () => {
     const solar = renderSlangTables([
       ...entries,
       wall("uniswap-v4-core-solx / cold compile forge-1.8.5 solar", 0.8),
+      wall("uniswap-v4-core-solx / warm test forge-1.8.5 solar", 2),
       wall("openzeppelin-contracts-0.34 / cold compile solc", 50),
       wall("openzeppelin-contracts-0.34 / cold compile slang", 23),
       wall("openzeppelin-contracts-0.34 / cold compile slang parity", 9),
       wall("openzeppelin-contracts-0.34 / cold compile forge-1.8.5 solar", 3.2),
+      wall("openzeppelin-contracts-0.34 / warm test forge-1.8.5 solar", 30),
+      wall("solady-solx / cold compile slang", 4),
     ]);
     const legacyCompile = solar.slice(
       solar.indexOf(
@@ -118,12 +121,38 @@ describe("renderSlangTables", () => {
       legacyCompile,
       /\| openzeppelin-contracts \(forge-compatible subset\) \|.*\| 3\.2s \|\n/,
     );
-    const legacyTests = solar.slice(
-      solar.indexOf(
-        "### slang vs solc in legacy mode (without --via-ir) including Solidity tests",
-      ),
+    const legacyTests = solar
+      .slice(
+        solar.indexOf(
+          "### slang vs solc in legacy mode (without --via-ir) including Solidity tests",
+        ),
+      )
+      .split("\n### ")[0];
+    assert.match(legacyTests, /\| forge solar \|\n/);
+    assert.match(legacyTests, /\| Uniswap v4 \|.*\| 2\.8s \|\n/);
+    assert.match(
+      legacyTests,
+      /\| openzeppelin-contracts \(forge-compatible subset\) \|.*\| 33\.2s \|\n/,
     );
-    assert.doesNotMatch(legacyTests.split("\n### ")[0], /forge solar/);
+    assert.match(legacyTests, /\| Solady \|.*\| 4 tests fail \|\n/);
+    assert.match(
+      solar,
+      /\| warm test forge-1\.8\.5 solar \| ✗ 4 tests fail⁷ \|/,
+    );
+  });
+
+  it("points lido-vaults' test rows at lido-core", () => {
+    const vaults = renderSlangTables([
+      wall("lidofinance-vaults-solx / cold compile solc via-ir", 16),
+      wall("lidofinance-vaults-solx / cold compile slang", 2),
+    ]);
+    const tests = vaults.slice(
+      vaults.indexOf("### slang vs solc --via-ir including Solidity tests"),
+    );
+    assert.match(
+      tests,
+      /\| lido-vaults \| tests measured in lido-core \| tests measured in lido-core \| tests measured in lido-core \|/,
+    );
   });
 
   it("explains lido-core's missing forge + solar cell", () => {

@@ -71,14 +71,31 @@ const NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   },
 };
 
+// solar runs one pipeline, so its reasons apply to both pipelines' tables.
+const SOLAR_TEST_NOTES: Record<string, string> = {
+  "aave-v4-solx|forgeSolar": "208 tests fail",
+  "graph-horizon-solx|forgeSolar": "14 tests fail",
+  "solady-solx|forgeSolar": "4 tests fail",
+  "1inch-swap-vm-solx|forgeSolar": "1 test runs out of gas",
+};
+
+const LIDO_VAULTS_TESTS = "tests measured in lido-core";
+
 // Additional reasons in the tables that include the Solidity tests.
 const TEST_NOTES: Record<"via-IR" | "legacy", Record<string, string>> = {
   "via-IR": {
+    ...SOLAR_TEST_NOTES,
     "aave-v4-solx|solc": "tests do not compile",
     "aave-v4-solx|forge": "tests do not compile",
     "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",
+    "lidofinance-vaults-solx|solc": LIDO_VAULTS_TESTS,
+    "lidofinance-vaults-solx|solx": LIDO_VAULTS_TESTS,
+    "lidofinance-vaults-solx|slang": LIDO_VAULTS_TESTS,
+    "lidofinance-vaults-solx|forge": LIDO_VAULTS_TESTS,
+    "lidofinance-vaults-solx|forgeSolar": LIDO_VAULTS_TESTS,
   },
   legacy: {
+    ...SOLAR_TEST_NOTES,
     "aave-v4-solx|slang": "not run (EIP-712 cheatcodes)",
   },
 };
@@ -158,6 +175,9 @@ function buildRows(
   const suffix = pipeline === "via-IR" ? " via-ir" : "";
   const pick = (cells: Map<string, CellResult>, compiler: string) =>
     tests ? withTests(cells, compiler) : cells.get(`cold compile ${compiler}`);
+  // forge + solar has one pipeline, so it takes no via-IR suffix.
+  const pickSolar = (cells: Map<string, CellResult>) =>
+    pick(cells, FORGE_SOLAR);
 
   const rows: Row[] = [];
   for (const [id, repo] of Object.entries(REPOS)) {
@@ -174,8 +194,7 @@ function buildRows(
       solx: pick(cells, `${SOLX}${suffix}`),
       slang: pick(cells, "slang"),
       forge: id === OZ ? undefined : pick(cells, `${FORGE}${suffix}`),
-      forgeSolar:
-        id === OZ ? undefined : cells.get(`cold compile ${FORGE_SOLAR}`),
+      forgeSolar: id === OZ ? undefined : pickSolar(cells),
       notes: {
         solc: note("solc"),
         solx: note("solx"),
@@ -192,7 +211,7 @@ function buildRows(
         solx: pick(cells, `${SOLX}${suffix} parity`),
         slang: pick(cells, "slang parity"),
         forge: pick(cells, `${FORGE}${suffix}`),
-        forgeSolar: cells.get(`cold compile ${FORGE_SOLAR}`),
+        forgeSolar: pickSolar(cells),
         notes: {},
         inTotal: false,
       });
@@ -287,7 +306,7 @@ export function renderSlangBlogTables(
 }
 
 // The post's four tables; `solx` adds Hardhat solx 0.1.8 and slang's speedup
-// over it, `forgeSolar` adds forge + solar to the compile tables.
+// over it, `forgeSolar` adds forge + solar.
 export function renderBlogSections(
   report: SlangReport,
   opts: { solx?: boolean; forgeSolar?: boolean } = {},
@@ -313,7 +332,7 @@ export function renderBlogSections(
         buildRows(report, pipeline, tests),
         title,
         opts.solx === true,
-        opts.forgeSolar === true && !tests,
+        opts.forgeSolar === true,
       ),
     );
   }
