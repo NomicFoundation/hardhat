@@ -34,7 +34,7 @@ export default defineConfig({
 });
 ```
 
-The `default` profile uses solc as usual. The `slang` profile uses the slang compiler, identified by `type: "slang"`. The `version` of a `type: "slang"` entry is still the Solidity version, exactly as with solc: Hardhat uses it to resolve pragmas and group files into compilation jobs. Which `slang` release compiles them is decided separately: the latest release this version of the plugin records, unless you pin one with `slang.version` (see [Pinning a slang release](#pinning-a-slang-release)).
+The `default` profile uses solc as usual. The `slang` profile uses the slang compiler, identified by `type: "slang"`. The `version` of a `type: "slang"` entry is still the Solidity version, exactly as with solc: Hardhat uses it to resolve pragmas and group files into compilation jobs. The `slang` release will be the latest available within the plugin, unless you pin a specific version with `slang.version` (see [Pinning a slang release](#pinning-a-slang-release)).
 
 ## Usage
 
@@ -57,9 +57,9 @@ npx hardhat build    # uses solc (default profile)
 
 Unlike solc, one `slang` binary compiles a range of Solidity versions (`0.8.x`). The plugin therefore downloads a single slang release and uses it for every `type: "slang"` compiler entry.
 
-By default, that is the latest release this version of the plugin records: the first row of [Supported Solidity versions](#supported-solidity-versions). Upgrading the plugin can therefore upgrade slang, and your next build recompiles with the new release.
+By default, that is the latest release available within this version of the plugin: the first row of [Supported Solidity versions](#supported-solidity-versions). Upgrading the plugin can therefore upgrade slang, and your next build recompiles with the new release.
 
-To stay on a release, pin it with `slang.version`. A pinned release keeps working when you upgrade the plugin:
+To stay on a specific release of `slang`, pin it with `slang.version`. A pinned release keeps being used even after upgrading the plugin:
 
 ```typescript
 export default defineConfig({
@@ -96,7 +96,7 @@ export default defineConfig({
 
 ### Options
 
-- `version` (`string`, default: the latest release this version of the plugin records), pins the slang release to download and compile with. See [Supported Solidity versions](#supported-solidity-versions) for the known releases.
+- `version` (`string`, default: the latest release available in this version of the plugin), pins the slang release to download and compile with. See [Supported Solidity versions](#supported-solidity-versions) for the known releases.
 - `dangerouslyAllowSlangInProduction` (`boolean`, default: `false`), allows compiler type `"slang"` in build profiles other than `slang`. By default, using `type: "slang"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
@@ -169,12 +169,12 @@ export default defineConfig({
 
 ### Supported Solidity versions
 
-Each slang release supports a range of Solidity versions. A compiler entry's `version` picks the Solidity version within that range, and the plugin passes it to slang as `settings.solidityVersion`. The first row is the latest release, used when `slang.version` isn't set.
+Each slang release supports a range of Solidity versions. A compiler entry's `version` picks the Solidity version within that range, and the plugin passes it to slang as `settings.solidityVersion`.
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
-| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `d95c1150`, 2026-10-29) downloaded from the solx releases mirror. |
-| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the solx releases mirror. |
+| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `d95c1150`, 2026-10-29) downloaded from the releases mirror. |
+| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the releases mirror. |
 
 ### EVM version support
 
