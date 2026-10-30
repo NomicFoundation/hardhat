@@ -173,8 +173,8 @@ Each slang release supports a range of Solidity versions. A compiler entry's `ve
 
 | slang release | Solidity versions | Notes |
 | --- | --- | --- |
-| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `d95c1150`, 2026-10-29) downloaded from the releases mirror. |
-| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (solx tag `5e6ec5e1`, 2026-10-14) downloaded from the releases mirror. |
+| `0.1.0-pre.2026-10-29` | `0.8.0` to `0.8.37` | Internal prerelease (tag `d95c1150`, 2026-10-29) downloaded from the releases mirror. |
+| `0.1.0-pre.2026-10-14` | `0.8.0` to `0.8.37` | Internal prerelease (tag `5e6ec5e1`, 2026-10-14) downloaded from the releases mirror. |
 
 ### EVM version support
 
