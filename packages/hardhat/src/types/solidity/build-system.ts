@@ -248,6 +248,11 @@ export interface GetCompilationJobsResult {
    */
   indexedIndividualJobs: Map<string, CompilationJob>;
   /**
+   * Map from root file path to whether it's compiled in its own compilation
+   * job, as decided by the `isRootFileIsolated` hook.
+   */
+  isolatedPerRootFile: Map<string, boolean>;
+  /**
    * Map from root file path to cache hit info for files that don't need recompilation.
    */
   cacheHits: Map<string, CacheHitInfo>;
