@@ -68,6 +68,11 @@ export interface SlangRelease {
 
 /**
  * The slang releases this plugin can pin via `slang.version`.
+ *
+ * Keys are `<major>.<minor>.<patch>-pre.<YYYY>-<MM>-<DD>`, with an optional
+ * `T<HH>`, `T<HH>-<mm>` or `T<HH>-<mm>-<ss>` suffix for a second release on the
+ * same day, and rows are kept newest first: add a new release at the top.
+ * `test/constants.ts` enforces both.
  */
 export const SLANG_RELEASES: Record<string, SlangRelease> = {
   "0.1.0-pre.2026-10-29": {
