@@ -34,8 +34,8 @@ declare module "hardhat/types/config" {
 
   export interface SlangSingleVersionSolidityUserConfig
     extends
-    SlangSolidityCompilerUserConfig,
-    CommonSingleVersionSolidityUserConfig { }
+      SlangSolidityCompilerUserConfig,
+      CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
     slang: SlangSingleVersionSolidityUserConfig;
