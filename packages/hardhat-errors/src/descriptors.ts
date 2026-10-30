@@ -1309,6 +1309,15 @@ This validation happens locally, so it can reject transactions that your network
 
 Please double check your transactions' parameters.`,
       },
+      INVALID_TRANSACTION_SIGNER_SIGNATURE: {
+        number: 729,
+        messageTemplate:
+          'The transaction signer for account "{account}" returned an invalid signature: {reason}. The transaction wasn\'t sent.',
+        websiteTitle: "Invalid transaction signer signature",
+        websiteDescription: `A plugin provided a transaction signer for an account, but the signature it returned is invalid, so Hardhat didn't send the transaction. The signature's \`yParity\` must be 0 or 1, and the signed transaction must recover to the account.
+
+Please check the plugin's configuration for this account, or report it to the plugin's authors.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
