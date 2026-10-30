@@ -49,6 +49,22 @@ describe("constructor-args", () => {
       assert.equal(await encodeConstructorArgs([], [], contract), "");
     });
 
+    it("should encode an empty bytes argument as zero bytes long", async () => {
+      assert.equal(
+        await encodeConstructorArgs(
+          [{ inputs: [{ name: "data", type: "bytes" }], type: "constructor" }],
+          ["0x"],
+          contract,
+        ),
+        [
+          // data: offset of the bytes
+          "0000000000000000000000000000000000000000000000000000000000000020",
+          // data: length of the bytes (0)
+          "0000000000000000000000000000000000000000000000000000000000000000",
+        ].join(""),
+      );
+    });
+
     it("should throw if the constructor arguments type is invalid", async () => {
       let abi = [
         {
