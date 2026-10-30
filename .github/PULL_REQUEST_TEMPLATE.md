@@ -1,7 +1,7 @@
 <!--
 Thank you for using Hardhat and taking the time to send a Pull Request!
 
-If you are introducing a new feature, please discuss it in an Issue or with someone from the team before submitting your change.
+If you are introducing a new feature or changing Hardhat's core, the Hardhat team must approve it in an Issue first (see CONTRIBUTING.md). Link that Issue below with "Closes #<issue>".
 
 Please:
  - consider the checklist items below
@@ -18,10 +18,11 @@ We generally really appreciate external contributions, and strongly encourage me
 - We suspect the Github account of the author was created for airdrop farming
 -->
 
-- [ ] Because this PR includes a **bug fix**, relevant tests have been included.
-- [ ] Because this PR includes a **new feature**, the change was previously discussed on an Issue or with someone from the team.
+- [ ] I have read [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat/blob/main/CONTRIBUTING.md) and this PR follows its rules.
+- [ ] Because this PR includes a **bug fix**, it fixes a scenario real users can hit, and relevant tests have been included.
+- [ ] Because this PR includes a **new feature** or a **change to Hardhat's core**, the team approved it in an Issue that is linked below with `Closes #<issue>`, and its design doc (if required) was reviewed.
 - [x] I didn't do anything of this.
 
 ---
 
-<!-- Add a description of your PR here -->
+<!-- Add a description of your PR here. For features and core changes, link the Issue approved by the Hardhat team (e.g. "Closes #1234") -->

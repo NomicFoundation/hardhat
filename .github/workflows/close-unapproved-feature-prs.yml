@@ -1,0 +1,90 @@
+name: Close unapproved feature PRs
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, labeled]
+
+jobs:
+  check-approved-issue:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    # opened + edited (author fixes the description right after opening) can fire seconds apart; queue them per PR
+    concurrency:
+      group: close-unapproved-${{ github.event.pull_request.number }}
+    permissions:
+      pull-requests: write
+      issues: read
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const APPROVED_LABEL = "status:approved";
+            const CLOSE = true; // false: only comment, don't close
+
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+
+            if (pr.user.type === "Bot") return;
+
+            // the payload is a snapshot; an earlier run may have closed the PR since
+            const { data: live } = await github.rest.pulls.get({ owner, repo, pull_number: pr.number });
+            if (live.state === "closed") return;
+
+            // author_association reports private org members as CONTRIBUTOR, so check push access instead
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner,
+              repo,
+              username: pr.user.login,
+            });
+            if (["admin", "write"].includes(perm.permission)) return;
+
+            const body = live.body ?? "";
+            const isFeature =
+              /\[x\][^\n]*new feature/i.test(body) ||
+              live.labels.some((l) => l.name === "type:feature");
+            if (!isFeature) return;
+
+            // Parse "Closes #N" ourselves: GitHub's closingIssuesReferences is filled asynchronously
+            // (still empty right after open/edit) and only for PRs that target the default branch.
+            // ponytail: only the "#N" form is recognized, not "owner/repo#N" or issue URLs; the bot comment asks for "#N".
+            const numbers = new Set(
+              [...body.replace(/<!--[\s\S]*?-->/g, "").matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s*#(\d+)/gi)]
+                .map((m) => Number(m[1])),
+            );
+            let approved = false;
+            // ponytail: only the first 5 refs are checked, so a body stuffed with "Closes #N" lines cannot exhaust the API rate limit
+            for (const issue_number of [...numbers].slice(0, 5)) {
+              let issue;
+              try {
+                ({ data: issue } = await github.rest.issues.get({ owner, repo, issue_number }));
+              } catch (e) {
+                if (e.status === 404 || e.status === 410) continue; // typo'd (404) or deleted (410) issue number
+                throw e;
+              }
+              if (
+                issue.pull_request === undefined &&
+                issue.state === "open" &&
+                issue.labels.some((l) => l.name === APPROVED_LABEL)
+              ) {
+                approved = true;
+                break;
+              }
+            }
+            if (approved) return;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pr.number,
+              body: [
+                `Thanks for the PR! This looks like a new feature. Per [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat/blob/main/CONTRIBUTING.md#new-features-and-core-changes), new features need an issue approved by the team (labelled \`${APPROVED_LABEL}\`) linked in the PR description.`,
+                "",
+                CLOSE
+                  ? "Closing for now. Once the Hardhat team has approved the issue, add `Closes #<issue>` to the description and reopen this PR."
+                  : "Please add `Closes #<issue>` to the description once the Hardhat team has approved the issue.",
+              ].join("\n"),
+            });
+
+            if (CLOSE) {
+              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: "closed" });
+            }
