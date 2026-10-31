@@ -5,6 +5,7 @@
 Updated `debug_traceTransaction` and `debug_traceCall`:
 
 - Added support for geth's built-in tracers, such as `callTracer` and `prestateTracer`, which return geth's output unchanged.
+- Fixed an empty `tracer` to select the default tracer, as the Ethereum execution API spec requires.
 - Added the `enableMemory` and `enableReturnData` options to the default tracer. `enableMemory` takes precedence over `disableMemory`, and `enableReturnData` adds `returnData` to each step.
 - Changed the default tracer output in a few places:
   - A step that halts now has an `error` message that comes from EDR, so do not match on its exact text.

@@ -379,6 +379,24 @@ describe("Debug module", function () {
           );
         });
 
+        it("uses the default tracer with an empty tracer name", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+            RECIPIENT
+          );
+          const txHash = await sendTransaction(this.provider, {
+            from: RECIPIENT,
+            to: contractAddress,
+            data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
+          });
+
+          assert.deepEqual(
+            await traceTransaction(this.provider, txHash, { tracer: "" }),
+            HARDHAT_2_TRACES.modifiesState
+          );
+        });
+
         const SCENARIOS: Array<{
           scenario: ScenarioName;
           description: string;
@@ -717,6 +735,17 @@ describe("Debug module", function () {
               "latest",
             ]),
             VALUE_TRANSFER_TRACE
+          );
+        });
+
+        it("uses the default tracer with an empty tracer name", async function () {
+          assert.deepEqual(
+            await this.provider.send("debug_traceCall", [
+              CALL,
+              "latest",
+              { tracer: "" },
+            ]),
+            HARDHAT_2_TRACES.traceCall
           );
         });
 

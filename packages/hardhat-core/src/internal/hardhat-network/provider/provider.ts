@@ -384,11 +384,15 @@ export class EdrProviderWrapper
         );
     }
 
+    const requestParams = isDebugTraceMethod(args.method)
+      ? withHardhat2MemoryDefault(
+          args.method,
+          withoutEmptyTracer(args.method, params)
+        )
+      : params;
     const stringifiedArgs = JSON.stringify({
       method: args.method,
-      params: isDebugTraceMethod(args.method)
-        ? withHardhat2MemoryDefault(args.method, params)
-        : params,
+      params: requestParams,
     });
 
     const provider = this._provider;
@@ -509,7 +513,7 @@ export class EdrProviderWrapper
       return this._debugTraceResultToHardhat2(
         provider,
         args.method,
-        params,
+        requestParams,
         response.result
       );
     } else {
@@ -736,8 +740,25 @@ function usesDefaultTracer(options: any): boolean {
 }
 
 /**
- * Sets `enableMemory` from `disableMemory` unless the options set it. EDR
- * captures memory only if `enableMemory` is set and ignores `disableMemory`.
+ * Drops an empty `tracer`, which selects the default tracer per the execution
+ * API spec. Some EDR versions reject it as a JavaScript tracer.
+ */
+function withoutEmptyTracer(method: DebugTraceMethod, params: any[]): any[] {
+  const options = debugTraceOptions(method, params);
+  if (options?.tracer !== "") {
+    return params;
+  }
+
+  const { tracer: _emptyTracer, ...optionsWithoutTracer } = options;
+  const paramsWithoutTracer = [...params];
+  paramsWithoutTracer[DEBUG_TRACE_OPTIONS_INDEX[method]] = optionsWithoutTracer;
+  return paramsWithoutTracer;
+}
+
+/**
+ * Sets `enableMemory` from `disableMemory` unless the options set it. Setting
+ * it here keeps the default independent of how an EDR version reads
+ * `disableMemory`.
  */
 function withHardhat2MemoryDefault(
   method: DebugTraceMethod,
