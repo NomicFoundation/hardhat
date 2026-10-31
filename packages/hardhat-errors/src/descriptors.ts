@@ -1501,6 +1501,15 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
 
 Declare it under \`test.solidity.profiles\`, or select one of the profiles you already declared.`,
       },
+      GAS_PROFILE_WITH_COVERAGE: {
+        number: 823,
+        messageTemplate:
+          "The --gas-profile flag can't be used with --coverage, because coverage instruments the contracts and changes their gas costs.",
+        websiteTitle: "Gas profile used with coverage",
+        websiteDescription: `The \`--gas-profile\` flag of \`test solidity\` can't be used together with \`--coverage\`.
+
+Coverage runs instrumented bytecode, so the gas profile wouldn't match the real contracts. Run the tests with only one of the two flags.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

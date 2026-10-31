@@ -2,18 +2,29 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { stripVTControlCharacters } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  captureConsole,
   createEnvChanges,
   createTestEnvManager,
+  createTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  exists,
+  readdir,
+  readUtf8File,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { overrideTask } from "../../../../src/config.js";
+import { isolationWarning } from "../../../../src/internal/builtin-plugins/solidity-test/gas-profile/index.js";
+import { ISOLATION_NOTE } from "../../../../src/internal/builtin-plugins/solidity-test/gas-profile/summary.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test/hardhat.config.js";
 
@@ -934,6 +945,156 @@ describe("solidity-test/task-action", function () {
       );
     });
   });
+
+  describe("with --gas-profile", () => {
+    const tmp = createTmpDir("gas-profile", "test");
+    const output = captureConsole();
+
+    // Other tests rebuild with narrower test paths, which removes this
+    // folder's artifacts.
+    before(async () => {
+      const buildHre = await createHardhatRuntimeEnvironment({
+        ...hardhatConfig,
+        paths: { tests: { solidity: "test/contracts/gas-profile" } },
+      });
+      await buildHre.tasks.getTask(["build"]).run({});
+    });
+
+    function gasProfileConfig(cache = tmp.path, isolate = false) {
+      return {
+        ...hardhatConfig,
+        paths: { tests: { solidity: "test/contracts/gas-profile" }, cache },
+        test: { solidity: { isolate } },
+      };
+    }
+
+    it("writes folded stacks and prints the summary", async () => {
+      hre = await createHardhatRuntimeEnvironment(gasProfileConfig());
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true, gasProfile: true });
+
+      // A failing test is profiled, and the result is still a failure.
+      assert.equal(result.success, false);
+      const foldedDir = path.join(tmp.path, "gas-profile", "folded");
+      assert.deepEqual((await readdir(foldedDir)).sort(), [
+        "GasProfileTest.testIncThenFail.folded",
+        "GasProfileTest.testIncTwice.folded",
+      ]);
+      const folded = await readUtf8File(
+        path.join(foldedDir, "GasProfileTest.testIncTwice.folded"),
+      );
+      assert.match(folded, /^GasProfileTest\.testIncTwice \d+\n/);
+      assert.match(folded, /\nGasProfileTest\.testIncTwice;Counter\.inc \d+\n/);
+
+      const htmlPath = path.join(tmp.path, "gas-profile", "index.html");
+      const html = await readUtf8File(htmlPath);
+      assertIncludes(html, "GasProfileTest#<wbr>testIncTwice");
+      assertIncludes(html, "Counter.inc ×2");
+
+      const printed = output.lines.join("\n");
+      assertIncludes(printed, "Tests by gas (top 2 of 2)");
+      assertIncludes(printed, "Counter.inc ×2");
+      assertIncludes(
+        printed,
+        `Saved gas profile to ${htmlPath}\nSaved folded stacks to ${foldedDir} (2 files)`,
+      );
+      assert.ok(
+        !printed.includes(ISOLATION_NOTE),
+        "expected no isolation note",
+      );
+    });
+
+    it("notes isolation when the isolate setting is on", async () => {
+      hre = await createHardhatRuntimeEnvironment(
+        gasProfileConfig(tmp.path, true),
+      );
+
+      await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true, gasProfile: true });
+
+      assertIncludes(output.lines.join("\n"), ISOLATION_NOTE);
+    });
+
+    it("warns that --gas-stats turns isolation on", async () => {
+      hre = await createHardhatRuntimeEnvironment(gasProfileConfig(), {
+        gasStats: true,
+      });
+
+      const warnings: string[] = [];
+      const originalWarn = console.warn;
+      console.warn = (...args: unknown[]) => {
+        warnings.push(args.map(String).join(" "));
+      };
+      try {
+        await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true, gasProfile: true });
+      } finally {
+        console.warn = originalWarn;
+      }
+
+      assert.deepEqual(
+        warnings.filter((w) => w.includes("isolation is on")),
+        [isolationWarning(["--gas-stats"])],
+      );
+      assertIncludes(output.lines.join("\n"), ISOLATION_NOTE);
+    });
+
+    it("removes the previous profile when no test runs", async () => {
+      hre = await createHardhatRuntimeEnvironment(gasProfileConfig());
+      const task = hre.tasks.getTask(["test", "solidity"]);
+      await task.run({ noCompile: true, gasProfile: true });
+
+      await task.run({
+        noCompile: true,
+        gasProfile: true,
+        grep: "matchesNothing",
+      });
+
+      assert.ok(
+        output.lines.includes(
+          "Gas profile: no Solidity tests ran, so the previous gas profile was removed.",
+        ),
+        "expected the one-line message",
+      );
+      assert.equal(await exists(path.join(tmp.path, "gas-profile")), false);
+    });
+
+    it("keeps the test result when the profile can't be written", async () => {
+      // The cache path is a file, so nothing can be written under it.
+      const cacheFile = path.join(tmp.path, "not-a-directory");
+      await writeUtf8File(cacheFile, "");
+      hre = await createHardhatRuntimeEnvironment(gasProfileConfig(cacheFile));
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true, gasProfile: true });
+
+      assert.equal(result.success, false);
+      assert.equal(result.error.suiteResults[0].testResults.length, 2);
+      assert.ok(
+        !output.lines.some((line) => line.includes("Saved gas profile")),
+        "expected no profile to be saved",
+      );
+    });
+
+    it("refuses --coverage before building", async () => {
+      hre = await createHardhatRuntimeEnvironment(gasProfileConfig(), {
+        coverage: true,
+      });
+
+      await assertRejectsWithHardhatError(
+        hre.tasks.getTask(["test", "solidity"]).run({ gasProfile: true }),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_PROFILE_WITH_COVERAGE,
+        {},
+      );
+      // Nothing was compiled or written to the cache.
+      assert.deepEqual(await readdir(tmp.path), []);
+    });
+  });
 });
 
 function getDiscoveredSuiteNames(
@@ -952,4 +1113,8 @@ function getDiscoveredSuiteNames(
     : result.error.suiteResults;
 
   return suiteResults.map((s) => s.id.name);
+}
+
+function assertIncludes(text: string, part: string): void {
+  assert.ok(text.includes(part), `expected the output to include ${part}`);
 }
