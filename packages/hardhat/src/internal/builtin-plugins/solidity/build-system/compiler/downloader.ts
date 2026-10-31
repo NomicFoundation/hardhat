@@ -3,6 +3,7 @@ import type { Compiler } from "../../../../../../src/types/solidity.js";
 import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { setTimeout } from "node:timers/promises";
 import { promisify } from "node:util";
 
 import {
@@ -156,12 +157,14 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #platform: CompilerPlatform;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
+  readonly #retryDelayMs: number;
   readonly #mutexCompilerList: MultiProcessMutex;
 
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
     downloadFunction: typeof download = download,
+    retryDelayMs: number = DEFAULT_COMPILER_DOWNLOAD_RETRY_DELAY_MS,
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
@@ -169,25 +172,40 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       path.join(compilersDir, "compiler-download-list"),
     );
     this.#downloadFunction = downloadFunction;
+    this.#retryDelayMs = retryDelayMs;
   }
 
   public async updateCompilerListIfNeeded(
     versions: Set<string>,
   ): Promise<void> {
     await this.#mutexCompilerList.use(async () => {
-      if (await this.#shouldDownloadCompilerList(versions)) {
+      if (!(await this.#shouldDownloadCompilerList(versions))) {
+        return;
+      }
+
+      log(`Downloading the list of solc builds for platform ${this.#platform}`);
+
+      for (let i = 0; i <= DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT; i++) {
         try {
-          log(
-            `Downloading the list of solc builds for platform ${this.#platform}`,
-          );
           await this.#downloadCompilerList();
+          return;
         } catch (e) {
           ensureError(e);
 
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
-            e,
+          if (i === DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
+              e,
+            );
+          }
+
+          const attempt = i + 1;
+
+          log(
+            `Download of the list of solc builds failed, retrying (attempt ${attempt} of ${DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT})`,
           );
+
+          await setTimeout(this.#retryDelayMs);
         }
       }
     });
@@ -236,9 +254,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
               `Download or verification failed for solc ${version}, retrying (attempt ${attempt} of ${DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT})`,
             );
 
-            await new Promise((resolve) =>
-              setTimeout(resolve, DEFAULT_COMPILER_DOWNLOAD_RETRY_DELAY_MS),
-            );
+            await setTimeout(this.#retryDelayMs);
           }
         }
       }

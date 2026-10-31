@@ -139,19 +139,75 @@ describe(
         );
       });
 
-      it("Should throw the right error if the list fails to be downloaded", async function () {
+      it("Should throw the right error and retry 3 times when the list fails to be downloaded", async function () {
+        let downloadAttempts = 0;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           tmp.path,
           (_url, _destination, _requestOptions, _dispatcherOptions) => {
+            downloadAttempts++;
             throw new Error("download failed");
           },
+          0,
         );
 
         await assertRejectsWithHardhatError(
           () => mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"])),
           HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
           {},
+        );
+
+        assert.equal(
+          downloadAttempts,
+          4,
+          "Should have downloaded once and retried 3 times",
+        );
+      });
+
+      it("Should retry the list download if it fails", async function () {
+        let downloadAttempts = 0;
+        const mockDownloader = new CompilerDownloader(
+          CompilerPlatform.WASM,
+          tmp.path,
+          async (_url, destination, _requestOptions, _dispatcherOptions) => {
+            downloadAttempts++;
+            if (downloadAttempts === 1) {
+              throw new Error("download failed");
+            }
+
+            const longVersion = "0.5.0+commit.1d4f565a";
+            const compilersList = {
+              builds: [
+                {
+                  path: `soljson-v${longVersion}.js`,
+                  version: "0.5.0",
+                  longVersion,
+                  sha256: "0x00",
+                },
+              ],
+              releases: {
+                "0.5.0": `soljson-v${longVersion}.js`,
+              },
+              latestRelease: "0.5.0",
+            };
+
+            await fs.ensureDir(path.dirname(destination));
+            await fs.writeJsonFile(destination, compilersList);
+          },
+          0,
+        );
+
+        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
+
+        assert.equal(
+          downloadAttempts,
+          2,
+          "Should have failed once and succeeded on the first retry",
+        );
+        assert.equal(
+          await mockDownloader.isCompilerDownloaded("0.5.0"),
+          false,
+          "Should be able to read the downloaded list",
         );
       });
 
@@ -174,6 +230,7 @@ describe(
             downloadAttempts++;
             throw new Error("download failed");
           },
+          0,
         );
 
         await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
@@ -251,6 +308,7 @@ describe(
             await fs.createFile(destination);
             compilerPath = destination;
           },
+          0,
         );
 
         await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
@@ -483,6 +541,7 @@ describe(
             await fs.ensureDir(path.dirname(destination));
             await fs.writeUtf8File(destination, "asd");
           },
+          0,
         );
 
         await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
