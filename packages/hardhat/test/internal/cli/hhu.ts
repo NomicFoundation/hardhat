@@ -63,8 +63,10 @@ AVAILABLE SUBTASKS:
   constants min-value              Print the minimum value of an integer type
   constants zero-address           Print the zero address
   constants zero-hash              Print the zero hash
+  convert from-hex                 Convert a hex value to a decimal integer
   convert pad                      Pad a hex string to a given byte length
   convert to-checksum-address      Convert an address to its EIP-55 checksummed representation
+  convert to-hex                   Convert a non-negative integer to hex
   fetch block-number               Print the latest block number
   hash keccak                      Print the keccak256 hash of 0x-hex bytes or a UTF-8 string
 

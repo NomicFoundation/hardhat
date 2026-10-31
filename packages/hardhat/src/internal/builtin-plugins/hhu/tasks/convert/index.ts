@@ -10,6 +10,17 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     "Convert values between common Ethereum representations",
   ).build();
 
+  const fromHexTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "from-hex"],
+      "Convert a hex value to a decimal integer",
+    ).addPositionalArgument({
+      name: "value",
+      description: "The hex value to convert, with or without the 0x prefix",
+    }),
+    async () => await import("./from-hex.js"),
+  );
+
   const padTask = buildUtilsTask(
     task(
       [...prefix, "convert", "pad"],
@@ -47,5 +58,17 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     async () => await import("./to-checksum-address.js"),
   );
 
-  return [convertTask, padTask, toChecksumAddressTask];
+  const toHexTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "to-hex"],
+      "Convert a non-negative integer to hex",
+    ).addPositionalArgument({
+      name: "value",
+      description: "The integer to convert, in decimal or 0x-hex",
+      type: ArgumentType.BIGINT,
+    }),
+    async () => await import("./to-hex.js"),
+  );
+
+  return [convertTask, fromHexTask, padTask, toChecksumAddressTask, toHexTask];
 }
