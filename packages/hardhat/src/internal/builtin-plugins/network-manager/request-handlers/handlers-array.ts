@@ -67,11 +67,11 @@ export async function createHandlersArray<
     // On EDR networks, if the gas estimation fails because an internal call
     // runs out of gas regardless of the gas limit, we fall back to the same
     // default transaction gas limit that the network uses for requests
-    // without a gas field. The EdrProvider exposes the exact value it was
-    // configured with, so the fallback always matches the provider's actual
-    // default. Providers that don't expose it (e.g. HTTP connections) get no
-    // fallback, and the handler surfaces the estimation error instead of
-    // guessing a limit that may not suit the remote network.
+    // without a gas field. The EdrProvider exposes the value EDR resolves for
+    // the pending block, where sent transactions run, so the fallback matches
+    // the network's actual default. Providers that don't expose it (e.g. HTTP
+    // connections) get no fallback, and the handler surfaces the estimation
+    // error instead of guessing a limit that may not suit the remote network.
     const provider = networkConnection.provider;
     const fallbackGas =
       "defaultTransactionGasLimit" in provider &&
