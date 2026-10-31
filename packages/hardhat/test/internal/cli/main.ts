@@ -1,3 +1,4 @@
+import type { Payload } from "../../../src/internal/cli/telemetry/analytics/types.js";
 import type {
   GlobalOptionDefinitions,
   GlobalOptionDefinitionsEntry,
@@ -11,7 +12,8 @@ import type {
 } from "../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it } from "node:test";
+import path from "node:path";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 import { styleText } from "node:util";
 
@@ -19,9 +21,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,
+  createEnvChanges,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getTemplates } from "../../../src/internal/cli/init/template.js";
 import { main } from "../../../src/internal/cli/main.js";
@@ -42,6 +46,11 @@ import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/glob
 import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
+
+import {
+  checkIfSubprocessWasExecuted,
+  ROOT_PATH_TO_FIXTURE,
+} from "./telemetry/helpers.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -137,6 +146,58 @@ describe("main", function () {
         // remaining parsing logic should not be executed
         const tasksResults = await getTasksAndSubtaskResults();
         assert.equal(tasksResults.wasArg1Used, false);
+      });
+    });
+
+    describe("task analytics", function () {
+      const RESULT_FILE_PATH = path.join(
+        ROOT_PATH_TO_FIXTURE,
+        "analytics",
+        "main-task-analytics-result.json",
+      );
+
+      // These have to stay set for the whole describe, so they are restored
+      // manually instead of through createTestEnvManager.
+      const envChanges = createEnvChanges();
+
+      before(() => {
+        envChanges.setEnvVar("HARDHAT_TEST_INTERACTIVE_ENV", "true");
+        envChanges.setEnvVar("HARDHAT_TEST_TELEMETRY_ENABLED", "true");
+        envChanges.setEnvVar(
+          "HARDHAT_TEST_SUBPROCESS_RESULT_PATH",
+          RESULT_FILE_PATH,
+        );
+      });
+
+      after(() => {
+        envChanges.restoreEnvVars();
+      });
+
+      beforeEach(async () => {
+        await remove(RESULT_FILE_PATH);
+      });
+
+      afterEach(async () => {
+        await remove(RESULT_FILE_PATH);
+      });
+
+      describe("in a project with the node TypeScript mode", function () {
+        useFixtureProject("typescript-mode/node");
+
+        it("should send the TypeScript mode", async function () {
+          await runMain("npx hardhat clean");
+
+          await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+
+          const result: Payload = await readJsonFile(RESULT_FILE_PATH);
+
+          assert.equal(result.events[0].name, "task");
+          assert(
+            "typescriptMode" in result.events[0].params,
+            "params should have a typescriptMode field",
+          );
+          assert.equal(result.events[0].params.typescriptMode, "node");
+        });
       });
     });
 

@@ -654,6 +654,24 @@ Run the command in an interactive terminal to answer the prompt. If it's the key
 
 The value is not shown, as configuration variables are meant to hold secrets.`,
       },
+      INVALID_PACKAGE_JSON_HARDHAT_SETTINGS: {
+        number: 34,
+        messageTemplate: `Invalid "hardhat" field in {packageJsonPath}: {reason}`,
+        websiteTitle: `Invalid "hardhat" field in package.json`,
+        websiteDescription: `The \`"hardhat"\` field in your \`package.json\` is invalid. It must be an object containing only settings that Hardhat supports, each with a valid value.
+
+Please fix it as described in the error message and try again.`,
+      },
+      IMPORT_NEEDS_TS_EXTENSION: {
+        number: 35,
+        messageTemplate: `Cannot find module {importPath} imported from {importerPath}, but {suggestedPath} exists.
+
+Please change the import to use the .ts extension.`,
+        websiteTitle: "TypeScript file imported with a .js extension",
+        websiteDescription: `A file imports a TypeScript file using a \`.js\` extension, and Node.js can't find a file with that extension.
+
+Node.js requires TypeScript files to be imported with their \`.ts\` extension. Please change the import to use the \`.ts\` extension and try again.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {

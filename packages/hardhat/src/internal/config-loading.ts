@@ -8,7 +8,10 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, findUp, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+
+import { readTypeScriptMode } from "./core/typescript-mode.js";
 
 const log = createDebug("hardhat:core:config-loading");
 
@@ -151,6 +154,17 @@ async function importConfigFileWithTsxFallback(configPath: string) {
         error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
         configPath.endsWith(".ts")
       ) {
+        // The "node" TypeScript mode must never load tsx. The mode is read from
+        // the config path, not its real path, as that's how the project root
+        // is resolved.
+        const typescriptMode = await readTypeScriptMode(
+          await findClosestPackageRoot(configPath),
+        );
+
+        if (typescriptMode === "node") {
+          throw error;
+        }
+
         const realPath = await getRealPath(fileURLToPath(configPath));
 
         if (compiledConfigFile.has(realPath)) {

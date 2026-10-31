@@ -1,3 +1,6 @@
+import type { ConfigHooks } from "../../src/types/hooks.js";
+import type { HardhatPlugin } from "../../src/types/plugins.js";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
@@ -91,6 +94,79 @@ describe("HRE initialization", () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
       assert.deepEqual(hre.config.plugins, builtinPlugins);
+    });
+
+    describe("typescript mode", () => {
+      describe("the package.json doesn't set it", () => {
+        useFixtureProject("resolve-project-root/no-path-param");
+
+        it("should default to tsx", async () => {
+          const hre = await createHardhatRuntimeEnvironment({});
+
+          assert.equal(hre.config.typescript, "tsx");
+        });
+
+        it("should prefer the one in the unsafe options", async () => {
+          const hre = await createHardhatRuntimeEnvironment({}, {}, undefined, {
+            typescript: "node",
+          });
+
+          assert.equal(hre.config.typescript, "node");
+        });
+
+        it("shouldn't let plugins override it", async () => {
+          const overridingPlugin: HardhatPlugin = {
+            id: "typescript-mode-overriding-plugin",
+            hookHandlers: {
+              config: async () => ({
+                default: async () => {
+                  const handlers: Partial<ConfigHooks> = {
+                    resolveUserConfig: async (userConfig, rCV, next) => {
+                      const resolvedConfig = await next(userConfig, rCV);
+
+                      return { ...resolvedConfig, typescript: "node" };
+                    },
+                  };
+
+                  return handlers;
+                },
+              }),
+            },
+          };
+
+          const hre = await createHardhatRuntimeEnvironment({
+            plugins: [overridingPlugin],
+          });
+
+          assert.equal(hre.config.typescript, "tsx");
+        });
+      });
+
+      describe("the package.json sets it", () => {
+        useFixtureProject("typescript-mode/node");
+
+        it("should read it from the package.json", async () => {
+          const hre = await createHardhatRuntimeEnvironment({});
+
+          assert.equal(hre.config.typescript, "node");
+        });
+      });
+
+      describe("the package.json sets an invalid one", () => {
+        useFixtureProject("typescript-mode/invalid");
+
+        it("should throw", async () => {
+          await assertRejectsWithHardhatError(
+            createHardhatRuntimeEnvironment({}),
+            HardhatError.ERRORS.CORE.GENERAL
+              .INVALID_PACKAGE_JSON_HARDHAT_SETTINGS,
+            {
+              packageJsonPath: path.join(process.cwd(), "package.json"),
+              reason: `the "typescript" setting must be "node" or "tsx", but it's "deno"`,
+            },
+          );
+        });
+      });
     });
   });
 

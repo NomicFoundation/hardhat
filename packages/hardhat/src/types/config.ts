@@ -108,6 +108,17 @@ export interface SourcePathsUserConfig {}
  */
 export interface HardhatConfig {
   paths: ProjectPathsConfig;
+
+  /**
+   * How Hardhat runs the project's TypeScript files, as set by the
+   * `"hardhat": { "typescript" }` field of the project's `package.json`:
+   *  - `"tsx"`: with `tsx`. This is the default.
+   *  - `"node"`: with Node.js type stripping, without loading `tsx`.
+   *
+   * It can't be set from the config. Hardhat versions that predate this field
+   * leave it `undefined`, which plugins should treat as `"tsx"`.
+   */
+  typescript: "node" | "tsx";
 }
 
 /**
