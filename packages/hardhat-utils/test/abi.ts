@@ -5,15 +5,24 @@ import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
+  InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   encodeAbiParameters,
   getAbiConstructorParameters,
+  getAbiEventTopic,
+  getAbiSelector,
   getIntTypeRange,
   isAbiEncodingError,
+  isInvalidAbiSignatureError,
+  parseAbiEventSignature,
+  parseAbiFunctionSignature,
+  parseAbiParameter,
+  parseAbiSignature,
   parseIntType,
 } from "../src/abi.js";
 import { getUnprefixedHexString } from "../src/hex.js";
+import { getCanonicalAbiSignature } from "../src/internal/abi-signature.js";
 
 /** Encodes and returns the result without the "0x" prefix, for readability. */
 async function encode(
@@ -46,6 +55,31 @@ async function assertEncodingError(
     }
     return true;
   });
+}
+
+/** Returns the reason why parsing a signature with an unknown type fails. */
+function unknownType(type: string): string {
+  return `unknown type "${type}"; write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type`;
+}
+
+/** Asserts that parsing a signature throws for the given reason. */
+function assertInvalidSignature(
+  signature: string,
+  reason: string,
+  parse: (signature: string) => unknown = parseAbiSignature,
+): void {
+  assert.throws(
+    () => parse(signature),
+    (error: unknown) => {
+      assert.ok(
+        isInvalidAbiSignatureError(error),
+        `expected an InvalidAbiSignatureError, got ${String(error)}`,
+      );
+      assert.equal(error.input, signature);
+      assert.equal(error.reason, reason);
+      return true;
+    },
+  );
 }
 
 describe("abi", () => {
@@ -816,6 +850,8 @@ describe("abi", () => {
         for (const type of [
           "fixed128x18",
           "function",
+          "bytes0",
+          "bytes01",
           "bytes33",
           "uint7",
           "notAType",
@@ -892,6 +928,510 @@ describe("abi", () => {
           `${String(value)} should not match any kind`,
         );
       }
+    });
+  });
+
+  describe("isInvalidAbiSignatureError", () => {
+    it("Should recognize the error by its kind, not its class", () => {
+      const error = new InvalidAbiSignatureError("f(", "it's incomplete");
+      assert.equal(isInvalidAbiSignatureError(error), true);
+      assert.equal(
+        isInvalidAbiSignatureError(
+          Object.assign(new Error(), { kind: "invalid-signature" }),
+        ),
+        true,
+      );
+      assert.equal(isInvalidAbiSignatureError(new Error()), false);
+      assert.equal(isInvalidAbiSignatureError("invalid-signature"), false);
+    });
+  });
+
+  describe("parseAbiSignature", () => {
+    it("Should parse a name and its input types, normalizing integer aliases", () => {
+      assert.deepEqual(parseAbiSignature("f(uint,int,address,bool,bytes32)"), {
+        name: "f",
+        inputs: [
+          { type: "uint256" },
+          { type: "int256" },
+          { type: "address" },
+          { type: "bool" },
+          { type: "bytes32" },
+        ],
+        outputs: [],
+      });
+    });
+
+    it("Should parse an empty parameter list", () => {
+      assert.deepEqual(parseAbiSignature("f()"), {
+        name: "f",
+        inputs: [],
+        outputs: [],
+      });
+    });
+
+    it("Should parse a bare parameter list without a name", () => {
+      assert.deepEqual(parseAbiSignature("(uint256,string)"), {
+        name: "",
+        inputs: [{ type: "uint256" }, { type: "string" }],
+        outputs: [],
+      });
+    });
+
+    it("Should parse parameter names, and the indexed and data location keywords", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "E(address indexed from, string memory name, bytes calldata, address payable to, address payable[] calldata tos)",
+        ),
+        {
+          name: "E",
+          inputs: [
+            { type: "address", name: "from", indexed: true },
+            { type: "string", name: "name" },
+            { type: "bytes" },
+            { type: "address", name: "to" },
+            { type: "address[]", name: "tos" },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse arrays and nested tuples, in both tuple syntaxes", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "f(uint8[2][] xs, (address a, tuple(bool, bytes)[3] b)[] t)",
+        ),
+        {
+          name: "f",
+          inputs: [
+            { type: "uint8[2][]", name: "xs" },
+            {
+              type: "tuple[]",
+              name: "t",
+              components: [
+                { type: "address", name: "a" },
+                {
+                  type: "tuple[3]",
+                  name: "b",
+                  components: [{ type: "bool" }, { type: "bytes" }],
+                },
+              ],
+            },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse return types, with and without the returns keyword", () => {
+      const expected = {
+        name: "f",
+        inputs: [{ type: "uint256" }],
+        outputs: [{ type: "bool" }, { type: "uint256" }],
+      };
+
+      assert.deepEqual(parseAbiSignature("f(uint256)(bool,uint)"), expected);
+      assert.deepEqual(
+        parseAbiSignature("f(uint256) returns (bool,uint)"),
+        expected,
+      );
+    });
+
+    it("Should parse whole Solidity declarations", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "  function balanceOf(address owner) external view returns (uint256 balance);  ",
+        ),
+        {
+          kind: "function",
+          name: "balanceOf",
+          inputs: [{ type: "address", name: "owner" }],
+          outputs: [{ type: "uint256", name: "balance" }],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function supportsInterface(bytes4 id) public view virtual override(ERC165, AccessControl) returns (bool) {",
+        ),
+        {
+          kind: "function",
+          name: "supportsInterface",
+          inputs: [{ type: "bytes4", name: "id" }],
+          outputs: [{ type: "bool" }],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function mint(address to, uint256 amount) external onlyRole(getRoleAdmin(MINTER_ROLE)) initializer(2) whenNotPaused { _mint(to, amount); }",
+        ),
+        {
+          kind: "function",
+          name: "mint",
+          inputs: [
+            { type: "address", name: "to" },
+            { type: "uint256", name: "amount" },
+          ],
+          outputs: [],
+        },
+      );
+
+      assert.deepEqual(
+        parseAbiSignature(
+          "function getPool(address asset) external view returns (IPool pool, DataTypes.ReserveData memory)",
+        ),
+        {
+          kind: "function",
+          name: "getPool",
+          inputs: [{ type: "address", name: "asset" }],
+          outputs: [
+            { type: "IPool", name: "pool" },
+            { type: "DataTypes.ReserveData" },
+          ],
+        },
+      );
+
+      assert.deepEqual(parseAbiSignature("event Ping() anonymous;"), {
+        kind: "event",
+        name: "Ping",
+        inputs: [],
+        outputs: [],
+        anonymous: true,
+      });
+
+      assert.deepEqual(parseAbiSignature("error Unauthorized(address)"), {
+        kind: "error",
+        name: "Unauthorized",
+        inputs: [{ type: "address" }],
+        outputs: [],
+      });
+    });
+
+    it("Should parse error as a name, as it isn't a reserved keyword", () => {
+      const parsed = {
+        name: "error",
+        inputs: [{ type: "string" }],
+        outputs: [],
+      };
+
+      assert.deepEqual(parseAbiSignature("error(string)"), parsed);
+      assert.deepEqual(parseAbiSignature("function error(string)"), {
+        kind: "function",
+        ...parsed,
+      });
+      assert.deepEqual(parseAbiSignature("error error(string)"), {
+        kind: "error",
+        ...parsed,
+      });
+      assert.deepEqual(parseAbiSignature("event error(string)"), {
+        kind: "event",
+        ...parsed,
+      });
+    });
+
+    it("Should parse the anonymous modifier without the event keyword", () => {
+      assert.deepEqual(parseAbiSignature("Ping() anonymous"), {
+        name: "Ping",
+        inputs: [],
+        outputs: [],
+        anonymous: true,
+      });
+    });
+
+    it("Should parse a constructor declaration without a name", () => {
+      assert.deepEqual(
+        parseAbiSignature("constructor(address owner, uint256) payable"),
+        {
+          kind: "constructor",
+          name: "",
+          inputs: [{ type: "address", name: "owner" }, { type: "uint256" }],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse the function type", () => {
+      assert.deepEqual(parseAbiSignature("cb(function f, function[2])"), {
+        name: "cb",
+        inputs: [{ type: "function", name: "f" }, { type: "function[2]" }],
+        outputs: [],
+      });
+    });
+
+    it("Should normalize byte to bytes1", () => {
+      assert.deepEqual(parseAbiSignature("f(byte, byte[2] b)"), {
+        name: "f",
+        inputs: [{ type: "bytes1" }, { type: "bytes1[2]", name: "b" }],
+        outputs: [],
+      });
+    });
+
+    it("Should parse names that are only keywords in some contexts", () => {
+      assert.deepEqual(
+        parseAbiSignature(
+          "Failure(uint error, address from, bool tuple, uint receive, uint fallback)",
+        ),
+        {
+          name: "Failure",
+          inputs: [
+            { type: "uint256", name: "error" },
+            { type: "address", name: "from" },
+            { type: "bool", name: "tuple" },
+            { type: "uint256", name: "receive" },
+            { type: "uint256", name: "fallback" },
+          ],
+          outputs: [],
+        },
+      );
+    });
+
+    it("Should parse indexed and a data location in any order", () => {
+      assert.deepEqual(parseAbiSignature("E(string memory indexed s)"), {
+        name: "E",
+        inputs: [{ type: "string", name: "s", indexed: true }],
+        outputs: [],
+      });
+    });
+
+    for (const [signature, reason] of [
+      ["", "it's incomplete"],
+      ["transfer", "it's incomplete"],
+      ["f(uint256", "it's incomplete"],
+      ["f(uint256) returns", "it's incomplete"],
+      ["f(uint256,)", 'unexpected ")"'],
+      ["f(uint256))", 'unexpected ")"'],
+      ["f(uint256) onlyRole(ROLE", "it's incomplete"],
+      ["f(address uint256)", 'unexpected "uint256"'],
+      ["f(uint256,address bool)", 'unexpected "bool"'],
+      ["f(uint256 #)", 'unexpected "#"'],
+      ["f(uint256[0])", 'unexpected "["'],
+      ["f(uint256[)", 'unexpected "["'],
+      ["f(uint256) external; }", 'unexpected "}"'],
+      ["f(unit256)", unknownType("unit256")],
+      ["f(uint7)", unknownType("uint7")],
+      ["f(uint512)", unknownType("uint512")],
+      ["f(bytes0)", unknownType("bytes0")],
+      ["f(bytes01)", unknownType("bytes01")],
+      ["f(bytes33)", unknownType("bytes33")],
+      ["f(MyStruct)", unknownType("MyStruct")],
+      ["f(DataTypes.ReserveData)", unknownType("DataTypes.ReserveData")],
+      ["f() returns (DataTypes.)", 'unexpected ")"'],
+      [
+        "f(function (uint256) external returns (bool) cb)",
+        'write function types as just "function"',
+      ],
+      ["f(uint256 returns)", 'unexpected "returns"'],
+      ["f(uint256 function)", 'unexpected "function"'],
+      ["f(address payable payable)", 'unexpected "payable"'],
+      ["E(address indexed indexed x)", 'unexpected "indexed"'],
+      ["f(string memory calldata s)", 'unexpected "calldata"'],
+      [
+        "function push(uint256[] storage self, uint256 v) external",
+        '"storage" parameters aren\'t supported, as library selectors follow different rules',
+      ],
+      ["address(uint256)", '"address" can\'t be a name'],
+      ["function function()", '"function" can\'t be a name'],
+      ["function f() anonymous", 'unexpected "anonymous"'],
+      ["constructor() anonymous", 'unexpected "anonymous"'],
+      ["f() anonymous returns (bool)", 'unexpected "returns"'],
+      ["f() anonymous {}", 'unexpected "{"'],
+      ["function(uint256)", "it must include a name"],
+      ["event (uint256)", "it must include a name"],
+      ["constructor C(uint256)", 'unexpected "C"'],
+      ["event E(uint256) returns (bool)", 'unexpected "returns"'],
+      ["event E(uint256) external", 'unexpected "external"'],
+      ["event E() anonymous anonymous", 'unexpected "anonymous"'],
+      ["event E() {}", 'unexpected "{"'],
+      ["error E(uint256) returns (bool)", 'unexpected "returns"'],
+      ["error E(uint256) view", 'unexpected "view"'],
+      ["error E() {}", 'unexpected "{"'],
+    ]) {
+      it(`Should throw for "${signature}"`, () => {
+        assertInvalidSignature(signature, reason);
+      });
+    }
+  });
+
+  describe("parseAbiFunctionSignature", () => {
+    it("Should parse the signature of a function or error", () => {
+      assert.deepEqual(parseAbiFunctionSignature("transfer(address,uint256)"), {
+        name: "transfer",
+        inputs: [{ type: "address" }, { type: "uint256" }],
+        outputs: [],
+      });
+
+      assert.deepEqual(
+        parseAbiFunctionSignature("function f(uint256) returns (bool)"),
+        {
+          kind: "function",
+          name: "f",
+          inputs: [{ type: "uint256" }],
+          outputs: [{ type: "bool" }],
+        },
+      );
+
+      assert.deepEqual(parseAbiFunctionSignature("error E(address)"), {
+        kind: "error",
+        name: "E",
+        inputs: [{ type: "address" }],
+        outputs: [],
+      });
+    });
+
+    for (const [signature, reason] of [
+      ["(uint256)", "it must include a name"],
+      ["event E(uint256)", "it's an event, not a function or error"],
+      ["E(uint256) anonymous", "it's an event, not a function or error"],
+      [
+        "Transfer(address indexed from, address indexed to, uint256 value)",
+        "it's an event, not a function or error",
+      ],
+      ["constructor(uint256)", "it's a constructor, not a function or error"],
+      ["f(uint7)", unknownType("uint7")],
+    ]) {
+      it(`Should throw for "${signature}"`, () => {
+        assertInvalidSignature(signature, reason, parseAbiFunctionSignature);
+      });
+    }
+  });
+
+  describe("parseAbiEventSignature", () => {
+    it("Should parse the signature of an event", () => {
+      assert.deepEqual(
+        parseAbiEventSignature(
+          "Transfer(address indexed from, address indexed to, uint256)",
+        ),
+        {
+          name: "Transfer",
+          inputs: [
+            { type: "address", name: "from", indexed: true },
+            { type: "address", name: "to", indexed: true },
+            { type: "uint256" },
+          ],
+          anonymous: false,
+        },
+      );
+
+      assert.deepEqual(parseAbiEventSignature("event Ping() anonymous;"), {
+        kind: "event",
+        name: "Ping",
+        inputs: [],
+        anonymous: true,
+      });
+    });
+
+    for (const [signature, reason] of [
+      ["(uint256)", "it must include a name"],
+      ["function f(uint256)", "it's a function, not an event"],
+      ["error E(uint256)", "it's an error, not an event"],
+      ["constructor(uint256)", "it's a constructor, not an event"],
+      ["E(uint256) returns (bool)", "events can't have return types"],
+      ["E(uint256)(bool)", "events can't have return types"],
+    ]) {
+      it(`Should throw for "${signature}"`, () => {
+        assertInvalidSignature(signature, reason, parseAbiEventSignature);
+      });
+    }
+  });
+
+  describe("parseAbiParameter", () => {
+    it("Should parse a single parameter", () => {
+      assert.deepEqual(parseAbiParameter("uint"), { type: "uint256" });
+      assert.deepEqual(parseAbiParameter(" address payable "), {
+        type: "address",
+      });
+      assert.deepEqual(parseAbiParameter("string memory s"), {
+        type: "string",
+        name: "s",
+      });
+      assert.deepEqual(parseAbiParameter("(address a, bool b)[] pairs"), {
+        type: "tuple[]",
+        name: "pairs",
+        components: [
+          { type: "address", name: "a" },
+          { type: "bool", name: "b" },
+        ],
+      });
+    });
+
+    const singleTypeReason =
+      "it must be a single type, like uint256 or (address,bool)[]";
+
+    for (const [parameter, reason] of [
+      ["", "it's incomplete"],
+      ["uint256,bool", singleTypeReason],
+      ["uint256 a b", singleTypeReason],
+      ["uint256) returns (bool", singleTypeReason],
+      ["(uint256", "it's incomplete"],
+      ["MyStruct", unknownType("MyStruct")],
+      ["transfer(address)", unknownType("transfer")],
+    ]) {
+      it(`Should throw for "${parameter}"`, () => {
+        assertInvalidSignature(parameter, reason, parseAbiParameter);
+      });
+    }
+  });
+
+  describe("getCanonicalAbiSignature", () => {
+    it("Should return the canonical signature, without names nor return types", () => {
+      assert.equal(
+        getCanonicalAbiSignature(
+          parseAbiSignature(
+            "function f(uint a, (address b, (bool c)[2] d)[] e) returns (bool)",
+          ),
+        ),
+        "f(uint256,(address,(bool)[2])[])",
+      );
+    });
+  });
+
+  describe("getAbiSelector", () => {
+    it("Should return the selector of a function or error", async () => {
+      assert.equal(
+        await getAbiSelector(
+          parseAbiFunctionSignature("transfer(address,uint256)"),
+        ),
+        "0xa9059cbb",
+      );
+      assert.equal(
+        await getAbiSelector(
+          parseAbiFunctionSignature(
+            "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))",
+          ),
+        ),
+        "0x414bf389",
+      );
+      assert.equal(
+        await getAbiSelector(parseAbiFunctionSignature("error Error(string)")),
+        "0x08c379a0",
+      );
+    });
+
+    it("Should match solc's selectors of a function named error and of the function type", async () => {
+      // From `solc --hashes` (0.8.35) on `function error(string memory)` and
+      // `function cb(function (uint256) external returns (uint256) f)`
+      assert.equal(
+        await getAbiSelector(parseAbiFunctionSignature("error(string)")),
+        "0x24c93343",
+      );
+      assert.equal(
+        await getAbiSelector(parseAbiFunctionSignature("cb(function)")),
+        "0x568eba10",
+      );
+    });
+  });
+
+  describe("getAbiEventTopic", () => {
+    it("Should return the topic of an event", async () => {
+      assert.equal(
+        await getAbiEventTopic(
+          parseAbiEventSignature(
+            "event Transfer(address indexed from, address indexed to, uint256 value)",
+          ),
+        ),
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+      );
     });
   });
 });
