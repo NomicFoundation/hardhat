@@ -1,4 +1,5 @@
 import type {
+  ChainOverride,
   MineOrdering,
   IntervalRange,
   TracingMessage,
@@ -6,9 +7,11 @@ import type {
   TracingStep,
   HttpHeader,
 } from "@nomicfoundation/edr";
+import type { HardhatNetworkChainsConfig } from "../../../../types";
 import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
+import { getHardforkName, HARDFORKS_ORDER } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import {
@@ -364,4 +367,39 @@ export function edrRpcDebugTraceToHardhat2(
     returnValue: trace.returnValue === HEX_PREFIX ? "" : trace.returnValue,
     structLogs,
   };
+}
+
+/**
+ * Converts `networks.hardhat.chains` to EDR chain overrides.
+ *
+ * A non-empty hardfork history replaces EDR's activations for that chain.
+ * An empty history sets no activations. EDR then keeps its own for a chain it
+ * knows, and has none for a chain it does not.
+ */
+export function hardhatChainsToEdrChainOverrides(
+  chains: HardhatNetworkChainsConfig
+): ChainOverride[] {
+  return Array.from(chains, ([chainId, { hardforkHistory }]) => {
+    const chainOverride: ChainOverride = {
+      chainId: BigInt(chainId),
+      name: "Unknown",
+    };
+
+    if (hardforkHistory.size > 0) {
+      // EDR assumes activations in ascending order.
+      chainOverride.hardforkActivationOverrides = Array.from(hardforkHistory)
+        .sort(([hardforkA, blockA], [hardforkB, blockB]) =>
+          blockA !== blockB
+            ? blockA - blockB
+            : HARDFORKS_ORDER.indexOf(hardforkA) -
+              HARDFORKS_ORDER.indexOf(hardforkB)
+        )
+        .map(([hardfork, blockNumber]) => ({
+          condition: { blockNumber: BigInt(blockNumber) },
+          hardfork: getHardforkName(hardfork),
+        }));
+    }
+
+    return chainOverride;
+  });
 }
