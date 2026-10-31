@@ -40,7 +40,7 @@
 
 
   [32m2 passing[39m[90m (298ms)[39m
-[31m  4 failing[39m
+[31m  9 failing[39m
 [90m  8 cancelled[39m
 
   1) after each
