@@ -1758,6 +1758,14 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteTitle: "Import path already defined in compilation sources",
         websiteDescription: `The import path is already defined in the compilation sources`,
       },
+      COMPILATION_REQUIRED: {
+        number: 1302,
+        messageTemplate: `Coverage can't be measured without compiling, because the coverage data is collected while compiling. Run without --no-compile.`,
+        websiteTitle: "Coverage requires compilation",
+        websiteDescription: `Coverage is measured on contracts instrumented while compiling, and the information needed to map the results to your source files is collected during that compilation. When tests run with \`--coverage\` and \`--no-compile\`, that information is missing, so the report would be empty.
+
+Run the tests with \`--coverage\` and without \`--no-compile\`.`,
+      },
     },
     INIT: {
       FAILED_TO_INSTALL_DEPENDENCIES: {
