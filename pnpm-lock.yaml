@@ -639,9 +639,6 @@ importers:
       json5:
         specifier: ^2.2.3
         version: 2.2.3
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -667,9 +664,6 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.5
-      '@types/prompts':
-        specifier: ^2.4.2
-        version: 2.4.9
       '@types/sinon':
         specifier: ^22.0.0
         version: 22.0.0
@@ -3456,9 +3450,6 @@ packages:
   '@types/prettier@2.7.3':
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
 
-  '@types/prompts@2.4.9':
-    resolution: {integrity: sha512-qTxFi6Buiu8+50/+3DGIWLHM6QuWsEKugJnnP6iv2Mc4ncxE4A/OJkjuVOA+5X0X1S/nq5VJRa8Lu+nwcvbrKA==}
-
   '@types/react-dom@19.3.0':
     resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
     peerDependencies:
@@ -5676,10 +5667,6 @@ packages:
   khroma@2.1.0:
     resolution: {integrity: sha512-Ls993zuzfayK269Svk9hzpeGUKob/sIgZzyHYdjQoAdQetRKpOLj+k/QQQ/6Qi0Yz65mlROrfd+Ev+1+7dz9Kw==}
 
-  kleur@3.0.3:
-    resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
-    engines: {node: '>=6'}
-
   layout-base@1.0.2:
     resolution: {integrity: sha512-8h2oVEZNktL4BH2JCOI90iD1yXwL6iNW7KcCKT2QZgQJR2vbqDsldCTPRU9NifTCqHZci57XvQQ15YTu+sTYPg==}
 
@@ -6337,10 +6324,6 @@ packages:
     resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
     engines: {node: '>= 0.6.0'}
 
-  prompts@2.4.2:
-    resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
-    engines: {node: '>= 6'}
-
   proxy-addr@2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
@@ -6680,9 +6663,6 @@ packages:
 
   sinon@22.1.0:
     resolution: {integrity: sha512-n1ajF2rBWMTtEwbKcw4UdFg4nCnDdq/U6RDoxtOd7oapOlRoJ5ynwFx60owROyhDpA9QhMZi0pCO/xtmwFjG7w==}
-
-  sisteransi@1.0.5:
-    resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -8890,11 +8870,6 @@ snapshots:
       undici-types: 7.24.6
 
   '@types/prettier@2.7.3': {}
-
-  '@types/prompts@2.4.9':
-    dependencies:
-      '@types/node': 22.20.5
-      kleur: 3.0.3
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
@@ -11385,8 +11360,6 @@ snapshots:
 
   khroma@2.1.0: {}
 
-  kleur@3.0.3: {}
-
   layout-base@1.0.2: {}
 
   layout-base@2.0.1: {}
@@ -12027,11 +12000,6 @@ snapshots:
 
   process@0.11.10: {}
 
-  prompts@2.4.2:
-    dependencies:
-      kleur: 3.0.3
-      sisteransi: 1.0.5
-
   proxy-addr@2.0.7:
     dependencies:
       forwarded: 0.2.0
@@ -12428,8 +12396,6 @@ snapshots:
       '@sinonjs/fake-timers': 15.4.0
       '@sinonjs/samsam': 10.0.2
       diff: 9.0.0
-
-  sisteransi@1.0.5: {}
 
   slash@3.0.0: {}
 
