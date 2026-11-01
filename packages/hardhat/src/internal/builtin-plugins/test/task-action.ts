@@ -238,6 +238,23 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
+  const summaries = Object.values(testSummaries);
+  const testCount = summaries.reduce(
+    (count, s) => count + s.passed + s.failed + s.skipped + s.todo,
+    0,
+  );
+
+  // Only warn when every runner that ran reported a summary, as a runner that
+  // doesn't report one may still have run tests.
+  if (
+    ranSubtaskIds.length > 0 &&
+    summaries.length === ranSubtaskIds.length &&
+    testCount === 0
+  ) {
+    console.warn(styleText("yellow", getNoTestsWarning(grep, grepExclude)));
+    console.warn();
+  }
+
   if (hre.globalOptions.coverage === true) {
     const coverage = getCoverageManager(hre);
     coverage.enableReport();
@@ -271,6 +288,25 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
   return hasFailures ? errorResult() : successfulResult();
 };
+
+function getNoTestsWarning(
+  grep: string | undefined,
+  grepExclude: string | undefined,
+): string {
+  const filters: string[] = [];
+
+  if (grep !== undefined && grep !== "") {
+    filters.push(`--grep "${grep}"`);
+  }
+
+  if (grepExclude !== undefined && grepExclude !== "") {
+    filters.push(`--grep-exclude "${grepExclude}"`);
+  }
+
+  return filters.length > 0
+    ? `No tests matched ${filters.join(" and ")}.`
+    : "No tests were found.";
+}
 
 function logSummaryLine(
   label: string,

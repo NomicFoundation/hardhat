@@ -1,5 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { HardhatPlugin } from "../../../../src/types/plugins.js";
+import type { TestContext } from "node:test";
 
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
@@ -499,6 +500,81 @@ describe("test/task-action", function () {
 
       // The subtasks never ran, so nothing was built.
       assert.equal(received.length, 0);
+    });
+  });
+
+  describe("warning when no tests ran", function () {
+    const summary = (passed: number) =>
+      successfulResult({
+        summary: { passed, failed: 0, skipped: 0, todo: 0 },
+      });
+
+    // Override the builtin solidity subtask to report a summary
+    const solidityWith = (passed: number) =>
+      overrideTask(["test", "solidity"])
+        .setInlineAction(async () => summary(passed))
+        .build();
+
+    async function runAndCaptureWarnings(
+      t: TestContext,
+      hre: HardhatRuntimeEnvironment,
+      args: Record<string, unknown>,
+    ): Promise<string> {
+      const warnings: string[] = [];
+      t.mock.method(console, "warn", (text: string = "") => {
+        warnings.push(text);
+      });
+      t.mock.method(console, "log", () => {});
+
+      await hre.tasks.getTask("test").run({ noCompile: true, ...args });
+
+      return warnings.join("\n");
+    }
+
+    it("warns that --grep matched no tests when every runner ran none", async (t) => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityWith(0), mockRunner("runner-a", () => summary(0))],
+      });
+
+      const warnings = await runAndCaptureWarnings(t, hre, {
+        grep: "nomatch",
+      });
+
+      assert.match(warnings, /No tests matched --grep "nomatch"\./);
+    });
+
+    it("warns that no tests were found without filters", async (t) => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityWith(0), mockRunner("runner-a", () => summary(0))],
+      });
+
+      const warnings = await runAndCaptureWarnings(t, hre, {});
+
+      assert.match(warnings, /No tests were found\./);
+    });
+
+    it("doesn't warn when a runner ran tests", async (t) => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityWith(2), mockRunner("runner-a", () => summary(0))],
+      });
+
+      const warnings = await runAndCaptureWarnings(t, hre, {
+        grep: "unit_",
+      });
+
+      assert.equal(warnings, "");
+    });
+
+    it("doesn't warn when a runner doesn't report a summary", async (t) => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityNoOp, mockRunner("runner-a", () => summary(0))],
+      });
+
+      const warnings = await runAndCaptureWarnings(t, hre, {
+        grep: "nomatch",
+      });
+
+      assert.equal(warnings, "");
     });
   });
 });
