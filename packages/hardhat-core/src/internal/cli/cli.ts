@@ -112,6 +112,18 @@ Learn more at https://v2.hardhat.org/solc-viair`
   }
 }
 
+function showHardhat2EolWarning() {
+  console.warn();
+  console.warn(
+    picocolors.yellow(
+      `Hardhat 2 is reaching end of life. Please upgrade to Hardhat 3.
+
+Migration guide: https://hardhat.org/docs/migrate-from-hardhat2
+Migration skill (AI agents): https://hardhat.org/docs/migrate-from-hardhat2/guides/migration-skill`
+    )
+  );
+}
+
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
@@ -383,6 +395,7 @@ async function main() {
     }
 
     if (!isRunningOnCiServer() && process.stdout.isTTY === true) {
+      showHardhat2EolWarning();
       const hardhat3BannerManager = await BannerManager.getInstance();
       await hardhat3BannerManager.showBanner(200);
     }
