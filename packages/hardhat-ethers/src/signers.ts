@@ -187,21 +187,25 @@ export class HardhatEthersSigner implements ethers.Signer {
     // for a response, and we need the actual transaction, so we poll
     // for it; it should show up very quickly
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const timeouts = [1000, 100];
       const checkTx = async () => {
-        // Try getting the transaction
-        const txPolled = await this.provider.getTransaction(hash);
-        if (txPolled !== null) {
-          resolve(txPolled.replaceableTransaction(blockNumber));
-          return;
-        }
+        try {
+          // Try getting the transaction
+          const txPolled = await this.provider.getTransaction(hash);
+          if (txPolled !== null) {
+            resolve(txPolled.replaceableTransaction(blockNumber));
+            return;
+          }
 
-        // Wait another 4 seconds
-        setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          checkTx();
-        }, timeouts.pop() ?? 4000);
+          // Wait another 4 seconds
+          setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            checkTx();
+          }, timeouts.pop() ?? 4000);
+        } catch (error) {
+          reject(error);
+        }
       };
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       checkTx();
