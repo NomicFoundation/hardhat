@@ -22,8 +22,6 @@ The same applies to any change to Hardhat's core (`packages/hardhat/src/internal
 
 Once approved, the issue gets the `status:approved` label. Link it from your PR description with `Closes #<issue>`. A bot automatically closes feature PRs from external contributors that don't link an open, approved issue.
 
-We can't accept PRs for features or core changes that weren't approved first, no matter their quality.
-
 ## GitHub project
 
 We use a [GitHub project](https://github.com/orgs/NomicFoundation/projects/4/views/11) to triage new issues and plan our work. You can check our list of [good first issues](https://github.com/orgs/NomicFoundation/projects/4/views/7) there.
