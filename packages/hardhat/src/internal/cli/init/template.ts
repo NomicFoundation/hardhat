@@ -66,7 +66,7 @@ export async function getTemplates(): Promise<Template[]> {
         return;
       }
 
-      // Validate that the the template has a package.json file
+      // Validate that the template has a package.json file
       assertHardhatInvariant(
         await exists(pathToPackageJson),
         `package.json for template ${name} is missing`,
