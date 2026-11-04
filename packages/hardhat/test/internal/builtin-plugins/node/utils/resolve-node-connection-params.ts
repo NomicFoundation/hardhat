@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveNodeConnectionParams } from "../../../../../src/internal/builtin-plugins/node/utils/resolve-node-connection-params.js";
 
@@ -41,6 +42,24 @@ describe("resolveNodeConnectionParams", () => {
     assert.equal(result.override?.forking?.enabled, true);
     assert.equal(result.override?.forking?.url, "https://example.com/rpc");
     assert.equal(result.override?.forking?.blockNumber, undefined);
+  });
+
+  it("does not keep the configured fork httpHeaders when a fork url is provided", () => {
+    const result = resolveNodeConnectionParams("node", {
+      ...baseArgs,
+      fork: "https://example.com/rpc",
+    });
+
+    const forkingConfig = deepMerge(
+      {
+        url: "https://configured.example.com/rpc",
+        httpHeaders: { Authorization: "Bearer secret" },
+      },
+      result.override?.forking ?? {},
+    );
+
+    assert.equal(forkingConfig.url, "https://example.com/rpc");
+    assert.equal(forkingConfig.httpHeaders, undefined);
   });
 
   it("sets override.forking.blockNumber when fork and forkBlockNumber are provided", () => {
