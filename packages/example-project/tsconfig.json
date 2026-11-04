@@ -49,6 +49,9 @@
       "path": "../hardhat-ledger"
     },
     {
+      "path": "../hardhat-slang"
+    },
+    {
       "path": "../hardhat-slang-solx"
     }
   ]

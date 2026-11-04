@@ -3,7 +3,7 @@ import type { HardhatConfig } from "hardhat/types/config";
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { promisify, styleText } from "node:util";
 
 import {
   HardhatError,
@@ -19,6 +19,15 @@ import { SlangCompiler } from "../slang-compiler.js";
 const log = createDebug("hardhat:slang:hook-handlers:solidity");
 
 const execFileAsync = promisify(execFile);
+
+// One command can run several builds (e.g. `test solidity`), so the warning
+// is printed at most once per process.
+let hasWarnedAboutSlang = false;
+
+// NOTE: This function is exported for testing purposes
+export function resetSlangWarning(): void {
+  hasWarnedAboutSlang = false;
+}
 
 // NOTE: This function is exported for testing purposes
 export function parseSlangVersion(versionOutput: string): string {
@@ -39,20 +48,15 @@ async function getSlangVersionFromBinary(binaryPath: string): Promise<string> {
 }
 
 /**
- * Returns the slang release pinned in the config. Config validation already
- * guarantees it is set and known whenever a `type: "slang"` entry needs a
- * download, so both checks are invariants here.
+ * Returns the slang release the config resolved to, pinned or the latest.
+ * Config validation already rejects an unknown release, so that check is an
+ * invariant here.
  */
-function getPinnedRelease(config: HardhatConfig): {
+function getSlangRelease(config: HardhatConfig): {
   version: string;
   release: SlangRelease;
 } {
   const version = config.slang.version;
-  assertHardhatInvariant(
-    version !== undefined,
-    `slang.version is not set — this should have been caught by config validation`,
-  );
-
   const release = SLANG_RELEASES[version];
   assertHardhatInvariant(
     release !== undefined,
@@ -63,31 +67,28 @@ function getPinnedRelease(config: HardhatConfig): {
 }
 
 /**
- * Returns the release row whose CLI arguments drive a custom-path binary: the
- * pinned release when there is one, otherwise the newest release the plugin
- * knows, since a custom binary is usually a build ahead of any release.
+ * Whether the build profile compiles anything with slang, through either its
+ * compilers or its overrides. An unknown profile is left for the build system
+ * to reject.
  */
-function getReleaseForCustomPath(config: HardhatConfig): SlangRelease {
-  const pinned =
-    config.slang.version !== undefined
-      ? SLANG_RELEASES[config.slang.version]
-      : undefined;
-  if (pinned !== undefined) {
-    return pinned;
+function buildProfileUsesSlang(
+  config: HardhatConfig,
+  buildProfile: string,
+): boolean {
+  const profile = config.solidity.profiles[buildProfile];
+  if (profile === undefined) {
+    return false;
   }
 
-  const newest = Object.values(SLANG_RELEASES).at(-1);
-  assertHardhatInvariant(
-    newest !== undefined,
-    "The slang release table must not be empty",
+  return [...profile.compilers, ...Object.values(profile.overrides)].some(
+    (c) => c.type === SLANG_COMPILER_TYPE,
   );
-  return newest;
 }
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (context, compilerConfigs, quiet) => {
     // Every type: "slang" entry without a custom path shares the single
-    // pinned release, whatever its Solidity version, so there is at most one
+    // slang release, whatever its Solidity version, so there is at most one
     // binary to download.
     const needsDownload = compilerConfigs.some((c) => {
       if (c.type !== SLANG_COMPILER_TYPE) {
@@ -106,7 +107,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       return;
     }
 
-    const { version: slangVersion, release } = getPinnedRelease(context.config);
+    const { version: slangVersion, release } = getSlangRelease(context.config);
 
     const binaryPath = await getSlangBinaryPath(slangVersion, release);
     if (await exists(binaryPath)) {
@@ -146,12 +147,10 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         `Creating SlangCompiler with custom path for Solidity ${compilerConfig.version} (slang ${customSlangVersion}) at ${compilerConfig.path}`,
       );
 
-      return new SlangCompiler(customSlangVersion, compilerConfig.path, {
-        release: getReleaseForCustomPath(context.config),
-      });
+      return new SlangCompiler(customSlangVersion, compilerConfig.path);
     }
 
-    const { version: slangVersion, release } = getPinnedRelease(context.config);
+    const { version: slangVersion, release } = getSlangRelease(context.config);
 
     const binaryPath = await getSlangBinaryPath(slangVersion, release);
 
@@ -164,6 +163,25 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       `Creating SlangCompiler for Solidity ${compilerConfig.version} (slang ${slangVersion}) at ${binaryPath}`,
     );
 
-    return new SlangCompiler(slangVersion, binaryPath, { release });
+    return new SlangCompiler(slangVersion, binaryPath);
+  },
+
+  build: async (context, rootFilePaths, options, next) => {
+    // The build system falls back to the "default" profile when none is given
+    const buildProfile = options?.buildProfile ?? "default";
+
+    // Printed even when quiet, like compiler warnings
+    if (
+      !hasWarnedAboutSlang &&
+      buildProfileUsesSlang(context.config, buildProfile)
+    ) {
+      hasWarnedAboutSlang = true;
+
+      console.warn(
+        `${styleText(["yellow", "bold"], "Warning:")} This build compiles with slang, an experimental compiler. Key functionality, such as validation of incorrect code, is still under active development. Keep using solc for production builds and anything you deploy.\n`,
+      );
+    }
+
+    return await next(context, rootFilePaths, options);
   },
 });

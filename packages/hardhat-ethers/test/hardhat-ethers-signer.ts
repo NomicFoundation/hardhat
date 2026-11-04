@@ -7,7 +7,11 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  createTestEnvManager,
+} from "@nomicfoundation/hardhat-test-utils";
+import { configVariable } from "hardhat/config";
 
 import { EXAMPLE_CONTRACT } from "./helpers/example-contracts.js";
 import {
@@ -27,6 +31,8 @@ describe("hardhat ethers signer", () => {
   });
 
   describe("authorize", () => {
+    const { setEnvVar } = createTestEnvManager();
+
     const TEST_P_KEY_1 =
       "8fb52808bddb9f02a31d076c2904b75e1fe7f2f399a98a27707b5fddb5133163";
     const TEST_P_KEY_2 =
@@ -137,6 +143,26 @@ describe("hardhat ethers signer", () => {
         await testStringPrivateKeys(hhEthers);
       });
 
+      it(`should work with array of private keys as configuration variables`, async () => {
+        setEnvVar("TEST_P_KEY_1", TEST_P_KEY_1);
+        setEnvVar("TEST_P_KEY_2", TEST_P_KEY_2);
+
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            localhost: {
+              type: "http",
+              url: `http://${address}:${port}`,
+              accounts: [
+                configVariable("TEST_P_KEY_1"),
+                configVariable("TEST_P_KEY_2"),
+              ],
+            },
+          },
+        });
+
+        await testStringPrivateKeys(hhEthers);
+      });
+
       it(`should work with hd accounts`, async () => {
         const { ethers: hhEthers } = await initializeTestEthers([], {
           networks: {
@@ -161,6 +187,31 @@ describe("hardhat ethers signer", () => {
               accounts: [
                 { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
                 { balance: "1000000000000000000", privateKey: TEST_P_KEY_2 },
+              ],
+            },
+          },
+        });
+
+        await testStringPrivateKeys(hhEthers);
+      });
+
+      it(`should work with an array that has private keys as configuration variables`, async () => {
+        setEnvVar("TEST_P_KEY_1", TEST_P_KEY_1);
+        setEnvVar("TEST_P_KEY_2", TEST_P_KEY_2);
+
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            default: {
+              type: "edr-simulated",
+              accounts: [
+                {
+                  balance: "1000000000000000000",
+                  privateKey: configVariable("TEST_P_KEY_1"),
+                },
+                {
+                  balance: "1000000000000000000",
+                  privateKey: configVariable("TEST_P_KEY_2"),
+                },
               ],
             },
           },

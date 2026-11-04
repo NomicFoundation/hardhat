@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.2.2
+
+### Patch Changes
+
+- [#8777](https://github.com/NomicFoundation/hardhat/pull/8777) [`d3d5127`](https://github.com/NomicFoundation/hardhat/commit/d3d5127afe90617b8bd61ba8e2f15777b71a445c) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Fixed `authorize()` failing for private keys from configuration variables without a `0x` prefix.
+
 ## 4.2.1
 
 ### Patch Changes

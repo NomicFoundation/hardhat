@@ -16,6 +16,7 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   greaterThanOrEqual,
+  lowerThan,
   lowerThanOrEqual,
   parseVersion,
 } from "@nomicfoundation/hardhat-utils/fast-semver";
@@ -27,13 +28,16 @@ import {
 import { z } from "zod";
 
 import {
+  DEFAULT_SLANG_EVM_VERSION,
   DEFAULT_SLANG_OPTIMIZER_MODE,
+  FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT,
   SLANG_COMPILER_TYPE,
   SLANG_RELEASES,
   SUPPORTED_SLANG_EVM_VERSIONS,
   SUPPORTED_SLANG_OPTIMIZER_MODES,
 } from "../constants.js";
 import { addSlangStackTraceSelectors } from "../slang-compiler.js";
+import { getLatestSlangVersion } from "../utils/slang-release-version.js";
 
 const log = createDebug("hardhat:slang:hook-handlers:config");
 
@@ -193,16 +197,8 @@ const slangUserConfigType = z
     }
 
     const pinnedVersion = config.slang?.version;
-    if (pinnedVersion === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["slang", "version"],
-        message: `slang.version is required when a compiler entry uses type: "${SLANG_COMPILER_TYPE}" without a custom path. Known slang releases: ${KNOWN_SLANG_VERSIONS.join(", ")}`,
-      });
-      return;
-    }
-
-    const release = SLANG_RELEASES[pinnedVersion];
+    const slangVersion = pinnedVersion ?? getLatestSlangVersion();
+    const release = SLANG_RELEASES[slangVersion];
     if (release === undefined) {
       // Already reported by slangVersionType.
       return;
@@ -213,7 +209,7 @@ const slangUserConfigType = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [...path, "version"],
-          message: `Solidity version ${version} is not supported by slang ${pinnedVersion}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
+          message: `Solidity version ${version} is not supported by slang ${slangVersion}, which supports versions from ${release.minSolidity} to ${release.maxSolidity}`,
         });
       }
     }
@@ -222,7 +218,7 @@ const slangUserConfigType = z
 interface SlangEntry {
   version: string;
   solidityVersion: unknown;
-  /** Whether the entry brings its own binary instead of the pinned release. */
+  /** Whether the entry brings its own binary instead of the slang release. */
   hasCustomPath: boolean;
   path: Array<string | number>;
 }
@@ -405,6 +401,14 @@ async function augmentIfSlang<
       // the solcInput and hence the build-id hash. One slang binary compiles a
       // range of Solidity versions, so the entry's version is part of it too.
       solidityVersion: entry.version,
+      // Only set when Hardhat's own default would be older than slang
+      // supports; otherwise Hardhat's default still applies downstream.
+      // TODO: if hardhat-slang becomes a built-in we should use the evm version
+      //   mapping code available in core
+      ...(settings.evmVersion === undefined &&
+      hasPreCancunHardhatDefault(entry.version)
+        ? { evmVersion: DEFAULT_SLANG_EVM_VERSION }
+        : {}),
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SLANG_OPTIMIZER_MODE,
@@ -414,6 +418,18 @@ async function augmentIfSlang<
       ),
     },
   };
+}
+
+function hasPreCancunHardhatDefault(solidityVersion: string): boolean {
+  const parsed = parseVersion(solidityVersion);
+  const first = parseVersion(FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT);
+
+  assertHardhatInvariant(
+    first !== undefined,
+    `Invalid FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT: ${FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT}`,
+  );
+
+  return parsed !== undefined && lowerThan(parsed, first);
 }
 
 export async function validateResolvedConfig(
@@ -471,7 +487,7 @@ export async function validateResolvedConfig(
 
 function resolveSlangConfig(userConfig?: SlangUserConfig): SlangConfig {
   return {
-    version: userConfig?.version,
+    version: userConfig?.version ?? getLatestSlangVersion(),
     dangerouslyAllowSlangInProduction:
       userConfig?.dangerouslyAllowSlangInProduction ?? false,
   };
