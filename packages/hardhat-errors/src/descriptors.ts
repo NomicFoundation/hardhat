@@ -3432,15 +3432,15 @@ Please check that you are sending a "data" parameter with a JSON string or objec
       },
       ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH: {
         number: 90010,
-        messageTemplate: `The Ledger device signed different typed data than requested, so the signature was discarded. Known causes: a field named only with digits (e.g. "123") or "__proto__". Rename those fields.`,
-        websiteTitle: `The Ledger device signed different typed data than requested`,
-        websiteDescription: `Before signing, the Ledger SDK re-encodes your EIP-712 typed data. For some inputs that encoding differs from the EIP-712 standard, so the device signs a different message than the one you sent. Hardhat detects this by recovering the signer from your original data and refuses to return the signature.
+        messageTemplate: `The Ledger did not sign the typed data you requested for {address}, so Hardhat discarded the signature. Rename any field named only with digits (e.g. "123") or "__proto__", and check that the connected Ledger holds this account.`,
+        websiteTitle: `The Ledger did not sign the requested typed data`,
+        websiteDescription: `The signature returned by your Ledger is not a signature of the typed data you sent by the account you requested, so Hardhat discarded it.
 
-Known causes:
-- A field whose name is only digits (e.g. "123"): the SDK moves it to the front of the struct.
-- A field named "__proto__": the SDK drops it.
+To fix it:
+- Rename any field whose name is only digits (e.g. "123") or is "__proto__". The Ledger can't sign these fields as sent.
+- Check that the connected Ledger, and its passphrase if you use one, holds the account you are signing with.
 
-Rename those fields and try again. If none of your fields match, please open an issue with the typed data so we can document the cause.`,
+If neither applies, please [report it](https://github.com/NomicFoundation/hardhat/issues/new) with the typed data.`,
       },
       CONNECTION_CLOSED: {
         number: 90011,

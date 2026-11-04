@@ -854,6 +854,7 @@ export class LedgerHandler {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
           .ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH,
+        { address: bytesToHexString(address) },
       );
     }
   }
