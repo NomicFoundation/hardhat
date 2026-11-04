@@ -40,7 +40,7 @@ interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
   hardfork?: string;
-  config: Omit<SolidityTestProfileConfig, "eip712Types">;
+  config: SolidityTestProfileConfig;
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
@@ -146,10 +146,14 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const shouldAlwaysCollectStackTraces =
     verbosity >= ALWAYS_COLLECT_STACK_TRACES_VERBOSITY;
 
+  // `eip712Types` is Hardhat's own shape, so it's replaced by the field EDR
+  // takes rather than spread into the runner arguments.
+  const { eip712Types, ...otherConfig } = config;
+
   return {
     projectRoot,
     hardfork: resolvedHardfork,
-    ...config,
+    ...otherConfig,
     fsPermissions,
     localPredeploys,
     sender,
@@ -174,6 +178,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : CollectStackTraces.OnFailure,
     testSourcePaths,
     importMappings,
+    eip712ExcludeGlobs: eip712Types.exclude,
     testProfile,
     declaredTestProfiles,
   };
@@ -333,18 +338,6 @@ export function warnUnparsableTestSources(userSourceNames: string[]): void {
     .map((userSourceName) => `- ${userSourceName}`)
     .join("\n");
   const warningMessage = `${styleText("yellow", "Warning")}: These test sources were compiled with a Solidity version older than ${OLDEST_PARSABLE_SOLC_VERSION}, which cannot be parsed:\n${sources}\nInline test configuration and the EIP-712 cheatcodes are disabled for this whole run.\n`;
-
-  console.warn(warningMessage);
-}
-
-export function warnDeprecatedEip712Types(
-  eip712Types: SolidityTestProfileConfig["eip712Types"],
-): void {
-  if (eip712Types.include.length === 0 && eip712Types.exclude.length === 0) {
-    return;
-  }
-
-  const warningMessage = `${styleText("yellow", "Warning")}: The \`eip712Types\` Solidity test configuration no longer has any effect, so you can remove it. The EIP-712 cheatcodes now resolve struct names from the sources of the test contract itself and the files it imports.\n`;
 
   console.warn(warningMessage);
 }

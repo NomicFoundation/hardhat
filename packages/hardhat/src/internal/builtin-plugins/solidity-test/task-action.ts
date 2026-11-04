@@ -40,7 +40,6 @@ import {
 import {
   isTestSuiteArtifact,
   selectTestSourcePaths,
-  warnDeprecatedEip712Types,
   warnDeprecatedTestFail,
   warnUnparsableTestSources,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
@@ -218,10 +217,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
-  const { eip712Types, ...solidityTestConfig } = selectedTestProfile;
-
-  warnDeprecatedEip712Types(eip712Types);
-
   // Maps each test suite's solc source name to its absolute path on disk. EDR
   // reads those to collect the inline test configuration and the EIP-712 struct
   // definitions.
@@ -290,7 +285,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       chainType,
       projectRoot: hre.config.paths.root,
       hardfork,
-      config: solidityTestConfig,
+      config: selectedTestProfile,
       verbosity,
       observability: observabilityConfig,
       testPattern: grep,

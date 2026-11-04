@@ -75,12 +75,19 @@ declare module "../../../types/test.js" {
     invariant?: SolidityTestInvariantUserConfig;
     forking?: SolidityTestForkingUserConfig;
     /**
-     * @deprecated This option no longer has any effect. The EIP-712 cheatcodes
-     * resolve struct names from the sources of the test contract itself and the
-     * files it imports.
+     * Controls which sources the EIP-712 cheatcodes collect struct
+     * definitions from.
+     *
+     * Every struct that a test source reaches is collected, through its
+     * dependencies as well. A file matched by an `exclude` glob is left out,
+     * which is how a clash between two reachable structs is settled.
+     *
+     * The globs are matched against each file's path relative to the project
+     * root, with forward slashes, so a dependency is addressed as
+     * `node_modules/<package>/...`. A file outside the project root is matched
+     * by its absolute path.
      */
     eip712Types?: {
-      include?: string[];
       exclude?: string[];
     };
   }
@@ -158,12 +165,19 @@ declare module "../../../types/test.js" {
     invariant?: SolidityTestInvariantConfig;
     forking?: SolidityTestForkingConfig;
     /**
-     * @deprecated This option no longer has any effect. The EIP-712 cheatcodes
-     * resolve struct names from the sources of the test contract itself and the
-     * files it imports.
+     * Controls which sources the EIP-712 cheatcodes collect struct
+     * definitions from.
+     *
+     * Every struct that a test source reaches is collected, through its
+     * dependencies as well. A file matched by an `exclude` glob is left out,
+     * which is how a clash between two reachable structs is settled.
+     *
+     * The globs are matched against each file's path relative to the project
+     * root, with forward slashes, so a dependency is addressed as
+     * `node_modules/<package>/...`. A file outside the project root is matched
+     * by its absolute path.
      */
     eip712Types: {
-      include: string[];
       exclude: string[];
     };
   }

@@ -5,6 +5,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import {
   DEFAULT_FUZZ_SEED,
+  resolveEip712TypesConfig,
   resolveFuzzConfig,
   resolveInvariantConfig,
 } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
@@ -85,6 +86,23 @@ describe("config resolution", () => {
         shrinkRunLimit: 0,
         timeout: 60,
       });
+    });
+  });
+
+  describe("resolveEip712TypesConfig", () => {
+    it("should exclude nothing when the config is undefined", () => {
+      assert.deepEqual(resolveEip712TypesConfig(undefined), { exclude: [] });
+    });
+
+    it("should exclude nothing when the config is empty", () => {
+      assert.deepEqual(resolveEip712TypesConfig({}), { exclude: [] });
+    });
+
+    it("should keep the configured exclude globs", () => {
+      assert.deepEqual(
+        resolveEip712TypesConfig({ exclude: ["contracts/vendor/**"] }),
+        { exclude: ["contracts/vendor/**"] },
+      );
     });
   });
 
@@ -181,6 +199,26 @@ describe("config resolution", () => {
       assert.equal(ci.fuzz.seed, DEFAULT_FUZZ_SEED);
       assert.equal(ci.forking?.blockNumber, 123n);
       assert.equal(await ci.forking?.url?.get(), "https://example.com/ci");
+    });
+
+    it("should resolve the EIP-712 exclude globs of every profile", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            profiles: {
+              default: { eip712Types: { exclude: ["contracts/vendor/**"] } },
+              ci: {},
+            },
+          },
+        },
+      });
+
+      const { default: defaultProfile, ci } = hre.config.test.solidity.profiles;
+
+      assert.deepEqual(defaultProfile.eip712Types, {
+        exclude: ["contracts/vendor/**"],
+      });
+      assert.deepEqual(ci.eip712Types, { exclude: [] });
     });
   });
 });

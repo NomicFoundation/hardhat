@@ -1,5 +1,6 @@
 import type { ConfigurationVariableResolver } from "../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+import type { SolidityTestProfileConfig } from "../../../../src/types/test.js";
 import type { Artifact } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
@@ -35,6 +36,16 @@ import {
 } from "../../../../src/internal/constants.js";
 import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
+/**
+ * The resolved profile the conversion tests start from. Each test overrides
+ * only the fields it exercises.
+ */
+const BASE_PROFILE_CONFIG: SolidityTestProfileConfig = {
+  fuzz: { seed: "0x1234" },
+  rpcCachePath: "",
+  eip712Types: { exclude: [] },
+};
+
 describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   let hre: HardhatRuntimeEnvironment;
   let configVarResolver: ConfigurationVariableResolver;
@@ -50,7 +61,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity,
         generateGasReport: false,
       });
@@ -63,7 +74,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 3,
       generateGasReport: false,
     });
@@ -76,7 +87,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity,
         generateGasReport: false,
       });
@@ -90,7 +101,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity,
         generateGasReport: false,
       });
@@ -109,8 +120,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         blockGasLimit: undefined,
       },
       verbosity: 1,
@@ -126,8 +136,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         blockGasLimit: false,
       },
       verbosity: 1,
@@ -142,7 +151,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "", blockGasLimit: 1n },
+      config: { ...BASE_PROFILE_CONFIG, blockGasLimit: 1n },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -156,8 +165,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         blockGasLimit: 100,
       },
       verbosity: 1,
@@ -173,8 +181,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         transactionGasCap: undefined,
       },
       verbosity: 1,
@@ -190,8 +197,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         transactionGasCap: false,
       },
       verbosity: 1,
@@ -207,8 +213,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         transactionGasCap: 1_000_000n,
       },
       verbosity: 1,
@@ -224,8 +229,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         transactionGasCap: 1_000_000,
       },
       verbosity: 1,
@@ -241,8 +245,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         gasLimit: undefined,
       },
       verbosity: 1,
@@ -257,8 +260,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         gasLimit: 12_000_000n,
       },
       verbosity: 1,
@@ -272,7 +274,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "", prevRandao: 123n },
+      config: { ...BASE_PROFILE_CONFIG, prevRandao: 123n },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -296,8 +298,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         forking: resolvedForkingConfig,
       },
       verbosity: 1,
@@ -325,8 +326,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
       config: {
-        fuzz: { seed: "0x1234" },
-        rpcCachePath: "",
+        ...BASE_PROFILE_CONFIG,
         forking: resolvedForkingConfig,
       },
       verbosity: 1,
@@ -340,7 +340,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 0,
       generateGasReport: true,
     });
@@ -352,7 +352,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 0,
       generateGasReport: false,
     });
@@ -364,7 +364,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 0,
       generateGasReport: false,
       testPattern: "unit_",
@@ -379,7 +379,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 0,
       generateGasReport: false,
     });
@@ -392,7 +392,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      config: BASE_PROFILE_CONFIG,
       verbosity: 0,
       generateGasReport: false,
       testPattern: "",
@@ -403,13 +403,60 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.excludeTestPattern, undefined);
   });
 
+  it("forwards the EIP-712 exclude globs to the runner config", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: {
+        ...BASE_PROFILE_CONFIG,
+        eip712Types: {
+          exclude: ["contracts/vendor/**", "node_modules/dep/**"],
+        },
+      },
+      verbosity: 0,
+      generateGasReport: false,
+    });
+
+    assert.deepEqual(args.eip712ExcludeGlobs, [
+      "contracts/vendor/**",
+      "node_modules/dep/**",
+    ]);
+  });
+
+  it("excludes nothing from EIP-712 collection when no glob is configured", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: BASE_PROFILE_CONFIG,
+      verbosity: 0,
+      generateGasReport: false,
+    });
+
+    assert.deepEqual(args.eip712ExcludeGlobs, []);
+  });
+
+  it("doesn't pass the Hardhat-shaped `eip712Types` on to the runner config", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: BASE_PROFILE_CONFIG,
+      verbosity: 0,
+      generateGasReport: false,
+    });
+
+    assert.ok(
+      !("eip712Types" in args),
+      "`eip712Types` should not reach the runner config",
+    );
+  });
+
   describe("hardfork parameter", () => {
     it("should use provided hardfork for EDR", async () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: L1_CHAIN_TYPE,
         projectRoot: process.cwd(),
         hardfork: "cancun",
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity: 2,
         generateGasReport: false,
       });
@@ -422,7 +469,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         chainType: OPTIMISM_CHAIN_TYPE,
         projectRoot: process.cwd(),
         hardfork: "ecotone",
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity: 2,
         generateGasReport: false,
       });
@@ -435,7 +482,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         chainType: L1_CHAIN_TYPE,
         projectRoot: process.cwd(),
         hardfork: undefined,
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity: 2,
         generateGasReport: false,
       });
@@ -449,7 +496,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         chainType: OPTIMISM_CHAIN_TYPE,
         projectRoot: process.cwd(),
         hardfork: undefined,
-        config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+        config: BASE_PROFILE_CONFIG,
         verbosity: 2,
         generateGasReport: false,
       });
