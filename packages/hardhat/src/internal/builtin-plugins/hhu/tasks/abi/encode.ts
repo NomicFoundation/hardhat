@@ -2,7 +2,10 @@ import type { AbiParameter } from "@nomicfoundation/hardhat-utils/abi";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { encodeAbiParameters } from "@nomicfoundation/hardhat-utils/abi";
+import {
+  encodeAbiParameters,
+  isAbiEncodingError,
+} from "@nomicfoundation/hardhat-utils/abi";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 /**
@@ -32,6 +35,10 @@ export async function encodeArguments(
     return await encodeAbiParameters(parameters, parsedValues);
   } catch (error) {
     ensureError(error);
+
+    if (!isAbiEncodingError(error)) {
+      throw error;
+    }
 
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
@@ -75,7 +82,8 @@ function parseValue(
       {
         value,
         name,
-        reason: `${parameter.type} values must be written as JSON, with addresses, hex and strings quoted, like [1,"0x..."]`,
+        // The parser's message is kept, as it says where the JSON breaks
+        reason: `${parameter.type} values must be written as JSON, with addresses, hex and strings quoted, like [1,"0x..."]: ${error.message}`,
       },
       error,
     );

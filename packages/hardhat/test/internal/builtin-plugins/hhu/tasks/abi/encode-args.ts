@@ -8,6 +8,7 @@ import {
   assertRejectsWithHardhatError,
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
@@ -140,14 +141,23 @@ describe("hhu utils abi tasks", () => {
     });
 
     it("throws when an array isn't valid JSON", async () => {
+      // The parser's message is engine-specific, so it's taken from the engine
+      // rather than hard-coded.
+      let parserMessage = "";
+      try {
+        JSON.parse("[1,2");
+      } catch (error) {
+        ensureError(error);
+        parserMessage = error.message;
+      }
+
       await assertRejectsWithHardhatError(
         runEncodeArgs({ signature: "f(uint256[])", values: ["[1,2"] }),
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
         {
           value: "[1,2",
           name: "values",
-          reason:
-            'uint256[] values must be written as JSON, with addresses, hex and strings quoted, like [1,"0x..."]',
+          reason: `uint256[] values must be written as JSON, with addresses, hex and strings quoted, like [1,"0x..."]: ${parserMessage}`,
         },
       );
     });
