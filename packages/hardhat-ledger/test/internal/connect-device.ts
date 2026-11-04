@@ -61,7 +61,7 @@ const loadConnectDevice = async () =>
   await import("../../src/internal/connect-device.js");
 
 describe("connectDevice lifecycle", () => {
-  it("should keep one kit per process and unref its hotplug listeners once", async () => {
+  it("should keep one kit per process, unref its hotplug listeners once and reconnect after close", async () => {
     const { connectDevice } = await loadConnectDevice();
     const exitListenersBefore = process.listenerCount("exit");
 
@@ -72,6 +72,12 @@ describe("connectDevice lifecycle", () => {
     const device = await connectDevice(1000);
 
     await device.close();
+
+    // Closing a session must leave the kit usable, or the next connection in
+    // the same process (e.g. `ignition deploy` then `ignition verify`) fails.
+    const reconnectedDevice = await connectDevice(1000);
+
+    await reconnectedDevice.close();
 
     // The transport is built once, so it registers one exit listener and its
     // hotplug listeners are unref'd once.
