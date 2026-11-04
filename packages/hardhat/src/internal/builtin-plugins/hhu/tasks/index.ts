@@ -2,6 +2,7 @@ import type { UtilsTaskDefinition } from "../types.js";
 
 import { emptyTask } from "../../../core/config.js";
 
+import { abi } from "./abi/index.js";
 import { constants } from "./constants/index.js";
 import { convert } from "./convert/index.js";
 import { fetch } from "./fetch/index.js";
@@ -21,7 +22,7 @@ export interface GenerateTasksOptions {
  * id prefix to nest its tasks under and returns its task definitions. Adding a
  * new category is a single entry here.
  */
-const CATEGORIES = [constants, convert, fetch, hash];
+const CATEGORIES = [abi, constants, convert, fetch, hash];
 
 export function generateTasks(
   options: GenerateTasksOptions,
