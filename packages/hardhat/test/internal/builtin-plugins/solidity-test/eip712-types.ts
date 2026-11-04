@@ -27,6 +27,31 @@ const PROJECT_EXCLUDE_GLOBS = [
 /** A dependency is addressed by its path under the project root. */
 const PACKAGE_EXCLUDE_GLOB = "node_modules/vendor-structs/**";
 
+// Each of the test ids below names a single Solidity test function that is
+// asserted on under more than one `exclude` configuration, so misspelling one
+// copy would silently stop that assertion from matching anything.
+const TEST_HASHES_THE_PROJECT_PERMIT_TYPE = "test_hashesTheProjectPermitType()";
+const TEST_THE_ONLY_FILE_DECLARING_THE_NAME =
+  "test_theOnlyFileDeclaringTheName()";
+const TEST_A_STRUCT_DEPENDING_ON_THAT_NAME =
+  "test_aStructDependingOnThatName()";
+const TEST_A_STRUCT_THE_TEST_SOURCE_ITSELF_DECLARES =
+  "test_aStructTheTestSourceItselfDeclares()";
+const TEST_COLLECTS_A_STRUCT_FROM_A_PACKAGE_DEPENDENCY =
+  "test_collectsAStructFromAPackageDependency()";
+const TEST_INLINES_A_DEPENDENCY_FROM_A_PACKAGE_DEPENDENCY =
+  "test_inlinesADependencyFromAPackageDependency()";
+
+// Each of the two fragments below is asserted on by more than one case, so a
+// typo in one copy would only ever be caught by the others silently matching
+// less than intended.
+const REASON_DECLARED_ONLY_IN_EXCLUDED_FILE =
+  "struct is declared only in a file excluded from EIP-712 type collection";
+const REASON_REFERENCES_UNUSABLE_TYPE = "struct references unusable type:";
+const REASON_CONFLICTING_DEFINITIONS = "conflicting definitions in:";
+const REASON_REFERENCES_AMBIGUOUS_TYPE =
+  "struct references ambiguously-named type:";
+
 interface SuiteResults {
   suiteResults: Array<{ testResults: TestResult[] }>;
 }
@@ -166,11 +191,14 @@ describe("solidity-test/eip712-types", () => {
     });
 
     it("collects a struct from a package dependency", () => {
-      assertPassed(results, "test_collectsAStructFromAPackageDependency()");
+      assertPassed(results, TEST_COLLECTS_A_STRUCT_FROM_A_PACKAGE_DEPENDENCY);
     });
 
     it("inlines a dependency from a package dependency", () => {
-      assertPassed(results, "test_inlinesADependencyFromAPackageDependency()");
+      assertPassed(
+        results,
+        TEST_INLINES_A_DEPENDENCY_FROM_A_PACKAGE_DEPENDENCY,
+      );
     });
 
     it("collapses identical declarations of one name", () => {
@@ -178,21 +206,21 @@ describe("solidity-test/eip712-types", () => {
     });
 
     it("collects a struct only one unexcluded file declares", () => {
-      assertPassed(results, "test_theOnlyFileDeclaringTheName()");
+      assertPassed(results, TEST_THE_ONLY_FILE_DECLARING_THE_NAME);
     });
 
     it("collects a struct depending on that name", () => {
-      assertPassed(results, "test_aStructDependingOnThatName()");
+      assertPassed(results, TEST_A_STRUCT_DEPENDING_ON_THAT_NAME);
     });
 
     it("collects a struct the test source itself declares", () => {
-      assertPassed(results, "test_aStructTheTestSourceItselfDeclares()");
+      assertPassed(results, TEST_A_STRUCT_THE_TEST_SOURCE_ITSELF_DECLARES);
     });
 
     it("fails a lookup that two reachable sources declare", () => {
       assertFailedWith(
         results,
-        "test_hashesTheProjectPermitType()",
+        TEST_HASHES_THE_PROJECT_PERMIT_TYPE,
         /EIP-712 type `Permit` cannot be used: conflicting definitions/,
       );
     });
@@ -201,7 +229,9 @@ describe("solidity-test/eip712-types", () => {
       assertFailedWith(
         results,
         "test_twoContractsInOneFileDeclareTheName()",
-        /EIP-712 type `Conflict` cannot be used: conflicting definitions in: [^,]*contracts\/conflict\/InOneFile\.sol\./,
+        new RegExp(
+          `EIP-712 type \`Conflict\` cannot be used: ${REASON_CONFLICTING_DEFINITIONS} [^,]*contracts\\/conflict\\/InOneFile\\.sol\\.`,
+        ),
       );
     });
 
@@ -209,7 +239,19 @@ describe("solidity-test/eip712-types", () => {
       assertFailedWith(
         results,
         "test_twoFilesDeclareTheName()",
-        /EIP-712 type `Clash` cannot be used: conflicting definitions in: .*Clash\.sol, .*ClashOther\.sol/,
+        new RegExp(
+          `EIP-712 type \`Clash\` cannot be used: ${REASON_CONFLICTING_DEFINITIONS} .*Clash\\.sol, .*ClashOther\\.sol`,
+        ),
+      );
+    });
+
+    it("fails a lookup of two declarations differing only in a non-encodable member", () => {
+      assertFailedWith(
+        results,
+        "test_twoFilesDeclareTheNameDifferingOnlyInANonEncodableMember()",
+        new RegExp(
+          `EIP-712 type \`Ledger\` cannot be used: ${REASON_CONFLICTING_DEFINITIONS} .*LedgerA\\.sol, .*LedgerB\\.sol`,
+        ),
       );
     });
 
@@ -217,7 +259,33 @@ describe("solidity-test/eip712-types", () => {
       assertFailedWith(
         results,
         "test_aStructDependsOnTheClashingName()",
-        /EIP-712 type `Wrapper` cannot be used: struct references ambiguously-named type: `Clash`/,
+        new RegExp(
+          `EIP-712 type \`Wrapper\` cannot be used: ${REASON_REFERENCES_AMBIGUOUS_TYPE} \`Clash\``,
+        ),
+      );
+    });
+
+    it("fails a struct that transitively reaches the clashing name two imports away", () => {
+      assertFailedWith(
+        results,
+        "test_aStructTransitivelyReachesTheClashingName()",
+        new RegExp(
+          `EIP-712 type \`TransitiveClash\` cannot be used: ${REASON_REFERENCES_AMBIGUOUS_TYPE} \`Clash\``,
+        ),
+      );
+    });
+
+    it("lets the asking source's own declaration win a direct lookup despite a reachable clash", () => {
+      assertPassed(results, "test_theAskingSourceWinsTheClash()");
+    });
+
+    it("fails a struct in the asking source that references the clashing name", () => {
+      assertFailedWith(
+        results,
+        "test_aStructInTheAskingSourceReferencesTheClashingName()",
+        new RegExp(
+          `EIP-712 type \`AsksForClash\` cannot be used: ${REASON_REFERENCES_AMBIGUOUS_TYPE} \`Clash\``,
+        ),
       );
     });
 
@@ -233,7 +301,9 @@ describe("solidity-test/eip712-types", () => {
       assertFailedWith(
         results,
         "test_aDependencyHasNoEip712Encoding()",
-        /EIP-712 type `HoldsMapping` cannot be used: struct references unusable type: `WithMapping`/,
+        new RegExp(
+          `EIP-712 type \`HoldsMapping\` cannot be used: ${REASON_REFERENCES_UNUSABLE_TYPE} \`WithMapping\``,
+        ),
       );
     });
 
@@ -254,30 +324,36 @@ describe("solidity-test/eip712-types", () => {
     });
 
     it("settles the clash when `exclude` drops one of the sources", () => {
-      assertPassed(results, "test_hashesTheProjectPermitType()");
+      assertPassed(results, TEST_HASHES_THE_PROJECT_PERMIT_TYPE);
     });
 
     it("fails a struct only excluded files declare", () => {
       assertFailedWith(
         results,
-        "test_theOnlyFileDeclaringTheName()",
-        /EIP-712 type `OnlyExcluded` cannot be used: struct is declared only in a file excluded from EIP-712 type collection/,
+        TEST_THE_ONLY_FILE_DECLARING_THE_NAME,
+        new RegExp(
+          `EIP-712 type \`OnlyExcluded\` cannot be used: ${REASON_DECLARED_ONLY_IN_EXCLUDED_FILE}`,
+        ),
       );
     });
 
     it("fails a struct depending on one only excluded files declare", () => {
       assertFailedWith(
         results,
-        "test_aStructDependingOnThatName()",
-        /EIP-712 type `NeedsExcluded` cannot be used: struct references unusable type: `OnlyExcluded`/,
+        TEST_A_STRUCT_DEPENDING_ON_THAT_NAME,
+        new RegExp(
+          `EIP-712 type \`NeedsExcluded\` cannot be used: ${REASON_REFERENCES_UNUSABLE_TYPE} \`OnlyExcluded\``,
+        ),
       );
     });
 
     it("excludes the test source's own declarations", () => {
       assertFailedWith(
         results,
-        "test_aStructTheTestSourceItselfDeclares()",
-        /EIP-712 type `SelfDeclared` cannot be used: struct is declared only in a file excluded from EIP-712 type collection/,
+        TEST_A_STRUCT_THE_TEST_SOURCE_ITSELF_DECLARES,
+        new RegExp(
+          `EIP-712 type \`SelfDeclared\` cannot be used: ${REASON_DECLARED_ONLY_IN_EXCLUDED_FILE}`,
+        ),
       );
     });
   });
@@ -292,16 +368,20 @@ describe("solidity-test/eip712-types", () => {
     it("fails a struct only the excluded package declares", () => {
       assertFailedWith(
         results,
-        "test_collectsAStructFromAPackageDependency()",
-        /EIP-712 type `VendorPermit` cannot be used: struct is declared only in a file excluded from EIP-712 type collection/,
+        TEST_COLLECTS_A_STRUCT_FROM_A_PACKAGE_DEPENDENCY,
+        new RegExp(
+          `EIP-712 type \`VendorPermit\` cannot be used: ${REASON_DECLARED_ONLY_IN_EXCLUDED_FILE}`,
+        ),
       );
     });
 
     it("fails a struct depending on the excluded package's", () => {
       assertFailedWith(
         results,
-        "test_inlinesADependencyFromAPackageDependency()",
-        /EIP-712 type `Delegation` cannot be used: struct references unusable type: `VendorPermit`/,
+        TEST_INLINES_A_DEPENDENCY_FROM_A_PACKAGE_DEPENDENCY,
+        new RegExp(
+          `EIP-712 type \`Delegation\` cannot be used: ${REASON_REFERENCES_UNUSABLE_TYPE} \`VendorPermit\``,
+        ),
       );
     });
   });

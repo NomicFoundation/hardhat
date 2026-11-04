@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Eip712Test} from "./Cheats.sol";
+import {Eip712Test} from "./Eip712Test.sol";
 import {
   Asset,
   Batch,
@@ -15,48 +15,57 @@ import {
 } from "../contracts/Types.sol";
 
 contract CanonicalTypesTest is Eip712Test {
+  // The canonical heads the cases below share, as primary types or inlined
+  // dependency bodies.
+  string private constant PERSON_HEAD = "Person(string name,address wallet)";
+  string private constant ASSET_HEAD = "Asset(address token,uint256 amount)";
+  string private constant MAIL_HEAD =
+    "Mail(Person from,Person to,string contents)";
+
   function test_emitsASingleHeadForAPrimitivesOnlyStruct() public pure {
-    assertTypeHash("Person", "Person(string name,address wallet)");
+    assertTypeHash("Person", PERSON_HEAD);
   }
 
   function test_inlinesADependencyNamedTwiceOnlyOnce() public pure {
     assertTypeHash(
       "Mail",
-      "Mail(Person from,Person to,string contents)"
-      "Person(string name,address wallet)"
+      string.concat(
+        MAIL_HEAD,
+        PERSON_HEAD
+      )
     );
   }
 
   function test_sortsDependenciesByName() public pure {
     assertTypeHash(
       "Order",
-      "Order(Asset give,Asset take,Person maker)"
-      "Asset(address token,uint256 amount)"
-      "Person(string name,address wallet)"
+      string.concat(
+        "Order(Asset give,Asset take,Person maker)",
+        ASSET_HEAD,
+        PERSON_HEAD
+      )
     );
   }
 
   function test_inlinesTransitiveDependencies() public pure {
     assertTypeHash(
       "Envelope",
-      "Envelope(Mail mail,uint256 nonce)"
-      "Mail(Person from,Person to,string contents)"
-      "Person(string name,address wallet)"
+      string.concat(
+        "Envelope(Mail mail,uint256 nonce)",
+        MAIL_HEAD,
+        PERSON_HEAD
+      )
     );
   }
 
   function test_treatsAnArrayOfStructsAsADependency() public pure {
-    assertTypeHash(
-      "Batch",
-      "Batch(Asset[] assets)Asset(address token,uint256 amount)"
-    );
+    assertTypeHash("Batch", string.concat("Batch(Asset[] assets)", ASSET_HEAD));
   }
 
   function test_keepsFixedSizeAndNestedArraySuffixes() public pure {
     assertTypeHash(
       "Grid",
-      "Grid(Asset[2] pair,uint256[3][] rows)"
-      "Asset(address token,uint256 amount)"
+      string.concat("Grid(Asset[2] pair,uint256[3][] rows)", ASSET_HEAD)
     );
   }
 
@@ -76,11 +85,7 @@ contract CanonicalTypesTest is Eip712Test {
     Asset memory asset = Asset({token: address(0xBEEF), amount: 7});
 
     bytes32 expected = keccak256(
-      abi.encode(
-        keccak256("Asset(address token,uint256 amount)"),
-        asset.token,
-        asset.amount
-      )
+      abi.encode(keccak256(bytes(ASSET_HEAD)), asset.token, asset.amount)
     );
 
     require(

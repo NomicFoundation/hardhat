@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Eip712Test} from "./Cheats.sol";
+import {Eip712Test} from "./Eip712Test.sol";
 import {Permit} from "../contracts/Permit.sol";
 import {Permit as VendorPermit} from "../contracts/vendor/Permit.sol";
 

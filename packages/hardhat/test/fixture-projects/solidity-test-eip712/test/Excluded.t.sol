@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Eip712Test} from "./Cheats.sol";
+import {Eip712Test} from "./Eip712Test.sol";
 import {NeedsExcluded} from "../contracts/NeedsExcluded.sol";
 
 /// Both cases pass while nothing is excluded, and both fail once

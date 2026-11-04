@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Eip712Test} from "./Cheats.sol";
+import {Eip712Test} from "./Eip712Test.sol";
 import {HoldsMapping, WithMapping} from "../contracts/nonencodable/Mappings.sol";
 
 /// Both lookups are expected to fail because EIP-712 has no encoding for a
