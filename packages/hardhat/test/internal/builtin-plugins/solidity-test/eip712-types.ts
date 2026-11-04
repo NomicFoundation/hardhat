@@ -1,9 +1,12 @@
 import type { TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  createEnvChanges,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test-eip712/hardhat.config.js";
@@ -36,7 +39,20 @@ async function runPermitSuite(exclude: string[]): Promise<TestResult[]> {
 }
 
 describe("solidity-test/eip712-types", () => {
+  // The fixture declares only the `default` profile, so an ambient
+  // `HARDHAT_TEST_PROFILE` would fail the runs. The shield lasts the whole
+  // file.
+  const envChanges = createEnvChanges();
+
   useFixtureProject("solidity-test-eip712");
+
+  before(() => {
+    envChanges.unsetEnvVar("HARDHAT_TEST_PROFILE");
+  });
+
+  after(() => {
+    envChanges.restoreEnvVars();
+  });
 
   it("fails a lookup that two reachable sources declare", async () => {
     const [testResult] = await runPermitSuite([]);

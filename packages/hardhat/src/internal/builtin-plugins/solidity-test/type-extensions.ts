@@ -84,8 +84,8 @@ declare module "../../../types/test.js" {
      *
      * The globs are matched against each file's path relative to the project
      * root, with forward slashes, so a dependency is addressed as
-     * `node_modules/<package>/...`. A file outside the project root is matched
-     * by its absolute path.
+     * `node_modules/<package>/...`, written without a leading `./` or `/`. A
+     * file outside the project root is matched by its absolute path.
      */
     eip712Types?: {
       exclude?: string[];
@@ -174,8 +174,8 @@ declare module "../../../types/test.js" {
      *
      * The globs are matched against each file's path relative to the project
      * root, with forward slashes, so a dependency is addressed as
-     * `node_modules/<package>/...`. A file outside the project root is matched
-     * by its absolute path.
+     * `node_modules/<package>/...`, written without a leading `./` or `/`. A
+     * file outside the project root is matched by its absolute path.
      */
     eip712Types: {
       exclude: string[];
