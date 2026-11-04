@@ -360,13 +360,10 @@ function completedAction<Output>(
 }
 
 function errorAction<Output>(error: DmkError): DeviceAction<Output> {
-  /* eslint-disable @typescript-eslint/consistent-type-assertions -- an error
-  state carries no output, but the observable's type still mentions one. */
-  const observable = of({
+  const observable: DeviceAction<Output>["observable"] = of({
     status: DeviceActionStatus.Error,
     error,
-  }) as DeviceAction<Output>["observable"];
-  /* eslint-enable @typescript-eslint/consistent-type-assertions */
+  });
 
   return {
     observable,
