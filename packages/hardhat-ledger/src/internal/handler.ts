@@ -168,54 +168,52 @@ export class LedgerHandler {
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
     const params = getRequestParams(jsonRpcRequest);
 
-    {
-      let result;
+    let result;
 
-      try {
-        if (jsonRpcRequest.method === "eth_sign") {
-          result = await this.#ethSign(params);
-        }
+    try {
+      if (jsonRpcRequest.method === "eth_sign") {
+        result = await this.#ethSign(params);
+      }
 
-        if (jsonRpcRequest.method === "personal_sign") {
-          result = await this.#personalSign(params);
-        }
+      if (jsonRpcRequest.method === "personal_sign") {
+        result = await this.#personalSign(params);
+      }
 
-        if (jsonRpcRequest.method === "eth_signTypedData_v4") {
-          result = await this.#ethSignTypedDataV4(params);
-        }
+      if (jsonRpcRequest.method === "eth_signTypedData_v4") {
+        result = await this.#ethSignTypedDataV4(params);
+      }
 
-        if (
-          jsonRpcRequest.method === "eth_sendTransaction" &&
-          params.length > 0
-        ) {
-          const { method, params: paramsToReplace } =
-            await this.#ethSendTransaction(params);
+      if (
+        jsonRpcRequest.method === "eth_sendTransaction" &&
+        params.length > 0
+      ) {
+        const { method, params: paramsToReplace } =
+          await this.#ethSendTransaction(params);
 
-          // Return a modified request
-          return {
-            ...jsonRpcRequest,
-            method,
-            params: paramsToReplace,
-          };
-        }
-
-        // Return a response
+        // Return a modified request
         return {
-          jsonrpc: "2.0",
-          id: jsonRpcRequest.id,
-          result,
+          ...jsonRpcRequest,
+          method,
+          params: paramsToReplace,
         };
-      } catch (error) {
-        // If the address is not controlled by the user, no error is thrown, and
-        // the original request is returned. All other errors are propagated.
-        if (
-          (HardhatError.isHardhatError(error) &&
-            error.number ===
-              HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.UNOWNED_LEDGER_ADDRESS
-                .number) === false
-        ) {
-          throw error;
-        }
+      }
+
+      // Return a response
+      return {
+        jsonrpc: "2.0",
+        id: jsonRpcRequest.id,
+        result,
+      };
+    } catch (error) {
+      // If the address is not controlled by the user, no error is thrown, and
+      // the original request is returned. All other errors are propagated.
+      if (
+        (HardhatError.isHardhatError(error) &&
+          error.number ===
+            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.UNOWNED_LEDGER_ADDRESS
+              .number) === false
+      ) {
+        throw error;
       }
     }
 
