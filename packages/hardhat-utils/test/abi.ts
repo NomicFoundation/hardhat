@@ -5,6 +5,7 @@ import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
+  DuplicateAbiParameterNameError,
   InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
@@ -891,6 +892,7 @@ describe("abi", () => {
       new InvalidAbiValueError("a", "uint256", 1, "reason"),
       new AbiValueOutOfBoundsError("a", "uint8", 256, 0n, 255n),
       new UnsupportedAbiTypeError("a", "fixed128x18"),
+      new DuplicateAbiParameterNameError(undefined, "a"),
       new AbiEncodingFailedError(new Error("boom")),
     ];
 
@@ -911,6 +913,28 @@ describe("abi", () => {
             `${error.name} should not match "${other.kind}"`,
           );
         }
+      }
+    });
+
+    it("Should match an error of any kind when no kind is given", () => {
+      for (const error of errors) {
+        assert.ok(isAbiEncodingError(error), `${error.name} should match`);
+      }
+    });
+
+    it("Should not match other kinds of errors when no kind is given", () => {
+      for (const value of [
+        new Error("not an abi error"),
+        // A kind, but not one of the encoding errors
+        new InvalidAbiSignatureError("f(", "reason"),
+        undefined,
+        null,
+        { kind: "invalid-value" },
+      ]) {
+        assert.ok(
+          !isAbiEncodingError(value),
+          `${String(value)} should not match`,
+        );
       }
     });
 

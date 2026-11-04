@@ -59,6 +59,9 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 
 AVAILABLE SUBTASKS:
 
+  abi encode-args                  ABI-encode values for a signature, without its selector
+  abi encode-calldata              ABI-encode a function call: its selector followed by its values
+  abi encode-type                  ABI-encode a single value of a given type
   abi sig                          Print the 4-byte selector of a function or error signature
   abi sig-event                    Print the 32-byte topic of an event signature
   constants max-value              Print the maximum value of an integer type
