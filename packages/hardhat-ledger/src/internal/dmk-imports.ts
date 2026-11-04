@@ -28,6 +28,12 @@ const NodeHidTransport: typeof nodeHid.NodeHidTransport =
 const SignerEthBuilder: typeof signerEth.SignerEthBuilder =
   signerEth.SignerEthBuilder;
 
+// These two error classes are only used by tests.
+const OpeningConnectionError: typeof dmk.OpeningConnectionError =
+  dmk.OpeningConnectionError;
+const NodeHidSendReportError: typeof nodeHid.NodeHidSendReportError =
+  nodeHid.NodeHidSendReportError;
+
 /** The transport's own `usb` instance, which owns the hotplug listeners. */
 const transportUsb: { usb: { unrefHotplugEvents(): void } } = createRequire(
   require.resolve("@ledgerhq/device-transport-kit-node-hid"),
@@ -37,8 +43,10 @@ const usb: { unrefHotplugEvents(): void } = transportUsb.usb;
 export {
   DeviceActionStatus,
   DeviceManagementKitBuilder,
+  NodeHidSendReportError,
   nodeHidTransportFactory,
   NodeHidTransport,
+  OpeningConnectionError,
   SignerEthBuilder,
   usb,
 };

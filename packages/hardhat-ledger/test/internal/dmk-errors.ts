@@ -13,7 +13,7 @@ import {
 import {
   NodeHidSendReportError,
   OpeningConnectionError,
-} from "../helpers/dmk-error-classes.js";
+} from "../../src/internal/dmk-imports.js";
 
 describe("dmk-errors", () => {
   describe("LedgerDeviceError", () => {
