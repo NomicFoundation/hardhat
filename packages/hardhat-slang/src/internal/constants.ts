@@ -16,6 +16,18 @@ export const SUPPORTED_SLANG_EVM_VERSIONS: readonly string[] = [
 ] as const;
 
 /**
+ * The EVM version used for a slang entry that sets none, when Hardhat's own
+ * default for its Solidity version is older than slang supports.
+ */
+export const DEFAULT_SLANG_EVM_VERSION = "cancun";
+
+/**
+ * The first Solidity version for which Hardhat's default EVM version is one
+ * slang supports. Below it, Hardhat defaults to istanbul through shanghai.
+ */
+export const FIRST_SOLIDITY_VERSION_WITH_SLANG_EVM_DEFAULT = "0.8.25";
+
+/**
  * The LLVM optimization levels slang accepts in `settings.optimizer.mode`,
  * lowercase as slang expects. There is no level that turns optimization
  * off: "1" is the minimum.
@@ -45,8 +57,6 @@ export interface SlangRelease {
   minSolidity: string;
   /** Highest Solidity version this release compiles, inclusive. */
   maxSolidity: string;
-  /** CLI arguments passed on every compile, after `--standard-json`. */
-  extraArgs: readonly string[];
   /**
    * The asset naming on the mirror, when the release isn't published under
    * the standard `v${version}` suffix.
@@ -58,13 +68,23 @@ export interface SlangRelease {
 
 /**
  * The slang releases this plugin can pin via `slang.version`.
+ *
+ * Keys are `<major>.<minor>.<patch>-pre.<YYYY>-<MM>-<DD>`, with an optional
+ * `T<HH>`, `T<HH>-<mm>` or `T<HH>-<mm>-<ss>` suffix for a second release on the
+ * same day, and rows are kept newest first: add a new release at the top.
+ * `test/constants.ts` enforces both.
  */
-// TODO: revisit before release to finalize.
 export const SLANG_RELEASES: Record<string, SlangRelease> = {
+  "0.1.0-pre.2026-10-29": {
+    minSolidity: "0.8.0",
+    maxSolidity: "0.8.37",
+    assetOverride: {
+      assetSuffix: "2026-10-29",
+    },
+  },
   "0.1.0-pre.2026-10-14": {
     minSolidity: "0.8.0",
     maxSolidity: "0.8.37",
-    extraArgs: ["--no-import-callback"],
     assetOverride: {
       assetSuffix: "debug-fast",
     },

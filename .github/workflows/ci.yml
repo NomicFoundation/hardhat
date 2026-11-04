@@ -51,6 +51,9 @@ jobs:
               - 'packages/hardhat-slang-solx/src/internal/constants.ts'
               - 'packages/hardhat-slang-solx/src/internal/platform.ts'
               - 'packages/hardhat-slang-solx/test/mirror-availability.ts'
+              - 'packages/hardhat-slang/src/internal/constants.ts'
+              - 'packages/hardhat-slang/src/internal/platform.ts'
+              - 'packages/hardhat-slang/test/mirror-availability.ts'
 
   check_dependencies:
     name: Check dependency versions
@@ -129,14 +132,12 @@ jobs:
   solx-mirror-availability:
     name: Check solx releases mirror availability
     needs: is-v3
-    # Network check against an external service: only run when the version map
-    # or the check itself changes, not on every PR that rebuilds hardhat-slang-solx.
+    # Network check against an external service: only run when a plugin's
+    # release table or the check itself changes, not on every PR that rebuilds
+    # hardhat-slang-solx or hardhat-slang.
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.solx_mirror_changed == 'true' }}
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/hardhat-slang-solx
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-env
@@ -144,9 +145,19 @@ jobs:
           node-version: 24
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Build
+      - name: Build hardhat-slang-solx
+        working-directory: packages/hardhat-slang-solx
         run: pnpm build
-      - name: Check mirror availability
+      - name: Check hardhat-slang-solx mirror availability
+        working-directory: packages/hardhat-slang-solx
+        env:
+          HARDHAT_RUN_MIRROR_TESTS: true
+        run: node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter test/mirror-availability.ts
+      - name: Build hardhat-slang
+        working-directory: packages/hardhat-slang
+        run: pnpm build
+      - name: Check hardhat-slang mirror availability
+        working-directory: packages/hardhat-slang
         env:
           HARDHAT_RUN_MIRROR_TESTS: true
         run: node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter test/mirror-availability.ts

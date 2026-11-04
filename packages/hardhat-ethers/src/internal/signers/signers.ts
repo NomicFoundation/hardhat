@@ -338,7 +338,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       }
 
       if (Array.isArray(accounts)) {
-        return await Promise.all(accounts.map((acc) => acc.get()));
+        return await Promise.all(accounts.map((acc) => acc.getHexString()));
       }
 
       if ("mnemonic" in accounts) {
@@ -348,7 +348,9 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     if (type === "edr-simulated") {
       if (Array.isArray(accounts)) {
-        return await Promise.all(accounts.map((acc) => acc.privateKey.get()));
+        return await Promise.all(
+          accounts.map((acc) => acc.privateKey.getHexString()),
+        );
       }
 
       if ("mnemonic" in accounts) {
