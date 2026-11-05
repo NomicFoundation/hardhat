@@ -393,7 +393,7 @@ jobs:
           hardhat --version
       - name: Install Forge
         if: startsWith(matrix.command, 'forge')
-        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
         with:
           version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
           cache: false
