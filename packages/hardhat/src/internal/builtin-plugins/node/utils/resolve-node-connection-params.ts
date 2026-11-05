@@ -59,6 +59,8 @@ export function resolveNodeConnectionParams(
     networkConfigOverride.forking = {
       enabled: true,
       url: args.fork,
+      // The configured headers may hold credentials for the configured url
+      httpHeaders: undefined,
       ...(args.forkBlockNumber !== -1
         ? { blockNumber: args.forkBlockNumber }
         : undefined),
