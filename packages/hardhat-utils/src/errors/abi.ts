@@ -1,15 +1,23 @@
 import { CustomError } from "../error.js";
 
+const ABI_ENCODING_ERROR_KINDS = [
+  "parameters-length-mismatch",
+  "invalid-value",
+  "value-out-of-bounds",
+  "unsupported-type",
+  "duplicate-parameter-name",
+  "encoding-failed",
+] as const;
+
 /**
  * Discriminates the errors that ABI encoding can throw.
  */
-export type AbiEncodingErrorKind =
-  | "parameters-length-mismatch"
-  | "invalid-value"
-  | "value-out-of-bounds"
-  | "unsupported-type"
-  | "duplicate-parameter-name"
-  | "encoding-failed";
+export type AbiEncodingErrorKind = (typeof ABI_ENCODING_ERROR_KINDS)[number];
+
+// unknown so that any `kind` can be looked up without narrowing it first
+const ABI_ENCODING_ERROR_KIND_SET: ReadonlySet<unknown> = new Set(
+  ABI_ENCODING_ERROR_KINDS,
+);
 
 /**
  * Base class of every error thrown while ABI-encoding values.
@@ -142,15 +150,64 @@ export type AnyAbiEncodingError =
   | AbiEncodingFailedError;
 
 /**
- * Checks whether a value is the ABI encoding error of the given kind.
+ * Checks whether a value is an ABI encoding error, optionally of a given kind.
  *
  * @param error The value to check.
- * @param kind The kind of error to check for.
+ * @param kind The kind of error to check for. If omitted, any kind matches.
  * @returns True if the value is an ABI encoding error of that kind.
  */
+export function isAbiEncodingError(
+  error: unknown,
+): error is AnyAbiEncodingError;
 export function isAbiEncodingError<KindT extends AbiEncodingErrorKind>(
   error: unknown,
   kind: KindT,
-): error is Extract<AnyAbiEncodingError, { kind: KindT }> {
-  return error instanceof Error && "kind" in error && error.kind === kind;
+): error is Extract<AnyAbiEncodingError, { kind: KindT }>;
+export function isAbiEncodingError(
+  error: unknown,
+  kind?: AbiEncodingErrorKind,
+): error is AnyAbiEncodingError {
+  if (!(error instanceof Error) || !("kind" in error)) {
+    return false;
+  }
+
+  if (kind === undefined) {
+    return ABI_ENCODING_ERROR_KIND_SET.has(error.kind);
+  }
+
+  return error.kind === kind;
+}
+
+/**
+ * Thrown when a human-readable ABI signature can't be parsed.
+ *
+ * Consumers should discriminate with `isInvalidAbiSignatureError` rather than
+ * `instanceof`, for the same reason as `isAbiEncodingError`.
+ */
+export class InvalidAbiSignatureError extends CustomError {
+  public readonly kind: "invalid-signature" = "invalid-signature";
+
+  constructor(
+    public readonly input: string,
+    public readonly reason: string,
+  ) {
+    super(`The ABI signature "${input}" is invalid: ${reason}.`);
+  }
+}
+
+/**
+ * Whether an error is an `InvalidAbiSignatureError`, even if thrown by another
+ * copy of this package.
+ *
+ * @param error The value to check.
+ * @returns Whether it's an `InvalidAbiSignatureError`.
+ */
+export function isInvalidAbiSignatureError(
+  error: unknown,
+): error is InvalidAbiSignatureError {
+  return (
+    error instanceof Error &&
+    "kind" in error &&
+    error.kind === "invalid-signature"
+  );
 }
