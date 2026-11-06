@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.10
+
+### Patch Changes
+
+- [#8802](https://github.com/NomicFoundation/hardhat/pull/8802) [`1bf2e7b`](https://github.com/NomicFoundation/hardhat/commit/1bf2e7b317e259c326f841c10b0f1a8bd24fa3d7) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed `ignition deploy` reprinting every batch on each update when its output isn't a terminal ([#8798](https://github.com/NomicFoundation/hardhat/issues/8798)).
+
 ## 3.1.9
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.5
+
+### Patch Changes
+
+- [#8801](https://github.com/NomicFoundation/hardhat/pull/8801) [`a06ebbe`](https://github.com/NomicFoundation/hardhat/commit/a06ebbe9a60ca5a7ef4dab28f1f5f663256e0a02) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Updated the `HHE11` error to suggest `--init --template <name>` when running `--init` without an interactive shell ([#8797](https://github.com/NomicFoundation/hardhat/issues/8797)).
+
 ## 3.1.4
 
 ### Patch Changes

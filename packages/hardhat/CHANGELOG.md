@@ -1,5 +1,15 @@
 # hardhat
 
+## 3.21.3
+
+### Patch Changes
+
+- [#8787](https://github.com/NomicFoundation/hardhat/pull/8787) [`4aa8b87`](https://github.com/NomicFoundation/hardhat/commit/4aa8b87c3cd1cf7f3cb93df9c41513c415e2cb50) Thanks [@Revinand](https://github.com/Revinand)! - Fixed `--snapshot-check` failing with `HHE803` when `.gas-snapshot` has CRLF line endings, as in Windows checkouts.
+
+- [#8812](https://github.com/NomicFoundation/hardhat/pull/8812) [`c47ee42`](https://github.com/NomicFoundation/hardhat/commit/c47ee4230f18990ffeff595047cf9065f19408f9) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Fixed `hardhat node --fork` sending the configured forking `httpHeaders` to the URL passed on the command line.
+
+- [#8712](https://github.com/NomicFoundation/hardhat/pull/8712) [`81fc983`](https://github.com/NomicFoundation/hardhat/commit/81fc98396a5635d0d491c320506c29302dd5b677) Thanks [@schaable](https://github.com/schaable)! - Fixed `HHE905` errors on brief network failures by retrying the solc version list download.
+
 ## 3.21.2
 
 ### Patch Changes
