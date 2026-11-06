@@ -2344,6 +2344,18 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         websiteDescription:
           "Another instance of `IgnitionHelper.deploy()` is already in use. Please wait for the previous deployment to finish.",
       },
+      CONFIRMATION_NOT_ANSWERED: {
+        number: 10902,
+        messageTemplate: `The prompt was closed before this confirmation was answered: {question}
+
+Set the {envVarName} environment variable to skip this confirmation, for example when running without an interactive terminal.`,
+        websiteTitle: "Deployment confirmation not answered",
+        websiteDescription: `Hardhat Ignition asks for confirmation before deploying to a chain whose id isn't 31337, and before resetting a deployment with \`--reset\`. The confirmation was closed before an answer was entered.
+
+This happens when Hardhat runs without an interactive terminal and has no input left to read, for example in CI, when a script or coding agent runs it, or with its input redirected from \`/dev/null\`.
+
+Set \`HARDHAT_IGNITION_CONFIRM_DEPLOYMENT\` to skip the deployment confirmation, and \`HARDHAT_IGNITION_CONFIRM_RESET\` to skip the reset confirmation.`,
+      },
     },
     VERIFY: {
       UNINITIALIZED_DEPLOYMENT: {
