@@ -2,7 +2,7 @@
 
 This plugin allows Hardhat to integrate seamlessly with a connected [Ledger wallet](https://www.ledger.com/).
 
-> Note: Currently, `EIP-7702` is not supported, as the underlying Ledger library doesn't implement it. A [newer library](https://www.npmjs.com/package/@ledgerhq/device-management-kit?activeTab=readme) does support EIP-7702, and migration to that library is on our roadmap.
+> Note: When signing a transaction or typed data, the Device Management Kit contacts Ledger's servers: it fetches the metadata the device uses to display what you are signing ("clear signing"), and it reports each signing event (chain id, target contract, signing method, device model, app and firmware versions, whether it was blind-signed, and a random id) to Ledger's analytics endpoint. These requests go to Ledger, not to the network you are connected to, and are the only requests the plugin makes that you did not ask for. In practice, clear signing shows the token and amount for ERC-20 and NFT transfers, the ENS name of a recipient, and the network name; contract calls and typed data are displayed as before.
 
 ## Installation
 
@@ -82,18 +82,23 @@ Usage Example with Viem:
 import hre from "hardhat";
 import { stringToHex } from "viem";
 
-const { viem } = await hre.network.create("yourNetworkName");
+const connection = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-const [senderClient] = await viem.getWalletClients();
+try {
+  const [senderClient] = await connection.viem.getWalletClients();
 
-const hexMsg = stringToHex("Hello world");
+  const hexMsg = stringToHex("Hello world");
 
-const signature = await senderClient.request({
-  method: "eth_sign",
-  params: [ledgerAddress, hexMsg],
-});
+  const signature = await senderClient.request({
+    method: "eth_sign",
+    params: [ledgerAddress, hexMsg],
+  });
+} finally {
+  // Hardhat cannot exit while the Ledger connection is open (see below).
+  await connection.close();
+}
 ```
 
 Usage Example with the provider:
@@ -101,15 +106,38 @@ Usage Example with the provider:
 ```typescript
 import hre from "hardhat";
 
-const { provider, ethers } = await hre.network.create("yourNetworkName");
+const connection = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-const msg = ethers.toUtf8Bytes("Hello world");
-const hexMsg = ethers.hexlify(msg);
+try {
+  const msg = connection.ethers.toUtf8Bytes("Hello world");
+  const hexMsg = connection.ethers.hexlify(msg);
 
-const signature = await provider.request({
-  method: "eth_sign",
-  params: [ledgerAddress, hexMsg],
-});
+  const signature = await connection.provider.request({
+    method: "eth_sign",
+    params: [ledgerAddress, hexMsg],
+  });
+} finally {
+  // Hardhat cannot exit while the Ledger connection is open (see below).
+  await connection.close();
+}
 ```
+
+## Closing the connection
+
+Hardhat cannot exit while the connection to your Ledger is open, and it does not close network connections on its own. Once your script has finished using the Ledger, close the connection:
+
+```typescript
+const connection = await hre.network.create("yourNetworkName");
+
+try {
+  // ... sign and send transactions ...
+} finally {
+  await connection.close();
+}
+```
+
+Without it, the process keeps running after your script ends until you stop it with Ctrl+C.
+
+Hardhat Ignition closes the connection for you at the end of `ignition deploy`, `ignition track-tx` and `ignition verify`.

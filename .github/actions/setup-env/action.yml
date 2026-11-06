@@ -41,11 +41,6 @@ runs:
       with:
         path: ${{ steps.pnpm.outputs.path }}
         key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-    # Needed for node-hid, which is used by @ledgerhq/hw-transport-node-hid
-    # We need to install it because downloading the prebuilt binaries is not
-    # reliable, so the CI sometimes falls back to building it from source,
-    # which needs this package.
-    #
     # `time` is GNU /usr/bin/time: bench:regression and the benchmark runner
     # tests measure peak RSS with it.
     - name: Install Linux system dependencies
@@ -53,4 +48,4 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y libusb-1.0-0-dev libudev-dev time
+        sudo apt-get install -y time
