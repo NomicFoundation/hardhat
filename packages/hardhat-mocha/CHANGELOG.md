@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-mocha
 
+## 4.0.1
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 4.0.0
 
 ### Major Changes

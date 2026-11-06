@@ -18,7 +18,10 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     }
 
     const coveragePath = getCoveragePath(hre.config.paths.root);
-    const coverageManager = new CoverageManagerImplementation(coveragePath);
+    const coverageManager = new CoverageManagerImplementation(
+      coveragePath,
+      hre.config.paths.root,
+    );
 
     setCoverageManager(hre, coverageManager);
 

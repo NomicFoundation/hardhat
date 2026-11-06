@@ -80,6 +80,31 @@ export function minorBump(version: string): string {
   return `${major}.${minor + 1}.0`;
 }
 
+/**
+ * Whether `version` satisfies `^floor`, as node-semver reads it for releases.
+ *
+ * A caret pins the leftmost non-zero component of the floor: the major from
+ * `1.0.0` up, the minor below that, and the patch below `0.1.0`.
+ */
+export function satisfiesCaret(version: string, floor: string): boolean {
+  const [major, minor, patch] = parseCore(version);
+  const [floorMajor, floorMinor, floorPatch] = parseCore(floor);
+
+  if (compareVersions(version, floor) < 0) {
+    return false;
+  }
+
+  if (floorMajor > 0) {
+    return major === floorMajor;
+  }
+
+  if (floorMinor > 0) {
+    return major === 0 && minor === floorMinor;
+  }
+
+  return major === 0 && minor === 0 && patch === floorPatch;
+}
+
 /** Seams for the tests; production callers take the defaults. */
 export interface NpmFetchOptions {
   fetch?: typeof globalThis.fetch;

@@ -3,7 +3,7 @@ import path from "node:path";
 import {
   move,
   readJsonFile,
-  writeJsonFileAsStream,
+  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
@@ -47,8 +47,8 @@ export async function saveCache(
 ): Promise<void> {
   const filePath = path.join(cacheDirectory, CACHE_FILE_NAME);
   const tmpPath = `${filePath}.tmp`;
-  // NOTE: We are writing to a temporary file first because the value might
-  // be large and we don't want to end up with corrupted files in the cache.
-  await writeJsonFileAsStream(tmpPath, cache);
+  // NOTE: We are writing to a temporary file first so that an interrupted
+  // write can't leave a corrupted file in the cache.
+  await writeJsonFile(tmpPath, cache);
   await move(tmpPath, filePath);
 }

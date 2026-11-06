@@ -101,8 +101,8 @@ export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
 /**
  * Converts a hexadecimal string to a Uint8Array. The string must be a valid
  * hexadecimal string. The string may be prefixed with "0x" or not. The empty
- * string is considered a valid hexadecimal string, so is the string "0x" and
- * will be converted to Uint8Array([0]).
+ * string is considered a valid hexadecimal string, so is the string "0x", and
+ * both are converted to an empty Uint8Array.
  *
  * @param hexString The hexadecimal string to convert.
  * @returns The byte representation of the hexadecimal string.
@@ -224,7 +224,7 @@ export function setLengthLeft(
 
   // if the string is longer than the desired length, truncate it
   if (unprefixedHexString.length > length) {
-    return `0x${unprefixedHexString.slice(-length)}`;
+    return length === 0 ? "0x" : `0x${unprefixedHexString.slice(-length)}`;
   }
 
   const paddedHexString = unprefixedHexString.padStart(length, "0");

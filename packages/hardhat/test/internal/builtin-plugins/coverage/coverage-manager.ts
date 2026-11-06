@@ -20,6 +20,7 @@ import {
   getAllFilesMatching,
   readUtf8File,
   remove,
+  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -107,7 +108,7 @@ describe("CoverageManagerImplementation", () => {
   disableConsole();
 
   beforeEach(async () => {
-    coverageManager = new CoverageManagerImplementation(tmp.path);
+    coverageManager = new CoverageManagerImplementation(tmp.path, tmp.path);
   });
 
   it("should load all the saved data", async () => {
@@ -127,8 +128,14 @@ describe("CoverageManagerImplementation", () => {
 
     await coverageManager.addMetadata(allMetadata);
 
-    const coverageManager1 = new CoverageManagerImplementation(tmp.path);
-    const coverageManager2 = new CoverageManagerImplementation(tmp.path);
+    const coverageManager1 = new CoverageManagerImplementation(
+      tmp.path,
+      tmp.path,
+    );
+    const coverageManager2 = new CoverageManagerImplementation(
+      tmp.path,
+      tmp.path,
+    );
 
     await coverageManager1.addData(data1);
     await coverageManager1.saveData(id);
@@ -171,7 +178,10 @@ describe("CoverageManagerImplementation", () => {
       });
     }
 
-    const coverageManager1 = new CoverageManagerImplementation(tmp.path);
+    const coverageManager1 = new CoverageManagerImplementation(
+      tmp.path,
+      tmp.path,
+    );
     await coverageManager1.addData(data1);
     await coverageManager1.saveData(id);
 
@@ -192,8 +202,8 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should sum counts across saved shards on load", async () => {
-    const cm1 = new CoverageManagerImplementation(tmp.path);
-    const cm2 = new CoverageManagerImplementation(tmp.path);
+    const cm1 = new CoverageManagerImplementation(tmp.path, tmp.path);
+    const cm2 = new CoverageManagerImplementation(tmp.path, tmp.path);
 
     await cm1.addData(["a", "a", "b"]);
     await cm1.saveData(id);
@@ -294,6 +304,60 @@ describe("CoverageManagerImplementation", () => {
       allMetadata.size !== 0,
       "The metadata should not be cleared from memory",
     );
+  });
+
+  describe("when the project root isn't the current working directory", () => {
+    // This is the case when Hardhat is run from a subdirectory of the project,
+    // or from outside of it with --config
+    const relativePath = path.join("contracts", "test.sol");
+    let projectRoot: string;
+    let manager: CoverageManagerImplementation;
+
+    beforeEach(async () => {
+      projectRoot = path.join(tmp.path, "project");
+
+      await writeUtf8File(
+        path.join(projectRoot, relativePath),
+        "contract Test {\n  uint x = 1;\n}\n",
+      );
+
+      assert.notEqual(process.cwd(), projectRoot);
+
+      manager = new CoverageManagerImplementation(
+        path.join(projectRoot, "coverage"),
+        projectRoot,
+      );
+
+      await manager.addMetadata([
+        { relativePath, tag: "a", startUtf16: 18, endUtf16: 29 },
+      ]);
+    });
+
+    it("should read the source files from the project root", async () => {
+      await manager.addData(["a"]);
+
+      const res = await manager.getReport();
+
+      assert.deepEqual(
+        res[relativePath].lineExecutionCounts,
+        new Map([[2, 1]]),
+      );
+    });
+
+    it("should generate the html report with the source files from the project root", async () => {
+      await manager.report();
+
+      const htmlFiles = await getAllFilesMatching(
+        path.join(projectRoot, "coverage", "html"),
+        (f) => f.endsWith("test.sol.html"),
+      );
+
+      assert.equal(htmlFiles.length, 1);
+      assert.ok(
+        (await readUtf8File(htmlFiles[0])).includes("uint x = 1;"),
+        "The html report should include the source code",
+      );
+    });
   });
 
   it("should format the lcov report", async () => {
@@ -427,7 +491,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
     COVERAGE_TEST_SCENARIO_WHILE_LOOP,
   ];
 
-  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage", ".");
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 
@@ -490,7 +554,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
 });
 
 describe("report generation", () => {
-  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage", ".");
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 

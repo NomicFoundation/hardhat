@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-slang-solx
 
+## 3.0.5
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.0.4
 
 ### Patch Changes

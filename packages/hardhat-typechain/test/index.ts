@@ -116,6 +116,25 @@ describe("hardhat-typechain", () => {
         false,
       );
     });
+
+    it("should generate the event types without a semicolon after the `OutputObject` interface", async () => {
+      const content = await readUtf8File(
+        path.join(process.cwd(), "types", "ethers-contracts", "A.ts"),
+      );
+
+      // Both events of the contract have their `OutputObject` interface
+      assert.equal(
+        content.match(/export interface OutputObject \{.*\}$/gm)?.length,
+        2,
+      );
+
+      // None of them is followed by a semicolon, which would make their
+      // namespace runtime code
+      assert.equal(
+        /export interface OutputObject .*;\s*$/m.test(content),
+        false,
+      );
+    });
   });
 
   describe("typechain should not generate types during compilation", () => {

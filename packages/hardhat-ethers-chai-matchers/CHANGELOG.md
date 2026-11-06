@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-ethers-chai-matchers
 
+## 3.0.13
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.0.12
 
 ### Patch Changes

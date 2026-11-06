@@ -390,6 +390,39 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
+ * Splits the query params out of a url, so they can be merged with other
+ * params and passed as `queryParams` to the request functions. A request
+ * fails if its url has a query string and `queryParams` is also passed.
+ *
+ * Urls without a query string, and invalid urls, are returned unchanged, with
+ * no query params.
+ *
+ * @param url The url to split.
+ * @returns The url without its query string and fragment, and its query
+ * params. If a param is repeated, its last value is kept.
+ */
+export function splitQueryParams(url: string): {
+  url: string;
+  queryParams: Record<string, string>;
+} {
+  if (!isValidUrl(url)) {
+    return { url, queryParams: {} };
+  }
+
+  const { search, searchParams } = new URL(url);
+  if (search === "") {
+    return { url, queryParams: {} };
+  }
+
+  return {
+    // Slicing keeps the rest of the url as it was, while serializing the URL
+    // object would normalize it
+    url: url.slice(0, url.indexOf("?")),
+    queryParams: Object.fromEntries(searchParams),
+  };
+}
+
+/**
  * Returns the proxy url from environment variables based on the target url.
  * For HTTPS urls, checks `https_proxy` then `HTTPS_PROXY`.
  * For HTTP urls, checks `http_proxy` then `HTTP_PROXY`.

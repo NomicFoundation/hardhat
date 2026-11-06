@@ -8,16 +8,14 @@ import type * as MicroEthSignerT from "micro-eth-signer";
 import path from "node:path";
 import { styleText } from "node:util";
 
-import {
-  readJsonFile,
-  readJsonFileAsStream,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
+import { getPrivateKey } from "../network-manager/accounts/get-private-key.js";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-constants.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 
@@ -57,8 +55,9 @@ export async function formatEdrNetworkConfigAccounts(
   }
 
   for (const [index, account] of accounts.entries()) {
+    const privateKey = await getPrivateKey(account.privateKey);
     const address = microEthSigner.addr
-      .fromPrivateKey(hexStringToBytes(await account.privateKey.getHexString()))
+      .fromPrivateKey(hexStringToBytes(privateKey))
       .toLowerCase();
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
@@ -67,7 +66,7 @@ export async function formatEdrNetworkConfigAccounts(
     );
     if (isDefault === true) {
       formattedAccountsLines.push(
-        `${privateKeyPrefix.padEnd(maxPrefixLength)} ${await account.privateKey.getHexString()}`,
+        `${privateKeyPrefix.padEnd(maxPrefixLength)} ${privateKey}`,
       );
     }
 
@@ -103,10 +102,9 @@ export function createBuildInfoUploadHandlerFrom(
       const buildInfo: BuildInfo = await readJsonFile(
         path.join(buildInfoDirPath, `${buildId}.json`),
       );
-      const buildInfoOutput: SolidityBuildInfoOutput =
-        await readJsonFileAsStream(
-          path.join(buildInfoDirPath, `${buildId}.output.json`),
-        );
+      const buildInfoOutput: SolidityBuildInfoOutput = await readJsonFile(
+        path.join(buildInfoDirPath, `${buildId}.output.json`),
+      );
 
       await provider.addCompilationResult(
         buildInfo.solcVersion,

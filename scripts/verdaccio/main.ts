@@ -32,10 +32,16 @@ DESCRIPTION
   npm is published as it stands, while a prerelease is rounded up to the
   next patch.
 
-  The raised version is written into each package.json and left there.
-  Restore them with: git checkout -- packages/*/package.json. Because the
-  raise has to know what npm released, it needs network access to
-  registry.npmjs.org and fails without it.
+  The raised version is written into each package.json and left there. A
+  raise crosses a major when npm released one that this checkout has not
+  caught up with. Every workspace range such a raise outgrows is raised with
+  it and synced into pnpm-lock.yaml. A package pinned to its npm release is
+  republished when its ranges moved. Restore all of these with the command
+  the run prints, or with: git checkout -- pnpm-lock.yaml 'packages/*/package.json'.
+  The quotes let git expand the glob, which also reaches the templates under
+  packages/hardhat/templates/. Because the raise has to know what npm
+  released, it needs network access to registry.npmjs.org and fails without
+  it.
 
   The registry stays alive after start completes, so external repos can
   install packages from http://127.0.0.1:4873.

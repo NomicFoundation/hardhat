@@ -1063,6 +1063,188 @@ describe("etherscan", () => {
         );
       });
     });
+
+    describe("apiUrl with a query string", async () => {
+      const testDispatcher = initializeTestDispatcher({
+        url: etherscanApiUrl,
+      });
+
+      it("should keep the configured apiUrl", () => {
+        const apiUrl = `${etherscanConfig.apiUrl}?chainid=11155111`;
+        const etherscan = new Etherscan({ ...etherscanConfig, apiUrl });
+
+        assert.equal(etherscan.apiUrl, apiUrl);
+      });
+
+      it("should send the apiUrl's query params along with its own", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: `${etherscanConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/v2/api",
+            method: "GET",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "getsourcecode",
+              chainid: String(etherscanConfig.chainId),
+              apikey: etherscanConfig.apiKey,
+              address,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        assert.equal(await etherscan.isVerified(address), true);
+      });
+
+      it("should give its own query params precedence over the apiUrl's", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: `${etherscanConfig.apiUrl}?chainid=1&apikey=urlApiKey&module=account`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/v2/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "getsourcecode",
+              chainid: String(etherscanConfig.chainId),
+              apikey: etherscanConfig.apiKey,
+              address,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        assert.equal(await etherscan.isVerified(address), true);
+      });
+
+      it("should send the apiUrl's query params when submitting a verification", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: `${etherscanConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/v2/api",
+            method: "POST",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "verifysourcecode",
+              chainid: String(etherscanConfig.chainId),
+              apikey: etherscanConfig.apiKey,
+            },
+            body: querystring.stringify({
+              contractaddress: address,
+              sourceCode: JSON.stringify(compilerInput),
+              codeformat: "solidity-standard-json-input",
+              contractname: contract,
+              compilerversion: compilerVersion,
+              constructorArguments,
+            }),
+          })
+          .reply(200, {
+            status: "1",
+            message: "OK",
+            result: guid,
+          });
+
+        const response = await etherscan.verify({
+          contractAddress: address,
+          compilerInput,
+          contractName: contract,
+          compilerVersion,
+          constructorArguments,
+        });
+
+        assert.equal(response, guid);
+      });
+
+      it("should send the apiUrl's query params when polling the verification status", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: `${etherscanConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/v2/api",
+            method: "GET",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "checkverifystatus",
+              chainid: String(etherscanConfig.chainId),
+              apikey: etherscanConfig.apiKey,
+              guid,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: "Pass - Verified",
+          });
+
+        const response = await etherscan.pollVerificationStatus(
+          guid,
+          address,
+          contract,
+        );
+
+        assert.equal(response.success, true);
+      });
+
+      it("should give customApiCall params precedence over its own and the apiUrl's", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: `${etherscanConfig.apiUrl}?foo=bar&chainid=1`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/v2/api",
+            method: "GET",
+            query: {
+              foo: "baz",
+              chainid: String(etherscanConfig.chainId),
+              apikey: etherscanConfig.apiKey,
+              module: "contract",
+              action: "getsourcecode",
+              address,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            message: "OK",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        const response = await etherscan.customApiCall({
+          module: "contract",
+          action: "getsourcecode",
+          address,
+          foo: "baz",
+        });
+
+        assert.equal(response.status, "1");
+      });
+    });
   });
 
   describe("resolveConfig", () => {

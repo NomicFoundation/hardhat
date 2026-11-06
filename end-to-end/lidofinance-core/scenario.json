@@ -7,6 +7,9 @@
   "packageManager": "yarn",
   "submodules": false,
   "preinstall": "./preinstall.sh",
+  "env": {
+    "LOCAL_DEVNET_PK": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  },
   "defaultCommand": "yarn run test",
   "benchmark": {
     "commands": {

@@ -6,6 +6,7 @@ import { expectTypeOf } from "expect-type";
 import {
   isAddress,
   isHash,
+  isPrivateKey,
   toEvmWord,
   generateHashBytes,
   randomHash,
@@ -187,6 +188,89 @@ describe("eth", () => {
         ),
         "A hash without the 0x prefix is not valid",
       ); // missing prefix
+    });
+  });
+
+  describe("isPrivateKey", () => {
+    it("Should return true for valid private keys", () => {
+      assert.ok(
+        isPrivateKey(
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+        ),
+        "The smallest private key should be valid",
+      );
+      assert.ok(
+        isPrivateKey(
+          "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+        ),
+        "The largest private key (the curve order minus 1) should be valid",
+      );
+      assert.ok(
+        isPrivateKey(
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        ),
+        "A private key with 64 lowercase characters should be valid",
+      );
+      assert.ok(
+        isPrivateKey(
+          "0xAC0974BEC39A17E36BA4A6B4D238FF944BACB478CBED5EFCAE784D7BF4F2FF80",
+        ),
+        "A private key with 64 uppercase characters should be valid",
+      );
+    });
+
+    it("Should return false for values out of the secp256k1 range", () => {
+      assert.ok(
+        !isPrivateKey(
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        ),
+        "The zero private key is not valid",
+      );
+      assert.ok(
+        !isPrivateKey(
+          "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+        ),
+        "The curve order is not a valid private key",
+      );
+      assert.ok(
+        !isPrivateKey(
+          "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        ),
+        "The largest 32-byte value is not a valid private key",
+      );
+    });
+
+    it("Should return false for values that aren't 32-byte hex strings", () => {
+      assert.ok(!isPrivateKey(""), "An empty string is not valid");
+      assert.ok(!isPrivateKey("0x"), "The 0x private key is not valid");
+      assert.ok(!isPrivateKey("0x1234"), "A short private key is not valid");
+      assert.ok(
+        !isPrivateKey(
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff8",
+        ),
+        "A private key with less than 64 characters is not valid",
+      );
+      assert.ok(
+        !isPrivateKey(
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff800",
+        ),
+        "A private key with more than 64 characters is not valid",
+      );
+      assert.ok(
+        !isPrivateKey(
+          /* cspell:disable-next-line */
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ffzz",
+        ),
+        "A private key with invalid characters is not valid",
+      );
+      assert.ok(
+        !isPrivateKey(
+          "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        ),
+        "A private key without the 0x prefix is not valid",
+      );
+      assert.ok(!isPrivateKey(1n), "A bigint is not valid");
+      assert.ok(!isPrivateKey(undefined), "undefined is not valid");
     });
   });
 

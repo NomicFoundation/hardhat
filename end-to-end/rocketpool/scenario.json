@@ -1,0 +1,60 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Rocket Pool's v1.5 development branch on Hardhat 3, running the TypeScript integration suite that its `npm test` runs under hardhat-test.config.ts. The branch is under active development, so the pinned commit will need refreshing.",
+  "tags": ["external-repo", "mocha"],
+  "repo": "rocket-pool/rocketpool",
+  "commit": "52a910e1ed0d5ccf6d408284cc13644f37d3c9ab",
+  "packageManager": "npm",
+  "submodules": false,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat test mocha --config hardhat-test.config.ts",
+  "benchmark": {
+    "commands": {
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- test-solidity/util/LinkedListStorage.t.sol test-solidity/node/RocketNodeDeposit.t.sol contracts/interface/RocketStorageInterface.sol && npx hardhat clean --config hardhat-test.config.ts",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile --config hardhat-test.config.ts",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity test with min deps: test-solidity/util/LinkedListStorage.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test-solidity/util/LinkedListStorage.t.sol && npx hardhat compile --config hardhat-test.config.ts",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity test with max deps: test-solidity/node/RocketNodeDeposit.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test-solidity/node/RocketNodeDeposit.t.sol && npx hardhat compile --config hardhat-test.config.ts",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract: contracts/interface/RocketStorageInterface.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/interface/RocketStorageInterface.sol && npx hardhat compile --config hardhat-test.config.ts",
+            "dependsOn": ["cold compile"]
+          }
+        }
+      },
+      "warm compile": {
+        "runs": 2,
+        "command": "npx hardhat compile --config hardhat-test.config.ts",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --config hardhat-test.config.ts --no-compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha -vvv": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --config hardhat-test.config.ts --no-compile -vvv",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha -vvvv": {
+        "runs": 2,
+        "command": "npx hardhat test mocha --config hardhat-test.config.ts --no-compile -vvvv",
+        "dependsOn": ["cold compile"]
+      }
+    }
+  }
+}

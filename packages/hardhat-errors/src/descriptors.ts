@@ -359,6 +359,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_SLANG: {
+    min: 130000,
+    max: 139999,
+    pluginId: "hardhat-slang",
+    websiteTitle: "Hardhat Slang",
+    CATEGORIES: {
+      GENERAL: {
+        min: 130000,
+        max: 130099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -620,6 +633,26 @@ Expected format: http://host:port (or https://host:port).`,
 Hardhat reads \`https_proxy\`, \`HTTPS_PROXY\`, \`http_proxy\`, and \`HTTP_PROXY\`. The value must be an HTTP or HTTPS URL, for example \`http://host:port\` or \`https://host:port\`.
 
 The configured value is not shown, as proxy URLs may contain credentials.`,
+      },
+      PROMPT_CLOSED_BEFORE_ANSWER: {
+        number: 32,
+        messageTemplate: `The prompt from {interruptor} was closed before an answer was entered.
+
+This happens when Hardhat runs without an interactive terminal (for example, in a scheduled job or with its input redirected from a file), or when the prompt is cancelled with Ctrl+C or Ctrl+D.`,
+        websiteTitle: "Prompt closed before an answer was entered",
+        websiteDescription: `Hardhat or one of its plugins showed a prompt, but it was closed before an answer was entered.
+
+This happens when Hardhat runs without an interactive terminal and has no input left to read, for example in a scheduled job, or with its input redirected from \`/dev/null\` or an empty file. It also happens when you cancel the prompt with Ctrl+C or Ctrl+D.
+
+Run the command in an interactive terminal to answer the prompt. If it's the keystore asking for its password to read a configuration variable, you can set that variable in the environment instead.`,
+      },
+      INVALID_CONFIG_VARIABLE_PRIVATE_KEY: {
+        number: 33,
+        messageTemplate: `Invalid private key value for {configVariable}: expected a 32-byte hex string that is a valid secp256k1 private key`,
+        websiteTitle: "Invalid configuration variable private key",
+        websiteDescription: `The value of a configuration variable used as a private key was not a valid one. Private keys must be hex strings of 32 bytes (64 hex digits), and their value must be greater than zero and lower than the order of the secp256k1 curve. For example, a key made only of zeros is not valid.
+
+The value is not shown, as configuration variables are meant to hold secrets.`,
       },
     },
     INTERNAL: {
@@ -3558,6 +3591,62 @@ Please check your internet connection and try again. If this error persists, run
         websiteDescription: `The node:test runner executes tests with isolation disabled, and in that mode Node.js currently ignores the test skip pattern used to implement --grep-exclude (see https://github.com/nodejs/node/issues/64359). Because the exclusion cannot be applied reliably, the option is rejected instead of being silently ignored.
 
 Remove --grep-exclude, or run the tests that need it through the Mocha or Solidity test runners, which support it.`,
+      },
+    },
+  },
+  HARDHAT_SLANG: {
+    GENERAL: {
+      UNSUPPORTED_PLATFORM: {
+        number: 130000,
+        messageTemplate: `slang is not available for the current platform ({platform}/{arch}).
+
+slang supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
+        websiteTitle: "Unsupported platform",
+        websiteDescription: `The slang compiler is not available for your current operating system and architecture combination.
+
+slang supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
+      },
+      DOWNLOAD_FAILED: {
+        number: 130001,
+        messageTemplate: `Failed to download slang {version} after {attempts} attempts: {reason}`,
+        websiteTitle: "slang download failed",
+        websiteDescription: `The slang compiler binary could not be downloaded from the slang releases mirror used by Hardhat.
+
+Check your internet connection, ensure that the slang releases mirror is reachable from your environment, and verify that the requested slang version exists.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
+      },
+      BINARY_NOT_FOUND: {
+        number: 130002,
+        messageTemplate: `slang binary not found at {path}`,
+        websiteTitle: "slang binary not found",
+        websiteDescription: `The configured custom path for the slang binary does not exist.
+
+Verify that the path in your Hardhat config points to a valid slang binary.`,
+      },
+      CHECKSUM_DOWNLOAD_FAILED: {
+        number: 130003,
+        messageTemplate: `Couldn't download the checksum for slang {version} from {url}: {reason}`,
+        websiteTitle: "Couldn't obtain the slang checksum",
+        websiteDescription: `Every slang binary is published alongside a \`.sha256\` checksum file, which Hardhat uses to verify the download. Hardhat couldn't obtain that checksum, so it refused to use the binary.
+
+Check your internet connection, and ensure that the slang releases mirror is reachable from your environment.
+
+Hardhat sends its requests through the proxy set in \`HTTPS_PROXY\` or \`HTTP_PROXY\`. If you are behind one, ensure that it can reach that mirror, or add it to \`NO_PROXY\` to connect directly.`,
+      },
+      INVALID_DOWNLOAD: {
+        number: 130004,
+        messageTemplate: `Couldn't download slang {version}: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
+        websiteTitle: "Downloaded slang checksum verification failed",
+        websiteDescription: `Hardhat downloaded a slang binary, and its checksum didn't match the one published alongside it. The binary was deleted instead of being used.
+
+The likeliest cause is a corrupted or incomplete download.
+
+Please check your internet connection and try again. If this error persists, run \`npx hardhat clean --global\`.`,
       },
     },
   },

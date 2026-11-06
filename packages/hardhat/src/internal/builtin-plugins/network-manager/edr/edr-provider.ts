@@ -505,7 +505,7 @@ export async function getProviderConfig(
   gasReportConfig: GasReportConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
   includeCallTraces?: IncludeTraces,
-): Promise<ProviderConfig> {
+): Promise<RequireField<ProviderConfig, "defaultTransactionGasLimit">> {
   const hardforkName = getHardforkName(
     networkConfig.hardfork,
     networkConfig.chainType,

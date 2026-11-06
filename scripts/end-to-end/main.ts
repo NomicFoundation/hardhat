@@ -22,7 +22,7 @@ DESCRIPTION
 COMMANDS
   init --scenario <scenario-path>   Setup scenario (i.e. clone) and install hardhat from Verdaccio
   exec --scenario <scenario-path>   Run a command in the scenario's working directory
-  clean --scenario <scenario-path>  Remove the scenario's working directory
+  clean --scenario <scenario-path>  Remove the scenario's whole cloned repository
 
 OPTIONS
   --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or ${DEFAULT_CLONE_DIR})
@@ -32,7 +32,7 @@ OPTIONS
                            publish to Verdaccio, and pin scenario deps to the published versions.
                            If Verdaccio is already running, publish is skipped (the existing
                            registry contents are reused) unless --force-publish is also passed.
-  --force-checkout         Force git checkouts even if there are uncommitted changes in the scenario working directory
+  --force-checkout         Force git checkouts even if there are uncommitted changes in the scenario's cloned repository
   --force-publish          Allow publishing to an already-running Verdaccio instance, potentially
                            overwriting its current contents
 

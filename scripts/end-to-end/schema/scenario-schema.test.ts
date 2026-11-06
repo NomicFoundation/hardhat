@@ -48,10 +48,50 @@ describe("isScenarioDefinition", () => {
       env: { FOO: "bar" },
       submodules: true,
       disabled: true,
+      workingDirectory: "contracts",
     };
 
     assert.equal(isScenarioDefinition(value), true);
   });
+
+  it("accepts a nested workingDirectory", () => {
+    assert.equal(
+      isScenarioDefinition({
+        description: "test",
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+        defaultCommand: "npx hardhat test",
+        workingDirectory: "packages/contracts",
+      }),
+      true,
+    );
+  });
+
+  for (const workingDirectory of [
+    "",
+    "/abs/contracts",
+    "..",
+    "../sibling",
+    "contracts/../..",
+    42,
+  ]) {
+    it(`rejects workingDirectory ${JSON.stringify(workingDirectory)}`, () => {
+      assert.equal(
+        isScenarioDefinition({
+          description: "test",
+          repo: "org/repo",
+          commit: "abc",
+          packageManager: "npm",
+          tags: [],
+          defaultCommand: "npx hardhat test",
+          workingDirectory,
+        }),
+        false,
+      );
+    });
+  }
 
   it("accepts bun as a package manager", () => {
     const value = {

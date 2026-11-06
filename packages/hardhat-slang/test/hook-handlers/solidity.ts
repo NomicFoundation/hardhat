@@ -1,0 +1,540 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- test */
+import type {
+  SolidityCompilerConfig,
+  SolidityCompilerType,
+} from "hardhat/types/config";
+import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
+
+import assert from "node:assert/strict";
+import { chmod, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { afterEach, beforeEach, describe, it } from "node:test";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  makeWorkspaceTmpDir,
+  safeRemoveTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
+
+import { SLANG_RELEASES } from "../../src/internal/constants.js";
+import { getSlangBinaryPath } from "../../src/internal/downloader.js";
+import solidityHookHandlers, {
+  parseSlangVersion,
+  resetSlangWarning,
+} from "../../src/internal/hook-handlers/solidity.js";
+import { SlangCompiler } from "../../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../../src/internal/utils/slang-release-version.js";
+
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+const LATEST_SLANG_RELEASE = SLANG_RELEASES[LATEST_SLANG_VERSION];
+
+// Helper to create a compiler config
+function createSolidityCompilerConfig(
+  overrides: Partial<SolidityCompilerConfig> = {},
+): SolidityCompilerConfig {
+  return {
+    version: "0.8.34",
+    settings: {
+      optimizer: {},
+      outputSelection: {},
+    },
+    ...overrides,
+  };
+}
+
+// A hook context whose config uses the given slang release. null leaves it
+// unset, which resolved configs no longer do, to show a hook never reads it.
+function createContext(
+  slangVersion: string | null = LATEST_SLANG_VERSION,
+): any {
+  return { config: { slang: { version: slangVersion ?? undefined } } };
+}
+
+// A mock "next" function for getCompiler
+function createGetCompilerMockNext() {
+  let called = false;
+  const mockCompiler = {
+    version: "0.8.34",
+    longVersion: "0.8.34+commit.abc123",
+    compilerPath: "/path/to/solc",
+    isSolcJs: false,
+    compile: async (_input: CompilerInput): Promise<CompilerOutput> => ({
+      sources: {},
+      contracts: {},
+    }),
+  };
+
+  const next = async (
+    _context: any,
+    _compilerConfig: SolidityCompilerConfig,
+  ) => {
+    called = true;
+    return mockCompiler;
+  };
+
+  return {
+    next,
+    wasCalled: () => called,
+    compiler: mockCompiler,
+  };
+}
+
+describe("parseSlangVersion", () => {
+  it("parses version from stable release output", () => {
+    assert.equal(
+      parseSlangVersion(
+        "solx, LLVM-based Solidity compiler for the EVM v0.1.3, LLVM revision: v1.0.2, LLVM build: a33d492",
+      ),
+      "0.1.3",
+    );
+  });
+
+  it("parses version from nightly build output", () => {
+    assert.equal(
+      parseSlangVersion(
+        "solx v0.1.4, LLVM-based Solidity compiler for the EVM, Front end: solc, LLVM build: 12f24e07",
+      ),
+      "0.1.4",
+    );
+  });
+
+  it("parses the prerelease build's banner, which names the Slang front end", () => {
+    assert.equal(
+      parseSlangVersion(
+        "slang v0.2.0, LLVM-based Solidity compiler for the EVM, Front end: Slang, LLVM build: 716613b7\nVersion: 0.8.37",
+      ),
+      "0.2.0",
+    );
+  });
+
+  it("parses pre-release version", () => {
+    assert.equal(
+      parseSlangVersion("solx v0.2.0-alpha.1, LLVM-based Solidity compiler"),
+      "0.2.0-alpha.1",
+    );
+  });
+});
+
+describe("hardhat-slang solidity hook handler", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await makeWorkspaceTmpDir("slang-solidity-hooks");
+    setMockCacheDir(tmpDir);
+  });
+
+  afterEach(async () => {
+    resetMockCacheDir();
+    await safeRemoveTmpDir(tmpDir);
+  });
+
+  // Puts a fake binary where the downloader would cache the latest release, so
+  // the hooks take their cached path and never reach the network.
+  async function cacheFakePinnedBinary(): Promise<string> {
+    const binaryPath = await getSlangBinaryPath(
+      LATEST_SLANG_VERSION,
+      LATEST_SLANG_RELEASE,
+    );
+    await ensureDir(path.dirname(binaryPath));
+    await writeFile(binaryPath, "#!/bin/sh\necho fake slang\n");
+    return binaryPath;
+  }
+
+  describe("downloadCompilers", () => {
+    it("is defined on the hook handler", async () => {
+      const hooks = await solidityHookHandlers();
+
+      assert.ok(
+        hooks.downloadCompilers !== undefined,
+        "downloadCompilers hook should be defined",
+      );
+    });
+
+    it("does nothing when no slang-typed compilers present", async () => {
+      const hooks = await solidityHookHandlers();
+
+      // All configs are solc (no type or type undefined), and nothing is
+      // pinned: the hook must not even look at slang.version.
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({ type: undefined }),
+        createSolidityCompilerConfig({ type: "solc" }),
+      ];
+
+      await hooks.downloadCompilers!(createContext(null), configs, true);
+
+      assert.equal(
+        await exists(
+          await getSlangBinaryPath(LATEST_SLANG_VERSION, LATEST_SLANG_RELEASE),
+        ),
+        false,
+        "nothing should have been downloaded",
+      );
+    });
+
+    it("skips download when every slang config has a custom path", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({
+          type: "slang",
+          version: "0.8.34",
+          path: "/custom/path/to/slang",
+        }),
+      ];
+
+      // Not pinned either: a custom path never needs the release table.
+      await hooks.downloadCompilers!(createContext(null), configs, true);
+
+      assert.equal(
+        await exists(
+          await getSlangBinaryPath(LATEST_SLANG_VERSION, LATEST_SLANG_RELEASE),
+        ),
+        false,
+        "nothing should have been downloaded",
+      );
+    });
+
+    it("uses the cached binary of the pinned release for every slang Solidity version", async () => {
+      const hooks = await solidityHookHandlers();
+      await cacheFakePinnedBinary();
+
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({ type: "slang", version: "0.8.34" }),
+        createSolidityCompilerConfig({ type: "slang", version: "0.8.20" }),
+      ];
+
+      // Two Solidity versions, one pinned release: the hook must resolve
+      // without any download attempt (there is no network in this test).
+      await hooks.downloadCompilers!(createContext(), configs, true);
+
+      assert.equal(configs[0].path, undefined, "paths must not be mutated");
+      assert.equal(configs[1].path, undefined, "paths must not be mutated");
+    });
+  });
+
+  describe("getCompiler", () => {
+    it("is defined on the hook handler", async () => {
+      const hooks = await solidityHookHandlers();
+
+      assert.ok(
+        hooks.getCompiler !== undefined,
+        "getCompiler hook should be defined",
+      );
+    });
+
+    it("passes through to next for non-slang compiler configs", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({ type: "solc" });
+      const mockNext = createGetCompilerMockNext();
+
+      const result = await hooks.getCompiler!(
+        createContext(null),
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(mockNext.wasCalled(), "next should have been called");
+      assert.equal(result, mockNext.compiler);
+    });
+
+    it("passes through to next for undefined type", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({ type: undefined });
+      const mockNext = createGetCompilerMockNext();
+
+      const result = await hooks.getCompiler!(
+        createContext(null),
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(mockNext.wasCalled(), "next should have been called");
+      assert.equal(result, mockNext.compiler);
+    });
+
+    it("returns a SlangCompiler for the pinned release when its binary is cached", async () => {
+      const hooks = await solidityHookHandlers();
+      const binaryPath = await cacheFakePinnedBinary();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const compiler = await hooks.getCompiler!(
+        createContext(),
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(
+        !mockNext.wasCalled(),
+        "next should NOT have been called for slang type",
+      );
+      assert.equal(compiler.compilerPath, binaryPath);
+      assert.equal(compiler.version, LATEST_SLANG_VERSION);
+      assert.equal(compiler.longVersion, `${LATEST_SLANG_VERSION}+slang`);
+      assert.equal(compiler.isSolcJs, false);
+    });
+
+    it("throws an invariant error when the pinned binary isn't cached", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const binaryPath = await getSlangBinaryPath(
+        LATEST_SLANG_VERSION,
+        LATEST_SLANG_RELEASE,
+      );
+
+      await assertRejectsWithHardhatError(
+        hooks.getCompiler!(createContext(), compilerConfig, mockNext.next),
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: `slang binary not found at ${binaryPath} — downloadCompilers should have been called first`,
+        },
+      );
+    });
+
+    it("throws HardhatError when path does not exist", async () => {
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
+        path: "/nonexistent/path/to/slang",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      await assertRejectsWithHardhatError(
+        hooks.getCompiler!(createContext(null), compilerConfig, mockNext.next),
+        HardhatError.ERRORS.HARDHAT_SLANG.GENERAL.BINARY_NOT_FOUND,
+        {
+          path: "/nonexistent/path/to/slang",
+        },
+      );
+    });
+
+    it(
+      "reads the version from a custom-path binary when nothing is pinned",
+      { skip: process.platform === "win32" },
+      async () => {
+        const hooks = await solidityHookHandlers();
+
+        // A stand-in binary that only knows how to answer --version.
+        const fakeBinaryPath = path.join(tmpDir, "fake-slang");
+        await writeFile(
+          fakeBinaryPath,
+          '#!/bin/sh\necho "solx v0.0.1-fake, LLVM-based Solidity compiler for the EVM, Front end: Slang"\n',
+        );
+        await chmod(fakeBinaryPath, 0o755);
+
+        const mockNext = createGetCompilerMockNext();
+        const compiler = await hooks.getCompiler!(
+          createContext(null),
+          createSolidityCompilerConfig({
+            type: "slang",
+            version: "0.8.20",
+            path: fakeBinaryPath,
+          }),
+          mockNext.next,
+        );
+
+        assert.ok(!mockNext.wasCalled(), "next should NOT have been called");
+        assert.ok(
+          compiler instanceof SlangCompiler,
+          "expected a SlangCompiler",
+        );
+        assert.equal(compiler.compilerPath, fakeBinaryPath);
+        assert.equal(compiler.version, "0.0.1-fake");
+        assert.equal(compiler.longVersion, "0.0.1-fake+slang");
+      },
+    );
+
+    it("returns SlangCompiler with version from binary when path is provided", async () => {
+      // Use the real prerelease binary if it is in the global cache, skip otherwise
+      resetMockCacheDir();
+      const cachedPath = await getSlangBinaryPath(
+        LATEST_SLANG_VERSION,
+        LATEST_SLANG_RELEASE,
+      );
+      if (!(await exists(cachedPath))) {
+        return;
+      }
+
+      const hooks = await solidityHookHandlers();
+
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "slang",
+        version: "0.8.34",
+        path: cachedPath,
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const compiler = await hooks.getCompiler!(
+        createContext(null),
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(
+        !mockNext.wasCalled(),
+        "next should NOT have been called for slang type",
+      );
+      assert.equal(compiler.compilerPath, cachedPath);
+      // Version should be parsed from the binary, not from config
+      assert.match(compiler.version, /^\d+\.\d+\.\d+/);
+      assert.equal(compiler.longVersion, `${compiler.version}+slang`);
+    });
+  });
+
+  describe("build", () => {
+    // A hook context with the given build profiles, each a list of compiler
+    // types plus optional override types
+    function createBuildContext(
+      profiles: Record<
+        string,
+        {
+          compilers: SolidityCompilerType[];
+          overrides?: SolidityCompilerType[];
+        }
+      >,
+    ): any {
+      return {
+        config: {
+          solidity: {
+            profiles: Object.fromEntries(
+              Object.entries(profiles).map(([name, p]) => [
+                name,
+                {
+                  compilers: p.compilers.map((type) =>
+                    createSolidityCompilerConfig({ type }),
+                  ),
+                  overrides: Object.fromEntries(
+                    (p.overrides ?? []).map((type, i) => [
+                      `contracts/Override${i}.sol`,
+                      createSolidityCompilerConfig({ type }),
+                    ]),
+                  ),
+                },
+              ]),
+            ),
+          },
+        },
+      };
+    }
+
+    function createBuildMockNext() {
+      let calls = 0;
+      return {
+        next: async (): Promise<Map<string, any>> => {
+          calls++;
+          return new Map();
+        },
+        callCount: () => calls,
+      };
+    }
+
+    beforeEach(() => {
+      resetSlangWarning();
+    });
+
+    it("warns once for a profile that compiles with slang, across builds", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["solc"] },
+        slang: { compilers: ["slang"] },
+      });
+      const mockNext = createBuildMockNext();
+
+      await hooks.build!(context, [], { buildProfile: "slang" }, mockNext.next);
+      await hooks.build!(context, [], { buildProfile: "slang" }, mockNext.next);
+
+      assert.equal(warn.mock.callCount(), 1);
+      assert.match(
+        String(warn.mock.calls[0].arguments[0]),
+        /experimental compiler/,
+      );
+      assert.equal(mockNext.callCount(), 2);
+    });
+
+    it("does not warn for a profile that only uses solc", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["solc"] },
+        slang: { compilers: ["slang"] },
+      });
+      const mockNext = createBuildMockNext();
+
+      await hooks.build!(context, [], undefined, mockNext.next);
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "default" },
+        mockNext.next,
+      );
+
+      assert.equal(warn.mock.callCount(), 0);
+      assert.equal(mockNext.callCount(), 2);
+    });
+
+    it("warns for a profile whose only slang entry is an override", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        slang: { compilers: ["solc"], overrides: ["slang"] },
+      });
+
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "slang" },
+        createBuildMockNext().next,
+      );
+
+      assert.equal(warn.mock.callCount(), 1);
+    });
+
+    it("warns for slang in the default profile when no profile is given", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({
+        default: { compilers: ["slang"] },
+      });
+
+      await hooks.build!(context, [], undefined, createBuildMockNext().next);
+
+      assert.equal(warn.mock.callCount(), 1);
+    });
+
+    it("warns even when the build is quiet", async (t) => {
+      const warn = t.mock.method(console, "warn", () => {});
+      const hooks = await solidityHookHandlers();
+      const context = createBuildContext({ slang: { compilers: ["slang"] } });
+
+      await hooks.build!(
+        context,
+        [],
+        { buildProfile: "slang", quiet: true },
+        createBuildMockNext().next,
+      );
+
+      assert.equal(warn.mock.callCount(), 1);
+    });
+  });
+});

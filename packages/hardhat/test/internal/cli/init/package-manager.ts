@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import childProcess from "node:child_process";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
 import {
@@ -58,6 +59,61 @@ describe("getPackageManager", () => {
 });
 
 describe("installsPeerDependenciesByDefault", () => {
+  describe("with config command output", () => {
+    const tests = [
+      {
+        packageManager: "npm",
+        version: "7.0.0",
+        key: "legacy-peer-deps",
+        value: "true",
+        expected: false,
+      },
+      {
+        packageManager: "pnpm",
+        version: "8.0.0",
+        key: "auto-install-peers",
+        value: "false",
+        expected: false,
+      },
+      {
+        packageManager: "pnpm",
+        version: "7.0.0",
+        key: "auto-install-peers",
+        value: "true",
+        expected: true,
+      },
+    ] as const;
+
+    for (const test of tests) {
+      for (const lineEnding of ["\n", "\r\n"]) {
+        it(`should return ${test.expected} for ${test.packageManager} v${test.version} with ${test.key}=${test.value} and ${JSON.stringify(lineEnding)} output`, async (t) => {
+          const execSyncMock = t.mock.method(
+            childProcess,
+            "execSync",
+            () => `${test.value}${lineEnding}`,
+          );
+
+          try {
+            const actual = await installsPeerDependenciesByDefault(
+              process.cwd(),
+              test.packageManager,
+              test.version,
+            );
+
+            assert.equal(actual, test.expected);
+            assert.equal(execSyncMock.mock.callCount(), 1);
+            assert.deepEqual(execSyncMock.mock.calls[0].arguments, [
+              `${test.packageManager} config get ${test.key}`,
+              { cwd: process.cwd(), encoding: "utf8" },
+            ]);
+          } finally {
+            execSyncMock.mock.restore();
+          }
+        });
+      }
+    }
+  });
+
   describe("for pnpm", () => {
     const tests = [
       {

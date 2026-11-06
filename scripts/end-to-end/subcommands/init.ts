@@ -127,7 +127,7 @@ export async function init(
  * Idempotent: reuses existing checkouts (fetch + checkout + clean).
  */
 function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
-  const { scenarioDir, workingDir, definition } = scenario;
+  const { scenarioDir, repoDir, workingDir, definition } = scenario;
   const submodules = definition.submodules ?? false;
 
   // commit: pin exactly; branch: track the latest remote tip (detached).
@@ -139,30 +139,38 @@ function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
         }
       : { fetchRef: definition.commit, checkoutRef: definition.commit };
 
-  if (!existsSync(workingDir)) {
+  if (!existsSync(repoDir)) {
     // Fresh clone flow
-    clone(workingDir, definition.repo);
-    checkout(workingDir, checkoutRef, forceCheckout);
+    clone(repoDir, definition.repo);
+    checkout(repoDir, checkoutRef, forceCheckout);
 
     if (submodules) {
-      updateSubmodules(workingDir);
+      updateSubmodules(repoDir);
     }
   } else {
     // Re-init flow
-    fetch(workingDir, definition.repo, fetchRef);
-    checkout(workingDir, checkoutRef, forceCheckout);
-    clean(workingDir);
+    fetch(repoDir, definition.repo, fetchRef);
+    checkout(repoDir, checkoutRef, forceCheckout);
+    clean(repoDir);
 
     if (submodules) {
-      updateSubmodules(workingDir);
+      updateSubmodules(repoDir);
     }
+  }
+
+  if (!existsSync(workingDir)) {
+    throw new Error(
+      `Scenario "${scenario.id}" has workingDirectory ` +
+        `"${definition.workingDirectory}", but ${workingDir} does not exist ` +
+        `at ${checkoutRef}`,
+    );
   }
 
   if (definition.preinstall !== undefined) {
     runPreinstallScript(
       resolve(scenarioDir, definition.preinstall),
       scenarioDir,
-      workingDir,
+      repoDir,
       definition.env,
     );
   }
@@ -173,12 +181,13 @@ function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
  * install script.
  */
 function installScenarioDeps(scenario: Scenario): void {
-  const { scenarioDir, workingDir, definition } = scenario;
+  const { scenarioDir, repoDir, workingDir, definition } = scenario;
 
   if (definition.install !== undefined) {
     runCustomInstallScript(
       resolve(scenarioDir, definition.install),
       scenarioDir,
+      repoDir,
       workingDir,
       definition.env,
     );
@@ -373,13 +382,13 @@ function clean(scenarioWorkingDir: string): void {
 function runPreinstallScript(
   scriptPath: string,
   scenarioDir: string,
-  workingDir: string,
+  repoDir: string,
   env?: Record<string, string>,
 ): void {
   logStep("Running preinstall script");
 
   execFileSync(which("bash"), [scriptPath], {
-    cwd: workingDir,
+    cwd: repoDir,
     stdio: "inherit",
     env: {
       ...process.env,
@@ -392,6 +401,7 @@ function runPreinstallScript(
 function runCustomInstallScript(
   scriptPath: string,
   testDir: string,
+  repoDir: string,
   workDir: string,
   env?: Record<string, string>,
 ): void {
@@ -403,7 +413,7 @@ function runCustomInstallScript(
     env: {
       ...process.env,
       ...env,
-      E2E_REPO_DIR: workDir,
+      E2E_REPO_DIR: repoDir,
       E2E_TEST_DIR: testDir,
     },
   });

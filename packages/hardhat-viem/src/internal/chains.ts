@@ -41,14 +41,18 @@ export async function getChain<ChainTypeT extends ChainType | string>(
 
   const chainId = await getChainId(provider);
 
-  let chain = extractChain({
-    chains,
-    id: chainId,
-  });
+  let chain =
+    chainDescriptors.get(BigInt(chainId))?.viemChain ??
+    extractChain({ chains, id: chainId });
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
-      chain = createHardhatChain(provider, chainId, chainType);
+      chain = createHardhatChain(
+        provider,
+        chainId,
+        chainType,
+        chainDescriptors,
+      );
     } else if (await isAnvilNetwork(provider)) {
       chain = {
         ...anvil,
@@ -162,6 +166,7 @@ function createHardhatChain<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainId: number,
   chainType: ChainTypeT,
+  chainDescriptors: ChainDescriptorsConfig,
 ): ViemChain {
   const hardhatMetadata = hardhatMetadataCache.get(provider);
   assertHardhatInvariant(
@@ -169,11 +174,11 @@ function createHardhatChain<ChainTypeT extends ChainType | string>(
     "Expected hardhat metadata to be available",
   );
 
-  if (hardhatMetadata.forkedNetwork?.chainId !== undefined) {
-    const forkedChain = extractChain({
-      chains,
-      id: hardhatMetadata.forkedNetwork.chainId,
-    });
+  const forkedChainId = hardhatMetadata.forkedNetwork?.chainId;
+  if (forkedChainId !== undefined) {
+    const forkedChain =
+      chainDescriptors.get(BigInt(forkedChainId))?.viemChain ??
+      extractChain({ chains, id: forkedChainId });
 
     if (forkedChain !== undefined) {
       return {

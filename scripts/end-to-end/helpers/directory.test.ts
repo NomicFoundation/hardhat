@@ -2,7 +2,12 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 
-import { normalizeScenarioPath, resolveInvocationPath } from "./directory.ts";
+import {
+  normalizeScenarioPath,
+  resolveInvocationPath,
+  resolveScenarioRepoDir,
+  resolveScenarioWorkingDir,
+} from "./directory.ts";
 import { withEnv } from "./with-env.ts";
 
 const INVOCATION_DIR = path.resolve("/invoked/from/here");
@@ -62,6 +67,33 @@ describe("normalizeScenarioPath", () => {
     assert.equal(
       invoked(() => normalizeScenarioPath(`${SCENARIO_DIR}/scenario.json`)),
       SCENARIO_FILE,
+    );
+  });
+});
+
+describe("resolveScenarioRepoDir", () => {
+  it("clones into the scenario's slug under the clone directory", () => {
+    assert.equal(
+      resolveScenarioRepoDir(
+        "/tmp/end-to-end",
+        "/repo/end-to-end/some-scenario/scenario.json",
+      ),
+      path.join("/tmp/end-to-end", "some-scenario"),
+    );
+  });
+});
+
+describe("resolveScenarioWorkingDir", () => {
+  const REPO_DIR = path.resolve("/tmp/end-to-end/some-scenario");
+
+  it("is the clone itself without a workingDirectory", () => {
+    assert.equal(resolveScenarioWorkingDir(REPO_DIR, undefined), REPO_DIR);
+  });
+
+  it("is the workingDirectory inside the clone", () => {
+    assert.equal(
+      resolveScenarioWorkingDir(REPO_DIR, "contracts"),
+      path.join(REPO_DIR, "contracts"),
     );
   });
 });

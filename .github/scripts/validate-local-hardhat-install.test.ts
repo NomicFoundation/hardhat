@@ -13,6 +13,7 @@ import {
   classifyScenario,
   resolveInstalledHardhat,
   resolveScenario,
+  scenarioProjectDir,
   yarnLockHardhatVersions,
   type ScenarioResolution,
 } from "./validate-local-hardhat-install.ts";
@@ -238,4 +239,35 @@ test("resolveScenario reports the underlying error for an unreadable PnP package
   const malformed = errorOf(resolveScenario(dir));
   assert.match(malformed, /could not read the PnP scenario's package.json/);
   assert.match(malformed, /JSON/);
+});
+
+test("scenarioProjectDir follows the scenario's workingDirectory", (t: TestContext) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const scenarioJson = path.join(dir, "scenario.json");
+  const clone = path.join(dir, "clone");
+
+  fs.writeFileSync(
+    scenarioJson,
+    JSON.stringify({ workingDirectory: "contracts" }),
+  );
+  assert.equal(
+    scenarioProjectDir(clone, scenarioJson),
+    path.join(clone, "contracts"),
+  );
+
+  fs.writeFileSync(scenarioJson, JSON.stringify({}));
+  assert.equal(scenarioProjectDir(clone, scenarioJson), clone);
+});
+
+test("scenarioProjectDir falls back to the clone without a readable scenario.json", (t: TestContext) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const scenarioJson = path.join(dir, "scenario.json");
+  const clone = path.join(dir, "clone");
+
+  assert.equal(scenarioProjectDir(clone, scenarioJson), clone);
+
+  fs.writeFileSync(scenarioJson, "{ not json");
+  assert.equal(scenarioProjectDir(clone, scenarioJson), clone);
 });

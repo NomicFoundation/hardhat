@@ -33,6 +33,7 @@ import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getRequest,
   postFormRequest,
+  splitQueryParams,
 } from "@nomicfoundation/hardhat-utils/request";
 
 const log = createDebug("hardhat:verify:etherscan");
@@ -55,6 +56,11 @@ export class Etherscan implements VerificationProvider {
   public readonly dispatcherOrDispatcherOptions?:
     Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  // The `apiUrl` without its query string. Its query params are sent with
+  // every request, before Hardhat's own, so Hardhat's take precedence.
+  readonly #requestUrl: string;
+  readonly #apiUrlQueryParams: Record<string, string>;
 
   public static async resolveConfig({
     chainId,
@@ -179,6 +185,10 @@ export class Etherscan implements VerificationProvider {
     this.url = etherscanConfig.url;
     this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 
+    const { url, queryParams } = splitQueryParams(this.apiUrl);
+    this.#requestUrl = url;
+    this.#apiUrlQueryParams = queryParams;
+
     this.dispatcherOrDispatcherOptions = etherscanConfig.dispatcher ?? {};
 
     this.pollingIntervalMs =
@@ -206,9 +216,10 @@ export class Etherscan implements VerificationProvider {
     let responseBody: EtherscanGetSourceCodeResponse | undefined;
     try {
       response = await getRequest(
-        this.apiUrl,
+        this.#requestUrl,
         {
           queryParams: {
+            ...this.#apiUrlQueryParams,
             module: "contract",
             action: "getsourcecode",
             chainid: this.chainId,
@@ -280,10 +291,11 @@ export class Etherscan implements VerificationProvider {
     let responseBody: EtherscanResponse | undefined;
     try {
       response = await postFormRequest(
-        this.apiUrl,
+        this.#requestUrl,
         body,
         {
           queryParams: {
+            ...this.#apiUrlQueryParams,
             module: "contract",
             action: "verifysourcecode",
             chainid: this.chainId,
@@ -374,9 +386,10 @@ export class Etherscan implements VerificationProvider {
     let responseBody: EtherscanResponse | undefined;
     try {
       response = await getRequest(
-        this.apiUrl,
+        this.#requestUrl,
         {
           queryParams: {
+            ...this.#apiUrlQueryParams,
             module: "contract",
             action: "checkverifystatus",
             chainid: this.chainId,
@@ -474,6 +487,7 @@ export class Etherscan implements VerificationProvider {
     options: EtherscanCustomApiCallOptions = { method: "GET" },
   ): Promise<EtherscanResponseBody> {
     const queryParams = {
+      ...this.#apiUrlQueryParams,
       chainid: this.chainId,
       apikey: this.apiKey,
       ...params,
@@ -483,13 +497,13 @@ export class Etherscan implements VerificationProvider {
     try {
       if (options.method === "GET") {
         response = await getRequest(
-          this.apiUrl,
+          this.#requestUrl,
           { queryParams },
           this.dispatcherOrDispatcherOptions,
         );
       } else {
         response = await postFormRequest(
-          this.apiUrl,
+          this.#requestUrl,
           options.body,
           { queryParams },
           this.dispatcherOrDispatcherOptions,

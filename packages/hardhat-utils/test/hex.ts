@@ -192,7 +192,7 @@ describe("hex", () => {
 
   describe("hexStringToBytes", () => {
     it("Should convert a hexadecimal string to a Uint8Array", () => {
-      assert.deepEqual(hexStringToBytes("0x"), new Uint8Array([0]));
+      assert.deepEqual(hexStringToBytes("0x"), new Uint8Array());
       assert.deepEqual(hexStringToBytes("0x0"), new Uint8Array([0]));
       assert.deepEqual(hexStringToBytes("0x1"), new Uint8Array([1]));
       assert.deepEqual(hexStringToBytes("0x0f"), new Uint8Array([15]));
@@ -207,7 +207,7 @@ describe("hex", () => {
         new Uint8Array([0, 1, 15, 16, 255]),
       );
 
-      assert.deepEqual(hexStringToBytes(""), new Uint8Array([0]));
+      assert.deepEqual(hexStringToBytes(""), new Uint8Array());
       assert.deepEqual(hexStringToBytes("0"), new Uint8Array([0]));
       assert.deepEqual(hexStringToBytes("1"), new Uint8Array([1]));
       assert.deepEqual(hexStringToBytes("0f"), new Uint8Array([15]));
@@ -310,6 +310,12 @@ describe("hex", () => {
   });
 
   describe("setLengthLeft", () => {
+    it("Should truncate to an empty hex string when the length is zero", () => {
+      assert.equal(setLengthLeft("0xabcd", 0), "0x");
+      assert.equal(setLengthLeft("abcd", 0), "0x");
+      assert.equal(setLengthLeft("0x", 0), "0x");
+    });
+
     it("Should set the length of a hexadecimal string", () => {
       assert.equal(setLengthLeft("0x0", 1), "0x0"); // Same length
       assert.equal(setLengthLeft("0x0", 2), "0x00");

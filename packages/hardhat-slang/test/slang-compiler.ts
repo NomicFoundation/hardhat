@@ -1,0 +1,160 @@
+import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
+
+import assert from "node:assert/strict";
+import { beforeEach, describe, it } from "node:test";
+
+import {
+  SLANG_DEBUG_INFO_SELECTORS,
+  SLANG_DEBUG_SYMBOLS_SELECTORS,
+  SlangCompiler,
+  addSlangStackTraceSelectors,
+} from "../src/internal/slang-compiler.js";
+import { getLatestSlangVersion } from "../src/internal/utils/slang-release-version.js";
+
+const LATEST_SLANG_VERSION = getLatestSlangVersion();
+
+// Track calls to the fake spawnCompile
+let spawnCompileCalls: Array<{
+  command: string;
+  args: string[];
+  input: CompilerInput;
+}> = [];
+const fakeOutput: CompilerOutput = { sources: {}, contracts: {} };
+
+async function fakeSpawnCompile(
+  command: string,
+  args: string[],
+  input: CompilerInput,
+): Promise<CompilerOutput> {
+  spawnCompileCalls.push({ command, args, input });
+  return fakeOutput;
+}
+
+const sampleInput: CompilerInput = {
+  language: "Solidity",
+  sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
+  settings: { optimizer: { enabled: true }, outputSelection: {} },
+};
+
+describe("SlangCompiler", () => {
+  beforeEach(() => {
+    spawnCompileCalls = [];
+  });
+
+  it("implements the Compiler interface", async () => {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang");
+
+    assert.equal(compiler.version, LATEST_SLANG_VERSION);
+    assert.equal(compiler.longVersion, `${LATEST_SLANG_VERSION}+slang`);
+    assert.equal(compiler.compilerPath, "/path/to/slang");
+    assert.equal(compiler.isSolcJs, false);
+  });
+
+  it("forwards binary path, --standard-json, and the input to spawnCompile", async () => {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
+      spawnCompile: fakeSpawnCompile,
+    });
+
+    await compiler.compile(sampleInput);
+
+    assert.equal(spawnCompileCalls.length, 1);
+    const call = spawnCompileCalls[0];
+    assert.equal(call.command, "/path/to/slang");
+    assert.deepEqual(call.args, ["--standard-json"]);
+    // compile() only drops `ast` — the plugin's defaults (optimizer mode,
+    // debugInfo) are applied at config resolution, so the input reaches the
+    // compiler otherwise exactly as the build system constructed it.
+    assert.deepEqual(call.input, sampleInput);
+  });
+
+  it("drops the ast output and keeps every other selector", async () => {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
+      spawnCompile: fakeSpawnCompile,
+    });
+    const input: CompilerInput = {
+      ...sampleInput,
+      settings: {
+        ...sampleInput.settings,
+        outputSelection: {
+          "*": {
+            "": ["ast", "debugSymbols"],
+            "*": ["abi", "evm.bytecode.object"],
+          },
+        },
+      },
+    };
+
+    await compiler.compile(input);
+
+    assert.deepEqual(spawnCompileCalls[0].input.settings.outputSelection, {
+      "*": { "": ["debugSymbols"], "*": ["abi", "evm.bytecode.object"] },
+    });
+    assert.deepEqual(
+      input.settings.outputSelection["*"][""],
+      ["ast", "debugSymbols"],
+      "the build system's input must not be modified",
+    );
+    assert.deepEqual(spawnCompileCalls[0].input.sources, input.sources);
+  });
+
+  it("returns the output from spawnCompile", async () => {
+    const compiler = new SlangCompiler(LATEST_SLANG_VERSION, "/path/to/slang", {
+      spawnCompile: fakeSpawnCompile,
+    });
+
+    const result = await compiler.compile(sampleInput);
+    assert.equal(result, fakeOutput);
+  });
+});
+
+describe("addSlangStackTraceSelectors", () => {
+  it("populates the wildcard slots when the input is empty", async () => {
+    const result = await addSlangStackTraceSelectors({});
+    assert.deepEqual(result, {
+      "*": {
+        "*": [...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
+    });
+  });
+
+  it("appends to an existing wildcard selector list without removing user entries", async () => {
+    const result = await addSlangStackTraceSelectors({
+      "*": { "*": ["abi", "metadata"] },
+    });
+    assert.deepEqual(result, {
+      "*": {
+        "*": ["abi", "metadata", ...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
+    });
+  });
+
+  it('appends debugSymbols to the file-level `[*][""]` slot, keeping outputs like ast', async () => {
+    const result = await addSlangStackTraceSelectors({
+      "*": { "": ["ast"] },
+    });
+    assert.ok(result !== undefined, "result should not be undefined");
+    assert.deepEqual(result["*"][""], [
+      "ast",
+      ...SLANG_DEBUG_SYMBOLS_SELECTORS,
+    ]);
+  });
+
+  it("does not mutate the input object", async () => {
+    const input2 = { "*": { "*": ["abi"] } };
+    const before = JSON.stringify(input2);
+    await addSlangStackTraceSelectors(input2);
+    assert.equal(JSON.stringify(input2), before);
+  });
+
+  it("accepts undefined input (sets up the wildcard slots)", async () => {
+    const result = await addSlangStackTraceSelectors(undefined);
+    assert.deepEqual(result, {
+      "*": {
+        "*": [...SLANG_DEBUG_INFO_SELECTORS],
+        "": [...SLANG_DEBUG_SYMBOLS_SELECTORS],
+      },
+    });
+  });
+});

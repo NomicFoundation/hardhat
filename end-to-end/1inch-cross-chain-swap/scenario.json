@@ -1,22 +1,19 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "1inch Network Fusion Atomic Swaps fork to Hardhat 3.",
+  "description": "1inch Network Fusion Atomic Swaps on Hardhat 3, using the dynamic imports plugin (@ignored/imports-plugin).",
   "tags": ["external-repo"],
-  "repo": "Wodann/cross-chain-swap",
-  "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
+  "repo": "1inch/cross-chain-swap",
+  "commit": "68191c117c3a74917e823cbaeab31976463c12ef",
   "packageManager": "yarn",
-  "submodules": true,
+  "submodules": false,
   "defaultCommand": "npx hardhat test solidity",
-  "env": {
-    "FOUNDRY_PROFILE": "default"
-  },
   "benchmark": {
     "commands": {
       "compile sequence": {
         "runs": 2,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/ResolverMock.t.sol contracts/BaseEscrow.sol && npx hardhat clean",
+            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/MerkleStorageInvalidator.t.sol contracts/libraries/TimelocksLib.sol && npx hardhat clean",
             "measure": false
           },
           "cold compile": {
@@ -27,12 +24,12 @@
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/FeeCalcLib.t.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           },
-          "edit & compile Solidity test with max deps: test/integration/ResolverMock.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/ResolverMock.t.sol && npx hardhat compile",
+          "edit & compile Solidity test with max deps: test/integration/MerkleStorageInvalidator.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/MerkleStorageInvalidator.t.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           },
-          "edit & compile Solidity contract: contracts/BaseEscrow.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/BaseEscrow.sol && npx hardhat compile",
+          "edit & compile Solidity contract: contracts/libraries/TimelocksLib.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/libraries/TimelocksLib.sol && npx hardhat compile",
             "dependsOn": ["cold compile"]
           }
         }

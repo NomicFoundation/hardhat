@@ -1,6 +1,12 @@
 export interface Scenario {
   id: string;
   scenarioDir: string;
+  /** Where the scenario's repo is cloned. */
+  repoDir: string;
+  /**
+   * Where the scenario's dependencies are installed and its commands run: the
+   * repo's `workingDirectory`, or the clone itself when it has none.
+   */
   workingDir: string;
   definition: ScenarioDefinition;
 }
@@ -23,6 +29,12 @@ interface ScenarioDefinitionBase {
   repo: string;
   packageManager: "npm" | "bun" | "yarn" | "pnpm";
   defaultCommand: string;
+  /**
+   * The Hardhat project's directory, relative to the repo root, for a repo
+   * whose project is not at its root. Install, exec and the benchmarks run
+   * there; cloning, submodules and `preinstall` stay at the repo root.
+   */
+  workingDirectory?: string;
   preinstall?: string;
   install?: string;
   tags: string[];

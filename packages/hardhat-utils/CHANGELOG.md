@@ -1,5 +1,37 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.1.1
+
+### Patch Changes
+
+- [#8765](https://github.com/NomicFoundation/hardhat/pull/8765) [`7de90f0`](https://github.com/NomicFoundation/hardhat/commit/7de90f062be9997e68992232a681ba7803766443) Thanks [@schaable](https://github.com/schaable)! - Fixed `hexStringToBytes` converting `0x` and the empty string to a zero byte instead of empty bytes.
+
+- [#8757](https://github.com/NomicFoundation/hardhat/pull/8757) [`69ba19b`](https://github.com/NomicFoundation/hardhat/commit/69ba19b9dcd54079758814f7c9f8606fc8490949) Thanks [@fengxueweilai](https://github.com/fengxueweilai)! - Fixed `setLengthLeft` returning the whole hex string instead of `0x` when truncating to a length of `0`.
+
+## 5.1.0
+
+### Minor Changes
+
+- [#8670](https://github.com/NomicFoundation/hardhat/pull/8670) [`dbbf7c0`](https://github.com/NomicFoundation/hardhat/commit/dbbf7c00625f443f75d641872659b027bfffc123) Thanks [@schaable](https://github.com/schaable)! - Added `isPrivateKey` to `@nomicfoundation/hardhat-utils/eth`.
+
+- [#8733](https://github.com/NomicFoundation/hardhat/pull/8733) [`9fdef26`](https://github.com/NomicFoundation/hardhat/commit/9fdef2672b2196d11cdbc1cd34d65c8ba7dc0b72) Thanks [@schaable](https://github.com/schaable)! - Added `splitQueryParams` to `@nomicfoundation/hardhat-utils/request`.
+
+## 5.0.0
+
+### Major Changes
+
+- [#8693](https://github.com/NomicFoundation/hardhat/pull/8693) [`98db1b3`](https://github.com/NomicFoundation/hardhat/commit/98db1b30c9471a5f3db6424909b1f2c3bc43e093) Thanks [@schaable](https://github.com/schaable)! - Removed the deprecated `readJsonFileAsStream`, `writeJsonFileAsStream` and `getFileTrueCase`; use `readJsonFile`, `writeLargeJsonFile` and `TrueCasePathResolver` instead.
+
+### Minor Changes
+
+- [#8690](https://github.com/NomicFoundation/hardhat/pull/8690) [`0058149`](https://github.com/NomicFoundation/hardhat/commit/0058149a39f2ac9063f140e85a7949bd7e42fff2) Thanks [@schaable](https://github.com/schaable)! - Added `writeLargeJsonFile` and made `readJsonFile` read files of any size, deprecating `writeJsonFileAsStream` and `readJsonFileAsStream`.
+
+### Patch Changes
+
+- [#8690](https://github.com/NomicFoundation/hardhat/pull/8690) [`0058149`](https://github.com/NomicFoundation/hardhat/commit/0058149a39f2ac9063f140e85a7949bd7e42fff2) Thanks [@schaable](https://github.com/schaable)! - Sped up compilation by reading and writing solc's output with `JSON.parse` and `JSON.stringify` when memory allows ([#8565](https://github.com/NomicFoundation/hardhat/issues/8565)).
+
+- [#8695](https://github.com/NomicFoundation/hardhat/pull/8695) [`38041a8`](https://github.com/NomicFoundation/hardhat/commit/38041a8200553583bbdf228956b48de2edb0cf5a) Thanks [@kanej](https://github.com/kanej)! - Reduced the startup time and memory use of Hardhat commands that make no network request.
+
 ## 4.4.0
 
 ### Minor Changes

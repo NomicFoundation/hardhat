@@ -59,6 +59,27 @@ export function isHash(value: unknown): value is PrefixedHexString {
   return typeof value === "string" && /^0x[0-9a-f]{64}$/i.test(value);
 }
 
+const SECP256K1_ORDER =
+  0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+
+/**
+ * Checks if a value is a valid Ethereum private key: a 32-byte hex string
+ * whose value is greater than zero and lower than the order of the secp256k1
+ * curve.
+ *
+ * @param value The value to check.
+ * @returns True if the value is a valid private key, false otherwise.
+ */
+export function isPrivateKey(value: unknown): value is PrefixedHexString {
+  // A private key has the same format as a hash: 32 bytes of 0x-prefixed hex
+  if (!isHash(value)) {
+    return false;
+  }
+
+  const key = BigInt(value);
+  return key > 0n && key < SECP256K1_ORDER;
+}
+
 /**
  * Converts a number to a hexadecimal string with a length of 32 bytes.
  *

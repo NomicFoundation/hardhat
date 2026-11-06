@@ -7,6 +7,7 @@ import {
   npmLatestVersion,
   parseCore,
   patchBump,
+  satisfiesCaret,
 } from "./version.ts";
 
 /**
@@ -105,6 +106,38 @@ describe("minorBump", () => {
 
   it("yields a release version from a prerelease", () => {
     assert.equal(minorBump("0.12.0-next.29"), "0.13.0");
+  });
+});
+
+/**
+ * pnpm publishes a `workspace:^floor` range as `^floor`, so this must match
+ * node-semver's reading of it for releases.
+ */
+describe("satisfiesCaret", () => {
+  it("accepts the floor itself", () => {
+    assert.equal(satisfiesCaret("5.0.0", "5.0.0"), true);
+  });
+
+  it("accepts a higher minor in the same major", () => {
+    assert.equal(satisfiesCaret("5.1.0", "5.0.0"), true);
+  });
+
+  it("rejects a higher major", () => {
+    assert.equal(satisfiesCaret("5.1.0", "4.4.0"), false);
+  });
+
+  it("rejects a version below the floor", () => {
+    assert.equal(satisfiesCaret("4.3.0", "4.4.0"), false);
+  });
+
+  it("pins a 0.x floor to its minor", () => {
+    assert.equal(satisfiesCaret("0.1.5", "0.1.0"), true);
+    assert.equal(satisfiesCaret("0.2.0", "0.1.0"), false);
+  });
+
+  it("pins a 0.0.x floor to its patch", () => {
+    assert.equal(satisfiesCaret("0.0.1", "0.0.1"), true);
+    assert.equal(satisfiesCaret("0.0.2", "0.0.1"), false);
   });
 });
 

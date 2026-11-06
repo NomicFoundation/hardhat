@@ -12,14 +12,14 @@ import {
 export async function generateHtmlReport(
   report: Report,
   htmlReportPath: string,
+  projectRoot: string,
 ): Promise<void> {
-  const baseDir = process.cwd();
   const coverageMap = istanbulLibCoverage.createCoverageMap({});
 
   // Construct coverage data for each tested file,
   // detailing whether each line was executed or not.
   for (const [p, coverageInfo] of Object.entries(report)) {
-    const testedFilePath = path.join(baseDir, p);
+    const testedFilePath = path.join(projectRoot, p);
 
     const fc: FileCoverageData = {
       path: testedFilePath,

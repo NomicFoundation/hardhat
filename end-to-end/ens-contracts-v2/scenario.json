@@ -1,0 +1,65 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "ENS v2 contracts on Hardhat 3, from the contracts/ workspace of a bun monorepo, including their Solidity tests and Vitest integration suite.",
+  "tags": ["external-repo"],
+  "repo": "ensdomains/contracts-v2",
+  "commit": "48b3e2d39513b9dd32ef1850877a29009bc807b9",
+  "packageManager": "bun",
+  "submodules": true,
+  "workingDirectory": "contracts",
+  "defaultCommand": "npx hardhat test && npx vitest run",
+  "benchmark": {
+    "commands": {
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- test/unit/utils/LibLabel.t.sol test/unit/migration/LockedMigrationController.t.sol src/registry/interfaces/IRegistry.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity test with min deps: test/unit/utils/LibLabel.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/utils/LibLabel.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity test with max deps: test/unit/migration/LockedMigrationController.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/migration/LockedMigrationController.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract: src/registry/interfaces/IRegistry.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/registry/interfaces/IRegistry.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          }
+        }
+      },
+      "warm compile": {
+        "runs": 2,
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test solidity": {
+        "runs": 5,
+        "command": "npx hardhat test solidity --no-compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test solidity -vvv": {
+        "runs": 5,
+        "command": "npx hardhat test solidity --no-compile -vvv",
+        "dependsOn": ["cold compile"]
+      },
+      "test solidity -vvvv": {
+        "runs": 5,
+        "command": "npx hardhat test solidity --no-compile -vvvv",
+        "dependsOn": ["cold compile"]
+      },
+      "test vitest": {
+        "runs": 2,
+        "command": "npx vitest run",
+        "dependsOn": ["cold compile"]
+      }
+    }
+  }
+}

@@ -691,3 +691,45 @@ describe(
     });
   },
 );
+
+describe("Compiler downloader - updateCompilerListIfNeeded", function () {
+  const tmp = createTmpDir("compiler-list", "test");
+
+  it("should refresh a cached list that only has a prerelease of the requested version", async function () {
+    const stable = {
+      path: "soljson-v0.8.31+commit.fd3a2265.js",
+      version: "0.8.31",
+      longVersion: "0.8.31+commit.fd3a2265",
+      sha256: "0x00",
+    };
+
+    const prerelease = {
+      ...stable,
+      path: "soljson-v0.8.31-pre.1+commit.b59566f6.js",
+      longVersion: "0.8.31-pre.1+commit.b59566f6",
+      prerelease: "pre.1",
+    };
+
+    await fs.writeJsonFile(path.join(tmp.path, "wasm", "list.json"), {
+      builds: [prerelease],
+      releases: {},
+      latestRelease: "0.8.30",
+    });
+
+    const downloader = new CompilerDownloader(
+      CompilerPlatform.WASM,
+      tmp.path,
+      async (_url, destination) => {
+        await fs.writeJsonFile(destination, {
+          builds: [prerelease, stable],
+          releases: { "0.8.31": stable.path },
+          latestRelease: "0.8.31",
+        });
+      },
+    );
+
+    await downloader.updateCompilerListIfNeeded(new Set(["0.8.31"]));
+
+    assert.equal(await downloader.isCompilerDownloaded("0.8.31"), false);
+  });
+});

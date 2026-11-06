@@ -13,11 +13,12 @@ export function loadScenario(
 ): Scenario {
   const id = basename(dirname(scenarioFilePath));
   const scenarioDir = dirname(scenarioFilePath);
-  const workingDir = resolveScenarioWorkingDir(
-    e2eCloneDirectory,
-    scenarioFilePath,
-  );
+  const repoDir = resolveScenarioRepoDir(e2eCloneDirectory, scenarioFilePath);
   const definition = _readScenarioJson(scenarioFilePath);
+  const workingDir = resolveScenarioWorkingDir(
+    repoDir,
+    definition.workingDirectory,
+  );
 
   if (definition.env !== undefined) {
     definition.env = resolveEnv(definition.env, scenarioFilePath);
@@ -26,21 +27,35 @@ export function loadScenario(
   return {
     id,
     scenarioDir,
+    repoDir,
     workingDir,
     definition,
   };
 }
 
 /**
- * Resolve the working directory for a scenario.
+ * Resolve the directory a scenario's repo is cloned into.
  * Always uses the scenario slug (basename of scenarioDir): <cloneBaseDir>/<slug>
  * e.g. /tmp/end-to-end/openzeppelin-contracts
  */
-export function resolveScenarioWorkingDir(
+export function resolveScenarioRepoDir(
   e2eCloneDirectory: string,
   scenarioFilePath: string,
 ): string {
   return path.join(e2eCloneDirectory, basename(dirname(scenarioFilePath)));
+}
+
+/**
+ * Resolve the directory a scenario installs and runs in: its
+ * `workingDirectory` inside the clone, or the clone itself when it has none.
+ */
+export function resolveScenarioWorkingDir(
+  repoDir: string,
+  workingDirectory: string | undefined,
+): string {
+  return workingDirectory === undefined
+    ? repoDir
+    : path.join(repoDir, workingDirectory);
 }
 
 /**

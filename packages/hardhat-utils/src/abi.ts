@@ -5,8 +5,13 @@ import { ensureError } from "./error.js";
 import {
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
+  InvalidAbiSignatureError,
 } from "./errors/abi.js";
-import { getPrefixedHexString } from "./hex.js";
+import { bytesToHexString, getPrefixedHexString } from "./hex.js";
+import {
+  AbiSignatureParser,
+  hashCanonicalAbiSignature,
+} from "./internal/abi-signature.js";
 import {
   assertNoDuplicateAbiParameterNames,
   normalizeAbiValue,
@@ -24,6 +29,7 @@ export interface AbiParameter {
   readonly name?: string;
   readonly type: string;
   readonly components?: readonly AbiParameter[];
+  readonly indexed?: boolean;
 }
 
 /**
@@ -34,6 +40,52 @@ export interface AbiFragment {
   readonly type?: string;
   readonly name?: string;
   readonly inputs?: readonly AbiParameter[];
+}
+
+/**
+ * A parsed human-readable signature of a function, event or error.
+ */
+export interface AbiSignature {
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "function" | "event" | "error" | "constructor";
+  /**
+   * The name, or "" for a constructor or a bare parameter list, like
+   * `(uint256,bool)`.
+   */
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /**
+   * The return types, written as `f(uint256)(bool)` or
+   * `f(uint256) returns (bool)`. They can hold custom types, like `IPool`, kept
+   * as written, which aren't ABI types and must be resolved before decoding.
+   */
+  readonly outputs: readonly AbiParameter[];
+  /** Set to true if the signature has the `anonymous` modifier of events. */
+  readonly anonymous?: boolean;
+}
+
+/**
+ * A parsed human-readable signature of a function or error.
+ */
+export interface AbiFunctionSignature {
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "function" | "error";
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /** The return types. See `AbiSignature#outputs`. */
+  readonly outputs: readonly AbiParameter[];
+}
+
+/**
+ * A parsed human-readable signature of an event.
+ */
+export interface AbiEventSignature {
+  /** The keyword the signature starts with, if any. */
+  readonly kind?: "event";
+  readonly name: string;
+  readonly inputs: readonly AbiParameter[];
+  /** Whether the event is anonymous, so it doesn't log its topic. */
+  readonly anonymous: boolean;
 }
 
 /**
@@ -185,15 +237,159 @@ export async function encodeAbiParameters(
   return getPrefixedHexString(encoded);
 }
 
+/**
+ * Parses a human-readable signature, like `transfer(address,uint256)`.
+ *
+ * It also accepts parameter names, the `indexed` and data location keywords,
+ * tuples written as `(...)` or `tuple(...)`, and whole Solidity declarations,
+ * like `function balanceOf(address owner) external view returns (uint256);`.
+ * Type aliases are normalized, so `uint` becomes `uint256` and `byte` becomes
+ * `bytes1`, and function types must be written as `function`. Custom types,
+ * like structs or contracts, are only accepted as return types, as resolving
+ * them to ABI types needs their definitions.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid.
+ */
+export function parseAbiSignature(signature: string): AbiSignature {
+  return new AbiSignatureParser(signature).parse();
+}
+
+/**
+ * Parses a human-readable signature of a function or error, like
+ * `transfer(address,uint256)` or `error Unauthorized(address)`, accepting the
+ * same syntax as `parseAbiSignature`.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid, has no name, or
+ * is of an event or a constructor.
+ */
+export function parseAbiFunctionSignature(
+  signature: string,
+): AbiFunctionSignature {
+  const { kind, name, inputs, outputs, anonymous } =
+    parseAbiSignature(signature);
+
+  if (
+    kind === "event" ||
+    anonymous === true ||
+    inputs.some((input) => input.indexed === true)
+  ) {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "it's an event, not a function or error",
+    );
+  }
+
+  if (kind === "constructor") {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "it's a constructor, not a function or error",
+    );
+  }
+
+  if (name === "") {
+    throw new InvalidAbiSignatureError(signature, "it must include a name");
+  }
+
+  return { ...(kind !== undefined && { kind }), name, inputs, outputs };
+}
+
+/**
+ * Parses a human-readable signature of an event, like
+ * `Transfer(address,address,uint256)`, accepting the same syntax as
+ * `parseAbiSignature`.
+ *
+ * @param signature The signature to parse.
+ * @returns The parsed signature.
+ * @throws InvalidAbiSignatureError If the signature is invalid, has no name, has
+ * return types, or is of a function, error or constructor.
+ */
+export function parseAbiEventSignature(signature: string): AbiEventSignature {
+  const { kind, name, inputs, outputs, anonymous } =
+    parseAbiSignature(signature);
+
+  if (kind === "function" || kind === "error" || kind === "constructor") {
+    throw new InvalidAbiSignatureError(
+      signature,
+      `it's ${kind === "error" ? "an" : "a"} ${kind}, not an event`,
+    );
+  }
+
+  if (outputs.length > 0) {
+    throw new InvalidAbiSignatureError(
+      signature,
+      "events can't have return types",
+    );
+  }
+
+  if (name === "") {
+    throw new InvalidAbiSignatureError(signature, "it must include a name");
+  }
+
+  return {
+    ...(kind !== undefined && { kind }),
+    name,
+    inputs,
+    anonymous: anonymous === true,
+  };
+}
+
+/**
+ * Parses a single human-readable parameter, like `uint256`, `address payable`
+ * or `(address to, uint256 amount)[]`, accepting the same syntax as the
+ * parameters of `parseAbiSignature`.
+ *
+ * @param parameter The parameter to parse.
+ * @returns The parsed parameter.
+ * @throws InvalidAbiSignatureError If the parameter is invalid, or isn't a
+ * single one.
+ */
+export function parseAbiParameter(parameter: string): AbiParameter {
+  return new AbiSignatureParser(parameter).parseSingleParameter();
+}
+
+/**
+ * Returns the selector of a function or error: the first 4 bytes of the
+ * keccak256 hash of its canonical signature.
+ *
+ * @param signature The parsed signature.
+ * @returns The 4-byte selector, like `0xa9059cbb`.
+ */
+export async function getAbiSelector(
+  signature: AbiFunctionSignature,
+): Promise<PrefixedHexString> {
+  const hash = await hashCanonicalAbiSignature(signature);
+
+  return bytesToHexString(hash.subarray(0, 4));
+}
+
+/**
+ * Returns the topic of an event: the keccak256 hash of its canonical
+ * signature, which non-anonymous events log as their first topic.
+ *
+ * @param signature The parsed signature.
+ * @returns The 32-byte topic.
+ */
+export async function getAbiEventTopic(
+  signature: AbiEventSignature,
+): Promise<PrefixedHexString> {
+  return bytesToHexString(await hashCanonicalAbiSignature(signature));
+}
+
 export {
   AbiEncodingError,
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
   DuplicateAbiParameterNameError,
+  InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
   isAbiEncodingError,
+  isInvalidAbiSignatureError,
   type AbiEncodingErrorKind,
   type AnyAbiEncodingError,
 } from "./errors/abi.js";

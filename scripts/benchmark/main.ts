@@ -46,7 +46,7 @@ OPTIONS
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
   --init                Force (re-)initialization of the scenario even if it is
                         already set up. Without this flag, an existing setup is
-                        reused; a missing working directory is initialized
+                        reused; a missing clone is initialized
                         automatically
   --use-local           Detect packages changed since their release tag, bump
                         versions, publish to Verdaccio, and pin scenario deps to
@@ -55,7 +55,7 @@ OPTIONS
                         reused) unless --force-publish is also passed.
                         Only applies when init runs
   --force-checkout      Force git checkouts even if there are uncommitted changes
-                        in the scenario working directory
+                        in the scenario's cloned repository
   --force-publish       Force publishing to an already-running Verdaccio instance,
                         potentially overwriting its current contents.
                         Only applies when init runs

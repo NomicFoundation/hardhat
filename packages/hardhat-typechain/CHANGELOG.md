@@ -1,5 +1,21 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.1.3
+
+### Patch Changes
+
+- [#8750](https://github.com/NomicFoundation/hardhat/pull/8750) [`6aabbfb`](https://github.com/NomicFoundation/hardhat/commit/6aabbfb5f5ce3799bc5096820f180d5a864ad6b2) Thanks [@schaable](https://github.com/schaable)! - Removed a stray semicolon from generated event types.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
+## 3.1.2
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.1
 
 ### Patch Changes

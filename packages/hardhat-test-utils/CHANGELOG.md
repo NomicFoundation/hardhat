@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-test-utils
 
+## 2.0.4
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 2.0.3
 
 ### Patch Changes

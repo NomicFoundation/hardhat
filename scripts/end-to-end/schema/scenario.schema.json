@@ -39,9 +39,15 @@
       "type": "string",
       "description": "Default command to run when --command is not provided to exec"
     },
+    "workingDirectory": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!(.*/)?\\.\\.(/|$))",
+      "description": "Directory of the Hardhat project, relative to the repo root, for a repo whose project is not at its root (e.g. \"contracts\"). Install, exec and the benchmark commands run there; cloning, submodules and preinstall stay at the repo root. Must stay inside the repo: no absolute path and no \"..\" segment."
+    },
     "preinstall": {
       "type": "string",
-      "description": "Relative path to a shell script for patching the repo before install"
+      "description": "Relative path to a shell script for patching the repo before install. Runs at the repo root."
     },
     "install": {
       "type": "string",

@@ -873,6 +873,172 @@ describe("blockscout", () => {
         );
       });
     });
+
+    describe("apiUrl with a query string", async () => {
+      const testDispatcher = initializeTestDispatcher({
+        url: blockscoutApiUrl,
+      });
+
+      it("should keep the configured apiUrl", () => {
+        const apiUrl = `${blockscoutConfig.apiUrl}?foo=bar`;
+        const blockscout = new Blockscout({ ...blockscoutConfig, apiUrl });
+
+        assert.equal(blockscout.apiUrl, apiUrl);
+      });
+
+      it("should send the apiUrl's query params along with its own", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiUrl: `${blockscoutConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "getsourcecode",
+              address,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        assert.equal(await blockscout.isVerified(address), true);
+      });
+
+      it("should give its own query params precedence over the apiUrl's", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiUrl: `${blockscoutConfig.apiUrl}?apikey=urlApiKey&module=account`,
+          apiKey,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "getsourcecode",
+              address,
+              apikey: apiKey,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        assert.equal(await blockscout.isVerified(address), true);
+      });
+
+      it("should send the apiUrl's apikey if no apiKey is configured", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiUrl: `${blockscoutConfig.apiUrl}?apikey=urlApiKey`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              module: "contract",
+              action: "getsourcecode",
+              address,
+              apikey: "urlApiKey",
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: [{ SourceCode: sourceCode }],
+          });
+
+        assert.equal(await blockscout.isVerified(address), true);
+      });
+
+      it("should send the apiUrl's query params when submitting a verification", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiUrl: `${blockscoutConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "POST",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "verifysourcecode",
+            },
+            body: querystring.stringify({
+              contractaddress: address,
+              sourceCode: JSON.stringify(compilerInput),
+              codeformat: "solidity-standard-json-input",
+              contractname: contract,
+              compilerversion: compilerVersion,
+              constructorArguments,
+            }),
+          })
+          .reply(200, {
+            status: "1",
+            message: "OK",
+            result: guid,
+          });
+
+        const response = await blockscout.verify({
+          contractAddress: address,
+          compilerInput,
+          contractName: contract,
+          compilerVersion,
+          constructorArguments,
+        });
+
+        assert.equal(response, guid);
+      });
+
+      it("should send the apiUrl's query params when polling the verification status", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          apiUrl: `${blockscoutConfig.apiUrl}?foo=bar`,
+          dispatcher: testDispatcher.dispatcher,
+        });
+
+        testDispatcher.interceptable
+          .intercept({
+            path: "/api",
+            method: "GET",
+            query: {
+              foo: "bar",
+              module: "contract",
+              action: "checkverifystatus",
+              guid,
+            },
+          })
+          .reply(200, {
+            status: "1",
+            result: "Pass - Verified",
+          });
+
+        const response = await blockscout.pollVerificationStatus(
+          guid,
+          address,
+          contract,
+        );
+
+        assert.equal(response.success, true);
+      });
+    });
   });
 
   describe("resolveConfig", () => {

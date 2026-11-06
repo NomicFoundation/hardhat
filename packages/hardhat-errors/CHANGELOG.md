@@ -1,5 +1,23 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.4
+
+### Patch Changes
+
+- [#8670](https://github.com/NomicFoundation/hardhat/pull/8670) [`1dbf44d`](https://github.com/NomicFoundation/hardhat/commit/1dbf44d5f0c0d5e36226e9fc3789406ae83136ff) Thanks [@schaable](https://github.com/schaable)! - Fixed a cryptic error when a private key in a network's `accounts` is invalid.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.1.0
+
+## 3.1.3
+
+### Patch Changes
+
+- [#8669](https://github.com/NomicFoundation/hardhat/pull/8669) [`257692d`](https://github.com/NomicFoundation/hardhat/commit/257692dae6dd855686a6a76840e58dace963b1ed) Thanks [@schaable](https://github.com/schaable)! - Fixed Hardhat exiting without an error when a prompt, like the keystore password prompt, has no input to read.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 3.1.2
 
 ### Patch Changes

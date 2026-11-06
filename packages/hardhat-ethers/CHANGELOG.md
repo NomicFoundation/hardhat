@@ -1,5 +1,20 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.2.2
+
+### Patch Changes
+
+- [#8777](https://github.com/NomicFoundation/hardhat/pull/8777) [`d3d5127`](https://github.com/NomicFoundation/hardhat/commit/d3d5127afe90617b8bd61ba8e2f15777b71a445c) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Fixed `authorize()` failing for private keys from configuration variables without a `0x` prefix.
+
+## 4.2.1
+
+### Patch Changes
+
+- [#8689](https://github.com/NomicFoundation/hardhat/pull/8689) [`9bebbf3`](https://github.com/NomicFoundation/hardhat/commit/9bebbf3ea400a9d8ed595bbdbd72d209e0150fa1) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fixed the EIP-4844 fields being dropped when copying a transaction request, and `blobVersionedHashes` being dropped from JSON-RPC requests, matching ethers.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.0.0
+
 ## 4.2.0
 
 ### Minor Changes

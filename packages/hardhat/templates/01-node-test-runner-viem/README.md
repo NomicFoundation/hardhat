@@ -10,7 +10,7 @@ This example project includes:
 
 - A simple Hardhat configuration file.
 - Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
+- TypeScript integration tests using [`node:test`](https://nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
 - Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
 
 ## Usage

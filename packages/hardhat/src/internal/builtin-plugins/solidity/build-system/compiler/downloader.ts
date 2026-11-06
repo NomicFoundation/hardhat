@@ -337,7 +337,11 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const list = await this.#readCompilerList(listPath);
 
-    const listVersions = new Set(list.builds.map((b) => b.version));
+    const listVersions = new Set(
+      list.builds
+        .filter((b) => b.prerelease === undefined)
+        .map((b) => b.version),
+    );
 
     for (const version of versions) {
       if (!listVersions.has(version)) {
