@@ -453,12 +453,13 @@ You can define it using a plugin like hardhat-keystore, or set it as an environm
       },
       NOT_IN_INTERACTIVE_SHELL: {
         number: 11,
-        messageTemplate:
-          "You are trying to initialize a project but you are not in an interactive shell.",
+        messageTemplate: `You are trying to initialize a project but you are not in an interactive shell.
+
+To initialize a project without prompts, run "npx hardhat --init --templates" to list the available templates, then "npx hardhat --init --template <name>".`,
         websiteTitle: "Not inside an interactive shell",
         websiteDescription: `You are trying to initialize a project but you are not in an interactive shell.
 
-Please re-run the command inside an interactive shell.`,
+Please re-run the command inside an interactive shell, or initialize the project without prompts by choosing a template: run \`npx hardhat --init --templates\` to list the available templates, then \`npx hardhat --init --template <name>\`.`,
       },
       UNSUPPORTED_OPERATION: {
         number: 12,
