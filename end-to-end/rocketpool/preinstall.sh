@@ -20,3 +20,39 @@ if (pkg.devDependencies?.mocha !== '^11.0.0') {
 pkg.devDependencies.mocha = '^12.0.0';
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
+
+# EXPERIMENT (do not merge): log the chain-time gap inside the Beacon State
+# verification tests and force a non-zero exit so the bench prints stdout.
+node <<'EOF'
+const fs = require('fs');
+const testFile = 'test/tests/network/network-participation-minipool-tests.ts';
+let test = fs.readFileSync(testFile, 'utf8');
+for (const [from, to] of [
+  [
+    'const epoch = await currentEpoch(c) - (historical ? BigInt(PERIOD) : 4n);',
+    'const __w0 = Date.now() / 1000; const __t0 = await c.time.latest(); const epoch = await currentEpoch(c) - (historical ? BigInt(PERIOD) : 4n);',
+  ],
+  [
+    'const root = await beaconProofs(c, { validator: validator(c, "pool1"), participationEpoch: epoch });',
+    'const root = await beaconProofs(c, { validator: validator(c, "pool1"), participationEpoch: epoch }); const __t1 = await c.time.latest(); __epochGap(historical, __w0, __t0, __t1);',
+  ],
+]) {
+  if (test.split(from).length !== 2) {
+    console.error('epoch-gap experiment: no unique match for: ' + from);
+    process.exit(1);
+  }
+  test = test.replace(from, to);
+}
+test += `
+function __epochGap(historical: boolean, wall: number, t0: bigint, t1: bigint) {
+    const g = globalThis as any;
+    if (!g.__epochGapHooked) { g.__epochGapHooked = true; process.on("exit", () => { process.exitCode = 1; }); }
+    const sinceGenesis = t0 - 1606824023n;
+    console.log("EPOCH_GAP " + JSON.stringify({
+        historical, wall: wall.toFixed(3), t0: Number(t0), t1: Number(t1), gap: Number(t1 - t0),
+        e0: Number(sinceGenesis / 384n), e1: Number((t1 - 1606824023n) / 384n), toBoundary: Number(384n - sinceGenesis % 384n),
+    }));
+}
+`;
+fs.writeFileSync(testFile, test);
+EOF
