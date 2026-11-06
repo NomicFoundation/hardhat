@@ -194,7 +194,8 @@ export function parseFunctionGasSnapshots(
     return [];
   }
 
-  const lines = stringifiedSnapshots.split("\n");
+  // Also split on CRLF, as git on Windows can check the file out with it
+  const lines = stringifiedSnapshots.split(/\r?\n/);
   const snapshots: FunctionGasSnapshot[] = [];
 
   const standardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;

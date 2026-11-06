@@ -562,6 +562,32 @@ MyContract#testB (gas: 20000)`;
       assert.equal(snapshots[1].functionSig, "testB");
     });
 
+    it("should parse snapshots with CRLF line endings", () => {
+      const stringified =
+        "MyContract#testA (gas: 10000)\r\n" +
+        "MyContract#testFuzzB(uint256) (runs: 256, μ: 30000, ~: 29000)\r\n";
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.deepEqual(snapshots, [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testFuzzB(uint256)",
+          gasUsage: {
+            kind: "fuzz",
+            runs: 256n,
+            meanGas: 30000n,
+            medianGas: 29000n,
+          },
+        },
+      ]);
+    });
+
     it("should throw on malformed line", () => {
       // Invariant tests are not supported in gas snapshots
       const stringified =
