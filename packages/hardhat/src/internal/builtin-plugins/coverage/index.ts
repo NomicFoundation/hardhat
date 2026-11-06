@@ -1,13 +1,17 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { definePlugin } from "../../../plugins.js";
-import { globalFlag } from "../../core/config.js";
+import { globalFlag, overrideTask } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:coverage",
-  tasks: [],
+  tasks: [
+    overrideTask("build")
+      .setAction(async () => await import("./tasks/build/task-action.js"))
+      .build(),
+  ],
   globalOptions: [
     globalFlag({
       name: "coverage",
@@ -21,6 +25,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
     solidity: () => import("./hook-handlers/solidity.js"),
     test: () => import("./hook-handlers/test.js"),
   },
+  dependencies: () => [import("../solidity/index.js")],
   npmPackage: "hardhat",
 });
 

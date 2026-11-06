@@ -80,6 +80,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   readonly #projectRoot: string;
 
   #reportEnabled = true;
+  #buildRun = false;
 
   constructor(coveragePath: string, projectRoot: string) {
     this.#coveragePath = coveragePath;
@@ -166,6 +167,14 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   public disableReport(): void {
     this.#reportEnabled = false;
+  }
+
+  public markBuildRun(): void {
+    this.#buildRun = true;
+  }
+
+  public hasBuildRun(): boolean {
+    return this.#buildRun;
   }
 
   /**
