@@ -82,6 +82,10 @@ export class PrettyEventHandler implements ExecutionEventListener {
     strategy: null,
   };
 
+  // The lines of the current batch as last printed, used when stdout isn't a
+  // TTY to print only the lines that changed instead of redrawing the batch.
+  private _printedBatchLines: string[] = [];
+
   constructor(
     private readonly _interruptions: UserInterruptionManager,
     config?: {
@@ -502,7 +506,12 @@ export class PrettyEventHandler implements ExecutionEventListener {
       if (!this._config.disableOutput) {
         switch (stage) {
           case DisplayStage.STARTING_DEPLOYMENT: {
-            process.stdout.write(calculateStartingMessage(this.state));
+            if (process.stdout.isTTY) {
+              process.stdout.write(calculateStartingMessage(this.state));
+            } else {
+              // It can't be cleared without a TTY, so end its line.
+              console.log(calculateStartingMessage(this.state));
+            }
             break;
           }
           case DisplayStage.RUN_START: {
@@ -511,17 +520,30 @@ export class PrettyEventHandler implements ExecutionEventListener {
             break;
           }
           case DisplayStage.DISPLAY_NEXT_BATCH: {
-            console.log(calculateBatchDisplay(this.state).text);
+            if (process.stdout.isTTY) {
+              console.log(calculateBatchDisplay(this.state).text);
+            } else {
+              this._printBatchChanges(true);
+            }
             break;
           }
           case DisplayStage.REDISPLAY_BATCH: {
-            this._redisplayCurrentBatch();
+            if (process.stdout.isTTY) {
+              this._redisplayCurrentBatch();
+            } else {
+              this._printBatchChanges(false);
+            }
             break;
           }
           case DisplayStage.DEPLOYMENT_COMPLETE: {
             // If batches were executed, rerender the last batch
             if (wasAnythingExecuted(this.state)) {
-              this._redisplayCurrentBatch();
+              if (process.stdout.isTTY) {
+                this._redisplayCurrentBatch();
+              } else {
+                this._printBatchChanges(false);
+                console.log();
+              }
             } else {
               // Otherwise only the completion panel will be shown so clear
               // the Starting Ignition line.
@@ -542,6 +564,34 @@ export class PrettyEventHandler implements ExecutionEventListener {
     this._clearUpToHeight(height);
 
     console.log(batch);
+  }
+
+  /**
+   * Prints the current batch without a TTY, where it can't be redrawn in
+   * place: a new batch is printed in full, and after that only the lines
+   * whose status changed.
+   */
+  private _printBatchChanges(isNewBatch: boolean): void {
+    const [header, ...lines] = calculateBatchDisplay(this.state)
+      .text.trimEnd()
+      .split("\n");
+
+    if (isNewBatch) {
+      // Separate it from the previous batch, as the redraw does with the
+      // empty line ending the batch.
+      const separator = this.state.currentBatch > 1 ? "\n" : "";
+      console.log(`${separator}${header}\n${lines.join("\n")}`);
+    } else {
+      const changedLines = lines.filter(
+        (line, i) => line !== this._printedBatchLines[i],
+      );
+
+      if (changedLines.length > 0) {
+        console.log(changedLines.join("\n"));
+      }
+    }
+
+    this._printedBatchLines = lines;
   }
 
   private _clearCurrentLine(): void {
