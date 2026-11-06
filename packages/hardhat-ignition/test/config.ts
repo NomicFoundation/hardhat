@@ -1,4 +1,3 @@
-import type { KeyListOf } from "./test-helpers/type-helper.js";
 import type { HardhatConfig, NetworkConfig } from "hardhat/types/config";
 
 import { buildModule } from "@nomicfoundation/ignition-core";
@@ -41,6 +40,7 @@ describe("config", () => {
           blockPollingInterval: 100,
           timeBeforeBumpingFees: 60 * 1000,
           maxFeeBumps: 2,
+          maxBatchSize: 3,
           strategyConfig: {
             create2: {
               salt: "custom-salt",
@@ -66,6 +66,10 @@ describe("config", () => {
 
     it("should apply timeBeforeBumpingFees", async function () {
       assert.equal(loadedOptions.timeBeforeBumpingFees, 60 * 1000);
+    });
+
+    it("should apply maxBatchSize", () => {
+      assert.equal(loadedOptions.maxBatchSize, 3);
     });
 
     it("should apply maxFeeBumps", async function () {
@@ -119,18 +123,22 @@ describe("config", () => {
     });
 
     it("should only have known config", () => {
-      const configOptions: KeyListOf<HardhatConfig["ignition"]> = [
-        "blockPollingInterval",
-        "disableFeeBumping",
-        "maxFeeBumps",
-        "maxRetries",
-        "requiredConfirmations",
-        "retryInterval",
-        "strategyConfig",
-        "timeBeforeBumpingFees",
-      ];
+      const configOptions: Record<keyof HardhatConfig["ignition"], true> = {
+        blockPollingInterval: true,
+        disableFeeBumping: true,
+        maxBatchSize: true,
+        maxFeeBumps: true,
+        maxRetries: true,
+        requiredConfirmations: true,
+        retryInterval: true,
+        strategyConfig: true,
+        timeBeforeBumpingFees: true,
+      };
 
-      assert.deepStrictEqual(Object.keys(loadedOptions).sort(), configOptions);
+      assert.deepStrictEqual(
+        Object.keys(loadedOptions).sort(),
+        Object.keys(configOptions).sort(),
+      );
     });
   });
 

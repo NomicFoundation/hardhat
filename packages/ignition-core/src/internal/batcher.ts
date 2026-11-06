@@ -5,6 +5,7 @@ import type { Future, IgnitionModule } from "../types/module.js";
 import { ExecutionStatus } from "./execution/types/execution-state.js";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter.js";
 import { getFuturesFromModule } from "./utils/get-futures-from-module.js";
+import { splitBatches } from "./utils/split-batches.js";
 
 enum VisitStatus {
   UNVISITED,
@@ -24,6 +25,7 @@ export class Batcher {
   public static batch(
     module: IgnitionModule,
     deploymentState: DeploymentState,
+    maxBatchSize?: number,
   ): string[][] {
     const batchState = this._initializeBatchStateFrom(module, deploymentState);
 
@@ -37,7 +39,7 @@ export class Batcher {
       this._markAsVisited(batchState, nextBatch);
     }
 
-    return batches;
+    return splitBatches(batches, maxBatchSize);
   }
 
   private static _initializeBatchStateFrom(
