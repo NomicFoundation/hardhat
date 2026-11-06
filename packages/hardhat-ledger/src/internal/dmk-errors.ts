@@ -9,6 +9,9 @@ import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 export class LedgerDeviceError extends CustomError {
   public readonly tag: string;
 
+  /** The status word of a failed device command, e.g. `"6985"`. */
+  public readonly errorCode: string | undefined;
+
   constructor(dmkError: DmkError) {
     const message =
       dmkError.message !== undefined && dmkError.message !== ""
@@ -18,6 +21,10 @@ export class LedgerDeviceError extends CustomError {
     super(message, toCause(dmkError.originalError));
 
     this.tag = dmkError._tag;
+    this.errorCode =
+      "errorCode" in dmkError && typeof dmkError.errorCode === "string"
+        ? dmkError.errorCode
+        : undefined;
   }
 }
 
@@ -88,14 +95,44 @@ export function isReconnectableError(error: Error): boolean {
 
 export function isDeviceNotReadyError(error: Error): boolean {
   return error instanceof LedgerDeviceError
-    ? DEVICE_NOT_READY_ERROR_TAGS.has(error.tag)
+    ? DEVICE_NOT_READY_ERROR_TAGS.has(error.tag) || isEthAppLockedError(error)
     : false;
 }
 
 export function isDeviceLockedError(error: Error): boolean {
   return error instanceof LedgerDeviceError
-    ? error.tag === "DeviceLockedError"
+    ? error.tag === "DeviceLockedError" || isEthAppLockedError(error)
     : false;
+}
+
+/**
+ * The Ethereum app answers `6982` when the device locked while the app was
+ * open. The DMK treats it as a locked device, although the signer kit
+ * describes it as "Canceled by user".
+ */
+function isEthAppLockedError(error: LedgerDeviceError): boolean {
+  return error.tag === "EthAppCommandError" && error.errorCode === "6982";
+}
+
+/** Ethereum app status word for a signature the user rejected. */
+const ETH_APP_REJECTED_ERROR_CODE = "6985";
+
+/**
+ * Whether the user rejected the request on the device.
+ *
+ * Refusing to open the Ethereum app is reported as `ActionRefusedError`
+ * (status `5501`).
+ */
+export function isRejectedByUserError(error: Error): boolean {
+  if (!(error instanceof LedgerDeviceError)) {
+    return false;
+  }
+
+  return (
+    error.tag === "ActionRefusedError" ||
+    (error.tag === "EthAppCommandError" &&
+      error.errorCode === ETH_APP_REJECTED_ERROR_CODE)
+  );
 }
 
 export function isDeviceNotConnectedError(error: Error): boolean {

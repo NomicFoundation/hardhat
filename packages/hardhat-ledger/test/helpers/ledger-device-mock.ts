@@ -44,9 +44,23 @@ export const NO_ACCESSIBLE_DEVICE_ERROR: DmkError = {
   _tag: "NoAccessibleDeviceError",
   message: "No accessible device",
 };
-export const REFUSED_BY_USER_ERROR: DmkError = {
-  _tag: "RefusedByUserDAError",
-  message: "Refused by the user",
+/** The DMK's answer when the user refuses to open the Ethereum app. */
+export const ACTION_REFUSED_ERROR: DmkError & { errorCode: string } = {
+  _tag: "ActionRefusedError",
+  message: "Action refused on device.",
+  errorCode: "5501",
+};
+/** The Ethereum app's answer when the user rejects a signature. */
+export const ETH_APP_REJECTED_ERROR: DmkError & { errorCode: string } = {
+  _tag: "EthAppCommandError",
+  message: "Condition not satisfied",
+  errorCode: "6985",
+};
+/** The Ethereum app's answer when the device locked while the app was open. */
+export const ETH_APP_LOCKED_ERROR: DmkError & { errorCode: string } = {
+  _tag: "EthAppCommandError",
+  message: "Security status not satisfied (Canceled by user)",
+  errorCode: "6982",
 };
 /** The plain object thrown by the signer after its session is lost. */
 export const DEVICE_SESSION_NOT_FOUND_ERROR: DmkError = {

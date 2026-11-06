@@ -11,6 +11,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejects,
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -38,9 +39,11 @@ import {
   DEVICE_DISCONNECTED_ERROR,
   DEVICE_LOCKED_ERROR,
   DEVICE_SESSION_NOT_FOUND_ERROR,
+  ETH_APP_LOCKED_ERROR,
+  ETH_APP_REJECTED_ERROR,
   getLedgerDeviceMock,
   NO_ACCESSIBLE_DEVICE_ERROR,
-  REFUSED_BY_USER_ERROR,
+  ACTION_REFUSED_ERROR,
 } from "../helpers/ledger-device-mock.js";
 
 /**
@@ -149,6 +152,18 @@ function findAccountAt(
 }
 
 async function noOpSleep(): Promise<void> {}
+
+/** Whether `error` is the rejection that viem reports as `UserRejectedRequestError`. */
+function isRequestRejectedError(error: Error): boolean {
+  return (
+    HardhatError.isHardhatError(
+      error,
+      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.REQUEST_REJECTED,
+    ) &&
+    "code" in error &&
+    error.code === 4001
+  );
+}
 
 /** Polls until `condition` holds, giving up after 2 seconds. */
 async function waitFor(condition: () => boolean): Promise<void> {
@@ -650,27 +665,92 @@ describe("LedgerHandler", () => {
         );
       });
 
-      it("should fail immediately when the user rejects on the device", async () => {
+      for (const rejection of [ETH_APP_REJECTED_ERROR, ACTION_REFUSED_ERROR]) {
+        it(`should fail immediately with code 4001 when the user rejects on the device (${rejection._tag})`, async () => {
+          const [deviceFactory, calls] = getLedgerDeviceMock({
+            getAddress: findAccountAt(derPath),
+            signMessage: {
+              result: rsv,
+              errorSequenceToEmit: [rejection],
+            },
+          });
+
+          ledgerHandler = createHandler({
+            deviceFactory,
+            delayBeforeRetry: noOpSleep,
+          });
+
+          await assertRejects(
+            () => ledgerHandler.handle(personalSignRequest),
+            isRequestRejectedError,
+            "It should be a REQUEST_REJECTED error with code 4001",
+          );
+
+          assert.equal(calls.signMessage.totalCalls, 1, "It must not retry");
+        });
+      }
+
+      it("should fail with code 4001 when the user rejects typed data on the device", async () => {
         const [deviceFactory, calls] = getLedgerDeviceMock({
-          getAddress: findAccountAt(derPath),
-          signMessage: {
-            result: rsv,
-            errorSequenceToEmit: [REFUSED_BY_USER_ERROR],
+          getAddress: findAccountAt(derPath, typedDataSigner),
+          signTypedData: {
+            result: typedDataRsv,
+            errorSequenceToEmit: [ETH_APP_REJECTED_ERROR],
           },
         });
 
-        ledgerHandler = createHandler({
-          deviceFactory,
-          delayBeforeRetry: noOpSleep,
-        });
+        ledgerHandler = createHandler({ deviceFactory });
 
-        await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(personalSignRequest),
-          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
-          { message: "RefusedByUserDAError: Refused by the user" },
+        await assertRejects(
+          () =>
+            ledgerHandler.handle(
+              createJsonRpcRequest("eth_signTypedData_v4", [
+                typedDataSigner.address,
+                typedMessage,
+              ]),
+            ),
+          isRequestRejectedError,
+          "It should be a REQUEST_REJECTED error with code 4001",
         );
 
-        assert.equal(calls.signMessage.totalCalls, 1, "It must not retry");
+        assert.equal(calls.signTypedData.totalCalls, 1, "It must not retry");
+      });
+
+      it("should fail with code 4001 when the user rejects a transaction on the device", async () => {
+        ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
+        ethereumMockedProvider.setReturnValue(
+          "eth_getTransactionCount",
+          "0x64",
+        );
+
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signTransaction: {
+            result: rsv,
+            errorSequenceToEmit: [ETH_APP_REJECTED_ERROR],
+          },
+        });
+
+        ledgerHandler = createHandler({ deviceFactory });
+
+        await assertRejects(
+          () =>
+            ledgerHandler.handle(
+              createJsonRpcRequest("eth_sendTransaction", [
+                {
+                  from: account.address,
+                  to: LEDGER_ADDRESSES[1],
+                  value: numberToHexString(100),
+                  gas: numberToHexString(1000001),
+                  gasPrice: numberToHexString(101),
+                },
+              ]),
+            ),
+          isRequestRejectedError,
+          "It should be a REQUEST_REJECTED error with code 4001",
+        );
+
+        assert.equal(calls.signTransaction.totalCalls, 1, "It must not retry");
       });
 
       it("should successfully handle the method eth_signTypedData_v4", async () => {
@@ -1300,6 +1380,65 @@ describe("LedgerHandler", () => {
         assert.equal(calls.signMessage.totalCalls, 6);
       });
 
+      it("should wait for an unlock when the Ethereum app reports a locked device (6982)", async () => {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
+            result: rsv,
+            errorSequenceToEmit: [ETH_APP_LOCKED_ERROR],
+          },
+        });
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        mockedDisplayInfo.clear();
+
+        assert.deepEqual(
+          await ledgerHandler.handle(personalSignRequest),
+          signatureResponse,
+        );
+
+        assert.equal(calls.signMessage.totalCalls, 2);
+        assert.ok(
+          mockedDisplayInfo.messages.some((m) =>
+            m.includes("Device is locked"),
+          ),
+          "The locked device should be displayed",
+        );
+      });
+
+      it("should fail without retrying when the Ethereum app rejects the data", async () => {
+        const invalidData = {
+          ...ETH_APP_REJECTED_ERROR,
+          message: "Invalid data",
+          errorCode: "6a80",
+        };
+
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath),
+          signMessage: {
+            result: rsv,
+            errorSequenceToEmit: [invalidData],
+          },
+        });
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        await assertRejectsWithHardhatError(
+          () => ledgerHandler.handle(personalSignRequest),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.DEVICE_ACTION_FAILED,
+          { message: `${invalidData._tag}: ${invalidData.message}` },
+        );
+
+        assert.equal(calls.signMessage.totalCalls, 1, "It must not retry");
+      });
+
       it("should handle a disconnection, then a locked device, then a busy device, then another disconnection, and succeed", async () => {
         // Opening the Ethereum app on a busy device disconnects it.
         const state = createDeviceFactoryState();
@@ -1405,6 +1544,30 @@ describe("LedgerHandler", () => {
     });
 
     describe("during path derivation (#derivePath)", () => {
+      it("should fail with code 4001 when the user refuses to open the Ethereum app", async () => {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: {
+            ...findAccountAt(derPath),
+            errorSequenceToEmit: [ACTION_REFUSED_ERROR],
+          },
+          signMessage: { result: rsv },
+        });
+
+        ledgerHandler = createHandler({
+          deviceFactory,
+          delayBeforeRetry: noOpSleep,
+        });
+
+        await assertRejects(
+          () => ledgerHandler.handle(personalSignRequest),
+          isRequestRejectedError,
+          "It should be a REQUEST_REJECTED error with code 4001",
+        );
+
+        assert.equal(calls.getAddress.totalCalls, 1, "It must not retry");
+        assert.equal(calls.signMessage.totalCalls, 0, "It must not sign");
+      });
+
       it("should throw HardhatError.LOCKED_DEVICE after max retries", async () => {
         const [deviceFactory, calls] = getLedgerDeviceMock({
           getAddress: {

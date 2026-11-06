@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  isDeviceLockedError,
   isDeviceNotConnectedError,
   isDeviceNotReadyError,
   isReconnectableError,
+  isRejectedByUserError,
   LedgerDeviceActionStoppedError,
   LedgerDeviceError,
   LedgerNoDeviceFoundError,
@@ -14,6 +16,11 @@ import {
   NodeHidSendReportError,
   OpeningConnectionError,
 } from "../../src/internal/dmk-imports.js";
+import {
+  ETH_APP_LOCKED_ERROR,
+  ETH_APP_REJECTED_ERROR,
+  ACTION_REFUSED_ERROR,
+} from "../helpers/ledger-device-mock.js";
 
 describe("dmk-errors", () => {
   describe("LedgerDeviceError", () => {
@@ -28,6 +35,17 @@ describe("dmk-errors", () => {
       assert.equal(
         new LedgerDeviceError({ _tag: "DeviceBusyError" }).message,
         "DeviceBusyError",
+      );
+    });
+
+    it("should keep the command status word", () => {
+      assert.equal(
+        new LedgerDeviceError(ETH_APP_REJECTED_ERROR).errorCode,
+        "6985",
+      );
+      assert.equal(
+        new LedgerDeviceError({ _tag: "DeviceBusyError" }).errorCode,
+        undefined,
       );
     });
 
@@ -106,12 +124,45 @@ describe("dmk-errors", () => {
       }
     });
 
+    it("should classify a rejection on the device", () => {
+      assert.equal(
+        isRejectedByUserError(new LedgerDeviceError(ETH_APP_REJECTED_ERROR)),
+        true,
+      );
+      assert.equal(
+        isRejectedByUserError(new LedgerDeviceError(ACTION_REFUSED_ERROR)),
+        true,
+      );
+    });
+
+    it("should classify status 6982 as a locked device, not a rejection", () => {
+      const error = new LedgerDeviceError(ETH_APP_LOCKED_ERROR);
+
+      assert.equal(isDeviceNotReadyError(error), true);
+      assert.equal(isDeviceLockedError(error), true);
+      assert.equal(isRejectedByUserError(error), false);
+    });
+
+    it("should not classify other Ethereum app errors as a rejection", () => {
+      const invalidData = {
+        ...ETH_APP_REJECTED_ERROR,
+        message: "Invalid data",
+        errorCode: "6a80",
+      };
+
+      assert.equal(
+        isRejectedByUserError(new LedgerDeviceError(invalidData)),
+        false,
+      );
+    });
+
     it("should not classify unrelated errors", () => {
       const error = new LedgerDeviceActionStoppedError();
 
       assert.equal(isReconnectableError(error), false);
       assert.equal(isDeviceNotReadyError(error), false);
       assert.equal(isDeviceNotConnectedError(error), false);
+      assert.equal(isRejectedByUserError(error), false);
     });
   });
 });

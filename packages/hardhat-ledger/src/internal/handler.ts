@@ -45,6 +45,7 @@ import {
   isDeviceNotConnectedError,
   isDeviceNotReadyError,
   isReconnectableError,
+  isRejectedByUserError,
   LedgerSessionLostError,
   toLedgerError,
 } from "./dmk-errors.js";
@@ -213,6 +214,17 @@ export class LedgerHandler {
             HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.UNOWNED_LEDGER_ADDRESS
               .number) === false
       ) {
+        if (
+          HardhatError.isHardhatError(
+            error,
+            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.REQUEST_REJECTED,
+          )
+        ) {
+          // The EIP-1193 code for a rejected request, which viem reports as
+          // `UserRejectedRequestError`.
+          Object.assign(error, { code: 4001 });
+        }
+
         throw error;
       }
     }
@@ -450,6 +462,14 @@ export class LedgerHandler {
       // Keep errors already reported by `#runOnDevice`, e.g. a closed connection.
       if (HardhatError.isHardhatError(error)) {
         throw error;
+      }
+
+      // Deriving a path can open the Ethereum app, which the user can refuse.
+      if (isRejectedByUserError(error)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.REQUEST_REJECTED,
+          error,
+        );
       }
 
       if (isDeviceNotReadyError(error)) {
@@ -709,6 +729,13 @@ export class LedgerHandler {
       if (isDeviceNotReadyError(error)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
+          error,
+        );
+      }
+
+      if (isRejectedByUserError(error)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.REQUEST_REJECTED,
           error,
         );
       }
