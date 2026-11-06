@@ -43,15 +43,28 @@ for (const [from, to] of [
   }
   test = test.replace(from, to);
 }
-test += `
+// Samples accumulate in a file across the scenario's 6 mocha invocations
+// (stdout is only shown when an invocation fails). Every invocation prints
+// the whole file on exit; the 6th one forces exit code 1 so it is shown.
+test = 'import * as __fs from "node:fs";\n' + test + `
+const __EPOCH_GAP_LOG = "epoch-gap.log";
 function __epochGap(historical: boolean, wall: number, t0: bigint, t1: bigint) {
     const g = globalThis as any;
-    if (!g.__epochGapHooked) { g.__epochGapHooked = true; process.on("exit", () => { process.exitCode = 1; }); }
+    if (!g.__epochGapHooked) {
+        g.__epochGapHooked = true;
+        process.on("exit", () => {
+            const lines = __fs.readFileSync(__EPOCH_GAP_LOG, "utf8").trim().split("\\n");
+            __fs.writeSync(1, lines.map(l => "EPOCH_GAP " + l).join("\\n") + "\\n");
+            const invocations = new Set(lines.map(l => JSON.parse(l).pid)).size;
+            if (invocations >= 6) process.exitCode = 1;
+        });
+    }
     const sinceGenesis = t0 - 1606824023n;
-    console.log("EPOCH_GAP " + JSON.stringify({
-        historical, wall: wall.toFixed(3), t0: Number(t0), t1: Number(t1), gap: Number(t1 - t0),
+    __fs.appendFileSync(__EPOCH_GAP_LOG, JSON.stringify({
+        pid: process.pid, args: process.argv.slice(2).join(" "), historical, wall: wall.toFixed(3),
+        t0: Number(t0), t1: Number(t1), gap: Number(t1 - t0),
         e0: Number(sinceGenesis / 384n), e1: Number((t1 - 1606824023n) / 384n), toBoundary: Number(384n - sinceGenesis % 384n),
-    }));
+    }) + "\\n");
 }
 `;
 fs.writeFileSync(testFile, test);
