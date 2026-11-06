@@ -45,7 +45,8 @@ for (const [from, to] of [
 }
 // Samples accumulate in a file across the scenario's 6 mocha invocations
 // (stdout is only shown when an invocation fails). Every invocation prints
-// the whole file on exit; the 6th one forces exit code 1 so it is shown.
+// the whole file to stderr on exit (stdout is capped at 64 MiB and -vvvv
+// fills it); the 6th one forces exit code 1 so it is shown.
 test = 'import * as __fs from "node:fs";\n' + test + `
 const __EPOCH_GAP_LOG = "epoch-gap.log";
 function __epochGap(historical: boolean, wall: number, t0: bigint, t1: bigint) {
@@ -54,7 +55,7 @@ function __epochGap(historical: boolean, wall: number, t0: bigint, t1: bigint) {
         g.__epochGapHooked = true;
         process.on("exit", () => {
             const lines = __fs.readFileSync(__EPOCH_GAP_LOG, "utf8").trim().split("\\n");
-            __fs.writeSync(1, lines.map(l => "EPOCH_GAP " + l).join("\\n") + "\\n");
+            __fs.writeSync(2, lines.map(l => "EPOCH_GAP " + l).join("\\n") + "\\n");
             const invocations = new Set(lines.map(l => JSON.parse(l).pid)).size;
             if (invocations >= 6) process.exitCode = 1;
         });
