@@ -10,7 +10,7 @@
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
   "constraints": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.18.0 || >=24.3.0"
   },
   "constraintsFiltering": "strict",
   "ignorePaths": ["**/fixture-projects/**", "packages/hardhat/templates/**"],

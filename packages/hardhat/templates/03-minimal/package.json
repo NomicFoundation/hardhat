@@ -6,7 +6,7 @@
   "type": "module",
   "devDependencies": {
     "hardhat": "workspace:^3.21.0",
-    "@types/node": "^22.8.5",
+    "@types/node": "^22.18.0",
     "typescript": "~6.0.3"
   }
 }
