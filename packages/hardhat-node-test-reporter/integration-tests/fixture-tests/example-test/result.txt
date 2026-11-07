@@ -33,7 +33,7 @@
 
 
   [32m6 passing[39m[90m (73ms)[39m
-[31m  2 failing[39m
+[31m  3 failing[39m
 [36m  1 skipped[39m
 [34m  1 todo[39m
 [90m  1 cancelled[39m

@@ -44,7 +44,8 @@ export interface RunHardhatTestResult {
 }
 
 /**
- * Runs `hardhat test nodejs --no-compile` in the given fixture directory.
+ * Runs `hardhat test nodejs --no-compile` (or another `task`) in the given
+ * fixture directory.
  *
  * @param cwd Absolute path to the fixture project (where its `hardhat.config`
  *   lives).
@@ -53,11 +54,14 @@ export interface RunHardhatTestResult {
  *   `NODE_ENV=HELLO` so the inner test can assert it was preserved.
  * @param extraArgs Extra CLI arguments appended after `test nodejs
  *   --no-compile` — e.g. `["--grep", "keep"]` to exercise the name filter.
+ * @param task The task to run, e.g. `["test"]` to run every test runner
+ *   through the parent `test` task.
  */
 export async function runHardhatTest(
   cwd: string,
   envOverrides: NodeJS.ProcessEnv = {},
   extraArgs: string[] = [],
+  task: string[] = ["test", "nodejs"],
 ): Promise<RunHardhatTestResult> {
   // Build the child env by layering overrides on top of the parent env. Any
   // override key explicitly set to `undefined` is treated as "unset this var
@@ -74,7 +78,7 @@ export async function runHardhatTest(
 
   const child = spawn(
     process.execPath,
-    [HARDHAT_CLI_PATH, "test", "nodejs", "--no-compile", ...extraArgs],
+    [HARDHAT_CLI_PATH, ...task, "--no-compile", ...extraArgs],
     {
       cwd,
       env,

@@ -59,6 +59,42 @@ describe("Hardhat Node plugin", () => {
     );
   });
 
+  describe("a describe callback that fails", () => {
+    const describeFailureProjectRoot = path.join(
+      FIXTURES_DIR,
+      "describe-failure",
+    );
+
+    it("fails the run when running `test nodejs`", async () => {
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        describeFailureProjectRoot,
+      );
+
+      assert.equal(
+        exitCode,
+        1,
+        `expected 'test nodejs' to fail:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+      assert.match(stripVTControlCharacters(stdout), /\b1 failing\b/);
+    });
+
+    it("fails the run when running `test`", async () => {
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        describeFailureProjectRoot,
+        {},
+        [],
+        ["test"],
+      );
+
+      assert.equal(
+        exitCode,
+        1,
+        `expected 'test' to fail:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+      assert.match(stripVTControlCharacters(stdout), /\b1 failing\b/);
+    });
+  });
+
   // TODO: enable as soon as the bug in node grep is fixed
   describe.skip("grep filtering", () => {
     it("runs only the tests whose name matches --grep", async () => {

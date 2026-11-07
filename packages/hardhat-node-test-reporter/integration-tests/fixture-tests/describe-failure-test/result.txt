@@ -1,0 +1,32 @@
+
+  [31m1) describe that throws[39m
+  describe that throws
+
+
+  [31m2) async describe that rejects[39m
+  async describe that rejects
+
+  describe that passes
+    [32m✔[39m[90m passes[39m
+
+
+  [32m1 passing[39m[90m (162ms)[39m
+[31m  2 failing[39m
+
+  1) describe that throws:
+
+   [31mError: Synchronous describe failure[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/describe-failure-test/test.ts:4:9)
+       at Suite.runInAsyncScope (node:async_hooks:227:14)
+       at Suite.createBuild (node:internal/test_runner/test:1840:13)
+       at new Suite (node:internal/test_runner/test:1804:28)
+       at Test.createSubtest (node:internal/test_runner/test:1052:18)
+       at run (node:internal/test_runner/harness:393:28)
+       at test (node:internal/test_runner/harness:407:12)
+       at <anonymous> (integration-tests/fixture-tests/describe-failure-test/test.ts:3:1)[39m
+
+  2) async describe that rejects:
+
+   [31mError: Asynchronous describe failure[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/describe-failure-test/test.ts:10:9)[39m
+

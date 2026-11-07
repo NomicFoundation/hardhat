@@ -113,6 +113,10 @@ export function hardhatTestReporter(
 
     let topLevelFilePassCount = 0;
 
+    // node:test doesn't count a suite that fails by itself (e.g. its describe
+    // callback throws) in its `fail` diagnostic, so we count those here
+    let suiteFailureCount = 0;
+
     for await (const event of source) {
       // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other case will be ignored
       switch (event.type) {
@@ -149,6 +153,7 @@ export function hardhatTestReporter(
                 // can output it at the end.
                 preFormattedFailureReasons.push(formatFailureReason(failure));
                 failureIndex++;
+                suiteFailureCount++;
 
                 await annotatePR(event.data);
 
@@ -320,6 +325,7 @@ export function hardhatTestReporter(
     // display from the summary
     globalDiagnostics.tests -= topLevelFilePassCount;
     globalDiagnostics.pass -= topLevelFilePassCount;
+    globalDiagnostics.fail += suiteFailureCount;
 
     // testSummaryIndex of 0 means task is being run directly, so summary is handled here
     // and not by the parent `test` task.
