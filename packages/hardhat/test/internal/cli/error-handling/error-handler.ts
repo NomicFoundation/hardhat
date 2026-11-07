@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import path from "node:path";
+import { before, describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import {
   DispatcherError,
   InvalidProxyUrlError,
@@ -344,6 +347,85 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines[2], error);
+      });
+    });
+
+    describe("with a .js import of a TypeScript file", () => {
+      const project = createTmpDir("error-handler-ts-extension", "describe");
+
+      before(async () => {
+        await writeUtf8File(path.join(project.path, "helper.ts"), "");
+      });
+
+      function createError(): Error {
+        return Object.assign(
+          new Error(
+            `Cannot find module '${path.join(project.path, "helper.js")}' imported from ${path.join(project.path, "main.ts")}`,
+          ),
+          { code: "ERR_MODULE_NOT_FOUND" },
+        );
+      }
+
+      async function assertPrintsTsExtensionError(error: Error): Promise<void> {
+        const expected = new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.IMPORT_NEEDS_TS_EXTENSION,
+          {
+            importPath: path.join(project.path, "helper.js"),
+            importerPath: path.join(project.path, "main.ts"),
+            suggestedPath: path.join(project.path, "helper.ts"),
+          },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.equal(
+          lines[0],
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
+      }
+
+      it("is categorized as HHE35, with the original error preserved for the stack trace", async () => {
+        await assertPrintsTsExtensionError(createError());
+      });
+
+      it("still prints the original (uncategorized) error for the stack trace", async () => {
+        const error = createError();
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines[2], error);
+      });
+
+      it("converts a task action import HardhatError wrapping the same cause to HHE35", async () => {
+        await assertPrintsTsExtensionError(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_IMPORT,
+            { task: "hello" },
+            createError(),
+          ),
+        );
+      });
+
+      it("takes precedence over a community plugin error wrapping the same cause", async () => {
+        await assertPrintsTsExtensionError(
+          new HardhatPluginError(
+            "community-plugin",
+            "Couldn't import the module",
+            createError(),
+          ),
+        );
       });
     });
 
