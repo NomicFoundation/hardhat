@@ -74,8 +74,20 @@ declare module "../../../types/test.js" {
     fuzz?: SolidityTestFuzzUserConfig;
     invariant?: SolidityTestInvariantUserConfig;
     forking?: SolidityTestForkingUserConfig;
+    /**
+     * Controls which sources the EIP-712 cheatcodes collect struct
+     * definitions from.
+     *
+     * Every struct that a test source reaches is collected, through its
+     * dependencies as well. A file matched by an `exclude` glob is left out,
+     * which is how a clash between two reachable structs is settled.
+     *
+     * The globs are matched against each file's path relative to the project
+     * root, with forward slashes, so a dependency is addressed as
+     * `node_modules/<package>/...`, written without a leading `./` or `/`. A
+     * file outside the project root is matched by its absolute path.
+     */
     eip712Types?: {
-      include?: string[];
       exclude?: string[];
     };
   }
@@ -152,8 +164,20 @@ declare module "../../../types/test.js" {
     fuzz: SolidityTestFuzzConfig;
     invariant?: SolidityTestInvariantConfig;
     forking?: SolidityTestForkingConfig;
+    /**
+     * Controls which sources the EIP-712 cheatcodes collect struct
+     * definitions from.
+     *
+     * Every struct that a test source reaches is collected, through its
+     * dependencies as well. A file matched by an `exclude` glob is left out,
+     * which is how a clash between two reachable structs is settled.
+     *
+     * The globs are matched against each file's path relative to the project
+     * root, with forward slashes, so a dependency is addressed as
+     * `node_modules/<package>/...`, written without a leading `./` or `/`. A
+     * file outside the project root is matched by its absolute path.
+     */
     eip712Types: {
-      include: string[];
       exclude: string[];
     };
   }
