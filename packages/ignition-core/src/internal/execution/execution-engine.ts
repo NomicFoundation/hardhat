@@ -17,6 +17,7 @@ import sortBy from "lodash-es/sortBy.js";
 import { ExecutionEventType } from "../../types/execution-events.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
+import { splitBatches } from "../utils/split-batches.js";
 import { getNetworkExecutionStates } from "../views/execution-state/get-network-execution-states.js";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender.js";
 import { hasExecutionSucceeded } from "../views/has-execution-succeeded.js";
@@ -49,6 +50,7 @@ export class ExecutionEngine {
     private readonly _disableFeeBumping: boolean,
     private readonly _maxRetries: number,
     private readonly _retryInterval: number,
+    private readonly _maxBatchSize?: number,
   ) {}
 
   /**
@@ -114,6 +116,25 @@ export class ExecutionEngine {
 
     const futures = getFuturesFromModule(module);
     const futuresById = new Map(futures.map((f) => [f.id, f]));
+
+    if (this._maxBatchSize !== undefined) {
+      // Nonce synchronization can clear replaced nonces. Sort the complete
+      // dependency layer afterwards so that a new transaction cannot block
+      // an earlier pending nonce in a later chunk.
+      batches = splitBatches(
+        batches.map((batch) =>
+          this._getBatchSortedByHighestPendingNonce(
+            batch.map((id) => this._lookupFuture(futuresById, id)),
+            deploymentState,
+          ).map((future) => future.id),
+        ),
+        this._maxBatchSize,
+      );
+      await this._executionEventListener?.batchInitialize({
+        type: ExecutionEventType.BATCH_INITIALIZE,
+        batches,
+      });
+    }
 
     for (const batch of batches) {
       await this._emitBeginNextBatchEvent();
@@ -307,6 +328,7 @@ export class ExecutionEngine {
     const batchWithNonces = batch.map((f) => {
       const NO_PENDING_RESULT = {
         future: f,
+        withoutPendingNonce: true,
         nonce: Number.MAX_SAFE_INTEGER,
         from: "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       };
@@ -325,12 +347,18 @@ export class ExecutionEngine {
 
       return {
         future: f,
+        withoutPendingNonce: false,
         nonce: pendingNonceAndSender.nonce,
-        from: pendingNonceAndSender.sender,
+        from: pendingNonceAndSender.sender.toLowerCase(),
       };
     });
 
-    const sortedBatch = sortBy(batchWithNonces, ["from", "nonce", "future.id"]);
+    const sortedBatch = sortBy(batchWithNonces, [
+      "withoutPendingNonce",
+      "from",
+      "nonce",
+      "future.id",
+    ]);
 
     return sortedBatch.map((f) => f.future);
   }
