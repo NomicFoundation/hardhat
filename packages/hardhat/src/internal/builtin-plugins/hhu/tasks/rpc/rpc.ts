@@ -8,7 +8,7 @@ interface RpcActionArguments {
 }
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-TypeScript's lib doesn't declare JSON.rawJSON (Node 21+) yet */
+TypeScript's lib doesn't declare JSON.rawJSON yet */
 const { rawJSON } = JSON as JSON & { rawJSON: (text: string) => unknown };
 
 const rpcAction: NewUtilsTaskActionFunction<RpcActionArguments> = async (
@@ -31,7 +31,7 @@ const rpcAction: NewUtilsTaskActionFunction<RpcActionArguments> = async (
 // values like 0x1 or latest don't need to be quoted as JSON strings.
 function parseParam(param: string): unknown {
   try {
-    // The reviver's third argument is the number's source text (Node 21+), so
+    // The reviver's third argument is the number's source text, so
     // integers beyond 2^53 are sent as written instead of rounded
     return JSON.parse(
       param,
