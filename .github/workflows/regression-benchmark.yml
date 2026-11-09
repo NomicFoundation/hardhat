@@ -91,7 +91,7 @@ jobs:
     # Use a self-hosted runner for stable benchmark measurements; the shared
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
-    runs-on: hardhat-linux-amd64-self-hosted
+    runs-on: hardhat-benchmark-runner-2
     timeout-minutes: 180
     permissions:
       # Lets the GITHUB_TOKEN used by "Compare benchmark result against
