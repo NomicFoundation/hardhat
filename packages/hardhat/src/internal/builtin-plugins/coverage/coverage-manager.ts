@@ -121,6 +121,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     }
   }
 
+  public hasMetadata(): boolean {
+    return this.filesMetadata.size > 0;
+  }
+
   public async clearData(id: string): Promise<void> {
     const dataPath = await this.#getDataPath(id);
     await remove(dataPath);

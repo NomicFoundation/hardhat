@@ -1,5 +1,7 @@
 import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { getCoverageManager } from "../helpers/accessors.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
@@ -24,7 +26,17 @@ export async function testRunStart(
   id: string,
 ): Promise<void> {
   if (context.globalOptions.coverage === true) {
-    await getCoverageManager(context).clearData(id);
+    const coverageManager = getCoverageManager(context);
+
+    // The coverage metadata is collected while building, so a run without a
+    // build (i.e. with --no-compile) has nothing to report against.
+    if (!coverageManager.hasMetadata()) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.COVERAGE.NO_INSTRUMENTED_SOURCES,
+      );
+    }
+
+    await coverageManager.clearData(id);
   }
 }
 
