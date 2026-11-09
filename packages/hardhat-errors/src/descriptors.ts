@@ -1758,6 +1758,18 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteTitle: "Import path already defined in compilation sources",
         websiteDescription: `The import path is already defined in the compilation sources`,
       },
+      NO_INSTRUMENTED_SOURCES: {
+        number: 1302,
+        messageTemplate: `No contracts were instrumented for coverage, so there is nothing to report.
+
+Coverage information is collected while compiling, so --coverage can't be used with --no-compile.`,
+        websiteTitle: "No contracts were instrumented for coverage",
+        websiteDescription: `A test run with \`--coverage\` found no instrumented contracts to report on.
+
+Hardhat instruments your contracts for coverage while compiling them, and only keeps that information for the current run. Running the tests with \`--coverage\` and \`--no-compile\` skips that step, so there is nothing to report against.
+
+Run the tests with \`--coverage\` and without \`--no-compile\`. If you didn't use \`--no-compile\`, check that your project has contracts outside its tests directory, and that they aren't all excluded by \`coverage.skipFiles\` in your Hardhat config.`,
+      },
     },
     INIT: {
       FAILED_TO_INSTALL_DEPENDENCIES: {
