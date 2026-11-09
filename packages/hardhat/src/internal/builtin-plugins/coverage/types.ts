@@ -23,7 +23,4 @@ export interface CoverageManager {
 
   enableReport(): void;
   disableReport(): void;
-
-  markBuildRun(): void;
-  hasBuildRun(): boolean;
 }
