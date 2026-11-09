@@ -57,6 +57,10 @@ describe("hhu", () => {
 
 Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
 
+AVAILABLE TASKS:
+
+  rpc                              Send a JSON-RPC request and print its result as JSON
+
 AVAILABLE SUBTASKS:
 
   abi encode-args                  ABI-encode values for a signature, without its selector
