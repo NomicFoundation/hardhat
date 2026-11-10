@@ -27,10 +27,15 @@ import { mean } from "./stats.ts";
  * overhead — see {@link measureShellSpawnOverhead}.
  */
 
-// Chatty commands (a full hardhat compile) can emit tens of MiB; cap the
-// retained output so the driver's memory stays bounded.
-const MAX_CAPTURED_OUTPUT_MIB = 64;
-const MAX_CAPTURED_OUTPUT = MAX_CAPTURED_OUTPUT_MIB * 1024 * 1024;
+const MIB = 1024 * 1024;
+
+// Chatty commands (a full hardhat compile, a test run printing every call
+// trace) can emit hundreds of MiB, so the retained output is capped to keep
+// the driver's memory bounded. The head keeps a compiler error that sits
+// above thousands of warnings. The tail keeps a test runner's failure
+// summary, which it prints last.
+export const CAPTURED_HEAD_BYTES = 48 * MIB;
+export const CAPTURED_TAIL_BYTES = 16 * MIB;
 
 const CALIBRATION_RUNS = 20;
 
@@ -591,31 +596,84 @@ async function execute(
   });
 }
 
-class CappedBuffer {
-  private chunks: Buffer[] = [];
-  private length: number = 0;
-  private truncated: boolean = false;
+/**
+ * Retains the first `headBytes` and the last `tailBytes` of a byte stream.
+ * Whatever arrived between them is replaced by a marker that counts the
+ * omitted bytes. Chunks are only sliced, never copied, so at most one
+ * chunk's worth of memory beyond the caps is held at a time.
+ */
+export class CappedBuffer {
+  private readonly headBytes: number;
+  private readonly tailBytes: number;
+  private readonly head: Buffer[] = [];
+  private headLength: number = 0;
+  private readonly tail: Buffer[] = [];
+  private tailLength: number = 0;
+  private omittedLength: number = 0;
+
+  constructor(
+    headBytes: number = CAPTURED_HEAD_BYTES,
+    tailBytes: number = CAPTURED_TAIL_BYTES,
+  ) {
+    this.headBytes = headBytes;
+    this.tailBytes = tailBytes;
+  }
 
   public append(chunk: Buffer): void {
-    const room = MAX_CAPTURED_OUTPUT - this.length;
+    const headRoom = this.headBytes - this.headLength;
 
-    if (chunk.length > room) {
-      this.truncated = true;
-    }
-
-    if (room <= 0) {
+    if (chunk.length <= headRoom) {
+      this.head.push(chunk);
+      this.headLength += chunk.length;
       return;
     }
 
-    this.chunks.push(chunk.subarray(0, room));
-    this.length += Math.min(chunk.length, room);
+    if (headRoom > 0) {
+      this.head.push(chunk.subarray(0, headRoom));
+      this.headLength += headRoom;
+      chunk = chunk.subarray(headRoom);
+    }
+
+    this.tail.push(chunk);
+    this.tailLength += chunk.length;
+    this.evictTailOverflow();
   }
 
   public toString(): string {
-    const text = Buffer.concat(this.chunks).toString("utf-8");
+    const head = Buffer.concat(this.head).toString("utf-8");
+    const tail = Buffer.concat(this.tail).toString("utf-8");
 
-    return this.truncated
-      ? `${text}\n[remaining output truncated after ${MAX_CAPTURED_OUTPUT_MIB} MiB]`
-      : text;
+    if (this.omittedLength === 0) {
+      return head + tail;
+    }
+
+    const marker =
+      `[${this.omittedLength.toLocaleString("en-US")} bytes of output ` +
+      "omitted here; only the first " +
+      `${formatMib(this.headBytes)} and the last ` +
+      `${formatMib(this.tailBytes)} are kept]`;
+
+    return `${head}\n${marker}\n${tail}`;
   }
+
+  private evictTailOverflow(): void {
+    while (this.tailLength > this.tailBytes) {
+      const oldest = this.tail[0];
+      const excess = this.tailLength - this.tailBytes;
+
+      if (oldest.length <= excess) {
+        this.tail.shift();
+        this.tailLength -= oldest.length;
+        this.omittedLength += oldest.length;
+      } else {
+        this.tail[0] = oldest.subarray(excess);
+        this.tailLength -= excess;
+        this.omittedLength += excess;
+      }
+    }
+  }
+}
+
+function formatMib(bytes: number): string {
+  return `${(bytes / MIB).toLocaleString("en-US", { maximumFractionDigits: 2 })} MiB`;
 }
