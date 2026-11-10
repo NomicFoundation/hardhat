@@ -251,12 +251,23 @@ async function runDeploy(
 
     const chainHelper = new TestChainHelper(connection, deployPromise, killFn);
 
-    const [result] = await Promise.all([
+    // Wait for both to settle, even if the deploy finishes first. Otherwise the
+    // rest of `chainUpdates` keeps mining blocks and changing the base fee after
+    // we return, racing with whatever the test does next.
+    const [deployResult, chainUpdatesResult] = await Promise.allSettled([
       deployPromise,
       chainUpdates(chainHelper),
     ]);
 
-    return result;
+    if (deployResult.status === "rejected") {
+      throw deployResult.reason;
+    }
+
+    if (chainUpdatesResult.status === "rejected") {
+      throw chainUpdatesResult.reason;
+    }
+
+    return deployResult.value;
   } catch (error) {
     if (error instanceof Error && error.message === "Killing deploy process") {
       return {};
