@@ -391,6 +391,55 @@ describe("hardhat ethers signer", function () {
         auth.address = auth.address.toLowerCase();
         assert.deepStrictEqual(res.authorizationList[0], auth);
       });
+
+      it("should reject if fetching the sent transaction throws", async function () {
+        const provider = this.env.ethers.provider;
+        const sender = await provider.getSigner(0);
+        const receiver = await provider.getSigner(1);
+
+        const error = new Error("invalid transaction response");
+        const originalGetTransaction = provider.getTransaction;
+        provider.getTransaction = async () => {
+          throw error;
+        };
+
+        try {
+          await assert.isRejected(
+            sender.sendTransaction({ to: receiver, value: 1n }),
+            error
+          );
+
+          // The tx was already broadcast, so the error must point at it
+          const { info } = error as {
+            info?: { sendTransactionHash?: unknown };
+          };
+          assert.isObject(info);
+          assert.match(String(info?.sendTransactionHash), /^0x[0-9a-f]{64}$/);
+        } finally {
+          provider.getTransaction = originalGetTransaction;
+        }
+      });
+
+      it("should reject with the original error if it can't be annotated", async function () {
+        const provider = this.env.ethers.provider;
+        const sender = await provider.getSigner(0);
+        const receiver = await provider.getSigner(1);
+
+        const error = Object.freeze(new Error("frozen error"));
+        const originalGetTransaction = provider.getTransaction;
+        provider.getTransaction = async () => {
+          throw error;
+        };
+
+        try {
+          await assert.isRejected(
+            sender.sendTransaction({ to: receiver, value: 1n }),
+            error
+          );
+        } finally {
+          provider.getTransaction = originalGetTransaction;
+        }
+      });
     });
 
     describe("signMessage", function () {
