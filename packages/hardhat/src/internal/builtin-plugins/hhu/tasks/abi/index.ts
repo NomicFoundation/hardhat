@@ -3,7 +3,7 @@ import type { UtilsTaskDefinition } from "../../types.js";
 import { emptyTask, task } from "../../../../core/config.js";
 import { buildUtilsTask } from "../utils-task.js";
 
-const JSON_VALUES_HINT =
+export const JSON_VALUES_HINT =
   'Arrays and tuples are JSON, with addresses, hex and strings quoted, like [1,"0x..."]. Put -- before a negative number';
 
 export function abi(prefix: string[]): UtilsTaskDefinition[] {
