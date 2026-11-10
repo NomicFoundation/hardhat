@@ -1,13 +1,9 @@
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import {
-  getAbiSelector,
-  parseAbiFunctionSignature,
-} from "@nomicfoundation/hardhat-utils/abi";
-import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { parseAbiFunctionSignature } from "@nomicfoundation/hardhat-utils/abi";
 
 import { parseSignatureArgument } from "./arguments.js";
-import { encodeArguments } from "./encode.js";
+import { encodeFunctionCall } from "./encode.js";
 
 interface EncodeCalldataActionArguments {
   signature: string;
@@ -23,10 +19,7 @@ const encodeCalldataAction: NewUtilsTaskActionFunction<
     "signature",
   );
 
-  const selector = await getAbiSelector(parsed);
-  const encoded = await encodeArguments(parsed.inputs, values, "values");
-
-  console.log(selector + getUnprefixedHexString(encoded));
+  console.log(await encodeFunctionCall(parsed, values, "values"));
 };
 
 export default encodeCalldataAction;

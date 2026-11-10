@@ -2,6 +2,7 @@ import type { AbiParameter } from "../abi.js";
 
 import { getIntTypeRange, parseIntType } from "../abi.js";
 import {
+  AbiDecodingError,
   AbiValueOutOfBoundsError,
   DuplicateAbiParameterNameError,
   InvalidAbiValueError,
@@ -16,6 +17,8 @@ import {
   isPrefixedHexString,
 } from "../hex.js";
 import { isObject } from "../lang.js";
+
+import { UNKNOWN_TYPE_HINT } from "./abi-signature.js";
 
 /**
  * A value in the shape that the encoder expects. Aggregates are always
@@ -38,6 +41,9 @@ const ARRAY_REGEX = /^(.+)(\[(\d+)?\])$/;
 const FIXED_BYTES_TYPE_REGEX = /^bytes([1-9]\d?)$/;
 const DECIMAL_REGEX = /^\d+$/;
 const HEX_REGEX = /^0x[0-9a-f]+$/i;
+
+// The decodable types other than tuples, integers and fixed-size bytes
+const DECODABLE_TYPES = new Set(["address", "bool", "string", "bytes"]);
 
 /**
  * Parses a Solidity fixed-size bytes type name, like `bytes32`, into its size.
@@ -95,16 +101,59 @@ export function assertNoDuplicateAbiParameterNames(
  * at every nesting level.
  *
  * @param parameters The parameters to strip.
+ * @param mapType Applied to every type, at every nesting level.
  * @returns The same parameters, without their names.
  */
 export function toUnnamedAbiParameters(
   parameters: readonly AbiParameter[],
+  mapType: (type: string) => string = (type) => type,
 ): UnnamedAbiParameter[] {
-  return parameters.map(({ type, components }) =>
-    components === undefined
-      ? { type }
-      : { type, components: toUnnamedAbiParameters(components) },
+  return parameters.map(({ type, components }) => ({
+    type: mapType(type),
+    ...(components !== undefined && {
+      components: toUnnamedAbiParameters(components, mapType),
+    }),
+  }));
+}
+
+/**
+ * Maps bool to uint8 and address to uint160, keeping array suffixes. Same
+ * encoding, but only the integer decoders reject non-zero padding.
+ *
+ * @param type The type to map.
+ * @returns The mapped type.
+ */
+export function toPaddingCheckedType(type: string): string {
+  return type.replace(/^(bool|address)(?=\[|$)/, (base) =>
+    base === "bool" ? "uint8" : "uint160",
   );
+}
+
+/**
+ * Throws if a type, at any nesting level, can't be decoded, like a custom type.
+ *
+ * @param parameters The parameters to check.
+ * @throws AbiDecodingError If a type isn't supported.
+ */
+export function assertDecodableAbiTypes(
+  parameters: readonly AbiParameter[],
+): void {
+  for (const { type, components = [] } of parameters) {
+    // Strip array suffixes, so `tuple[2][]` is checked as a tuple
+    const baseType = type.replace(/(\[\d*\])+$/, "");
+
+    if (baseType === "tuple" && components.length > 0) {
+      assertDecodableAbiTypes(components);
+    } else if (
+      !DECODABLE_TYPES.has(baseType) &&
+      parseIntType(baseType) === undefined &&
+      parseFixedBytesType(baseType) === undefined
+    ) {
+      throw new AbiDecodingError(
+        `the type "${type}" is not supported; ${UNKNOWN_TYPE_HINT}`,
+      );
+    }
+  }
 }
 
 /**
