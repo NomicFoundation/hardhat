@@ -1,12 +1,17 @@
-import type { AbiParameter } from "@nomicfoundation/hardhat-utils/abi";
+import type {
+  AbiFunctionSignature,
+  AbiParameter,
+} from "@nomicfoundation/hardhat-utils/abi";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   encodeAbiParameters,
+  getAbiSelector,
   isAbiEncodingError,
 } from "@nomicfoundation/hardhat-utils/abi";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 /**
  * ABI-encodes command line values for a list of parameters.
@@ -46,6 +51,27 @@ export async function encodeArguments(
       error,
     );
   }
+}
+
+/**
+ * ABI-encodes a function call: the selector, then the values as
+ * `encodeArguments` encodes them.
+ *
+ * @param signature The parsed function signature.
+ * @param values The values, in the order of the parameters.
+ * @param name The task argument the values come from, for errors.
+ * @returns The calldata.
+ * @throws HardhatError If a value is missing, malformed or out of range.
+ */
+export async function encodeFunctionCall(
+  signature: AbiFunctionSignature,
+  values: string[],
+  name: string,
+): Promise<PrefixedHexString> {
+  const selector = await getAbiSelector(signature);
+  const encoded = await encodeArguments(signature.inputs, values, name);
+
+  return `${selector}${getUnprefixedHexString(encoded)}`;
 }
 
 function parseValue(

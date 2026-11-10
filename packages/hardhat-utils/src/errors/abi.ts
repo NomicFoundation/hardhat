@@ -179,6 +179,36 @@ export function isAbiEncodingError(
 }
 
 /**
+ * Thrown when data can't be ABI-decoded: an unsupported type, or data that
+ * doesn't match the parameters. Check it with `isAbiDecodingError`.
+ */
+export class AbiDecodingError extends CustomError {
+  public readonly kind: "decoding-failed" = "decoding-failed";
+
+  constructor(
+    public readonly reason: string,
+    cause?: Error,
+  ) {
+    super(`The data could not be ABI-decoded: ${reason}.`, cause);
+  }
+}
+
+/**
+ * Checks whether a value is an `AbiDecodingError`, even from another copy of
+ * this package.
+ *
+ * @param error The value to check.
+ * @returns True if it is.
+ */
+export function isAbiDecodingError(error: unknown): error is AbiDecodingError {
+  return (
+    error instanceof Error &&
+    "kind" in error &&
+    error.kind === "decoding-failed"
+  );
+}
+
+/**
  * Thrown when a human-readable ABI signature can't be parsed.
  *
  * Consumers should discriminate with `isInvalidAbiSignatureError` rather than

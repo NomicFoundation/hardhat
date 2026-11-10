@@ -1,26 +1,37 @@
 import type { PrefixedHexString } from "./hex.js";
-import type { deployContract as DeployContractT } from "micro-eth-signer/advanced/abi.js";
+import type {
+  Decoder as DecoderT,
+  deployContract as DeployContractT,
+} from "micro-eth-signer/advanced/abi.js";
 
 import { ensureError } from "./error.js";
 import {
+  AbiDecodingError,
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   InvalidAbiSignatureError,
 } from "./errors/abi.js";
-import { bytesToHexString, getPrefixedHexString } from "./hex.js";
+import {
+  bytesToHexString,
+  getPrefixedHexString,
+  hexStringToBytes,
+} from "./hex.js";
 import {
   AbiSignatureParser,
   hashCanonicalAbiSignature,
 } from "./internal/abi-signature.js";
 import {
+  assertDecodableAbiTypes,
   assertNoDuplicateAbiParameterNames,
   normalizeAbiValue,
+  toPaddingCheckedType,
   toUnnamedAbiParameters,
 } from "./internal/abi.js";
 
 // We don't load micro-eth-signer on startup because it's slow to initialize,
-// and most callers of this module never encode anything.
+// and most callers of this module never encode nor decode anything.
 let deployContractImpl: typeof DeployContractT | undefined;
+let DecoderImpl: typeof DecoderT | undefined;
 
 /**
  * A parameter of an ABI fragment.
@@ -238,6 +249,75 @@ export async function encodeAbiParameters(
 }
 
 /**
+ * ABI-decodes data, like a function's return data. Integers are bigints,
+ * bytes are Uint8Arrays, addresses lowercase, arrays and tuples arrays.
+ *
+ * @param parameters The parameters to decode as.
+ * @param data The encoded data. Trailing data is ignored.
+ * @returns The decoded values.
+ * @throws AbiDecodingError If a type can't be decoded or the data doesn't
+ * match.
+ */
+export async function decodeAbiParameters(
+  parameters: readonly AbiParameter[],
+  data: PrefixedHexString,
+): Promise<unknown[]> {
+  // Returning here also keeps micro-eth-signer unloaded.
+  if (parameters.length === 0) {
+    return [];
+  }
+
+  assertDecodableAbiTypes(parameters);
+
+  if (DecoderImpl === undefined) {
+    ({ Decoder: DecoderImpl } =
+      await import("micro-eth-signer/advanced/abi.js"));
+  }
+
+  // The parameters are a fake function's inputs: unlike the output decoder,
+  // the input one can ignore trailing data. Unnamed, so tuples become arrays.
+  //
+  // micro-eth-signer ignores the padding of bool and address words, so the
+  // data is decoded again with them as uint8/uint160, which reject it.
+  let decoded: unknown;
+  try {
+    for (const mapType of [undefined, toPaddingCheckedType]) {
+      // Building the decoder can throw too, e.g. on a huge array size
+      const decoder = new DecoderImpl();
+      decoder.add("", [
+        {
+          type: "function",
+          name: "f",
+          inputs: toUnnamedAbiParameters(parameters, mapType),
+        },
+      ]);
+
+      const [{ packer }] = Object.values(decoder.contracts[""]);
+      const value = packer.decode(hexStringToBytes(data), {
+        allowUnreadBytes: true,
+      });
+
+      decoded ??= value;
+    }
+  } catch (error) {
+    ensureError(error);
+    throw new AbiDecodingError(
+      decoded === undefined
+        ? error.message
+        : "a bool is neither 0 nor 1, or an address is longer than 20 bytes",
+      error,
+    );
+  }
+
+  // A single parameter decodes to its bare value
+  if (parameters.length === 1) {
+    return [decoded];
+  }
+
+  return Array.isArray(decoded) ? decoded : [];
+}
+
+/**
  * Parses a human-readable signature, like `transfer(address,uint256)`.
  *
  * It also accepts parameter names, the `indexed` and data location keywords,
@@ -380,6 +460,7 @@ export async function getAbiEventTopic(
 }
 
 export {
+  AbiDecodingError,
   AbiEncodingError,
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
@@ -388,6 +469,7 @@ export {
   InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
+  isAbiDecodingError,
   isAbiEncodingError,
   isInvalidAbiSignatureError,
   type AbiEncodingErrorKind,
