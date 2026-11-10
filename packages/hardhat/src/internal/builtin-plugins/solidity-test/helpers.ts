@@ -55,7 +55,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   hardfork,
   config,
   verbosity,
-  includeTraces: minIncludeTraces = IncludeTraces.None,
+  includeTraces,
   observability,
   testPattern,
   excludeTestPattern,
@@ -106,11 +106,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const localPredeploys = getChainGenesisState(resolvedHardfork, chainType);
 
-  // The verbosity decides what is printed, but plugins can ask EDR to collect
-  // more traces than that. IncludeTraces is ordered: None < Failing < All.
-  const includeTraces: IncludeTraces = Math.max(
+  const resolvedIncludeTraces: IncludeTraces = Math.max(
     verbosityToIncludeTraces(verbosity),
-    minIncludeTraces,
+    includeTraces ?? IncludeTraces.None,
   );
 
   const blockGasLimit =
@@ -162,7 +160,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     testPattern: testPattern === "" ? undefined : testPattern,
     excludeTestPattern:
       excludeTestPattern === "" ? undefined : excludeTestPattern,
-    includeTraces,
+    includeTraces: resolvedIncludeTraces,
     blockGasLimit,
     disableBlockGasLimit,
     transactionGasCap,
