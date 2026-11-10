@@ -55,6 +55,14 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         defaultValue: 0,
         hidden: true,
       })
+      .addOption({
+        name: "includeTraces",
+        description:
+          'Collect call traces for "failing" or "all" tests, regardless of the verbosity',
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+        hidden: true,
+      })
       .setAction(async () => await import("./task-action.js"))
       .build(),
     overrideTask("test")
