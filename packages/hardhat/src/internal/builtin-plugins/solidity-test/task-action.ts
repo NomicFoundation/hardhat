@@ -16,6 +16,7 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
+import { IncludeTraces } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
@@ -57,6 +58,7 @@ interface TestActionArguments {
   noCompile: boolean;
   testSummaryIndex: number;
   testProfile?: string;
+  includeTraces?: string;
 }
 
 export interface SolidityTestRunResult extends TestRunResult {
@@ -72,6 +74,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     noCompile,
     testSummaryIndex,
     testProfile,
+    includeTraces,
   },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
@@ -98,6 +101,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
   // This is done by other JS/TS test frameworks like vitest
   process.env.NODE_ENV ??= "test";
+
+  const minIncludeTraces = parseIncludeTraces(includeTraces);
 
   if (!isSupportedChainType(chainType)) {
     throw new HardhatError(
@@ -273,6 +278,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       hardfork,
       config: solidityTestConfig,
       verbosity,
+      includeTraces: minIncludeTraces,
       observability: observabilityConfig,
       testPattern: grep,
       excludeTestPattern: grepExclude,
@@ -467,6 +473,26 @@ async function loadArtifacts(
     );
   }
   return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
+}
+
+function parseIncludeTraces(value: string | undefined): IncludeTraces {
+  switch (value) {
+    case undefined:
+      return IncludeTraces.None;
+    case "failing":
+      return IncludeTraces.Failing;
+    case "all":
+      return IncludeTraces.All;
+    default:
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value,
+          type: '"failing" | "all"',
+          name: "includeTraces",
+        },
+      );
+  }
 }
 
 export default runSolidityTests;

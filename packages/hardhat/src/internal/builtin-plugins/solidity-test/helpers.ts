@@ -13,7 +13,11 @@ import type { Writable } from "node:stream";
 import { finished } from "node:stream/promises";
 import { styleText } from "node:util";
 
-import { FsAccessPermission, CollectStackTraces } from "@nomicfoundation/edr";
+import {
+  FsAccessPermission,
+  CollectStackTraces,
+  IncludeTraces,
+} from "@nomicfoundation/edr";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -34,6 +38,7 @@ interface SolidityTestConfigParams {
   hardfork?: string;
   config: Omit<SolidityTestProfileConfig, "eip712Types">;
   verbosity: number;
+  includeTraces?: IncludeTraces;
   observability?: ObservabilityConfig;
   testPattern?: string;
   excludeTestPattern?: string;
@@ -50,6 +55,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   hardfork,
   config,
   verbosity,
+  includeTraces: minIncludeTraces = IncludeTraces.None,
   observability,
   testPattern,
   excludeTestPattern,
@@ -100,7 +106,12 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const localPredeploys = getChainGenesisState(resolvedHardfork, chainType);
 
-  const includeTraces = verbosityToIncludeTraces(verbosity);
+  // The verbosity decides what is printed, but plugins can ask EDR to collect
+  // more traces than that. IncludeTraces is ordered: None < Failing < All.
+  const includeTraces: IncludeTraces = Math.max(
+    verbosityToIncludeTraces(verbosity),
+    minIncludeTraces,
+  );
 
   const blockGasLimit =
     typeof config.blockGasLimit === "number" ||
