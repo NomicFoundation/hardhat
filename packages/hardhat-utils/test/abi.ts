@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  AbiDecodingError,
   AbiEncodingFailedError,
   AbiParametersLengthMismatchError,
   AbiValueOutOfBoundsError,
@@ -9,11 +10,13 @@ import {
   InvalidAbiSignatureError,
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
+  decodeAbiParameters,
   encodeAbiParameters,
   getAbiConstructorParameters,
   getAbiEventTopic,
   getAbiSelector,
   getIntTypeRange,
+  isAbiDecodingError,
   isAbiEncodingError,
   isInvalidAbiSignatureError,
   parseAbiEventSignature,
@@ -23,7 +26,10 @@ import {
   parseIntType,
 } from "../src/abi.js";
 import { getUnprefixedHexString } from "../src/hex.js";
-import { getCanonicalAbiSignature } from "../src/internal/abi-signature.js";
+import {
+  UNKNOWN_TYPE_HINT,
+  getCanonicalAbiSignature,
+} from "../src/internal/abi-signature.js";
 
 /** Encodes and returns the result without the "0x" prefix, for readability. */
 async function encode(
@@ -883,6 +889,254 @@ describe("abi", () => {
           "AbiEncodingFailedError",
         );
       });
+    });
+  });
+
+  describe("decodeAbiParameters", () => {
+    const ADDRESS = "0x752c8191e6b1db38b41a8c8921f7a703f2969d18";
+    const PADDING_REASON =
+      "a bool is neither 0 nor 1, or an address is longer than 20 bytes";
+    const word = (value: number) => value.toString(16).padStart(64, "0");
+
+    /** Asserts that decoding rejects, with the given reason if any. */
+    async function assertDecodingError(
+      parameters: Array<{ type: string; components?: Array<{ type: string }> }>,
+      data: `0x${string}`,
+      reason?: string,
+    ): Promise<void> {
+      await assert.rejects(
+        decodeAbiParameters(parameters, data),
+        (error: unknown) => {
+          assert.ok(
+            isAbiDecodingError(error),
+            `expected an AbiDecodingError, got ${String(error)}`,
+          );
+          if (reason !== undefined) {
+            assert.equal(error.reason, reason);
+          }
+          return true;
+        },
+      );
+    }
+
+    it("Should decode what the encoder encodes, in the documented shapes", async () => {
+      const parameters = [
+        { name: "a", type: "uint256" },
+        { name: "b", type: "int8" },
+        { name: "c", type: "bool" },
+        { name: "d", type: "address" },
+        { name: "e", type: "bytes4" },
+        { name: "f", type: "string" },
+        { name: "g", type: "bytes" },
+        {
+          name: "h",
+          type: "tuple",
+          components: [
+            { name: "x", type: "uint256" },
+            { name: "y", type: "string" },
+          ],
+        },
+        { name: "i", type: "uint256[2][]" },
+      ];
+      const data = await encodeAbiParameters(parameters, [
+        50,
+        -5,
+        true,
+        "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+        "0xdeadbeef",
+        "hi",
+        "0x",
+        { x: 1, y: "nested" },
+        [
+          [1, 2],
+          [3, 4],
+        ],
+      ]);
+
+      assert.deepEqual(await decodeAbiParameters(parameters, data), [
+        50n,
+        -5n,
+        true,
+        ADDRESS,
+        Uint8Array.from([0xde, 0xad, 0xbe, 0xef]),
+        "hi",
+        new Uint8Array(),
+        [1n, "nested"],
+        [
+          [1n, 2n],
+          [3n, 4n],
+        ],
+      ]);
+    });
+
+    it("Should decode a single parameter, even a tuple, as a single value", async () => {
+      assert.deepEqual(
+        await decodeAbiParameters([{ type: "uint256" }], `0x${word(50)}`),
+        [50n],
+      );
+
+      const tuple = [
+        {
+          type: "tuple",
+          components: [{ type: "uint256" }, { type: "address" }],
+        },
+      ];
+      assert.deepEqual(
+        await decodeAbiParameters(
+          tuple,
+          await encodeAbiParameters(tuple, [[1, ADDRESS]]),
+        ),
+        [[1n, ADDRESS]],
+      );
+    });
+
+    it("Should ignore the data after the parameters, like other libraries", async () => {
+      assert.deepEqual(await decodeAbiParameters([], "0x"), []);
+      assert.deepEqual(await decodeAbiParameters([], `0x${word(1)}`), []);
+      assert.deepEqual(
+        await decodeAbiParameters(
+          [{ type: "uint160" }],
+          `0x${word(1)}${word(2)}`,
+        ),
+        [1n],
+      );
+      assert.deepEqual(
+        await decodeAbiParameters(
+          [{ type: "uint256" }, { type: "bool" }],
+          `0x${word(1)}${word(1)}${word(2)}`,
+        ),
+        [1n, true],
+      );
+      assert.deepEqual(
+        await decodeAbiParameters(
+          [{ type: "string" }],
+          await encodeAbiParameters(
+            [{ type: "string" }, { type: "uint256" }],
+            ["USDC", 6],
+          ),
+        ),
+        ["USDC"],
+      );
+    });
+
+    it("Should throw if the data doesn't match the parameters", async () => {
+      // Too short, and an invalid bool
+      await assertDecodingError([{ type: "uint256" }], "0x");
+      await assertDecodingError([{ type: "bool" }], `0x${word(2)}`);
+    });
+
+    it("Should throw if a bool's padding isn't zero, even nested", async () => {
+      // The last byte of 256 and 257 is a valid bool, but not the rest
+      await assertDecodingError(
+        [{ type: "bool" }],
+        `0x${word(256)}`,
+        PADDING_REASON,
+      );
+
+      // A (uint256,bool[]) tuple holding [1, [<bool>]]
+      const tuple = [
+        {
+          type: "tuple",
+          components: [{ type: "uint256" }, { type: "bool[]" }],
+        },
+      ];
+      const encodeTuple = (bool: number): `0x${string}` =>
+        `0x${word(32)}${word(1)}${word(64)}${word(1)}${word(bool)}`;
+
+      assert.deepEqual(await decodeAbiParameters(tuple, encodeTuple(1)), [
+        [1n, [true]],
+      ]);
+      await assertDecodingError(tuple, encodeTuple(257), PADDING_REASON);
+    });
+
+    it("Should throw if an address's padding isn't zero, even nested", async () => {
+      const MAX_ADDRESS = `0x${"ff".repeat(20)}`;
+      // Sets the lowest padding byte of the first word holding ADDRESS to 1
+      const dirty = (encoded: `0x${string}`): `0x${string}` =>
+        `0x${encoded.slice(2).replace(`00${ADDRESS.slice(2)}`, `01${ADDRESS.slice(2)}`)}`;
+
+      const address = [{ type: "address" }];
+      assert.deepEqual(
+        await decodeAbiParameters(
+          address,
+          await encodeAbiParameters(address, [MAX_ADDRESS]),
+        ),
+        [MAX_ADDRESS],
+      );
+      await assertDecodingError(
+        address,
+        dirty(await encodeAbiParameters(address, [ADDRESS])),
+        PADDING_REASON,
+      );
+
+      const tuples = [
+        {
+          type: "tuple[]",
+          components: [
+            { type: "address[2]" },
+            { type: "bool" },
+            { type: "string" },
+          ],
+        },
+      ];
+      const value = [[[MAX_ADDRESS, ADDRESS], true, "hi"]];
+      const data = await encodeAbiParameters(tuples, [value]);
+
+      assert.deepEqual(await decodeAbiParameters(tuples, data), [value]);
+      await assertDecodingError(tuples, dirty(data), PADDING_REASON);
+    });
+
+    it("Should wrap a failure to build the decoder", async () => {
+      // The type passes our validation, but its size isn't a safe integer
+      await assertDecodingError(
+        [{ type: "uint256[100000000000000000000]" }],
+        "0x",
+      );
+    });
+
+    it("Should throw if the data isn't hex", async () => {
+      await assertDecodingError([{ type: "uint256" }], "0xzz");
+    });
+
+    it("Should throw if a type can't be decoded, even in a tuple", async () => {
+      for (const type of ["IPool", "IPool[]", "function", "fixed128x18"]) {
+        await assertDecodingError(
+          [{ type }],
+          "0x",
+          `the type "${type}" is not supported; ${UNKNOWN_TYPE_HINT}`,
+        );
+      }
+
+      await assertDecodingError(
+        [
+          {
+            type: "tuple[2]",
+            components: [{ type: "uint256" }, { type: "DataTypes.Reserve" }],
+          },
+        ],
+        "0x",
+        `the type "DataTypes.Reserve" is not supported; ${UNKNOWN_TYPE_HINT}`,
+      );
+
+      await assertDecodingError(
+        [{ type: "tuple", components: [] }],
+        "0x",
+        `the type "tuple" is not supported; ${UNKNOWN_TYPE_HINT}`,
+      );
+    });
+  });
+
+  describe("isAbiDecodingError", () => {
+    it("Should recognize the error by its kind, not its class", () => {
+      assert.equal(isAbiDecodingError(new AbiDecodingError("reason")), true);
+      assert.equal(
+        isAbiDecodingError(
+          Object.assign(new Error(), { kind: "decoding-failed" }),
+        ),
+        true,
+      );
+      assert.equal(isAbiDecodingError(new Error()), false);
+      assert.equal(isAbiDecodingError("decoding-failed"), false);
     });
   });
 

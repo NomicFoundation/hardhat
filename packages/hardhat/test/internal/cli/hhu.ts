@@ -78,6 +78,8 @@ AVAILABLE SUBTASKS:
   convert to-hex                   Convert a non-negative integer to hex
   fetch block-number               Print the latest block number
   hash keccak                      Print the keccak256 hash of 0x-hex bytes or a UTF-8 string
+  tx call                          Call a contract without sending a transaction and print what it returns, decoded if the signature includes the return types, like "balanceOf(address)(uint256)"
+  tx estimate                      Estimate the gas that a transaction would use
 
 GLOBAL OPTIONS:
 
