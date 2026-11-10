@@ -18,7 +18,7 @@ import { getRuntimeInfo } from "@nomicfoundation/hardhat-utils/runtime";
  * entry of their own (e.g. odd majors, or newer ones) are supported.
  */
 export const MIN_SUPPORTED_NODE_VERSIONS: Array<[number, number, number]> = [
-  [22, 18, 0],
+  [22, 19, 0],
   [24, 3, 0],
 ];
 

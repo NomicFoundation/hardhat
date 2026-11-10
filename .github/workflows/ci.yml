@@ -344,7 +344,7 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.18.0, 24.3.0, 26.0.0]
+        node: [22.19.0, 24.3.0, 26.0.0]
         exclude:
           - package: hardhat-node-test-reporter
           - os: ubuntu-24.04-arm
@@ -479,7 +479,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.18.0, 24.3.0, 26.0.0]
+        node: [22.19.0, 24.3.0, 26.0.0]
         exclude:
           - os: ubuntu-24.04-arm
             node: 24.3.0

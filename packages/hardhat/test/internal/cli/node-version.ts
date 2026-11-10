@@ -28,22 +28,22 @@ afterEach(() => {
 describe("Node version", () => {
   describe("getMinSupportedNodeVersion", () => {
     it("returns the minimum version of majors that have their own", () => {
-      assert.deepEqual(getMinSupportedNodeVersion(22), [22, 18, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(22), [22, 19, 0]);
       assert.deepEqual(getMinSupportedNodeVersion(24), [24, 3, 0]);
     });
 
     it("returns the lowest minimum version for any other major", () => {
-      assert.deepEqual(getMinSupportedNodeVersion(20), [22, 18, 0]);
-      assert.deepEqual(getMinSupportedNodeVersion(23), [22, 18, 0]);
-      assert.deepEqual(getMinSupportedNodeVersion(26), [22, 18, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(20), [22, 19, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(23), [22, 19, 0]);
+      assert.deepEqual(getMinSupportedNodeVersion(26), [22, 19, 0]);
     });
   });
 
   describe("isNodeVersionSupported", () => {
     it("is true for supported versions", () => {
       for (const version of [
-        "22.18.0",
-        "22.18.1",
+        "22.19.0",
+        "22.19.1",
         "22.23.3",
         "24.3.0",
         "24.22.0",
@@ -66,7 +66,7 @@ describe("Node version", () => {
         "20.19.0",
         "21.7.3",
         "22.13.0",
-        "22.17.1",
+        "22.18.1",
         "24.0.0",
         "24.2.0",
       ]) {
@@ -87,8 +87,8 @@ describe("Node version", () => {
   describe("exitIfNodeVersionNotSupported", () => {
     for (const [unsupported, minVersion] of [
       ["24.2.0", "24.3.0"],
-      ["22.17.0", "22.18.0"],
-      ["20.0.0", "22.18.0"],
+      ["22.18.0", "22.19.0"],
+      ["20.0.0", "22.19.0"],
     ]) {
       it(`writes an error to stderr and calls process.exit(1) on ${unsupported}`, (t) => {
         setNodeVersion(unsupported);
@@ -127,7 +127,7 @@ describe("Node version", () => {
     }
 
     it("does nothing when the version is supported", (t) => {
-      setNodeVersion("22.18.0");
+      setNodeVersion("22.19.0");
 
       const writeMock = t.mock.method(process.stderr, "write", () => true);
       const exitMock = t.mock.method(process, "exit", () => undefined);
@@ -154,7 +154,7 @@ describe("Node version", () => {
         });
       });
 
-      setNodeVersion("22.17.0");
+      setNodeVersion("22.18.0");
       Object.defineProperty(process.versions, "bun", {
         value: "1.1.0",
         writable: false,
