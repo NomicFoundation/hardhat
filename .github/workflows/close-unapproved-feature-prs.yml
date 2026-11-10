@@ -6,6 +6,8 @@ on:
 
 jobs:
   check-approved-issue:
+    # labels set at PR creation each fire a run; only the feature label matters
+    if: github.event.action != 'labeled' || github.event.label.name == 'type:feature'
     timeout-minutes: 10
     runs-on: ubuntu-latest
     # opened + edited (author fixes the description right after opening) can fire seconds apart; queue them per PR
