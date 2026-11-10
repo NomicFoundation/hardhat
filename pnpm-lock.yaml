@@ -1581,7 +1581,7 @@ importers:
         specifier: workspace:^3.1.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^5.1.0
+        specifier: workspace:^5.1.1
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1728,7 +1728,7 @@ importers:
         specifier: workspace:^3.0.13
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^5.0.0
+        specifier: workspace:^5.1.1
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
