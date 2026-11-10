@@ -102,7 +102,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // This is done by other JS/TS test frameworks like vitest
   process.env.NODE_ENV ??= "test";
 
-  const minIncludeTraces = parseIncludeTraces(includeTraces);
+  const parsedIncludeTraces = parseIncludeTraces(includeTraces);
 
   if (!isSupportedChainType(chainType)) {
     throw new HardhatError(
@@ -278,7 +278,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       hardfork,
       config: solidityTestConfig,
       verbosity,
-      includeTraces: minIncludeTraces,
+      includeTraces: parsedIncludeTraces,
       observability: observabilityConfig,
       testPattern: grep,
       excludeTestPattern: grepExclude,
