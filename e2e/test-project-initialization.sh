@@ -30,6 +30,16 @@ assert_no_empty_files() {
   done
 }
 
+# Yarn 1 leaves stale nested node_modules behind when `hardhat init` re-adds
+# dependencies (e.g. an old @noble/hashes under @scure/bip32), which breaks
+# module resolution. Reinstall from the lockfile to get a consistent tree.
+reinstall_if_yarn() {
+  if [ "$pkg_manager" = "yarn" ]; then
+    rm -rf node_modules
+    yarn install --frozen-lockfile >/dev/null 2>&1
+  fi
+}
+
 # build hardhat-core
 echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
@@ -78,6 +88,7 @@ for pkg_manager in $pkg_managers; do
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
   assert_no_empty_files
+  reinstall_if_yarn
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   $pkg_runner hardhat coverage
@@ -94,6 +105,7 @@ for pkg_manager in $pkg_managers; do
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
   assert_no_empty_files
+  reinstall_if_yarn
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   $pkg_runner hardhat coverage
@@ -108,6 +120,7 @@ for pkg_manager in $pkg_managers; do
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
   assert_no_empty_files
+  reinstall_if_yarn
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   $pkg_runner hardhat coverage
@@ -138,6 +151,7 @@ for pkg_manager in $pkg_managers; do
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
   assert_no_empty_files
+  reinstall_if_yarn
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   SOLIDITY_COVERAGE=true $pkg_runner hardhat coverage
