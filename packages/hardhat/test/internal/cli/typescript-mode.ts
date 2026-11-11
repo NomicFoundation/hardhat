@@ -496,5 +496,17 @@ export default config;
       assert.match(output, /HHE34/);
       assert.doesNotMatch(output, /config imported/);
     });
+
+    it("should throw before importing the config when importing hardhat", async () => {
+      const { exitCode, output } = await runNode(
+        project.path,
+        PRINT_TYPESCRIPT_MODE_CODE,
+        { preventTsx: false },
+      );
+
+      assert.notEqual(exitCode, 0, output);
+      assert.match(output, /HHE34/);
+      assert.doesNotMatch(output, /config imported/);
+    });
   });
 });
