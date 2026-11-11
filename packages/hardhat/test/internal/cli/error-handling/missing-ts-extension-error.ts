@@ -29,6 +29,7 @@ describe("missing-ts-extension-error", () => {
 
     before(async () => {
       await writeUtf8File(path.join(project.path, "helper.ts"), "");
+      await mkdir(path.join(project.path, "folder.ts"));
       await mkdir(path.join(project.path, "node_modules", "pkg"));
       await writeUtf8File(
         path.join(project.path, "node_modules", "pkg", "helper.ts"),
@@ -66,6 +67,15 @@ describe("missing-ts-extension-error", () => {
     it("ignores a .js import without a TypeScript file", async () => {
       const error = createModuleNotFoundError(
         path.join(project.path, "missing.js"),
+        path.join(project.path, "main.ts"),
+      );
+
+      assert.equal(await detectMissingTsExtension(error), undefined);
+    });
+
+    it("ignores a .js import when the TypeScript path is a directory", async () => {
+      const error = createModuleNotFoundError(
+        path.join(project.path, "folder.js"),
         path.join(project.path, "main.ts"),
       );
 

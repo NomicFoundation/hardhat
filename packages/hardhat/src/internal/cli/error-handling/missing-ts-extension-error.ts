@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getErrorChain } from "../telemetry/error-classification/helpers.js";
 
@@ -59,7 +59,8 @@ export async function detectMissingTsExtension(
 
     const suggestedPath = `${importPath.slice(0, -".js".length)}.ts`;
 
-    if (!(await exists(suggestedPath))) {
+    // A directory can't be imported, so suggesting it wouldn't fix the import
+    if (!(await exists(suggestedPath)) || (await isDirectory(suggestedPath))) {
       continue;
     }
 
