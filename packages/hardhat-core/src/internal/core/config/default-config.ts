@@ -54,28 +54,9 @@ export const defaultHardhatNetworkParams: Omit<
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   minGasPrice: 0n,
-  /**
-   * Block numbers / timestamps were taken from:
-   * https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains.ts
-   *
-   * To find hardfork activation blocks by timestamp, use:
-   * https://api-TESTNET.etherscan.io/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
-   */
+  // TODO: these entries are a temporary workaround,
+  // see https://github.com/NomicFoundation/edr/issues/522
   chains: new Map([
-    [
-      11155111, // sepolia
-      {
-        hardforkHistory: new Map([
-          [HardforkName.GRAY_GLACIER, 0],
-          [HardforkName.MERGE, 1_450_409],
-          [HardforkName.SHANGHAI, 2_990_908],
-          [HardforkName.CANCUN, 5_187_023],
-          [HardforkName.PRAGUE, 7_836_331],
-        ]),
-      },
-    ],
-    // TODO: the rest of this config is a temporary workaround,
-    // see https://github.com/NomicFoundation/edr/issues/522
     [
       10, // optimism mainnet
       {

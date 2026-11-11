@@ -687,7 +687,7 @@ describe("Config resolution", () => {
           },
           hardfork: "hola",
           initialDate: "today",
-          chains: {},
+          chains: { 999: { hardforkHistory: { london: 1234 } } },
         };
 
         const config = resolveConfig(__filename, {
@@ -716,43 +716,61 @@ describe("Config resolution", () => {
           },
           hardfork: "hola",
           initialDate: "today",
-          chains: defaultHardhatNetworkParams.chains,
+          chains: new Map([
+            ...defaultHardhatNetworkParams.chains,
+            [999, { hardforkHistory: new Map([[HardforkName.LONDON, 1234]]) }],
+          ]),
         });
       });
 
       describe("chains", function () {
-        it("should default to default", function () {
+        it("should default to the default chains", function () {
           const resolvedConfig = resolveConfig(__filename, {});
           assert.deepEqual(
-            Array.from(resolvedConfig.networks.hardhat.chains.entries()),
-            Array.from(defaultHardhatNetworkParams.chains.entries())
+            resolvedConfig.networks.hardhat.chains,
+            defaultHardhatNetworkParams.chains
           );
         });
-        describe("mixing defaults and user configs", function () {
-          const userConfig = {
-            networks: {
-              hardhat: { chains: { 1: { hardforkHistory: { london: 999 } } } },
-            },
-          };
-          const resolvedConfig = resolveConfig(__filename, userConfig);
-          it("If the user provides values for a chain that's included in the default, should use the users' values, and ignore the defaults for that chain.", function () {
-            assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
-              hardforkHistory: new Map([[HardforkName.LONDON, 999]]),
-            });
+        it("should resolve an entry without a history to an empty history", function () {
+          const resolvedConfig = resolveConfig(__filename, {
+            networks: { hardhat: { chains: { 999: {} } } },
           });
-          it("If they don't provide any value for a default chain, should use the default for that one.", function () {
-            for (const otherChain of Array.from(
-              defaultHardhatNetworkParams.chains.keys()
-            )) {
-              if (otherChain === 1) continue; // don't expect the default there
-              assert.deepEqual(
-                resolvedConfig.networks.hardhat.chains.get(otherChain),
-                defaultHardhatNetworkParams.chains.get(otherChain)
-              );
+          assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(999), {
+            hardforkHistory: new Map(),
+          });
+        });
+        describe("mixing defaults and user configs", function () {
+          const OPTIMISM_CHAIN_ID = 10;
+          const resolvedConfig = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                chains: {
+                  [OPTIMISM_CHAIN_ID]: { hardforkHistory: { london: 999 } },
+                },
+              },
+            },
+          });
+          it("should replace the default entry of a chain the user configures", function () {
+            assert.deepEqual(
+              resolvedConfig.networks.hardhat.chains.get(OPTIMISM_CHAIN_ID),
+              { hardforkHistory: new Map([[HardforkName.LONDON, 999]]) }
+            );
+          });
+          it("should keep the default entries of the other chains", function () {
+            for (const [
+              chainId,
+              chainConfig,
+            ] of defaultHardhatNetworkParams.chains) {
+              if (chainId !== OPTIMISM_CHAIN_ID) {
+                assert.deepEqual(
+                  resolvedConfig.networks.hardhat.chains.get(chainId),
+                  chainConfig
+                );
+              }
             }
           });
         });
-        it("If the user provides values for a chain that's not part of the default, should also use those.", function () {
+        it("should use the user's values for a chain", function () {
           const resolvedConfig = resolveConfig(__filename, {
             networks: {
               hardhat: {
