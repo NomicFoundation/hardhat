@@ -670,7 +670,9 @@ Please change the import to use the .ts extension.`,
         websiteTitle: "TypeScript file imported with a .js extension",
         websiteDescription: `A file imports a TypeScript file using a \`.js\` extension, and Node.js can't find a file with that extension.
 
-Node.js requires TypeScript files to be imported with their \`.ts\` extension. Please change the import to use the \`.ts\` extension and try again.`,
+Node.js requires TypeScript files to be imported with their \`.ts\` extension. Please change the import to use the \`.ts\` extension and try again.
+
+If the import uses an entry from the \`imports\` field of \`package.json\`, change the extension in that entry instead.`,
       },
     },
     INTERNAL: {
