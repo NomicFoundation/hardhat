@@ -1,19 +1,26 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import path from "node:path";
 import { before, describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 
 import {
   assertRejects,
+  NO_TSX_HOOK_URL,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
+  getAllFilesMatching,
   readUtf8File,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatTypechain from "../src/index.js";
+
+const execFileAsync = promisify(execFile);
 
 describe("hardhat-typechain", () => {
   describe("check that types are generated correctly", () => {
@@ -134,6 +141,77 @@ describe("hardhat-typechain", () => {
         /export interface OutputObject .*;\s*$/m.test(content),
         false,
       );
+    });
+  });
+
+  describe(`check that types are generated for the "node" TypeScript mode`, () => {
+    const projectFolder = "generate-types-node-mode";
+
+    useFixtureProject(projectFolder);
+
+    before(async () => {
+      await remove(`${process.cwd()}/types`);
+
+      const hardhatConfig = await import(
+        `./fixture-projects/${projectFolder}/hardhat.config.js`
+      );
+
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+
+      assert.equal(hre.config.typescript, "node");
+
+      await hre.tasks.getTask("clean").run();
+
+      await hre.tasks.getTask("build").run();
+    });
+
+    it("should use the '.ts' extension in every relative import", async () => {
+      const files = await getAllFilesMatching(
+        path.join(process.cwd(), "types"),
+      );
+
+      for (const file of files) {
+        const content = await readUtf8File(file);
+
+        assert.doesNotMatch(
+          content,
+          /\bfrom\s+['"]\.\.?\/[^'"]*\.js['"]/,
+          `${file} has a relative import with the '.js' extension`,
+        );
+      }
+
+      const hardhatTypes = await readUtf8File(
+        path.join(process.cwd(), "types", "ethers-contracts", "hardhat.d.ts"),
+      );
+
+      assert.equal(
+        hardhatTypes.includes(`import * as Contracts from "./index.ts"`),
+        true,
+      );
+    });
+
+    it("should generate types that Node.js runs without tsx", async () => {
+      const indexUrl = pathToFileURL(
+        path.join(process.cwd(), "types", "ethers-contracts", "index.ts"),
+      ).href;
+
+      const env: NodeJS.ProcessEnv = { ...process.env };
+      delete env.NODE_OPTIONS;
+
+      const { stdout } = await execFileAsync(
+        process.execPath,
+        [
+          "--import",
+          NO_TSX_HOOK_URL,
+          "--input-type=module",
+          "--eval",
+          `const types = await import(${JSON.stringify(indexUrl)});
+console.log(typeof types.A__factory, typeof types.factories.tokens.Token__factory);`,
+        ],
+        { env },
+      );
+
+      assert.equal(stdout.trim(), "function function");
     });
   });
 

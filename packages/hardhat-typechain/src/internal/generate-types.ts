@@ -1,4 +1,5 @@
 import type { TypechainConfig } from "../types.js";
+import type { HardhatConfig } from "hardhat/types/config";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
 import type { OutputTransformer } from "typechain/dist/codegen/outputTransformers/index.js";
 
@@ -13,16 +14,29 @@ const log = createDebug("hardhat:typechain:generate-types");
 
 const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
 
+/**
+ * The TypeScript mode of the project whose types are being generated. It's
+ * module-level state because TypeChain's output transformers are global, so
+ * the transformer that we add can't receive it as an argument.
+ *
+ * It's undefined with Hardhat versions before the TypeScript modes, which
+ * always use tsx.
+ */
+let typescriptMode: HardhatConfig["typescript"] | undefined;
+
 export async function generateTypes(
   rootPath: string,
   config: TypechainConfig,
   noTypechain: boolean,
   artifactsPaths: string[],
+  projectTypescriptMode: HardhatConfig["typescript"] | undefined,
 ): Promise<void> {
   if (config.dontOverrideCompile === true || noTypechain === true) {
     // The typechain config is set to skip type generation during compilation
     return;
   }
+
+  typescriptMode = projectTypescriptMode;
 
   removePrettierTransformerIfPresent(typechainOutputTransformers);
   addCompiledFilesTransformerIfAbsent(typechainOutputTransformers);
@@ -101,6 +115,10 @@ function addCompiledFilesTransformerIfAbsent(
   ) => {
     let modifiedContent = addJsExtensionsIfNeeded(output);
 
+    if (typescriptMode === "node") {
+      modifiedContent = replaceJsExtensionsWithTs(modifiedContent);
+    }
+
     modifiedContent = removeOutputObjectSemicolons(modifiedContent);
 
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
@@ -145,6 +163,29 @@ export function addJsExtensionsIfNeeded(content: string): string {
     jsExtensionRegex,
     (_match, imports, quote, importPath) =>
       `import ${imports} from ${quote}${importPath}/index.js${quote};`,
+  );
+}
+
+/**
+ * This function is exported solely for testing purposes.
+ *
+ * Replaces the `.js` extension of the relative imports and re-exports with
+ * `.ts`, as Node.js only runs TypeScript files imported with their own
+ * extension. For example:
+ *
+ * export { A__factory } from './factories/A__factory.js';
+ * will be converted into:
+ * export { A__factory } from './factories/A__factory.ts';
+ *
+ * Imports from npm packages, like "ethers", are left unchanged.
+ */
+export function replaceJsExtensionsWithTs(content: string): string {
+  const relativeJsImportRegex = /(\bfrom\s+)(['"])(\.\.?\/[^'"]*)\.js\2/g;
+
+  return content.replace(
+    relativeJsImportRegex,
+    (_match, from, quote, importPath) =>
+      `${from}${quote}${importPath}.ts${quote}`,
   );
 }
 
