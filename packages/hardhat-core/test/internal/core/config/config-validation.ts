@@ -1109,6 +1109,44 @@ describe("Config validation", function () {
           });
         });
 
+        describe("Mining interval range", function () {
+          const INTERVAL_PATH = `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.mining.interval`;
+
+          function validateInterval(interval: [number, number]) {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: { interval },
+                },
+              },
+            });
+          }
+
+          it("Should reject a range with a minimum of 0", function () {
+            expectHardhatError(
+              () => validateInterval([0, 5]),
+              ERRORS.GENERAL.INVALID_CONFIG,
+              `Invalid value [0,5] for ${INTERVAL_PATH}`
+            );
+          });
+
+          it("Should reject a range with a minimum above its maximum", function () {
+            expectHardhatError(
+              () => validateInterval([5, 2]),
+              ERRORS.GENERAL.INVALID_CONFIG,
+              `Invalid value [5,2] for ${INTERVAL_PATH}`
+            );
+          });
+
+          it("Should accept a range with equal minimum and maximum of 1", function () {
+            validateInterval([1, 1]);
+          });
+
+          it("Should accept a range with a minimum of 1", function () {
+            validateInterval([1, 5]);
+          });
+        });
+
         describe("Hardhat network's coinbase", function () {
           it("Should fail if it's not a valid address", function () {
             expectHardhatError(
