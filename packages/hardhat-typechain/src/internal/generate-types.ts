@@ -3,6 +3,7 @@ import type { HardhatConfig } from "hardhat/types/config";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
 import type { OutputTransformer } from "typechain/dist/codegen/outputTransformers/index.js";
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -15,28 +16,30 @@ const log = createDebug("hardhat:typechain:generate-types");
 const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
 
 /**
- * The TypeScript mode of the project whose types are being generated. It's
- * module-level state because TypeChain's output transformers are global, so
- * the transformer that we add can't receive it as an argument.
+ * The TypeScript mode of the project whose types are being generated.
+ * TypeChain's output transformers are global, so the transformer that we add
+ * can't receive it as an argument. Instead, each TypeChain run stores the mode
+ * of its own project here, so concurrent runs for projects with different
+ * modes don't mix them up.
  *
- * It's undefined with Hardhat versions before the TypeScript modes, which
- * always use tsx.
+ * The mode is undefined with Hardhat versions before the TypeScript modes,
+ * which always use tsx, and when TypeChain is run by something else.
  */
-let typescriptMode: HardhatConfig["typescript"] | undefined;
+const typescriptModeStorage = new AsyncLocalStorage<
+  HardhatConfig["typescript"] | undefined
+>();
 
 export async function generateTypes(
   rootPath: string,
   config: TypechainConfig,
   noTypechain: boolean,
   artifactsPaths: string[],
-  projectTypescriptMode: HardhatConfig["typescript"] | undefined,
+  typescriptMode: HardhatConfig["typescript"] | undefined,
 ): Promise<void> {
   if (config.dontOverrideCompile === true || noTypechain === true) {
     // The typechain config is set to skip type generation during compilation
     return;
   }
-
-  typescriptMode = projectTypescriptMode;
 
   removePrettierTransformerIfPresent(typechainOutputTransformers);
   addCompiledFilesTransformerIfAbsent(typechainOutputTransformers);
@@ -61,7 +64,9 @@ export async function generateTypes(
     },
   };
 
-  const result = await runTypeChain(typechainOptions);
+  const result = await typescriptModeStorage.run(typescriptMode, () =>
+    runTypeChain(typechainOptions),
+  );
 
   log(`Successfully generated ${result.filesGenerated} typings!`);
 }
@@ -115,7 +120,7 @@ function addCompiledFilesTransformerIfAbsent(
   ) => {
     let modifiedContent = addJsExtensionsIfNeeded(output);
 
-    if (typescriptMode === "node") {
+    if (typescriptModeStorage.getStore() === "node") {
       modifiedContent = replaceJsExtensionsWithTs(modifiedContent);
     }
 

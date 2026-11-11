@@ -1,3 +1,5 @@
+import type { TypechainConfig } from "../src/types.js";
+
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import path from "node:path";
@@ -7,6 +9,7 @@ import { promisify } from "node:util";
 
 import {
   assertRejects,
+  createTmpDir,
   NO_TSX_HOOK_URL,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -19,6 +22,7 @@ import {
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatTypechain from "../src/index.js";
+import { generateTypes } from "../src/internal/generate-types.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -212,6 +216,54 @@ console.log(typeof types.A__factory, typeof types.factories.tokens.Token__factor
       );
 
       assert.equal(stdout.trim(), "function function");
+    });
+
+    describe("when the types of projects with different modes are generated concurrently", () => {
+      const tmpDir = createTmpDir("typechain-concurrent-modes", "test");
+
+      it("should use the mode of each project", async () => {
+        const artifactsPaths = await getAllFilesMatching(
+          path.join(process.cwd(), "artifacts", "contracts"),
+          (file) => file.endsWith(".json"),
+        );
+
+        const config: TypechainConfig = {
+          alwaysGenerateOverloads: false,
+          dontOverrideCompile: false,
+          discriminateTypes: false,
+          tsNocheck: false,
+        };
+
+        const tsxOutDir = path.join(tmpDir.path, "tsx");
+        const nodeOutDir = path.join(tmpDir.path, "node");
+
+        // The "node" run starts while the "tsx" one is still running
+        await Promise.all([
+          generateTypes(
+            process.cwd(),
+            { ...config, outDir: tsxOutDir },
+            false,
+            artifactsPaths,
+            "tsx",
+          ),
+          generateTypes(
+            process.cwd(),
+            { ...config, outDir: nodeOutDir },
+            false,
+            artifactsPaths,
+            "node",
+          ),
+        ]);
+
+        assert.deepEqual(
+          await getRelativeImportExtensions(tsxOutDir),
+          new Set(["js"]),
+        );
+        assert.deepEqual(
+          await getRelativeImportExtensions(nodeOutDir),
+          new Set(["ts"]),
+        );
+      });
     });
   });
 
@@ -705,3 +757,23 @@ console.log(typeof types.A__factory, typeof types.factories.tokens.Token__factor
     });
   });
 });
+
+/**
+ * Returns the extensions used by the relative imports and re-exports of the
+ * files in a directory.
+ */
+async function getRelativeImportExtensions(dir: string): Promise<Set<string>> {
+  const extensions = new Set<string>();
+
+  for (const file of await getAllFilesMatching(dir)) {
+    const content = await readUtf8File(file);
+
+    for (const match of content.matchAll(
+      /\bfrom\s+['"]\.\.?\/[^'"]*\.(\w+)['"]/g,
+    )) {
+      extensions.add(match[1]);
+    }
+  }
+
+  return extensions;
+}
