@@ -7,9 +7,10 @@ import { randomBytes } from "node:crypto";
 import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { readUtf8File, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { PLUGIN_ID } from "../constants.js";
+import { writeRestrictedUtf8File } from "../loaders/file-manager.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 
 export function getPasswordHandlers(
@@ -60,7 +61,7 @@ export async function setUpPasswordForDevKeystore(
 ): Promise<string> {
   const password = randomBytes(16).toString("hex");
 
-  await writeUtf8File(devPasswordFilePath, password);
+  await writeRestrictedUtf8File(devPasswordFilePath, password);
 
   return password;
 }
