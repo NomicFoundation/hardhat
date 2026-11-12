@@ -1,7 +1,9 @@
 import type { TypechainConfig } from "../types.js";
+import type { HardhatConfig } from "hardhat/types/config";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
 import type { OutputTransformer } from "typechain/dist/codegen/outputTransformers/index.js";
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -13,11 +15,26 @@ const log = createDebug("hardhat:typechain:generate-types");
 
 const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
 
+/**
+ * The TypeScript mode of the project whose types are being generated.
+ * TypeChain's output transformers are global, so the transformer that we add
+ * can't receive it as an argument. Instead, each TypeChain run stores the mode
+ * of its own project here, so concurrent runs for projects with different
+ * modes don't mix them up.
+ *
+ * The mode is undefined with Hardhat versions before the TypeScript modes,
+ * which always use tsx, and when TypeChain is run by something else.
+ */
+const typescriptModeStorage = new AsyncLocalStorage<
+  HardhatConfig["typescript"] | undefined
+>();
+
 export async function generateTypes(
   rootPath: string,
   config: TypechainConfig,
   noTypechain: boolean,
   artifactsPaths: string[],
+  typescriptMode: HardhatConfig["typescript"] | undefined,
 ): Promise<void> {
   if (config.dontOverrideCompile === true || noTypechain === true) {
     // The typechain config is set to skip type generation during compilation
@@ -47,7 +64,9 @@ export async function generateTypes(
     },
   };
 
-  const result = await runTypeChain(typechainOptions);
+  const result = await typescriptModeStorage.run(typescriptMode, () =>
+    runTypeChain(typechainOptions),
+  );
 
   log(`Successfully generated ${result.filesGenerated} typings!`);
 }
@@ -101,6 +120,10 @@ function addCompiledFilesTransformerIfAbsent(
   ) => {
     let modifiedContent = addJsExtensionsIfNeeded(output);
 
+    if (typescriptModeStorage.getStore() === "node") {
+      modifiedContent = replaceJsExtensionsWithTs(modifiedContent);
+    }
+
     modifiedContent = removeOutputObjectSemicolons(modifiedContent);
 
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
@@ -145,6 +168,29 @@ export function addJsExtensionsIfNeeded(content: string): string {
     jsExtensionRegex,
     (_match, imports, quote, importPath) =>
       `import ${imports} from ${quote}${importPath}/index.js${quote};`,
+  );
+}
+
+/**
+ * This function is exported solely for testing purposes.
+ *
+ * Replaces the `.js` extension of the relative imports and re-exports with
+ * `.ts`, as Node.js only runs TypeScript files imported with their own
+ * extension. For example:
+ *
+ * export { A__factory } from './factories/A__factory.js';
+ * will be converted into:
+ * export { A__factory } from './factories/A__factory.ts';
+ *
+ * Imports from npm packages, like "ethers", are left unchanged.
+ */
+export function replaceJsExtensionsWithTs(content: string): string {
+  const relativeJsImportRegex = /(\bfrom\s+)(['"])(\.\.?\/[^'"]*)\.js\2/g;
+
+  return content.replace(
+    relativeJsImportRegex,
+    (_match, from, quote, importPath) =>
+      `${from}${quote}${importPath}.ts${quote}`,
   );
 }
 

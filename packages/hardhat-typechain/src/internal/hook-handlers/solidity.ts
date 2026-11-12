@@ -16,6 +16,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
         context.config.typechain,
         context.globalOptions.noTypechain,
         [...artifactPaths],
+        context.config.typescript,
       );
     },
   };
