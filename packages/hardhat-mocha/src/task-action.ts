@@ -119,13 +119,18 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.startPhase("Mocha setup");
 
   if (hre.config.test.mocha.parallel === true) {
-    const imports = [];
+    // The workers only load tsx in the "tsx" TypeScript mode. In the "node"
+    // mode, Node.js strips the types, so the workers get the NODE_OPTIONS
+    // unchanged. The mode is undefined with older Hardhat versions, which
+    // always use tsx.
+    if (hre.config.typescript !== "node") {
+      const tsx = new URL(import.meta.resolve("tsx/esm"));
+      process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+    }
 
-    const tsx = new URL(import.meta.resolve("tsx/esm"));
     const unhandledRejectionHook = new URL(
       import.meta.resolve(unhandledRejectionHookPath),
     );
-    imports.push(tsx.href);
 
     hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
     hre.config.test.mocha.require.push(unhandledRejectionHook.href);
@@ -141,10 +146,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
       hre.config.test.mocha.require.push(testWorkerDone.href);
     }
-
-    process.env.NODE_OPTIONS = imports
-      .map((href) => `--import "${href}"`)
-      .join(" ");
   } else {
     // Import the handler directly when not running in parallel mode.
     // This must be a dynamic import because it's loaded for its side-effects
