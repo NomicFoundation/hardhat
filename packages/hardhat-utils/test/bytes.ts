@@ -38,6 +38,15 @@ describe("bytes", () => {
   });
 
   describe("setLengthLeft", () => {
+    it("Should truncate a Uint8Array to zero length", () => {
+      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
+      assert.deepEqual(setLengthLeft(bytes, 0), new Uint8Array());
+    });
+
+    it("Should return an empty Uint8Array for empty input and zero length", () => {
+      assert.deepEqual(setLengthLeft(new Uint8Array(), 0), new Uint8Array());
+    });
+
     it("Should pad a Uint8Array with zeros on the left", () => {
       const bytes = new Uint8Array([0x01, 0x02, 0x03]);
       const padded = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
