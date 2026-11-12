@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { exists, isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 
 // TODO: we should consider moving this to hardhat-utils
 /**
@@ -15,7 +16,8 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
  * @param modulePath The user-provided path to the module (relative or absolute).
  * @returns A promise that resolves to the module namespace object.
  * @throws {HardhatError}
- *   - ERR_MODULE_NOT_FOUND if the module file doesn’t exist
+ *   - ERR_MODULE_NOT_FOUND if the module file doesn’t exist. A missing file
+ *     that the module imports is an ERR_IMPORT_MODULE_FAILED instead.
  *   - ERR_MODULE_SYNTAX_ERROR if there’s a parse/syntax error in the module
  *   - ERR_IMPORT_MODULE_FAILED for any other import/runtime error
  */
@@ -37,7 +39,10 @@ export async function loadModule(
       (error.code === "ERR_MODULE_NOT_FOUND" ||
         // Loading a directory is valid, but if it doesn't have an index file,
         // you get this error
-        error.code === "ERR_UNSUPPORTED_DIR_IMPORT")
+        error.code === "ERR_UNSUPPORTED_DIR_IMPORT") &&
+      // If the module is a file, the error comes from a file that it imports,
+      // so it's reported as an import failure below
+      !(await isFile(moduleAbsolutePath))
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.MODULE_NOT_FOUND,
@@ -55,6 +60,11 @@ export async function loadModule(
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.IMPORT_MODULE_FAILED,
       { modulePath, errorMessage: error.message },
+      error,
     );
   }
+}
+
+async function isFile(absolutePath: string): Promise<boolean> {
+  return (await exists(absolutePath)) && !(await isDirectory(absolutePath));
 }
