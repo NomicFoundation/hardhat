@@ -104,6 +104,25 @@ describe("Hardhat Mocha plugin", () => {
         { errors },
       );
     });
+
+    it("should fail when paths.tests.mocha is not a string", async () => {
+      await assertRejectsWithHardhatError(
+        createHardhatRuntimeEnvironment({
+          plugins: [HardhatMochaPlugin],
+          paths: {
+            tests: {
+              // @ts-expect-error -- testing config validation
+              mocha: ["test/unit", "test/integration"],
+            },
+          },
+        }),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+        {
+          errors:
+            "\t* Config error in config.paths.tests.mocha: Expected string, received array",
+        },
+      );
+    });
   });
 
   describe("build invocation", () => {
