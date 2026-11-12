@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-keystore": patch
 ---
 
-Restricted keystore and development password file permissions to the current user.
+Restricted newly written keystore and development password files to the current user. Files written by earlier versions keep their existing permissions until they are written again.

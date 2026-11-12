@@ -583,7 +583,8 @@ export async function readUtf8File(
  * See https://nodejs.org/docs/latest-v20.x/api/fs.html#file-system-flags for more information.
  * @param options.mode The permissions to set on the file, e.g. `0o600`. It is applied even if the
  * file already exists, so it can be used to restrict a file created earlier. If not provided, a new
- * file gets the default permissions and an existing file keeps its own.
+ * file gets the default permissions and an existing file keeps its own. On filesystems that don't
+ * support POSIX permissions the mode is ignored and the write still succeeds.
  * @throws FileAlreadyExistsError if the file already exists and the flag "x" is used.
  * @throws FileSystemAccessError for any other error.
  */
@@ -609,7 +610,17 @@ export async function writeUtf8File(
     // The mode passed to writeFile is masked by the umask and ignored when the
     // file already exists, so set it explicitly.
     if (mode !== undefined) {
-      await fsPromises.chmod(absolutePathToFile, mode);
+      try {
+        await fsPromises.chmod(absolutePathToFile, mode);
+      } catch (chmodError) {
+        ensureNodeErrnoExceptionError(chmodError);
+        // Filesystems without POSIX permissions (e.g. a Windows drive mounted
+        // in WSL, or a network share) reject chmod. The data has already been
+        // written, so the mode is best-effort there.
+        if (chmodError.code !== "EPERM" && chmodError.code !== "ENOTSUP") {
+          throw chmodError;
+        }
+      }
     }
   } catch (e) {
     ensureNodeErrnoExceptionError(e);

@@ -1595,6 +1595,36 @@ describe("File system utils", () => {
       },
     );
 
+    for (const code of ["EPERM", "ENOTSUP"]) {
+      it(`Should still write the file when chmod fails with ${code}`, async (t) => {
+        const filePath = path.join(tmp.path, "file.txt");
+
+        t.mock.method(fsPromises, "chmod", async () => {
+          const error: NodeJS.ErrnoException = new Error(`chmod ${code}`);
+          error.code = code;
+          throw error;
+        });
+
+        await writeUtf8File(filePath, "hello", { mode: 0o600 });
+
+        assert.equal(await readUtf8File(filePath), "hello");
+      });
+    }
+
+    it("Should throw FileSystemAccessError when chmod fails with another error", async (t) => {
+      const filePath = path.join(tmp.path, "file.txt");
+
+      t.mock.method(fsPromises, "chmod", async () => {
+        const error: NodeJS.ErrnoException = new Error("chmod EIO");
+        error.code = "EIO";
+        throw error;
+      });
+
+      await assert.rejects(writeUtf8File(filePath, "hello", { mode: 0o600 }), {
+        name: "FileSystemAccessError",
+      });
+    });
+
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)
       const filePath = path.join(tmp.path, "invalid\0filename.txt");
