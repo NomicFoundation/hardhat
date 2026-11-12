@@ -38,7 +38,14 @@ describe("open on Windows", function () {
 
   afterEach(async function () {
     if (root !== undefined) {
-      await rm(root, { recursive: true, force: true });
+      // The probe writes its marker just before exiting, and Windows keeps a
+      // running executable locked, so the first attempts can fail with EPERM
+      await rm(root, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 100,
+      });
     }
   });
 
