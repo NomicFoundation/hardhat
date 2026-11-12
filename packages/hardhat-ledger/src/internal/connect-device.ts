@@ -15,6 +15,7 @@ import {
   SignerEthBuilder,
   usb,
 } from "./dmk-imports.js";
+import { offlineContextModule } from "./offline-context-module.js";
 
 const log = createDebug("hardhat:ledger:connect-device");
 
@@ -72,7 +73,10 @@ export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
       sessionRefresherOptions: { isRefresherDisabled: true },
     });
 
-    const signer: SignerEth = new SignerEthBuilder({ dmk, sessionId }).build();
+    // Clear signing and Ledger's signing analytics both need Ledger's servers.
+    const signer: SignerEth = new SignerEthBuilder({ dmk, sessionId })
+      .withContextModule(offlineContextModule)
+      .build();
 
     return openedDevice(dmk, sessionId, signer);
   } catch (thrown) {

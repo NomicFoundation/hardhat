@@ -84,4 +84,34 @@ describe("connectDevice lifecycle", () => {
     assert.equal(process.listenerCount("exit"), exitListenersBefore + 1);
     assert.equal(hotplugUnrefCount, 1);
   });
+
+  it("should build the signer with the context module that never contacts Ledger", async () => {
+    const { connectDevice } = await loadConnectDevice();
+    const { SignerEthBuilder } =
+      await import("../../src/internal/dmk-imports.js");
+    const { offlineContextModule } =
+      await import("../../src/internal/offline-context-module.js");
+
+    const contextModules: unknown[] = [];
+    const originalWithContextModule =
+      SignerEthBuilder.prototype.withContextModule;
+
+    SignerEthBuilder.prototype.withContextModule = function (contextModule) {
+      contextModules.push(contextModule);
+
+      return originalWithContextModule.call(this, contextModule);
+    };
+
+    try {
+      hidDevices = [NANO_X_HID_DEVICE];
+
+      const device = await connectDevice(1000);
+
+      await device.close();
+    } finally {
+      SignerEthBuilder.prototype.withContextModule = originalWithContextModule;
+    }
+
+    assert.deepEqual(contextModules, [offlineContextModule]);
+  });
 });
