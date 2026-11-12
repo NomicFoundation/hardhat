@@ -90,6 +90,24 @@ describe("utils", () => {
       );
     });
 
+    it("should throw an import error if a file imported by the module does not exist", async () => {
+      const modulePath =
+        "./test/fixture-projects/load-module/module-with-missing-import.js";
+      const missingModulePath = path.resolve(
+        process.cwd(),
+        "./test/fixture-projects/load-module/missing-module.js",
+      );
+
+      await assertRejectsWithHardhatError(
+        loadModule(modulePath),
+        HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.IMPORT_MODULE_FAILED,
+        {
+          modulePath,
+          errorMessage: `Cannot find module '${missingModulePath}' imported from ${path.resolve(process.cwd(), modulePath)}`,
+        },
+      );
+    });
+
     it("should throw an error if the module has a syntax error", async () => {
       const modulePath =
         "./test/fixture-projects/load-module/module-with-syntax-error.js";
