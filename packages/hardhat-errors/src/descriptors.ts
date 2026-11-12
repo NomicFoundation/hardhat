@@ -3463,17 +3463,16 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
       },
-      ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH: {
+      ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME: {
         number: 90010,
-        messageTemplate: `The Ledger did not sign the typed data you requested for {address}, so Hardhat discarded the signature. Rename any field named only with digits (e.g. "123") or "__proto__", and check that the connected Ledger holds this account.`,
-        websiteTitle: `The Ledger did not sign the requested typed data`,
-        websiteDescription: `The signature returned by your Ledger is not a signature of the typed data you sent by the account you requested, so Hardhat discarded it.
+        messageTemplate: `The typed data uses the name "{name}", which a Ledger can't sign. Type and field names can't be only digits or "__proto__", and a type can't declare the same field twice.`,
+        websiteTitle: `The typed data uses a name a Ledger can't sign`,
+        websiteDescription: `The typed data you asked a Ledger to sign uses a type or field name that the Ledger signing library can't encode as written, so Hardhat rejected it before asking the device.
 
-To fix it:
-- Rename any field whose name is only digits (e.g. "123") or is "__proto__". The Ledger can't sign these fields as sent.
-- Check that the connected Ledger, and its passphrase if you use one, holds the account you are signing with.
-
-If neither applies, please [report it](https://github.com/NomicFoundation/hardhat/issues/new) with the typed data.`,
+Rename the type or field. A Ledger can't sign typed data where:
+- A type or field name is only digits, e.g. "123".
+- A type or field name is "__proto__".
+- A type declares the same field name more than once.`,
       },
       CONNECTION_CLOSED: {
         number: 90011,

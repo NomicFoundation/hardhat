@@ -4,13 +4,14 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
- * Parses and validates `eth_signTypedData_v4` input for the DMK. The handler
- * verifies the final signature against the original data.
+ * Parses and validates `eth_signTypedData_v4` input for the DMK.
  *
  * @param data The `data` parameter, either a JSON string or an object.
  *
  * @throws ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM if it is not shaped like
  * EIP-712 typed data.
+ * @throws ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME if it uses a type or field
+ * name the signer kit cannot encode as written.
  */
 export function toTypedData(data: string | object): TypedData {
   let parsed: unknown;
@@ -37,6 +38,8 @@ export function toTypedData(data: string | object): TypedData {
   ) {
     throwInvalidDataParam();
   }
+
+  assertNamesSupported(types);
 
   assertValuesSurvivedParsing(message);
   assertValuesSurvivedParsing(domain);
@@ -72,6 +75,43 @@ function isTypeDefinitions(types: unknown): types is TypedData["types"] {
         ),
     )
   );
+}
+
+/**
+ * Rejects type and field names that the signer kit's typed-data parser
+ * encodes differently from how they are declared, so the device would sign
+ * data other than what was requested.
+ *
+ * The parser copies each type's field list into a plain object and walks its
+ * keys. Plain objects list integer-like keys first, assigning `__proto__`
+ * sets the prototype instead of adding a key, and a repeated key keeps only
+ * its last value. The same happens to type names, which become keys of the
+ * same kind of object.
+ */
+function assertNamesSupported(types: TypedData["types"]): void {
+  for (const [typeName, fields] of Object.entries(types)) {
+    assertNameSupported(typeName);
+
+    const fieldNames = new Set<string>();
+
+    for (const { name } of fields) {
+      assertNameSupported(name);
+
+      if (fieldNames.has(name)) {
+        throwUnsupportedName(name);
+      }
+
+      fieldNames.add(name);
+    }
+  }
+}
+
+function assertNameSupported(name: string): void {
+  // Any all-digit name is rejected, not only those that JavaScript reorders,
+  // so the rule stays easy to state.
+  if (/^\d+$/.test(name) || name === "__proto__") {
+    throwUnsupportedName(name);
+  }
 }
 
 /**
@@ -128,6 +168,14 @@ function toChainId(chainId: unknown): number {
   }
 
   throwInvalidDataParam();
+}
+
+function throwUnsupportedName(name: string): never {
+  throw new HardhatError(
+    HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+      .ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME,
+    { name },
+  );
 }
 
 function throwInvalidDataParam(): never {

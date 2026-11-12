@@ -201,4 +201,88 @@ describe("toTypedData", () => {
     // The walk skips objects it has already seen.
     assert.equal(toTypedData({ ...DATA, message }).message, message);
   });
+
+  describe("names the Ledger cannot sign", () => {
+    function assertUnsupportedName(data: string | object, name: string): void {
+      assertThrowsHardhatError(
+        () => toTypedData(data),
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+          .ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME,
+        { name },
+      );
+    }
+
+    /** `DATA` with `Mail` declaring the given fields. */
+    function withMailFields(fields: Array<{ name: string; type: string }>) {
+      return { ...DATA, types: { ...TYPES, Mail: fields } };
+    }
+
+    it("should reject a field name made only of digits", () => {
+      assertUnsupportedName(
+        withMailFields([
+          { name: "contents", type: "string" },
+          { name: "123", type: "string" },
+        ]),
+        "123",
+      );
+
+      // Rejected too, although JavaScript keeps it in place.
+      assertUnsupportedName(
+        withMailFields([{ name: "01", type: "string" }]),
+        "01",
+      );
+    });
+
+    it("should reject a field name made only of digits in the domain", () => {
+      assertUnsupportedName(
+        {
+          ...DATA,
+          types: {
+            ...TYPES,
+            EIP712Domain: [...DOMAIN_TYPE, { name: "0", type: "string" }],
+          },
+        },
+        "0",
+      );
+    });
+
+    it("should reject __proto__ as a field name", () => {
+      // Parsed from JSON, so `__proto__` is an ordinary own key.
+      assertUnsupportedName(
+        JSON.stringify(withMailFields([{ name: "__proto__", type: "string" }])),
+        "__proto__",
+      );
+    });
+
+    it("should reject a type name made only of digits or __proto__", () => {
+      for (const typeName of ["123", "__proto__"]) {
+        assertUnsupportedName(
+          `{"types":{"EIP712Domain":[{"name":"name","type":"string"}],"Mail":[{"name":"contents","type":"string"}],"${typeName}":[{"name":"x","type":"uint256"}]},"primaryType":"Mail","domain":{"name":"Ether Mail"},"message":{"contents":"Hello, Bob!"}}`,
+          typeName,
+        );
+      }
+    });
+
+    it("should reject a type that declares the same field twice", () => {
+      assertUnsupportedName(
+        withMailFields([
+          { name: "contents", type: "string" },
+          { name: "contents", type: "string" },
+        ]),
+        "contents",
+      );
+    });
+
+    it("should accept names that contain digits but are not only digits", () => {
+      const data = {
+        ...withMailFields([
+          { name: "field1", type: "string" },
+          { name: "_2", type: "string" },
+        ]),
+        message: { field1: "a", _2: "b" },
+      };
+
+      assert.deepEqual(toTypedData(data), data);
+    });
+  });
 });

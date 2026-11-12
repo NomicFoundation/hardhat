@@ -775,32 +775,7 @@ describe("LedgerHandler", () => {
         );
       });
 
-      it("should reject a signature that is not over the requested typed data", async () => {
-        // A signature over different data recovers to another address.
-        const [deviceFactory, calls] = getLedgerDeviceMock({
-          getAddress: findAccountAt(derPath, typedDataSigner),
-          signTypedData: { result: rsv },
-        });
-
-        ledgerHandler = createHandler({ deviceFactory });
-
-        await assertRejectsWithHardhatError(
-          () =>
-            ledgerHandler.handle(
-              createJsonRpcRequest("eth_signTypedData_v4", [
-                typedDataSigner.address,
-                typedMessage,
-              ]),
-            ),
-          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
-            .ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH,
-          { address: typedDataSigner.address },
-        );
-
-        assert.equal(calls.signTypedData.totalCalls, 1, "It must not retry");
-      });
-
-      it("should reject typed data that cannot be hashed faithfully", async () => {
+      it("should reject a type and field name the Ledger cannot sign before asking the device", async () => {
         // The signer keeps only the last duplicate field.
         const [deviceFactory, calls] = getLedgerDeviceMock({
           getAddress: findAccountAt(derPath, typedDataSigner),
@@ -827,8 +802,8 @@ describe("LedgerHandler", () => {
               ]),
             ),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
-            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
-          {},
+            .ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME,
+          { name: "contents" },
         );
 
         assert.equal(
