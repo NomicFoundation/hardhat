@@ -546,6 +546,99 @@ describe("LedgerHandler", () => {
     });
   });
 
+  describe("session per request", () => {
+    it("should release the session after each signing request and reconnect for the next", async () => {
+      const state = createDeviceFactoryState();
+      const [deviceFactory, calls] = getLedgerDeviceMock(
+        {
+          getAddress: findAccountAt(derPath),
+          signMessage: { result: rsv },
+        },
+        { state },
+      );
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      await ledgerHandler.handle(personalSignRequest);
+
+      assert.equal(state.connectCount, 1);
+      assert.equal(
+        state.closeCount,
+        1,
+        "The session must not outlive the request",
+      );
+
+      await ledgerHandler.handle(personalSignRequest);
+
+      assert.equal(state.connectCount, 2);
+      assert.equal(state.closeCount, 2);
+      assert.equal(calls.signMessage.totalCalls, 2);
+    });
+
+    it("should release the session when the request fails", async () => {
+      const state = createDeviceFactoryState();
+      const [deviceFactory] = getLedgerDeviceMock(
+        {
+          getAddress: findAccountAt(derPath),
+          signMessage: {
+            result: rsv,
+            errorSequenceToEmit: [ETH_APP_REJECTED_ERROR],
+          },
+        },
+        { state },
+      );
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      await assertRejects(
+        () => ledgerHandler.handle(personalSignRequest),
+        isRequestRejectedError,
+        "It should be a REQUEST_REJECTED error with code 4001",
+      );
+
+      assert.equal(state.connectCount, 1);
+      assert.equal(state.closeCount, 1);
+    });
+
+    it("should not open a session for a request that needs no signature", async () => {
+      const state = createDeviceFactoryState();
+      const [deviceFactory] = getLedgerDeviceMock({}, { state });
+
+      ledgerHandler = createHandler({ deviceFactory });
+
+      await ledgerHandler.handle(createJsonRpcRequest("eth_blockNumber"));
+
+      assert.equal(state.connectCount, 0);
+    });
+
+    it("should announce only the first connection", async () => {
+      const messages: string[] = [];
+      const [deviceFactory] = getLedgerDeviceMock({
+        getAddress: findAccountAt(derPath),
+        signMessage: { result: rsv },
+      });
+
+      ledgerHandler = createHandler(
+        { deviceFactory },
+        async (_interruptor, message) => {
+          messages.push(message);
+        },
+      );
+
+      await ledgerHandler.handle(personalSignRequest);
+      await ledgerHandler.handle(personalSignRequest);
+
+      assert.equal(
+        messages.filter((m) => m === "Connecting to Ledger...").length,
+        1,
+      );
+      assert.equal(
+        messages.filter((m) => m === "Connection successful").length,
+        1,
+      );
+    });
+  });
+
   describe("request", () => {
     it("should forward the request without modifying it for the unsupported JSONRPC methods", async () => {
       ledgerHandler = createHandler();

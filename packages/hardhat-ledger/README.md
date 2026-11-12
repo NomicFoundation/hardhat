@@ -80,23 +80,18 @@ Usage Example with Viem:
 import hre from "hardhat";
 import { stringToHex } from "viem";
 
-const connection = await hre.network.create("yourNetworkName");
+const { viem } = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-try {
-  const [senderClient] = await connection.viem.getWalletClients();
+const [senderClient] = await viem.getWalletClients();
 
-  const hexMsg = stringToHex("Hello world");
+const hexMsg = stringToHex("Hello world");
 
-  const signature = await senderClient.request({
-    method: "eth_sign",
-    params: [ledgerAddress, hexMsg],
-  });
-} finally {
-  // Hardhat cannot exit while the Ledger connection is open (see below).
-  await connection.close();
-}
+const signature = await senderClient.request({
+  method: "eth_sign",
+  params: [ledgerAddress, hexMsg],
+});
 ```
 
 Usage Example with the provider:
@@ -104,38 +99,15 @@ Usage Example with the provider:
 ```typescript
 import hre from "hardhat";
 
-const connection = await hre.network.create("yourNetworkName");
+const { provider, ethers } = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
-try {
-  const msg = connection.ethers.toUtf8Bytes("Hello world");
-  const hexMsg = connection.ethers.hexlify(msg);
+const msg = ethers.toUtf8Bytes("Hello world");
+const hexMsg = ethers.hexlify(msg);
 
-  const signature = await connection.provider.request({
-    method: "eth_sign",
-    params: [ledgerAddress, hexMsg],
-  });
-} finally {
-  // Hardhat cannot exit while the Ledger connection is open (see below).
-  await connection.close();
-}
+const signature = await provider.request({
+  method: "eth_sign",
+  params: [ledgerAddress, hexMsg],
+});
 ```
-
-## Closing the connection
-
-Hardhat cannot exit while the connection to your Ledger is open, and it does not close network connections on its own. Once your script has finished using the Ledger, close the connection:
-
-```typescript
-const connection = await hre.network.create("yourNetworkName");
-
-try {
-  // ... sign and send transactions ...
-} finally {
-  await connection.close();
-}
-```
-
-Without it, the process keeps running after your script ends until you stop it with Ctrl+C.
-
-Hardhat Ignition closes the connection for you at the end of `ignition deploy`, `ignition track-tx` and `ignition verify`.
