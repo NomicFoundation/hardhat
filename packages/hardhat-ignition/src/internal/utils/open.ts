@@ -5,7 +5,8 @@ export function open(filePath: string): void {
   let command: string;
   switch (os.platform()) {
     case "win32":
-      command = "start";
+      // `start` treats its first quoted argument as the window title
+      command = 'start ""';
       break;
     case "darwin":
       command = "open";
@@ -15,7 +16,7 @@ export function open(filePath: string): void {
   }
 
   try {
-    execSync(`${command} ${filePath}`, { stdio: "ignore" });
+    execSync(`${command} "${filePath}"`, { stdio: "ignore" });
   } catch {
     // do nothing
   }
