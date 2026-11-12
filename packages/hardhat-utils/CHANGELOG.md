@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.1.2
+
+### Patch Changes
+
+- [#8748](https://github.com/NomicFoundation/hardhat/pull/8748) [`e2c81c4`](https://github.com/NomicFoundation/hardhat/commit/e2c81c4e8a2ddb951e525f8f91811b7911e5e2e7) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fixed `encodeAbiParameters` accepting the invalid types `bytes01` to `bytes09` as `bytes1` to `bytes9`.
+
+- [#8755](https://github.com/NomicFoundation/hardhat/pull/8755) [`5c2887e`](https://github.com/NomicFoundation/hardhat/commit/5c2887ea05a2881b6196218493183927850c934e) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Made the `kind` argument of `isAbiEncodingError` optional, so it can check for an ABI encoding error of any kind.
+
+- [#8748](https://github.com/NomicFoundation/hardhat/pull/8748) [`cd4987c`](https://github.com/NomicFoundation/hardhat/commit/cd4987c947b1ce8f1a5da63b8b8e5f65950a2606) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added functions to parse human-readable ABI signatures and parameters, and compute their selectors and event topics.
+
+- [#8712](https://github.com/NomicFoundation/hardhat/pull/8712) [`665c386`](https://github.com/NomicFoundation/hardhat/commit/665c386fc8f62c77e47d180ef31d41cfef5dc04d) Thanks [@schaable](https://github.com/schaable)! - Improved the reliability of network requests on slow or unstable connections.
+
+- [#8838](https://github.com/NomicFoundation/hardhat/pull/8838) [`9d453de`](https://github.com/NomicFoundation/hardhat/commit/9d453de8770f394b966e4592dee22c79fb98f0b2) Thanks [@zjuncal](https://github.com/zjuncal)! - Fixed `setLengthLeft` returning the whole byte array instead of an empty array when truncating to a length of `0`.
+
 ## 5.1.1
 
 ### Patch Changes
