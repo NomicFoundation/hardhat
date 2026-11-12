@@ -63,6 +63,12 @@ async function getFileHandlePrototype(filePath: string): Promise<FileHandle> {
   }
 }
 
+async function getMode(absolutePath: string): Promise<number> {
+  const stats = await fsPromises.stat(absolutePath);
+  // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
+  return stats.mode & 0o777;
+}
+
 function withUnknownDirentType(dirent: Dirent): Dirent {
   const cloned: Dirent = Object.create(dirent);
   cloned.isDirectory = () => false;
@@ -1143,6 +1149,19 @@ describe("File system utils", () => {
   });
 
   describe("writeJsonFile", () => {
+    it(
+      "Should allow setting the mode",
+      { skip: process.platform === "win32" },
+      async () => {
+        const filePath = path.join(tmp.path, "file.json");
+
+        await writeJsonFile(filePath, { a: 1 }, { mode: 0o600 });
+
+        assert.deepEqual(await readJsonFile(filePath), { a: 1 });
+        assert.equal(await getMode(filePath), 0o600);
+      },
+    );
+
     it("Should write an object to a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
       const filePath = path.join(tmp.path, "file.json");
@@ -1533,7 +1552,7 @@ describe("File system utils", () => {
       const filePath = path.join(tmp.path, "file.txt");
 
       await writeUtf8File(filePath, content);
-      await writeUtf8File(filePath, content, "a");
+      await writeUtf8File(filePath, content, { flag: "a" });
 
       assert.equal(await readUtf8File(filePath), `${content}${content}`);
     });
@@ -1542,11 +1561,39 @@ describe("File system utils", () => {
       const filePath = path.join(tmp.path, "file.txt");
       await writeUtf8File(filePath, "hello");
 
-      await assert.rejects(writeUtf8File(filePath, "hello", "wx"), {
+      await assert.rejects(writeUtf8File(filePath, "hello", { flag: "wx" }), {
         name: "FileAlreadyExistsError",
         message: `File ${filePath} already exists`,
       });
     });
+
+    it(
+      "Should create the file with the given mode",
+      { skip: process.platform === "win32" },
+      async () => {
+        const filePath = path.join(tmp.path, "file.txt");
+
+        await writeUtf8File(filePath, "hello", { mode: 0o600 });
+
+        assert.equal(await readUtf8File(filePath), "hello");
+        assert.equal(await getMode(filePath), 0o600);
+      },
+    );
+
+    it(
+      "Should apply the mode to a file that already exists",
+      { skip: process.platform === "win32" },
+      async () => {
+        const filePath = path.join(tmp.path, "file.txt");
+        await writeUtf8File(filePath, "hello");
+        await chmod(filePath, 0o644);
+
+        await writeUtf8File(filePath, "world", { mode: 0o600 });
+
+        assert.equal(await readUtf8File(filePath), "world");
+        assert.equal(await getMode(filePath), 0o600);
+      },
+    );
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)

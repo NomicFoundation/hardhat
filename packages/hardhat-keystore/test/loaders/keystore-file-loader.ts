@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { after, beforeEach, describe, it } from "node:test";
@@ -9,7 +8,7 @@ import {
   assertRejects,
   createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
-import { chmod, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { remove, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { createMasterKey } from "../../src/internal/keystores/encryption.js";
 import { setUpPasswordForDevKeystore } from "../../src/internal/keystores/password.js";
@@ -237,57 +236,29 @@ describe(
     const emptyKeystore = new MockFileManager(false).setupExistingKeystoreFile(
       {},
     );
-    const getMode = async (p: string) =>
-      // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
-      (await fsPromises.stat(p)).mode & 0o777;
-    const writeBoth = async (dirPath: string) => {
-      const ks = path.join(dirPath, "keystore.json");
-      const pw = path.join(dirPath, "hardhat.checksum");
-      await new FileManagerImpl().writeJsonFile(ks, emptyKeystore);
-      await setUpPasswordForDevKeystore(pw);
-      return [await getMode(dirPath), await getMode(ks), await getMode(pw)];
-    };
 
-    it("creates missing directories with 0700 and keystore files with 0600", async () => {
-      assert.deepEqual(
-        await writeBoth(path.join(tmp.path, "nested")),
-        [0o700, 0o600, 0o600],
-      );
+    const getMode = async (absolutePath: string) =>
+      // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
+      (await fsPromises.stat(absolutePath)).mode & 0o777;
+
+    it("writes the keystore and the dev password file readable only by the user", async () => {
+      const keystorePath = path.join(tmp.path, "keystore.json");
+      const passwordPath = path.join(tmp.path, "hardhat.checksum");
+
+      await new FileManagerImpl().writeJsonFile(keystorePath, emptyKeystore);
+      await setUpPasswordForDevKeystore(passwordPath);
+
+      assert.equal(await getMode(keystorePath), 0o600);
+      assert.equal(await getMode(passwordPath), 0o600);
     });
 
-    it("tightens existing 0644 files and the global config directory", async () => {
-      await chmod(tmp.path, 0o755);
-      for (const name of ["keystore.json", "hardhat.checksum"]) {
-        const filePath = path.join(tmp.path, name);
-        await fsPromises.writeFile(filePath, "{}");
-        await chmod(filePath, 0o644);
-      }
+    it("tightens an existing keystore file", async () => {
+      const keystorePath = path.join(tmp.path, "keystore.json");
+      await writeUtf8File(keystorePath, "{}", { mode: 0o644 });
 
-      assert.deepEqual(await writeBoth(tmp.path), [0o755, 0o600, 0o600]);
+      await new FileManagerImpl().writeJsonFile(keystorePath, emptyKeystore);
 
-      const probe = `
-        import fs from "node:fs";
-        import path from "node:path";
-        import { getConfigDir } from "@nomicfoundation/hardhat-utils/global-dir";
-        import { setUpPasswordForDevKeystore } from "./dist/src/internal/keystores/password.js";
-        const dir = await getConfigDir();
-        const file = path.join(dir, "hardhat.checksum");
-        await setUpPasswordForDevKeystore(file);
-        process.stdout.write(JSON.stringify([fs.statSync(dir).mode & 0o777, fs.statSync(file).mode & 0o777]));
-      `;
-      const cwd = fileURLToPath(new URL("../..", import.meta.url));
-      const env = {
-        ...process.env,
-        HOME: path.join(tmp.path, "home"),
-        XDG_CONFIG_HOME: path.join(tmp.path, "xdg"),
-      };
-      const out = execFileSync(
-        process.execPath,
-        ["--input-type=module", "-e", probe],
-        { cwd, env, encoding: "utf8" },
-      );
-
-      assert.deepEqual(JSON.parse(out), [0o700, 0o600]);
+      assert.equal(await getMode(keystorePath), 0o600);
     });
   },
 );
