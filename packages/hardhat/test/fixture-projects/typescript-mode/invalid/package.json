@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "hardhat": {
+    "typescript": "deno"
+  }
+}

@@ -160,6 +160,7 @@ describe("NetworkManagerImplementation", () => {
       hre.globalOptions.config,
       hre.config.paths.root,
       hre.globalOptions.verbosity,
+      hre.config.typescript,
     );
   });
 
@@ -923,6 +924,7 @@ describe("NetworkManagerImplementation", () => {
         hre.globalOptions.config,
         hre.config.paths.root,
         hre.globalOptions.verbosity,
+        hre.config.typescript,
       );
     });
 
@@ -1002,6 +1004,7 @@ describe("NetworkManagerImplementation", () => {
         hre.globalOptions.config,
         hre.config.paths.root,
         hre.globalOptions.verbosity,
+        hre.config.typescript,
       );
     });
 
@@ -1093,6 +1096,7 @@ describe("NetworkManagerImplementation", () => {
         hre.globalOptions.config,
         hre.config.paths.root,
         hre.globalOptions.verbosity,
+        hre.config.typescript,
       );
     });
 

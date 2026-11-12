@@ -22,6 +22,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
+import type { TypeScriptMode } from "../../core/typescript-mode.js";
 import type { ContractDecoder, GasReportConfig } from "@nomicfoundation/edr";
 
 import {
@@ -61,6 +62,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #userProvidedConfigPath: Readonly<string | undefined>;
   readonly #projectRoot: string;
   readonly #verbosity: number;
+  readonly #typescriptMode: TypeScriptMode;
 
   #connectCalled = false;
 
@@ -87,6 +89,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     userProvidedConfigPath: string | undefined,
     projectRoot: string,
     verbosity: number,
+    typescriptMode: TypeScriptMode,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
@@ -98,6 +101,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#userProvidedConfigPath = userProvidedConfigPath;
     this.#projectRoot = projectRoot;
     this.#verbosity = verbosity;
+    this.#typescriptMode = typescriptMode;
   }
 
   public async create<ChainTypeT extends ChainType | string = DefaultChainType>(
@@ -499,6 +503,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       this.#projectRoot,
       this.#userProvidedConfigPath,
       resolvedPlugins,
+      this.#typescriptMode,
     );
 
     if (!configResolutionResult.success) {

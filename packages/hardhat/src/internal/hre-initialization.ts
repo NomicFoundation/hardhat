@@ -15,6 +15,7 @@ import {
   HardhatRuntimeEnvironmentImplementation,
 } from "./core/hre.js";
 import { resolvePluginList } from "./core/plugins/resolve-plugin-list.js";
+import { readTypeScriptMode } from "./core/typescript-mode.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
@@ -87,12 +88,16 @@ export async function getOrCreateGlobalHardhatRuntimeEnvironment(): Promise<Hard
 
   const configPath = await resolveHardhatConfigPath();
   const projectRoot = await resolveProjectRoot(configPath);
+  // Read before importing the config, so that an invalid mode is reported
+  // before the config runs, as the CLI does
+  const typescript = await readTypeScriptMode(projectRoot);
   const userConfig = await importUserConfig(configPath);
 
   globalHre = await createHardhatRuntimeEnvironment(
     userConfig,
     { config: configPath },
     projectRoot,
+    { typescript },
   );
 
   setGlobalHardhatRuntimeEnvironment(globalHre);

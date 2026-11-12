@@ -1,3 +1,5 @@
+import type { TypeScriptMode } from "../../../core/typescript-mode.js";
+
 export interface AnalyticsFile {
   analytics: {
     clientId: string;
@@ -40,6 +42,9 @@ export type AnalyticsEvent =
         // The CLI surface that ran the task, so `hhu` usage can be measured
         // separately from the `hardhat` CLI.
         command: "hardhat" | "hhu";
+        // The project's TypeScript mode, so its adoption can be measured.
+        // `hhu` runs without a project, so it doesn't send it.
+        typescriptMode?: TypeScriptMode;
       };
     }
   | {

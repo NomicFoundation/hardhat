@@ -150,6 +150,30 @@ describe("analytics", () => {
       );
       assert.equal(result.events[0].params.task, "task, subtask");
       assert.equal(result.events[0].params.command, "hhu");
+      assert.ok(
+        !("typescriptMode" in result.events[0].params),
+        "params shouldn't have a typescriptMode field",
+      );
+    });
+
+    it("should include the TypeScript mode in the task analytics", async () => {
+      const wasSent = await sendTaskAnalytics(
+        ["task", "subtask"],
+        "hardhat",
+        "node",
+      );
+
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+
+      const result: Payload = await readJsonFile(RESULT_FILE_PATH);
+
+      assert.equal(wasSent, true);
+      assert.equal(result.events[0].name, "task");
+      assert(
+        "typescriptMode" in result.events[0].params,
+        "params should have a typescriptMode field",
+      );
+      assert.equal(result.events[0].params.typescriptMode, "node");
     });
 
     it("should create the correct payload for the init analytics", async () => {

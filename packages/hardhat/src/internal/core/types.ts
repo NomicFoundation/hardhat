@@ -1,3 +1,4 @@
+import type { TypeScriptMode } from "./typescript-mode.js";
 import type { GlobalOptionDefinitions } from "../../types/global-options.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 
@@ -8,4 +9,5 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 export interface UnsafeHardhatRuntimeEnvironmentOptions {
   resolvedPlugins?: HardhatPlugin[];
   globalOptionDefinitions?: GlobalOptionDefinitions;
+  typescript?: TypeScriptMode;
 }
