@@ -1,52 +1,72 @@
-import childProcess from "node:child_process";
-import { syncBuiltinESMExports } from "node:module";
-import os from "node:os";
+import type { OpenCommand } from "../../src/internal/utils/open.js";
 
 import { assert } from "chai";
-import sinon from "sinon";
 
-import { open } from "../../src/internal/utils/open.js";
+import { getOpenCommand } from "../../src/internal/utils/open.js";
 
-describe("open", function () {
-  let execSyncStub: sinon.SinonStub;
+describe("getOpenCommand", function () {
+  it("should quote a Windows path without spaces", function () {
+    const filePath = "C:\\R&D\\project\\cache\\visualization\\index.html";
 
-  beforeEach(function () {
-    execSyncStub = sinon.stub(childProcess, "execSync");
-    // open.ts uses a named import, so the stub has to be synced into it
-    syncBuiltinESMExports();
+    assert.deepEqual(getOpenCommand("win32", filePath).args, [
+      "/d",
+      "/s",
+      "/c",
+      `"start "" "${filePath}""`,
+    ]);
   });
 
-  afterEach(function () {
-    execSyncStub.restore();
-    syncBuiltinESMExports();
-  });
+  it("should pass shell metacharacters through on macOS and Linux", function () {
+    const filePath = '/home/john/a "quoted" $(dir)/`x`/index.html';
 
-  const cases: Array<[NodeJS.Platform, string, string]> = [
-    [
-      "win32",
-      "C:\\Users\\John Doe\\project\\cache\\visualization\\index.html",
-      'start "" "C:\\Users\\John Doe\\project\\cache\\visualization\\index.html"',
-    ],
-    [
-      "darwin",
-      "/Users/john/My Projects/project/cache/visualization/index.html",
-      'open "/Users/john/My Projects/project/cache/visualization/index.html"',
-    ],
-    [
-      "linux",
-      "/home/john/My Projects/project/cache/visualization/index.html",
-      'xdg-open "/home/john/My Projects/project/cache/visualization/index.html"',
-    ],
-  ];
-
-  for (const [platform, filePath, expectedCommand] of cases) {
-    it(`should quote a path with spaces on ${platform}`, function () {
-      sinon.stub(os, "platform").returns(platform);
-
-      open(filePath);
-
-      assert.equal(execSyncStub.callCount, 1);
-      assert.equal(execSyncStub.firstCall.args[0], expectedCommand);
+    assert.deepEqual(getOpenCommand("linux", filePath), {
+      file: "xdg-open",
+      args: [filePath],
     });
-  }
+  });
+
+  describe("paths containing spaces", function () {
+    const cases: Array<[NodeJS.Platform, string, OpenCommand]> = [
+      [
+        "win32",
+        "C:\\Users\\John Doe\\project\\cache\\visualization\\index.html",
+        {
+          file: "cmd",
+          args: [
+            "/d",
+            "/s",
+            "/c",
+            '"start "" "C:\\Users\\John Doe\\project\\cache\\visualization\\index.html""',
+          ],
+          windowsVerbatimArguments: true,
+        },
+      ],
+      [
+        "darwin",
+        "/Users/john/My Projects/project/cache/visualization/index.html",
+        {
+          file: "open",
+          args: [
+            "/Users/john/My Projects/project/cache/visualization/index.html",
+          ],
+        },
+      ],
+      [
+        "linux",
+        "/home/john/My Projects/project/cache/visualization/index.html",
+        {
+          file: "xdg-open",
+          args: [
+            "/home/john/My Projects/project/cache/visualization/index.html",
+          ],
+        },
+      ],
+    ];
+
+    for (const [platform, filePath, expected] of cases) {
+      it(`should open a path with spaces on ${platform}`, function () {
+        assert.deepEqual(getOpenCommand(platform, filePath), expected);
+      });
+    }
+  });
 });
