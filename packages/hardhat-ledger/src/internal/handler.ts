@@ -1,4 +1,4 @@
-import type { Signature } from "./dmk-imports.js";
+import type { Signature, TypedData } from "./dmk-imports.js";
 import type { DeviceAction } from "./run-device-action.js";
 import type {
   LedgerDevice,
@@ -12,6 +12,7 @@ import type {
   JsonRpcResponse,
 } from "hardhat/types/providers";
 import type * as MicroEthSignerT from "micro-eth-signer";
+import type * as MicroEthSignerTypedDataT from "micro-eth-signer/typed-data";
 import type * as MicroEthSignerUtilsT from "micro-eth-signer/utils";
 
 import {
@@ -58,6 +59,7 @@ const log = createDebug("hardhat:ledger:handler");
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
+let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
 let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
 
 // Each network connection has its own handler, but they all share one Ledger
@@ -829,6 +831,8 @@ export class LedgerHandler {
     // The DMK handles EIP-712 hashing and its fallback internally.
     const typedData = toTypedData(data);
 
+    await this.#assertHashable(typedData);
+
     const path = await this.#derivePath(address);
 
     const signature = await this.#withConfirmation(
@@ -839,6 +843,33 @@ export class LedgerHandler {
     );
 
     return await this.#toRpcSig(signature);
+  }
+
+  /**
+   * Rejects typed data that does not hash as EIP-712 before the device asks
+   * for approval. The DMK encodes some of it anyway, and differently from
+   * what was sent: its fallback signs a `bool` given as the string "false" as
+   * `true`, and the device pads a short `bytes32`.
+   */
+  async #assertHashable(typedData: TypedData): Promise<void> {
+    if (microEthSignerTypedData === undefined) {
+      microEthSignerTypedData = await import("micro-eth-signer/typed-data");
+    }
+
+    try {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The DMK type cannot express micro-eth-signer's linked field types. */
+      microEthSignerTypedData.sigHash(typedData as any);
+    } catch (error) {
+      ensureError(error);
+
+      log(`The typed data could not be hashed: ${error.message}`);
+
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+          .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+      );
+    }
   }
 
   async #ethSendTransaction(params: any[]): Promise<{

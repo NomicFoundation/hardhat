@@ -906,6 +906,51 @@ describe("LedgerHandler", () => {
         );
       });
 
+      it("should reject typed data that does not hash before asking the device", async () => {
+        const [deviceFactory, calls] = getLedgerDeviceMock({
+          getAddress: findAccountAt(derPath, typedDataSigner),
+          signTypedData: { result: typedDataRsv },
+        });
+
+        ledgerHandler = createHandler({ deviceFactory });
+
+        const withField = (type: string, value: unknown) => ({
+          ...typedMessage,
+          types: {
+            ...typedMessage.types,
+            Mail: [...typedMessage.types.Mail, { name: "extra", type }],
+          },
+          message: { ...typedMessage.message, extra: value },
+        });
+
+        for (const data of [
+          // The DMK's fallback would sign this as `true`.
+          withField("bool", "false"),
+          // The device would pad this to 32 bytes.
+          withField("bytes32", `0x${"cd".repeat(31)}`),
+          withField("Undeclared", { name: "nobody" }),
+        ]) {
+          await assertRejectsWithHardhatError(
+            () =>
+              ledgerHandler.handle(
+                createJsonRpcRequest("eth_signTypedData_v4", [
+                  typedDataSigner.address,
+                  data,
+                ]),
+              ),
+            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+              .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+            {},
+          );
+        }
+
+        assert.equal(
+          calls.signTypedData.totalCalls,
+          0,
+          "It must reject before the device asks for approval",
+        );
+      });
+
       it("should reject typed data that is not valid EIP-712", async () => {
         ledgerHandler = createHandler();
 
