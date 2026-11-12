@@ -762,6 +762,13 @@ describe("SolidityBuildSystemImplementation.getScope", () => {
     );
   });
 
+  it("returns 'tests' for a non-.sol file inside solidityTestsPath", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "Foo.yul")),
+      "tests",
+    );
+  });
+
   it("returns 'contracts' for a file in a directory whose name is a prefix of solidityTestsPath", async () => {
     assert.equal(
       await solidity.getScope(path.join(projectRoot, "tests-extra", "Foo.sol")),
