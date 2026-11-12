@@ -10,9 +10,13 @@ import { open } from "../../src/internal/utils/open.js";
 
 /**
  * Exercises `open` for real on Windows, through `cmd` and `start`, rather than
- * checking the command it builds. The opened file is a batch script that
- * writes a marker next to itself, so the marker only appears if `start`
- * received the whole path.
+ * checking the command it builds. The opened file is a JScript file, run by
+ * Windows Script Host, that writes a marker next to itself, so the marker only
+ * appears if `start` received the whole path.
+ *
+ * Not a batch file: `start` runs those through a second `cmd /c`, which strips
+ * the quotes from a path containing `&` and fails, independently of how `open`
+ * quoted it. The same happens when double-clicking one in Explorer.
  */
 describe("open on Windows", function () {
   let root: string;
@@ -38,14 +42,17 @@ describe("open on Windows", function () {
       this.timeout(30_000);
 
       const dir = path.join(root, dirName);
-      const probe = path.join(dir, "probe.cmd");
+      const probe = path.join(dir, "probe.js");
       const marker = path.join(dir, "marker.txt");
 
       await mkdir(dir);
       await writeFile(
         probe,
-        // `%~dp0` is the script's own directory, with a trailing backslash
-        ["@echo off", 'echo opened> "%~dp0marker.txt"', "exit"].join("\r\n"),
+        [
+          'var fso = new ActiveXObject("Scripting.FileSystemObject");',
+          "var dir = fso.GetParentFolderName(WScript.ScriptFullName);",
+          'fso.CreateTextFile(fso.BuildPath(dir, "marker.txt"), true).Close();',
+        ].join("\r\n"),
       );
 
       open(probe);
