@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -10,13 +10,18 @@ import { open } from "../../src/internal/utils/open.js";
 
 /**
  * Exercises `open` for real on Windows, through `cmd` and `start`, rather than
- * checking the command it builds. The opened file is a JScript file, run by
- * Windows Script Host, that writes a marker next to itself, so the marker only
- * appears if `start` received the whole path.
+ * checking the command it builds.
  *
- * Not a batch file: `start` runs those through a second `cmd /c`, which strips
- * the quotes from a path containing `&` and fails, independently of how `open`
- * quoted it. The same happens when double-clicking one in Explorer.
+ * The opened file is a copy of `node.exe`, which `start` launches directly,
+ * with no file association involved. `NODE_OPTIONS`, inherited through `cmd`
+ * and `start`, makes it require a script that writes a marker next to the
+ * executable and exits, so the marker only appears if `start` received the
+ * whole path.
+ *
+ * Earlier probes depended on how Windows handles a file type, which is not what
+ * is under test: a batch file is run through a second `cmd /c`, which strips the
+ * quotes from a path containing `&` (as double-clicking one in Explorer does),
+ * and `.js` files are not run by Windows Script Host on the CI runners.
  */
 describe("open on Windows", function () {
   let root: string;
@@ -42,20 +47,34 @@ describe("open on Windows", function () {
       this.timeout(30_000);
 
       const dir = path.join(root, dirName);
-      const probe = path.join(dir, "probe.js");
+      const probe = path.join(dir, "probe.exe");
       const marker = path.join(dir, "marker.txt");
+      const writer = path.join(root, "write-marker.cjs");
 
       await mkdir(dir);
+      await copyFile(process.execPath, probe);
       await writeFile(
-        probe,
+        writer,
         [
-          'var fso = new ActiveXObject("Scripting.FileSystemObject");',
-          "var dir = fso.GetParentFolderName(WScript.ScriptFullName);",
-          'fso.CreateTextFile(fso.BuildPath(dir, "marker.txt"), true).Close();',
-        ].join("\r\n"),
+          'const path = require("node:path");',
+          'require("node:fs").writeFileSync(path.join(path.dirname(process.execPath), "marker.txt"), "opened");',
+          "process.exit(0);",
+        ].join("\n"),
       );
 
-      open(probe);
+      // Forward slashes, unquoted: inside quotes `NODE_OPTIONS` treats a
+      // backslash as an escape. The temporary root contains no spaces.
+      const previousNodeOptions = process.env.NODE_OPTIONS;
+      process.env.NODE_OPTIONS = `--require ${writer.replaceAll("\\", "/")}`;
+      try {
+        open(probe);
+      } finally {
+        if (previousNodeOptions === undefined) {
+          delete process.env.NODE_OPTIONS;
+        } else {
+          process.env.NODE_OPTIONS = previousNodeOptions;
+        }
+      }
 
       assert.isTrue(
         await waitFor(() => existsSync(marker), 15_000),
