@@ -30,6 +30,10 @@ import * as semver from "semver";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { HARDHAT_NAME } from "../../constants.js";
 import {
+  getConfiguredTypeScriptMode,
+  type TypeScriptMode,
+} from "../../core/typescript-mode.js";
+import {
   getHardhatVersion,
   getLatestHardhatVersion,
 } from "../../utils/package.js";
@@ -102,7 +106,7 @@ export async function initHardhat3NonInteractive(
 
   console.log("Initializing project...");
 
-  await validatePackageJson(workspace, template.packageJson, true);
+  await validatePackageJson(workspace, template, true);
 
   await copyProjectFilesNonInteractive(workspace, template);
 
@@ -143,6 +147,7 @@ export async function initHardhat3NonInteractive(
  * 3. Optionally, ask the user for the workspace to initialize the project in.
  * 4. Validate that the package.json exists; otherwise, create it.
  * 5. Validate that the package.json is an esm package; otherwise, ask the user if they want to set it.
+ *    Then set the template's TypeScript mode in it, unless it already sets one.
  * 6. Optionally, ask the user for the template to use for the project initialization.
  * 7. Optionally, ask the user if files should be overwritten.
  * 8. Copy the template files to the workspace.
@@ -168,13 +173,10 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
       options?.template,
     );
 
-    // Create the package.json file if it does not exist
-    // and validate that it is an esm package
-    await validatePackageJson(
-      workspace,
-      template.packageJson,
-      options?.migrateToEsm,
-    );
+    // Create the package.json file if it does not exist,
+    // validate that it is an esm package, and set the template's TypeScript
+    // mode if it doesn't set one
+    await validatePackageJson(workspace, template, options?.migrateToEsm);
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
@@ -395,29 +397,43 @@ export async function printTemplatesList(
  * validatePackageJson creates the package.json file if it does not exist
  * in the workspace.
  *
- * It also validates that the package.json file is an esm package.
+ * It also validates that the package.json file is an esm package, and sets
+ * the template's TypeScript mode in it, unless it already sets one.
  *
  * NOTE: This function is exported for testing purposes
  *
  * @param workspace The path to the workspace to initialize the project in.
+ * @param template The template to initialize the project with.
+ * @param migrateToEsm Whether to make the package.json an esm package if it
+ * isn't one. If undefined, the user is asked.
  */
 export async function validatePackageJson(
   workspace: string,
-  templatePkg: PackageJson,
+  template: Template,
   migrateToEsm?: boolean,
 ): Promise<void> {
   const absolutePathToPackageJson = path.join(workspace, "package.json");
-  const shouldUseEsm = templatePkg.type === "module";
+  const shouldUseEsm = template.packageJson.type === "module";
+  const typescriptMode = getConfiguredTypeScriptMode(
+    template.packageJson,
+    path.join(template.path, "package.json"),
+  );
 
   // Create the package.json file if it does not exist
   if (!(await exists(absolutePathToPackageJson))) {
-    const packageJson: PackageJson = {
+    const packageJson: PackageJson & {
+      hardhat?: { typescript: TypeScriptMode };
+    } = {
       name: path.basename(workspace),
       version: "1.0.0",
     };
 
     if (shouldUseEsm) {
       packageJson.type = "module";
+    }
+
+    if (typescriptMode !== undefined) {
+      packageJson.hardhat = { typescript: typescriptMode };
     }
 
     await writeJsonFile(absolutePathToPackageJson, packageJson);
@@ -432,34 +448,54 @@ export async function validatePackageJson(
   // package managers support `<package manager> pkg set type=module`.
   const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
 
-  if (!shouldUseEsm) {
-    return;
-  }
-
   const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);
 
-  // Validate that the package.json file is an esm package
-  if (pkg.type === "module") {
-    return;
-  }
-
-  if (migrateToEsm === undefined) {
-    migrateToEsm = await promptForMigrateToEsm(absolutePathToPackageJson);
-  }
-
-  if (!migrateToEsm) {
-    throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED);
-  }
-
-  await spawn(
-    [packageManagerToUse, "pkg", "set", "type=module"].join(" "),
-    [],
-    {
-      cwd: workspace,
-      shell: true,
-      stdio: "inherit",
-    },
+  // This validates the package.json's "hardhat" field before anything is changed
+  const projectTypeScriptMode = getConfiguredTypeScriptMode(
+    pkg,
+    absolutePathToPackageJson,
   );
+
+  // Validate that the package.json file is an esm package
+  if (shouldUseEsm && pkg.type !== "module") {
+    if (migrateToEsm === undefined) {
+      migrateToEsm = await promptForMigrateToEsm(absolutePathToPackageJson);
+    }
+
+    if (!migrateToEsm) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED,
+      );
+    }
+
+    await spawn(
+      [packageManagerToUse, "pkg", "set", "type=module"].join(" "),
+      [],
+      {
+        cwd: workspace,
+        shell: true,
+        stdio: "inherit",
+      },
+    );
+  }
+
+  // Set the template's TypeScript mode, unless the project already sets one
+  if (typescriptMode !== undefined && projectTypeScriptMode === undefined) {
+    await spawn(
+      [
+        packageManagerToUse,
+        "pkg",
+        "set",
+        `hardhat.typescript=${typescriptMode}`,
+      ].join(" "),
+      [],
+      {
+        cwd: workspace,
+        shell: true,
+        stdio: "inherit",
+      },
+    );
+  }
 }
 
 /**

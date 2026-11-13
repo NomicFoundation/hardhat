@@ -40,6 +40,7 @@ import {
   shouldUpdateDependency,
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
+import { getConfiguredTypeScriptMode } from "../../../../src/internal/core/typescript-mode.js";
 
 // TODO: The push and merge_group checks should be limited to events associated
 // with a release PR merge.
@@ -148,6 +149,17 @@ describe("validatePackageJson", () => {
   const tmp = createTmpDir("validatePackageJson", "test");
   const packageJsonPath = () => path.join(tmp.path, "package.json");
 
+  function createTemplate(
+    packageJson: PackageJson & { hardhat?: unknown },
+  ): Template {
+    return {
+      name: "test-template",
+      packageJson,
+      path: path.join(tmp.path, "template"),
+      files: [],
+    };
+  }
+
   it("should create the package.json file if it does not exist", async () => {
     assert.ok(
       !(await exists(packageJsonPath())),
@@ -156,11 +168,11 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
         type: "module",
-      },
+      }),
       false,
     );
 
@@ -177,11 +189,11 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
         type: "module",
-      },
+      }),
       false,
     );
 
@@ -197,11 +209,11 @@ describe("validatePackageJson", () => {
       async () =>
         await validatePackageJson(
           tmp.path,
-          {
+          createTemplate({
             name: "package-name",
             version: "0.0.1",
             type: "module",
-          },
+          }),
           false,
         ),
       HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED,
@@ -214,11 +226,11 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
         type: "module",
-      },
+      }),
       true,
     );
 
@@ -232,10 +244,10 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
-      },
+      }),
       false,
     );
 
@@ -254,10 +266,10 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
-      },
+      }),
       false,
     );
 
@@ -274,16 +286,107 @@ describe("validatePackageJson", () => {
 
     await validatePackageJson(
       tmp.path,
-      {
+      createTemplate({
         name: "package-name",
         version: "0.0.1",
-      },
+      }),
       false,
     );
 
     const after: PackageJson = await readJsonFile(packageJsonPath());
 
     assert.equal(after.type, undefined);
+  });
+
+  describe("the TypeScript mode", () => {
+    const nodeModeTemplate = () =>
+      createTemplate({
+        name: "package-name",
+        version: "0.0.1",
+        type: "module",
+        hardhat: { typescript: "node" },
+      });
+
+    it("should set the template's TypeScript mode in a new package.json", async () => {
+      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+
+      assert.deepEqual(await readJsonFile(packageJsonPath()), {
+        name: path.basename(tmp.path),
+        version: "1.0.0",
+        type: "module",
+        hardhat: { typescript: "node" },
+      });
+    });
+
+    it("should set the template's TypeScript mode in an existing package.json that doesn't set one", async () => {
+      await writeJsonFile(packageJsonPath(), {
+        name: "existing-package",
+        type: "module",
+        scripts: { test: "hardhat test" },
+      });
+
+      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+
+      assert.deepEqual(await readJsonFile(packageJsonPath()), {
+        name: "existing-package",
+        type: "module",
+        scripts: { test: "hardhat test" },
+        hardhat: { typescript: "node" },
+      });
+    });
+
+    it("should keep the TypeScript mode of an existing package.json", async () => {
+      const before = {
+        name: "existing-package",
+        type: "module",
+        hardhat: { typescript: "tsx" },
+      };
+
+      await writeJsonFile(packageJsonPath(), before);
+
+      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+
+      assert.deepEqual(await readJsonFile(packageJsonPath()), before);
+    });
+
+    it(`should throw before changing an existing package.json whose "hardhat" field is invalid`, async () => {
+      const before = {
+        name: "existing-package",
+        hardhat: { typescript: "deno" },
+      };
+
+      await writeJsonFile(packageJsonPath(), before);
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          await validatePackageJson(tmp.path, nodeModeTemplate(), true),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_PACKAGE_JSON_HARDHAT_SETTINGS,
+        {
+          packageJsonPath: packageJsonPath(),
+          reason: `the "typescript" setting must be "node" or "tsx", but it's "deno"`,
+        },
+      );
+
+      assert.deepEqual(await readJsonFile(packageJsonPath()), before);
+    });
+
+    it("should not set a TypeScript mode if the template doesn't set one", async () => {
+      await validatePackageJson(
+        tmp.path,
+        createTemplate({
+          name: "package-name",
+          version: "0.0.1",
+          type: "module",
+        }),
+        false,
+      );
+
+      assert.deepEqual(await readJsonFile(packageJsonPath()), {
+        name: path.basename(tmp.path),
+        version: "1.0.0",
+        type: "module",
+      });
+    });
   });
 });
 
@@ -1135,6 +1238,10 @@ describe("initHardhat3NonInteractive", async () => {
             path.join(process.cwd(), "package.json"),
           );
           assert.equal(pkg.type, "module");
+          assert.equal(
+            getConfiguredTypeScriptMode(pkg, "package.json"),
+            "node",
+          );
           const workspaceFiles = template.files.map(
             relativeTemplateToWorkspacePath,
           );
@@ -1236,6 +1343,7 @@ describe("initHardhat3NonInteractive", async () => {
         );
         assert.equal(pkg.name, "user-chosen-name");
         assert.equal(pkg.type, "module");
+        assert.equal(getConfiguredTypeScriptMode(pkg, "package.json"), "node");
       },
     );
 

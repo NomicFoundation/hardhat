@@ -9,6 +9,7 @@ The `package.json` file contains the template's metadata. The following fields a
 - `description`: A short description of the template which is displayed to the user during template selection.
 - `devDependencies`: The list of dependencies that should be installed in the project.
 - `peerDependencies`: The list of dependencies that should also be installed in the project as dev dependencies if the used package manager does not install peer dependencies by default.
+- `hardhat.typescript`: The TypeScript mode to set in the project's `package.json`, unless it already sets one.
 
 Note that the `workspace:` prefix is stripped from the version of the template dependencies during project initialization.
 

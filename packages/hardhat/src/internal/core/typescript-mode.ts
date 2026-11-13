@@ -34,8 +34,28 @@ export function getTypeScriptMode(
   packageJson: PackageJson,
   packageJsonPath: string,
 ): TypeScriptMode {
+  return (
+    getConfiguredTypeScriptMode(packageJson, packageJsonPath) ??
+    DEFAULT_TYPESCRIPT_MODE
+  );
+}
+
+/**
+ * Returns the TypeScript mode set by a project's `package.json`, in its
+ * `"hardhat": { "typescript": "node" | "tsx" }` field.
+ *
+ * @param packageJson The parsed `package.json` of the project.
+ * @param packageJsonPath The path to that `package.json`, used in errors.
+ * @returns The TypeScript mode of the project, or `undefined` if its
+ * `package.json` doesn't set one.
+ * @throws HardhatError if the `"hardhat"` field is invalid.
+ */
+export function getConfiguredTypeScriptMode(
+  packageJson: PackageJson,
+  packageJsonPath: string,
+): TypeScriptMode | undefined {
   if (!("hardhat" in packageJson)) {
-    return DEFAULT_TYPESCRIPT_MODE;
+    return undefined;
   }
 
   const settings = packageJson.hardhat;
@@ -63,7 +83,7 @@ export function getTypeScriptMode(
   }
 
   if (!("typescript" in settings)) {
-    return DEFAULT_TYPESCRIPT_MODE;
+    return undefined;
   }
 
   const mode = settings.typescript;
