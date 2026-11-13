@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-mocha",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "A mocha test runner",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-mocha",
   "repository": {
