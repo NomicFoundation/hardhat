@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.22.1
+
+### Patch Changes
+
+- [#8843](https://github.com/NomicFoundation/hardhat/pull/8843) [`1f080e4`](https://github.com/NomicFoundation/hardhat/commit/1f080e4dcc0e0ca582ef4fd7f113d3ad0b8965f2) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed local accounts signing `"0x"` data and messages as the byte `0x00` when an older `@nomicfoundation/hardhat-zod-utils` was installed ([#8790](https://github.com/NomicFoundation/hardhat/issues/8790)).
+
+- [#8836](https://github.com/NomicFoundation/hardhat/pull/8836) [`7a57fa3`](https://github.com/NomicFoundation/hardhat/commit/7a57fa3dff0c11c8d162c45d9ba14e405055d287) Thanks [@Iamsohungrynow](https://github.com/Iamsohungrynow)! - Fixed `paths.tests.solidity` not being validated, so a value that isn't a string is now reported as an `HHE15` config error.
+
 ## 3.22.0
 
 ### Minor Changes

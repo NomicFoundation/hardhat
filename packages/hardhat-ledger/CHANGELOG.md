@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ledger
 
+## 3.1.2
+
+### Patch Changes
+
+- [#8843](https://github.com/NomicFoundation/hardhat/pull/8843) [`1f080e4`](https://github.com/NomicFoundation/hardhat/commit/1f080e4dcc0e0ca582ef4fd7f113d3ad0b8965f2) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed `data: "0x"` being parsed as one zero byte when an older `@nomicfoundation/hardhat-zod-utils` was installed, by requiring 3.0.9 or later ([#8790](https://github.com/NomicFoundation/hardhat/issues/8790)).
+
 ## 3.1.1
 
 ### Patch Changes

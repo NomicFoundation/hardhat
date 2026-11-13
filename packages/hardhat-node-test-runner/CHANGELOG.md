@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.1.3
+
+### Patch Changes
+
+- [#8836](https://github.com/NomicFoundation/hardhat/pull/8836) [`7a57fa3`](https://github.com/NomicFoundation/hardhat/commit/7a57fa3dff0c11c8d162c45d9ba14e405055d287) Thanks [@Iamsohungrynow](https://github.com/Iamsohungrynow)! - Fixed `paths.tests.nodejs` not being validated, so a value that isn't a string is now reported as an `HHE15` config error.
+
 ## 3.1.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 4.0.2
+
+### Patch Changes
+
+- [#8836](https://github.com/NomicFoundation/hardhat/pull/8836) [`7a57fa3`](https://github.com/NomicFoundation/hardhat/commit/7a57fa3dff0c11c8d162c45d9ba14e405055d287) Thanks [@Iamsohungrynow](https://github.com/Iamsohungrynow)! - Fixed `paths.tests.mocha` not being validated, so a value that isn't a string is now reported as an `HHE15` config error.
+
 ## 4.0.1
 
 ### Patch Changes
