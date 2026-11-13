@@ -141,6 +141,16 @@ await snap.restore();
 
 For plain TypeScript assertions (equality, arrays, types), use `node:assert/strict`. For ecosystem-specific assertions (reverts, events, balance changes), see the matching `hardhat-toolbox-*` skill.
 
+## The `"node"` TypeScript mode
+
+If `package.json` sets `"hardhat": { "typescript": "node" }`, Hardhat runs the project's TypeScript with Node.js's type stripping, instead of `tsx`. Node.js only removes the types, so:
+
+- Use the `.ts` extension in relative imports, e.g. `import { deployCounter } from "./helpers.ts";`.
+- Mark imports and re-exports of types with `type`, e.g. `import type { HardhatUserConfig } from "hardhat/config";`.
+- Don't use TypeScript syntax that generates JavaScript: enums, namespaces with values, constructor parameter properties, `<T>` casts, or decorators. Node.js 22 also can't run `using` declarations.
+
+With `erasableSyntaxOnly` and `verbatimModuleSyntax` in `tsconfig.json`, `tsc --noEmit` reports these, except `.js` relative imports and decorators.
+
 ## Typechecking
 
 Generated contract types are derived from the compiled ABI (viem in the viem toolbox, TypeChain in the ethers toolbox), so recompile first, then typecheck. The example below uses npm; swap `npx` for whichever package manager runner this project uses:

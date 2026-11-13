@@ -7,9 +7,21 @@ import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { after, before, describe, it, mock } from "node:test";
 
+import { NO_TSX_HOOK_URL } from "@nomicfoundation/hardhat-test-utils";
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
+import { getTypeScriptMode } from "../../../../src/internal/core/typescript-mode.js";
+
+/**
+ * The environment of the Hardhat commands that the template tests run. The
+ * templates use the "node" TypeScript mode, so it makes them fail if Hardhat
+ * loads tsx.
+ */
+const NO_TSX_ENV: NodeJS.ProcessEnv = {
+  ...process.env,
+  NODE_OPTIONS: `--import ${NO_TSX_HOOK_URL}`,
+};
 
 describe("getTemplates", () => {
   it("should return a non-empty array of templates", async () => {
@@ -169,6 +181,7 @@ describe("template contents", async () => {
       const resultHardhatBuild = spawnSync("pnpm hardhat compile", {
         stdio: "inherit",
         shell: true,
+        env: NO_TSX_ENV,
       });
 
       assert.equal(
@@ -193,6 +206,16 @@ describe("template contents", async () => {
         cleanup = await useTemplateHardhatProject(template);
       });
 
+      it(`should use the "node" TypeScript mode`, async () => {
+        assert.equal(
+          getTypeScriptMode(
+            template.packageJson,
+            path.join(template.path, "package.json"),
+          ),
+          "node",
+        );
+      });
+
       it("should compile with tsc", async () => {
         // We run tsc --noEmit in the template
         const resultTscBuild = spawnSync("pnpm tsc --noEmit", {
@@ -212,7 +235,7 @@ describe("template contents", async () => {
           stdio: "inherit",
           shell: true,
           env: {
-            ...process.env,
+            ...NO_TSX_ENV,
             // We override the NODE_TEST_CONTEXT environment variable to
             // ensure that `node:test` runs in the subprocess, otherwise it
             // will be disabled automatically

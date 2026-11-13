@@ -4,8 +4,10 @@
     "module": "node20",
     "target": "es2023",
     "skipLibCheck": true,
-    "outDir": "dist",
+    "noEmit": true,
     "types": ["node"],
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true
   }
 }
