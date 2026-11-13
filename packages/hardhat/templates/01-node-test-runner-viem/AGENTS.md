@@ -22,7 +22,7 @@ Hardhat runs this project's TypeScript with Node.js's type stripping, as `packag
 - Mark imports and re-exports of types with `type`, e.g. `import type { HardhatUserConfig } from "hardhat/config";`.
 - Don't use TypeScript syntax that generates JavaScript: enums, namespaces with values, constructor parameter properties, `<T>` casts, or decorators. Node.js 22 also can't run `using` declarations.
 
-`tsc --noEmit` reports these, except `.js` relative imports and decorators.
+`tsc --noEmit` reports these, except `.js` relative imports, decorators and `using` declarations.
 
 ## Docs
 
