@@ -106,7 +106,7 @@ export async function initHardhat3NonInteractive(
 
   console.log("Initializing project...");
 
-  await validatePackageJson(workspace, template, true);
+  await preparePackageJson(workspace, template, true);
 
   await copyProjectFilesNonInteractive(workspace, template);
 
@@ -176,7 +176,7 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Create the package.json file if it does not exist,
     // validate that it is an esm package, and set the template's TypeScript
     // mode if it doesn't set one
-    await validatePackageJson(workspace, template, options?.migrateToEsm);
+    await preparePackageJson(workspace, template, options?.migrateToEsm);
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
@@ -394,11 +394,15 @@ export async function printTemplatesList(
 }
 
 /**
- * validatePackageJson creates the package.json file if it does not exist
- * in the workspace.
+ * preparePackageJson makes sure that the workspace has a package.json file
+ * that fits the template:
+ * - It creates the file if it does not exist.
+ * - It makes it an esm package if the template is one, asking the user first
+ *   unless `migrateToEsm` is provided.
+ * - It sets the template's TypeScript mode in it, unless it already sets one.
  *
- * It also validates that the package.json file is an esm package, and sets
- * the template's TypeScript mode in it, unless it already sets one.
+ * It throws before changing an existing package.json if its "hardhat" field is
+ * invalid.
  *
  * NOTE: This function is exported for testing purposes
  *
@@ -407,7 +411,7 @@ export async function printTemplatesList(
  * @param migrateToEsm Whether to make the package.json an esm package if it
  * isn't one. If undefined, the user is asked.
  */
-export async function validatePackageJson(
+export async function preparePackageJson(
   workspace: string,
   template: Template,
   migrateToEsm?: boolean,

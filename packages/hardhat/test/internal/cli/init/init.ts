@@ -28,7 +28,7 @@ import {
   assertNoNonInteractiveClashes,
   copyProjectFiles,
   copyProjectFilesNonInteractive,
-  validatePackageJson,
+  preparePackageJson,
   getTemplate,
   getWorkspace,
   initHardhat,
@@ -145,8 +145,8 @@ describe("getTemplate", () => {
   });
 });
 
-describe("validatePackageJson", () => {
-  const tmp = createTmpDir("validatePackageJson", "test");
+describe("preparePackageJson", () => {
+  const tmp = createTmpDir("preparePackageJson", "test");
   const packageJsonPath = () => path.join(tmp.path, "package.json");
 
   function createTemplate(
@@ -166,7 +166,7 @@ describe("validatePackageJson", () => {
       "package.json should not exist before ensuring it exists",
     );
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -181,13 +181,13 @@ describe("validatePackageJson", () => {
 
   it("should not create the package.json file if it already exists", async () => {
     const before = {
-      name: "a unique name that ensureProjectPackageJson definitely does not set",
+      name: "a unique name that preparePackageJson definitely does not set",
       type: "module",
     };
 
     await writeJsonFile(packageJsonPath(), before);
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -207,7 +207,7 @@ describe("validatePackageJson", () => {
 
     await assertRejectsWithHardhatError(
       async () =>
-        await validatePackageJson(
+        await preparePackageJson(
           tmp.path,
           createTemplate({
             name: "package-name",
@@ -224,7 +224,7 @@ describe("validatePackageJson", () => {
   it("should migrate package.json to esm if the user opts-in to it", async () => {
     await writeJsonFile(packageJsonPath(), {});
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -242,7 +242,7 @@ describe("validatePackageJson", () => {
   it("should not migrate package.json to esm when shouldUseEsm is false and type is not set", async () => {
     await writeJsonFile(packageJsonPath(), {});
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -258,13 +258,13 @@ describe("validatePackageJson", () => {
 
   it("should not migrate package.json to esm when shouldUseEsm is false and type is commonjs", async () => {
     const before = {
-      name: "a unique name that ensureProjectPackageJson definitely does not set",
+      name: "a unique name that preparePackageJson definitely does not set",
       type: "commonjs",
     };
 
     await writeJsonFile(packageJsonPath(), before);
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -284,7 +284,7 @@ describe("validatePackageJson", () => {
       "package.json should not exist before ensuring it exists",
     );
 
-    await validatePackageJson(
+    await preparePackageJson(
       tmp.path,
       createTemplate({
         name: "package-name",
@@ -308,7 +308,7 @@ describe("validatePackageJson", () => {
       });
 
     it("should set the template's TypeScript mode in a new package.json", async () => {
-      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+      await preparePackageJson(tmp.path, nodeModeTemplate(), false);
 
       assert.deepEqual(await readJsonFile(packageJsonPath()), {
         name: path.basename(tmp.path),
@@ -325,7 +325,7 @@ describe("validatePackageJson", () => {
         scripts: { test: "hardhat test" },
       });
 
-      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+      await preparePackageJson(tmp.path, nodeModeTemplate(), false);
 
       assert.deepEqual(await readJsonFile(packageJsonPath()), {
         name: "existing-package",
@@ -344,7 +344,7 @@ describe("validatePackageJson", () => {
 
       await writeJsonFile(packageJsonPath(), before);
 
-      await validatePackageJson(tmp.path, nodeModeTemplate(), false);
+      await preparePackageJson(tmp.path, nodeModeTemplate(), false);
 
       assert.deepEqual(await readJsonFile(packageJsonPath()), before);
     });
@@ -359,7 +359,7 @@ describe("validatePackageJson", () => {
 
       await assertRejectsWithHardhatError(
         async () =>
-          await validatePackageJson(tmp.path, nodeModeTemplate(), true),
+          await preparePackageJson(tmp.path, nodeModeTemplate(), true),
         HardhatError.ERRORS.CORE.GENERAL.INVALID_PACKAGE_JSON_HARDHAT_SETTINGS,
         {
           packageJsonPath: packageJsonPath(),
@@ -371,7 +371,7 @@ describe("validatePackageJson", () => {
     });
 
     it("should not set a TypeScript mode if the template doesn't set one", async () => {
-      await validatePackageJson(
+      await preparePackageJson(
         tmp.path,
         createTemplate({
           name: "package-name",
