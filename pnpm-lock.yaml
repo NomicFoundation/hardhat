@@ -335,13 +335,13 @@ importers:
         specifier: workspace:^3.1.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^5.1.0
+        specifier: workspace:^5.1.1
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-vendored':
         specifier: workspace:^3.0.4
         version: link:../hardhat-vendored
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.5
+        specifier: workspace:^3.0.9
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -917,7 +917,7 @@ importers:
         specifier: workspace:^5.0.0
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.5
+        specifier: workspace:^3.0.9
         version: link:../hardhat-zod-utils
       micro-eth-signer:
         specifier: ^0.14.0
