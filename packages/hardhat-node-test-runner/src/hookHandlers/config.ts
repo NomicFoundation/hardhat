@@ -11,7 +11,7 @@ import { z } from "zod";
 const userConfigType = z.object({
   paths: z
     .object({
-      test: conditionalUnionType(
+      tests: conditionalUnionType(
         [
           [isObject, z.object({ nodejs: z.string().optional() })],
           [(data) => typeof data === "string", z.string()],

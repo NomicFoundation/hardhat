@@ -80,7 +80,7 @@ const userConfigType = z.object({
     .optional(),
   paths: z
     .object({
-      test: conditionalUnionType(
+      tests: conditionalUnionType(
         [
           [(data) => typeof data === "string", z.string()],
           [isObject, z.object({ mocha: z.string().optional() })],
