@@ -1310,6 +1310,14 @@ This validation happens locally, so it can reject transactions that your network
 
 Please double check your transactions' parameters.`,
       },
+      JSON_RPC_REQUEST_FAILED: {
+        number: 729,
+        messageTemplate: `The JSON-RPC request failed with error code {code}: {message}`,
+        websiteTitle: "JSON-RPC request failed",
+        websiteDescription: `The network returned an error for a JSON-RPC request, like an unknown method, invalid params or a reverted call, or the request didn't get a JSON-RPC response, like with a wrong URL or API key, which Hardhat reports with error code -1.
+
+Please double check the request and your networks config.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
