@@ -2,8 +2,6 @@
 
 This plugin allows Hardhat to integrate seamlessly with a connected [Ledger wallet](https://www.ledger.com/).
 
-> Note: Currently, `EIP-7702` is not supported, as the underlying Ledger library doesn't implement it. A [newer library](https://www.npmjs.com/package/@ledgerhq/device-management-kit?activeTab=readme) does support EIP-7702, and migration to that library is on our roadmap.
-
 ## Installation
 
 To install this plugin, run the following command:

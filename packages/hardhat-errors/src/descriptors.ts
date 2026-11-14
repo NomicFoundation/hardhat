@@ -3419,7 +3419,7 @@ export default { lib1: "0x...", lib2: "0x...", ... };
       },
       CONNECTION_ERROR: {
         number: 90002,
-        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.{transportId}
+        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.
 
 Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.`,
         websiteTitle: "Ledger connection error",
@@ -3470,10 +3470,42 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         websiteDescription: `The ledger device is locked. Please unlock it and try again.`,
       },
       EIP_7702_TX_CURRENTLY_NOT_SUPPORTED: {
+        // [DEPRECATED]
         number: 90009,
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
+      },
+      ETH_SIGN_TYPED_DATA_V4_UNSUPPORTED_NAME: {
+        number: 90010,
+        messageTemplate: `The typed data uses the name "{name}", which a Ledger can't sign. Type and field names can't be only digits or "__proto__", and a type can't declare the same field twice.`,
+        websiteTitle: `The typed data uses a name a Ledger can't sign`,
+        websiteDescription: `The typed data you asked a Ledger to sign uses a type or field name that the Ledger signing library can't encode as written, so Hardhat rejected it before asking the device.
+
+Rename the type or field. A Ledger can't sign typed data where:
+- A type or field name is only digits, e.g. "123".
+- A type or field name is "__proto__".
+- A type declares the same field name more than once.`,
+      },
+      CONNECTION_CLOSED: {
+        number: 90011,
+        messageTemplate: `The network connection was closed. Create a new connection to keep using the Ledger.`,
+        websiteTitle: "Ledger connection closed",
+        websiteDescription: `A request reached the Ledger after its network connection was closed.
+
+Create a new connection to keep using the Ledger.`,
+      },
+      DEVICE_ACTION_FAILED: {
+        number: 90012,
+        messageTemplate: `The Ledger device did not complete the request: {message}`,
+        websiteTitle: "Ledger device action failed",
+        websiteDescription: `The Ledger device reported an error while signing.`,
+      },
+      REQUEST_REJECTED: {
+        number: 90013,
+        messageTemplate: `The request was rejected on the Ledger device.`,
+        websiteTitle: "Ledger request rejected",
+        websiteDescription: `The request was rejected on the Ledger device, so nothing was signed.`,
       },
     },
   },
