@@ -10,6 +10,25 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     "Convert values between common Ethereum representations",
   ).build();
 
+  const formatUnitsTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "format-units"],
+      "Format an integer as a decimal amount with the given number of decimals",
+    )
+      .addPositionalArgument({
+        name: "value",
+        description: "The integer to format, in decimal or 0x-hex",
+        type: ArgumentType.BIGINT,
+      })
+      .addPositionalArgument({
+        name: "decimals",
+        description: "The number of decimals",
+        type: ArgumentType.INT,
+        defaultValue: 18,
+      }),
+    async () => await import("./format-units.js"),
+  );
+
   const fromHexTask = buildUtilsTask(
     task(
       [...prefix, "convert", "from-hex"],
@@ -19,6 +38,24 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
       description: "The hex value to convert, with or without the 0x prefix",
     }),
     async () => await import("./from-hex.js"),
+  );
+
+  const fromWeiTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "from-wei"],
+      "Convert an amount of wei to ether, gwei or wei",
+    )
+      .addPositionalArgument({
+        name: "value",
+        description: "The amount of wei to convert, in decimal or 0x-hex",
+        type: ArgumentType.BIGINT,
+      })
+      .addPositionalArgument({
+        name: "unit",
+        description: "The unit to convert to: ether, gwei or wei",
+        defaultValue: "ether",
+      }),
+    async () => await import("./from-wei.js"),
   );
 
   const padTask = buildUtilsTask(
@@ -47,6 +84,24 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     async () => await import("./pad.js"),
   );
 
+  const parseUnitsTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "parse-units"],
+      "Parse a decimal amount into an integer with the given number of decimals",
+    )
+      .addPositionalArgument({
+        name: "value",
+        description: "The decimal amount to parse, like 1.5",
+      })
+      .addPositionalArgument({
+        name: "decimals",
+        description: "The number of decimals",
+        type: ArgumentType.INT,
+        defaultValue: 18,
+      }),
+    async () => await import("./parse-units.js"),
+  );
+
   const toChecksumAddressTask = buildUtilsTask(
     task(
       [...prefix, "convert", "to-checksum-address"],
@@ -70,5 +125,32 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
     async () => await import("./to-hex.js"),
   );
 
-  return [convertTask, fromHexTask, padTask, toChecksumAddressTask, toHexTask];
+  const toWeiTask = buildUtilsTask(
+    task(
+      [...prefix, "convert", "to-wei"],
+      "Convert an amount of ether, gwei or wei to wei",
+    )
+      .addPositionalArgument({
+        name: "value",
+        description: "The amount to convert, like 1.5",
+      })
+      .addPositionalArgument({
+        name: "unit",
+        description: "The unit of the amount: ether, gwei or wei",
+        defaultValue: "ether",
+      }),
+    async () => await import("./to-wei.js"),
+  );
+
+  return [
+    convertTask,
+    formatUnitsTask,
+    fromHexTask,
+    fromWeiTask,
+    padTask,
+    parseUnitsTask,
+    toChecksumAddressTask,
+    toHexTask,
+    toWeiTask,
+  ];
 }
