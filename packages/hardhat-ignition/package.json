@@ -67,7 +67,6 @@
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^22.0.0",
-    "@types/prompts": "^2.4.2",
     "@types/sinon": "^22.0.0",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.0",
@@ -88,8 +87,7 @@
     "@nomicfoundation/hardhat-utils": "workspace:^5.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.1.8",
     "@nomicfoundation/ignition-ui": "workspace:^3.1.2",
-    "json5": "^2.2.3",
-    "prompts": "^2.4.2"
+    "json5": "^2.2.3"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
