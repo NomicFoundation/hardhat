@@ -201,11 +201,40 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     async () => {},
   );
 
+  const isSequential = hre.config.test.mocha.parallel !== true;
+  const originalListeners = process.listeners("unhandledRejection");
+  const parked = new Map<Promise<unknown>, unknown>();
+  const park = (reason: unknown, p: Promise<unknown>) =>
+    void parked.set(p, reason);
+  const release = (p: Promise<unknown>) => void parked.delete(p);
+
+  if (isSequential) {
+    process.removeAllListeners("unhandledRejection");
+    process.on("unhandledRejection", park);
+    process.on("rejectionHandled", release);
+  }
+
   let total = 0;
-  const testFailures = await new Promise<number>((resolve) => {
-    const runner = mocha.run(resolve);
-    total = runner.total;
-  });
+  let testFailures: number;
+  try {
+    testFailures = await new Promise<number>((done) => {
+      const runner = mocha.run(done);
+      total = runner.total;
+    });
+    if (isSequential) await new Promise((r) => setTimeout(r, 10)); // late handlers
+  } finally {
+    if (isSequential) {
+      process.removeListener("unhandledRejection", park);
+      process.removeListener("rejectionHandled", release);
+      originalListeners.forEach((l) => process.on("unhandledRejection", l));
+    }
+  }
+
+  if (isSequential) {
+    for (const [p, reason] of parked) {
+      originalListeners.forEach((l) => l(reason, p)); // real unhandled -> CLI exit(1)
+    }
+  }
 
   perf.endPhase("Test execution");
   perf.startPhase("Reporting");
