@@ -346,7 +346,7 @@ describe("solidity-test/task-action", function () {
       assert.equal(result.success, false);
 
       const output = stripVTControlCharacters(printed.join("\n"));
-      const errorCode = `HHE${HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number}`;
+      const errorCode = `HHE${HardhatError.ERRORS.CORE.SOLIDITY_TESTS.TEST_SOURCE_COLLECTION_FAILED.number}`;
       assert.ok(
         output.startsWith(`Error ${errorCode}:`),
         "The error should be printed with the CLI's formatting",
