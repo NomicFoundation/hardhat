@@ -12,6 +12,8 @@ import { JsonRpcHandler } from "./handler.js";
 
 const log = createDebug("hardhat:core:tasks:node:json-rpc:server");
 
+const WEBSOCKET_SHUTDOWN_TIMEOUT = 1_000;
+
 export interface JsonRpcServerConfig {
   hostname: string;
   port?: number;
@@ -88,6 +90,16 @@ export class JsonRpcServerImplementation implements JsonRpcServer {
           log("Websocket server closed");
           resolve();
         });
+
+        // Allow a brief closing handshake, then terminate unresponsive clients.
+        for (const client of this.#wsServer.clients) {
+          const timeout = setTimeout(() => {
+            client.terminate();
+          }, WEBSOCKET_SHUTDOWN_TIMEOUT);
+          timeout.unref();
+          client.once("close", () => clearTimeout(timeout));
+          client.close(1001, "Server shutting down");
+        }
       }),
     ]);
   };
