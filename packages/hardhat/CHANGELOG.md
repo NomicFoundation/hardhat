@@ -1,5 +1,43 @@
 # hardhat
 
+## 3.22.0
+
+### Minor Changes
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Changed the experimental EIP-2780 support in the Amsterdam hardfork: contract-creation transactions no longer pay a value charge.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @popescuoctavian! Added the `rollSlot(uint64)` and `getSlotNumber()` cheatcodes, which set and read `block.slotnum` (EIP-7843) in Solidity tests without changing the block number or timestamp; both revert on EVM versions before Amsterdam.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Added the EIP-8037 gas dimensions to `debug_traceTransaction` and `debug_traceCall` from the Amsterdam hardfork: the default tracer's top-level frame and the `callTracer`'s root call frame report `executionGasUsed`, `stateGasUsed` and `gasRefund`, and each `structLogs` entry reports `stateGasReservoir`, plus a signed `stateGasCost` on the steps that charge or refill state gas.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Added experimental EIP-8038 support to the Amsterdam hardfork: state-access operations are repriced.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @popescuoctavian! Added the `isIsolateMode()` cheatcode, which returns whether the running Solidity test is run with `isolate`.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Added the `stateGasTracer` to `debug_traceTransaction` and `debug_traceCall`, which reports a transaction's gas in both EIP-8037 dimensions on every hardfork, with zero state gas before Amsterdam.
+
+### Patch Changes
+
+- [#8800](https://github.com/NomicFoundation/hardhat/pull/8800) [`4ae2908`](https://github.com/NomicFoundation/hardhat/commit/4ae2908b6fdcdcf95aa58b9f4af59877798c6a90) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Running with the `--coverage` flag when no contracts are instrumented (i.e. `--no-compile`) now throws an error ([#8796](https://github.com/NomicFoundation/hardhat/issues/8796)).
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) Thanks [@kanej](https://github.com/kanej)! - Upgraded EDR to v0.25.1.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Reduced the memory simulated networks use to record the call traces of executed transactions and calls.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @popescuoctavian! Fixed `block.slotnum` returning 0 in forked Solidity tests instead of the forked block's slot number.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @anaPerezGhiglia! Fixed missing EIP-8037 state gas for repeated contract deployments in Solidity tests on the Amsterdam hardfork.
+
+- [#8832](https://github.com/NomicFoundation/hardhat/pull/8832) [`4f6bcf5`](https://github.com/NomicFoundation/hardhat/commit/4f6bcf56b17fe7fa04af7cbdde6dc526da1e9663) - Thanks @popescuoctavian! Fixed Solidity tests switching to the default hardfork after `vm.createSelectFork`, `vm.selectFork` or `vm.rollFork`, instead of keeping the configured hardfork or inline `evm_version`.
+
+- [#8787](https://github.com/NomicFoundation/hardhat/pull/8787) [`4aa8b87`](https://github.com/NomicFoundation/hardhat/commit/4aa8b87c3cd1cf7f3cb93df9c41513c415e2cb50) Thanks [@Revinand](https://github.com/Revinand)! - Fixed `--snapshot-check` failing with `HHE803` when `.gas-snapshot` has CRLF line endings, as in Windows checkouts.
+
+- [#8812](https://github.com/NomicFoundation/hardhat/pull/8812) [`c47ee42`](https://github.com/NomicFoundation/hardhat/commit/c47ee4230f18990ffeff595047cf9065f19408f9) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Fixed `hardhat node --fork` sending the configured forking `httpHeaders` to the URL passed on the command line.
+
+- [#8712](https://github.com/NomicFoundation/hardhat/pull/8712) [`81fc983`](https://github.com/NomicFoundation/hardhat/commit/81fc98396a5635d0d491c320506c29302dd5b677) Thanks [@schaable](https://github.com/schaable)! - Fixed `HHE905` errors on brief network failures by retrying the solc version list download.
+
+- [#8824](https://github.com/NomicFoundation/hardhat/pull/8824) [`197263c`](https://github.com/NomicFoundation/hardhat/commit/197263c756104c3e3a7e66992e04f605da297094) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Added a hidden `includeTraces` option to `test solidity` so plugins can collect call traces regardless of the verbosity ([#8737](https://github.com/NomicFoundation/hardhat/issues/8737)).
+
 ## 3.21.2
 
 ### Patch Changes

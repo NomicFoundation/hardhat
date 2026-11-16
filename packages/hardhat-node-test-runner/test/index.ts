@@ -4,6 +4,8 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -197,6 +199,27 @@ describe("Hardhat Node plugin", () => {
       await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
 
       assert.equal(buildArgs.length, 0);
+    });
+  });
+
+  describe("config validation", () => {
+    it("should fail when paths.tests.nodejs is not a string", async () => {
+      await assertRejectsWithHardhatError(
+        createHardhatRuntimeEnvironment({
+          plugins: [HardhatNodeTestRunnerPlugin],
+          paths: {
+            tests: {
+              // @ts-expect-error -- testing config validation
+              nodejs: ["test/unit", "test/integration"],
+            },
+          },
+        }),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+        {
+          errors:
+            "\t* Config error in config.paths.tests.nodejs: Expected string, received array",
+        },
+      );
     });
   });
 });

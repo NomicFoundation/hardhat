@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.1.5
+
+### Patch Changes
+
+- [#8800](https://github.com/NomicFoundation/hardhat/pull/8800) [`4ae2908`](https://github.com/NomicFoundation/hardhat/commit/4ae2908b6fdcdcf95aa58b9f4af59877798c6a90) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Running with the `--coverage` flag when no contracts are instrumented (i.e. `--no-compile`) now throws an error ([#8796](https://github.com/NomicFoundation/hardhat/issues/8796)).
+
+- [#8801](https://github.com/NomicFoundation/hardhat/pull/8801) [`a06ebbe`](https://github.com/NomicFoundation/hardhat/commit/a06ebbe9a60ca5a7ef4dab28f1f5f663256e0a02) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Updated the `HHE11` error to suggest `--init --template <name>` when running `--init` without an interactive shell ([#8797](https://github.com/NomicFoundation/hardhat/issues/8797)).
+
 ## 3.1.4
 
 ### Patch Changes

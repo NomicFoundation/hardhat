@@ -66,7 +66,7 @@
     "@ledgerhq/types-live": "^6.85.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^5.0.0",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.9",
     "micro-eth-signer": "^0.14.0",
     "node-gyp": "^12.1.0",
     "zod": "^3.23.8"

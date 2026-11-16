@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.1.10
+
+### Patch Changes
+
+- [#8802](https://github.com/NomicFoundation/hardhat/pull/8802) [`1bf2e7b`](https://github.com/NomicFoundation/hardhat/commit/1bf2e7b317e259c326f841c10b0f1a8bd24fa3d7) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed `ignition deploy` reprinting every batch on each update when its output isn't a terminal ([#8798](https://github.com/NomicFoundation/hardhat/issues/8798)).
+
+- [#8837](https://github.com/NomicFoundation/hardhat/pull/8837) [`295e175`](https://github.com/NomicFoundation/hardhat/commit/295e17531facb70741647a070ea443e0036cf888) Thanks [@Iamsohungrynow](https://github.com/Iamsohungrynow)! - Fixed `ignition visualize` not opening the report when the project path contains spaces.
+
 ## 3.1.9
 
 ### Patch Changes
