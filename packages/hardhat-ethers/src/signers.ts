@@ -187,13 +187,33 @@ export class HardhatEthersSigner implements ethers.Signer {
     // for a response, and we need the actual transaction, so we poll
     // for it; it should show up very quickly
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const timeouts = [1000, 100];
       const checkTx = async () => {
-        // Try getting the transaction
-        const txPolled = await this.provider.getTransaction(hash);
-        if (txPolled !== null) {
-          resolve(txPolled.replaceableTransaction(blockNumber));
+        try {
+          // Try getting the transaction
+          const txPolled = await this.provider.getTransaction(hash);
+          if (txPolled !== null) {
+            resolve(txPolled.replaceableTransaction(blockNumber));
+            return;
+          }
+        } catch (error) {
+          // The transaction was already broadcast, so include its hash:
+          // callers can tell this apart from a failed send and avoid
+          // sending it again. Same field as ethers' JsonRpcSigner.
+          try {
+            if (isObject(error)) {
+              const info = isObject(error.info) ? error.info : {};
+              error.info = { ...info, sendTransactionHash: hash };
+            }
+          } catch {
+            // Best effort: some errors can't be annotated (e.g. frozen
+            // ones), and that mustn't stop us from rejecting with them
+          }
+
+          // Without this, the error would be lost in a floating promise and
+          // sendTransaction would never settle
+          reject(error);
           return;
         }
 
@@ -428,4 +448,8 @@ function deepCopy<T = any>(value: T): T {
   throw new HardhatEthersError(
     `Assertion error: ${value as any} (${typeof value})`
   );
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
