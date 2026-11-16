@@ -188,3 +188,18 @@ export async function streamJsonToFile(
     await fileHandle?.close();
   }
 }
+
+/**
+ * Returns whether the file is owned by the current user. On platforms without
+ * uid-based ownership (i.e. Windows) it always returns true.
+ */
+export async function isOwnedByCurrentUser(
+  absolutePath: string,
+): Promise<boolean> {
+  if (process.getuid === undefined) {
+    return true;
+  }
+
+  const stats = await fsPromises.stat(absolutePath);
+  return stats.uid === process.getuid();
+}

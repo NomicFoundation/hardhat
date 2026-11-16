@@ -21,6 +21,7 @@ import { parseJsonStream } from "./internal/bytes.js";
 import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
+  isOwnedByCurrentUser,
   streamJsonToFile,
 } from "./internal/fs.js";
 import {
@@ -583,8 +584,9 @@ export async function readUtf8File(
  * See https://nodejs.org/docs/latest-v20.x/api/fs.html#file-system-flags for more information.
  * @param options.mode The permissions to set on the file, e.g. `0o600`. It is applied even if the
  * file already exists, so it can be used to restrict a file created earlier. If not provided, a new
- * file gets the default permissions and an existing file keeps its own. On filesystems that don't
- * support POSIX permissions the mode is ignored and the write still succeeds.
+ * file gets the default permissions and an existing file keeps its own. If the filesystem doesn't
+ * support changing permissions and the file is owned by the current user, the mode is ignored and
+ * the write still succeeds. If the file is owned by another user, FileSystemAccessError is thrown.
  * @throws FileAlreadyExistsError if the file already exists and the flag "x" is used.
  * @throws FileSystemAccessError for any other error.
  */
@@ -613,11 +615,13 @@ export async function writeUtf8File(
       try {
         await fsPromises.chmod(absolutePathToFile, mode);
       } catch (chmodError) {
-        ensureNodeErrnoExceptionError(chmodError);
+        ensureError(chmodError);
         // Filesystems without POSIX permissions (e.g. a Windows drive mounted
-        // in WSL, or a network share) reject chmod. The data has already been
-        // written, so the mode is best-effort there.
-        if (chmodError.code !== "EPERM" && chmodError.code !== "ENOTSUP") {
+        // in WSL, or a FAT disk) reject chmod. The data has already been
+        // written, so the mode is best-effort there. A file owned by another
+        // user also rejects chmod, but then the caller must know that the
+        // mode wasn't applied, so the error is rethrown.
+        if (!(await isOwnedByCurrentUser(absolutePathToFile))) {
           throw chmodError;
         }
       }

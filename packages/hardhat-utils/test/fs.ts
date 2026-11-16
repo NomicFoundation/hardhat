@@ -1595,8 +1595,8 @@ describe("File system utils", () => {
       },
     );
 
-    for (const code of ["EPERM", "ENOTSUP"]) {
-      it(`Should still write the file when chmod fails with ${code}`, async (t) => {
+    for (const code of ["EPERM", "ENOTSUP", "EINVAL"]) {
+      it(`Should still write the file when chmod fails with ${code} on a file owned by the current user`, async (t) => {
         const filePath = path.join(tmp.path, "file.txt");
 
         t.mock.method(fsPromises, "chmod", async () => {
@@ -1611,19 +1611,32 @@ describe("File system utils", () => {
       });
     }
 
-    it("Should throw FileSystemAccessError when chmod fails with another error", async (t) => {
-      const filePath = path.join(tmp.path, "file.txt");
+    it(
+      "Should throw FileSystemAccessError when chmod fails on a file owned by another user",
+      { skip: process.platform === "win32" },
+      async (t) => {
+        const filePath = path.join(tmp.path, "file.txt");
+        const originalStat = fsPromises.stat;
 
-      t.mock.method(fsPromises, "chmod", async () => {
-        const error: NodeJS.ErrnoException = new Error("chmod EIO");
-        error.code = "EIO";
-        throw error;
-      });
+        t.mock.method(fsPromises, "chmod", async () => {
+          const error: NodeJS.ErrnoException = new Error("chmod EPERM");
+          error.code = "EPERM";
+          throw error;
+        });
+        t.mock.method(fsPromises, "stat", async (...args: any[]) => {
+          const stats = await Reflect.apply(originalStat, fsPromises, args);
+          if (args[0] === filePath) {
+            stats.uid += 1;
+          }
+          return stats;
+        });
 
-      await assert.rejects(writeUtf8File(filePath, "hello", { mode: 0o600 }), {
-        name: "FileSystemAccessError",
-      });
-    });
+        await assert.rejects(
+          writeUtf8File(filePath, "hello", { mode: 0o600 }),
+          { name: "FileSystemAccessError" },
+        );
+      },
+    );
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)
