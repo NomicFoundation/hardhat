@@ -8,9 +8,11 @@ import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejects,
   assertRejectsWithHardhatError,
   createTestEnvManager,
 } from "@nomicfoundation/hardhat-test-utils";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { configVariable } from "hardhat/config";
 
 import { EXAMPLE_CONTRACT } from "./helpers/example-contracts.js";
@@ -482,6 +484,58 @@ describe("hardhat ethers signer", () => {
 
         auth.address = auth.address.toLowerCase();
         assert.deepEqual(res.authorizationList[0], auth);
+      });
+
+      it("should reject if fetching the sent transaction throws", async () => {
+        const sender = await ethers.provider.getSigner(0);
+        const receiver = await ethers.provider.getSigner(1);
+
+        const error = new Error("invalid transaction response");
+        const originalGetTransaction = ethers.provider.getTransaction;
+        ethers.provider.getTransaction = async () => {
+          throw error;
+        };
+
+        try {
+          await assertRejects(
+            sender.sendTransaction({ to: receiver, value: 1n }),
+            (e) => e === error,
+            "sendTransaction should reject with the getTransaction error",
+          );
+
+          // The tx was already broadcast, so the error must point at it
+          assert.ok(
+            "info" in error && isObject(error.info),
+            "error.info should be set",
+          );
+          assert.match(
+            String(error.info.sendTransactionHash),
+            /^0x[0-9a-f]{64}$/,
+          );
+        } finally {
+          ethers.provider.getTransaction = originalGetTransaction;
+        }
+      });
+
+      it("should reject with the original error if it can't be annotated", async () => {
+        const sender = await ethers.provider.getSigner(0);
+        const receiver = await ethers.provider.getSigner(1);
+
+        const error = Object.freeze(new Error("frozen error"));
+        const originalGetTransaction = ethers.provider.getTransaction;
+        ethers.provider.getTransaction = async () => {
+          throw error;
+        };
+
+        try {
+          await assertRejects(
+            sender.sendTransaction({ to: receiver, value: 1n }),
+            (e) => e === error,
+            "sendTransaction should reject with the getTransaction error",
+          );
+        } finally {
+          ethers.provider.getTransaction = originalGetTransaction;
+        }
       });
     });
 

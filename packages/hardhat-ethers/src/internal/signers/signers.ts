@@ -14,6 +14,7 @@ import type {
 } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   assertArgument,
   computeAddress,
@@ -186,13 +187,32 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     // for it; it should show up very quickly
 
     const transactionResponse = await new Promise<ethers.TransactionResponse>(
-      (resolve) => {
+      (resolve, reject) => {
         const timeouts = [1000, 100];
         const checkTx = async () => {
-          // Try getting the transaction
-          const txPolled = await this.provider.getTransaction(hash);
-          if (txPolled !== null) {
-            resolve(txPolled.replaceableTransaction(blockNumber));
+          try {
+            const txPolled = await this.provider.getTransaction(hash);
+            if (txPolled !== null) {
+              resolve(txPolled.replaceableTransaction(blockNumber));
+              return;
+            }
+          } catch (error) {
+            // The transaction was already broadcast, so include its hash:
+            // callers can tell this apart from a failed send and avoid
+            // sending it again. Same field as ethers' JsonRpcSigner.
+            try {
+              if (isObject(error)) {
+                const info = isObject(error.info) ? error.info : {};
+                error.info = { ...info, sendTransactionHash: hash };
+              }
+            } catch {
+              // Best effort: some errors can't be annotated (e.g. frozen
+              // ones), and that mustn't stop us from rejecting with them
+            }
+
+            // Without this, the error would be lost in a floating promise and
+            // sendTransaction would never settle
+            reject(error);
             return;
           }
 
