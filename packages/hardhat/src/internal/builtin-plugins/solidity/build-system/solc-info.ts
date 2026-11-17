@@ -129,6 +129,10 @@ const defaultEvmTargets: { [key: string]: string } = {
   "0.8.32": "osaka",
   "0.8.33": "osaka",
   "0.8.34": "osaka",
+  "0.8.35": "osaka",
+  "0.8.36": "osaka",
+  "0.8.37": "osaka",
+  "0.8.38": "osaka",
 };
 
 export function getEvmVersionFromSolcVersion(
