@@ -17,9 +17,10 @@ export class FileManagerImpl implements FileManager {
     absolutePathToFile: string,
     keystoreFile: EncryptedKeystore,
   ): Promise<void> {
-    // First write to a temporary file, then move it to minimize the risk of file corruption
+    // First write to a temporary file, then move it to minimize the risk of file corruption.
+    // The file is readable only by the current user, and the move keeps that mode.
     const tmpPath = `${absolutePathToFile}.tmp`;
-    await writeJsonFile(tmpPath, keystoreFile);
+    await writeJsonFile(tmpPath, keystoreFile, { mode: 0o600 });
     return await move(tmpPath, absolutePathToFile);
   }
 

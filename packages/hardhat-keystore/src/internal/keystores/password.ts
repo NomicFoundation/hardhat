@@ -60,7 +60,7 @@ export async function setUpPasswordForDevKeystore(
 ): Promise<string> {
   const password = randomBytes(16).toString("hex");
 
-  await writeUtf8File(devPasswordFilePath, password);
+  await writeUtf8File(devPasswordFilePath, password, { mode: 0o600 });
 
   return password;
 }

@@ -21,6 +21,7 @@ import { parseJsonStream } from "./internal/bytes.js";
 import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
+  isOwnedByCurrentUser,
   streamJsonToFile,
 } from "./internal/fs.js";
 import {
@@ -447,12 +448,15 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
  *
  * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
  * @param object The object to write.
+ * @param options Optional settings for the write.
+ * @param options.mode The permissions to set on the file, e.g. `0o600`. See `writeUtf8File`.
  * @throws JsonSerializationError if the object can't be serialized to JSON.
  * @throws FileSystemAccessError for any other error.
  */
 export async function writeJsonFile<T>(
   absolutePathToFile: string,
   object: T,
+  options: { mode?: number } = {},
 ): Promise<void> {
   let content;
   try {
@@ -462,7 +466,7 @@ export async function writeJsonFile<T>(
     throw new JsonSerializationError(absolutePathToFile, e);
   }
 
-  await writeUtf8File(absolutePathToFile, content);
+  await writeUtf8File(absolutePathToFile, content, options);
 }
 
 /**
@@ -575,16 +579,23 @@ export async function readUtf8File(
  *
  * @param absolutePathToFile The path to the file.
  * @param data The data to write.
- * @param flag The flag to use when writing the file. If not provided, the file will be overwritten.
+ * @param options Optional settings for the write.
+ * @param options.flag The flag to use when writing the file. If not provided, the file will be overwritten.
  * See https://nodejs.org/docs/latest-v20.x/api/fs.html#file-system-flags for more information.
+ * @param options.mode The permissions to set on the file, e.g. `0o600`. It is applied even if the
+ * file already exists, so it can be used to restrict a file created earlier. If not provided, a new
+ * file gets the default permissions and an existing file keeps its own. If the filesystem doesn't
+ * support changing permissions and the file is owned by the current user, the mode is ignored and
+ * the write still succeeds. If the file is owned by another user, FileSystemAccessError is thrown.
  * @throws FileAlreadyExistsError if the file already exists and the flag "x" is used.
  * @throws FileSystemAccessError for any other error.
  */
 export async function writeUtf8File(
   absolutePathToFile: string,
   data: string,
-  flag?: string,
+  options: { flag?: string; mode?: number } = {},
 ): Promise<void> {
+  const { flag, mode } = options;
   const dirPath = path.dirname(absolutePathToFile);
   const dirExists = await exists(dirPath);
   if (!dirExists) {
@@ -595,7 +606,26 @@ export async function writeUtf8File(
     await fsPromises.writeFile(absolutePathToFile, data, {
       encoding: "utf8",
       flag,
+      mode,
     });
+
+    // The mode passed to writeFile is masked by the umask and ignored when the
+    // file already exists, so set it explicitly.
+    if (mode !== undefined) {
+      try {
+        await fsPromises.chmod(absolutePathToFile, mode);
+      } catch (chmodError) {
+        ensureError(chmodError);
+        // Filesystems without POSIX permissions (e.g. a Windows drive mounted
+        // in WSL, or a FAT disk) reject chmod. The data has already been
+        // written, so the mode is best-effort there. A file owned by another
+        // user also rejects chmod, but then the caller must know that the
+        // mode wasn't applied, so the error is rethrown.
+        if (!(await isOwnedByCurrentUser(absolutePathToFile))) {
+          throw chmodError;
+        }
+      }
+    }
   } catch (e) {
     ensureNodeErrnoExceptionError(e);
     // if the directory was created, we should remove it
