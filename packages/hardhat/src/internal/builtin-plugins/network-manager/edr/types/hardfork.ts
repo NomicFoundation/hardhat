@@ -56,7 +56,9 @@ export function getHardforks(chainType: ChainType): string[] {
  * `l1HardforkLatest()`/`opLatestHardfork()` — bump them together when EDR
  * promotes a fork.
  */
-export const L1_LATEST_STABLE_HARDFORK: L1HardforkName = L1HardforkName.OSAKA;
+// Benchmark-only: defaults every scenario to Amsterdam. Not meant to be merged.
+export const L1_LATEST_STABLE_HARDFORK: L1HardforkName =
+  L1HardforkName.AMSTERDAM;
 export const OP_LATEST_STABLE_HARDFORK: OpHardforkName = OpHardforkName.ISTHMUS;
 
 export function getCurrentHardfork(chainType: ChainType): string {

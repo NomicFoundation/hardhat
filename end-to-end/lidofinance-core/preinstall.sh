@@ -29,3 +29,15 @@ fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 
 # Remove lockfile so yarn resolves the latest from Verdaccio instead of the pinned version
 rm -f yarn.lock
+
+# Run the benchmark on Amsterdam: the repo pins its networks to Prague
+node -e "
+const fs = require('fs');
+const config = fs.readFileSync('hardhat.config.ts', 'utf8');
+const pin = /hardfork: \"prague\"/g;
+if (!pin.test(config)) {
+  console.error('lidofinance-core preinstall: no prague hardfork pin found in hardhat.config.ts');
+  process.exit(1);
+}
+fs.writeFileSync('hardhat.config.ts', config.replace(pin, 'hardfork: \"amsterdam\"'));
+"
