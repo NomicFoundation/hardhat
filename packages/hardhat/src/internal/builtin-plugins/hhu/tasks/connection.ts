@@ -1,8 +1,12 @@
 import type { NetworkConnection } from "../../../../types/network.js";
 import type { UtilsHardhatRuntimeEnvironment } from "../types.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { hexStringToBigInt } from "@nomicfoundation/hardhat-utils/hex";
 
 import { ProviderError } from "../../network-manager/provider-errors.js";
 
@@ -42,4 +46,23 @@ export async function withConnection<T>(
   } finally {
     await connection.close();
   }
+}
+
+/** Sends a request whose result is a hex quantity, and returns it as a bigint. */
+export async function requestQuantity(
+  hre: UtilsHardhatRuntimeEnvironment,
+  method: string,
+  params?: unknown[],
+): Promise<bigint> {
+  const result = await withConnection(
+    hre,
+    async (connection) => await connection.provider.request({ method, params }),
+  );
+
+  assertHardhatInvariant(
+    typeof result === "string",
+    `${method} should return a string`,
+  );
+
+  return hexStringToBigInt(result);
 }
