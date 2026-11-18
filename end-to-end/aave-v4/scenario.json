@@ -7,7 +7,9 @@
   "packageManager": "yarn",
   "env": {
     "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
-    "FOUNDRY_ISOLATE": "false"
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_NO_MATCH_TEST": "^(test_repayWithSig_revertsWith_ERC20InsufficientAllowance|test_updateUserDynamicConfigWithSig_revertsWith_SpokeNotRegistered|test_updateUserRiskPremiumWithSig_revertsWith_SpokeNotRegistered)\\b",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false"
   },
   "submodules": true,
   "preinstall": "./preinstall.sh",

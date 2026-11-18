@@ -11,7 +11,8 @@
     "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}",
     "MAINNET_FORK_BLOCK_NUMBER": "26002900",
     "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
-    "FOUNDRY_ISOLATE": "false"
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false"
   },
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {

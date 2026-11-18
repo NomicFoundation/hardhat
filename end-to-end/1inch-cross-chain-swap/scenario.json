@@ -7,7 +7,8 @@
   "packageManager": "yarn",
   "env": {
     "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
-    "FOUNDRY_ISOLATE": "false"
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false"
   },
   "submodules": false,
   "preinstall": "./preinstall-foundry.sh",

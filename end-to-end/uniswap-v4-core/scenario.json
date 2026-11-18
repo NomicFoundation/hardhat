@@ -8,7 +8,8 @@
   "env": {
     "pnpm_config_dangerously_allow_all_builds": "true",
     "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
-    "FOUNDRY_ISOLATE": "false"
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false"
   },
   "submodules": true,
   "preinstall": "./preinstall-foundry.sh",

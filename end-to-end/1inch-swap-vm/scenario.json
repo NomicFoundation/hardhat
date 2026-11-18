@@ -9,7 +9,9 @@
     "pnpm_config_block_exotic_subdeps": "false",
     "pnpm_config_dangerously_allow_all_builds": "true",
     "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
-    "FOUNDRY_ISOLATE": "false"
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_EVM_VERSION": "cancun",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false"
   },
   "submodules": false,
   "preinstall": "./preinstall-foundry.sh",
