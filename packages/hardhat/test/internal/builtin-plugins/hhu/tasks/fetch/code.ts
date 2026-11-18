@@ -10,7 +10,6 @@ import {
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 // The first default account, and the address of its first contract
@@ -23,19 +22,13 @@ const RUNTIME_CODE = "0x602a60005260206000f3";
 // PUSH10 RUNTIME_CODE PUSH1 0 MSTORE PUSH1 10 PUSH1 22 RETURN
 const INIT_CODE = "0x69602a60005260206000f3600052600a6016f3";
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 describe("hhu utils fetch tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
 
     // Each connection is a fresh chain, so the contract is redeployed
     const networkHooks: Partial<NetworkHooks> = {
