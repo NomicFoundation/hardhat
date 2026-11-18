@@ -10,7 +10,6 @@ import {
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 // The first default account
@@ -18,19 +17,13 @@ const SENDER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 const ADDRESS = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 describe("hhu utils fetch tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
 
     // Each connection is a fresh chain, so the transfer is resent. Its value,
     // 10^18 + 1 wei, is beyond 2^53.

@@ -9,11 +9,8 @@ import {
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 // Parsing and hashing signatures is covered by the hardhat-utils abi tests;
 // these tests only verify the task wiring and how parsing errors are reported.
 describe("hhu utils abi tasks", () => {
@@ -22,11 +19,7 @@ describe("hhu utils abi tasks", () => {
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
   });
 
   describe("sig-event", () => {

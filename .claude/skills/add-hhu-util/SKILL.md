@@ -13,12 +13,6 @@ Utils live in the `hhu` built-in plugin and are defined **once** as normal Hardh
 
 All paths below are under `packages/hardhat/`.
 
-The feature is currently internal: the `hhu` plugin is commented out of
-`builtin-plugins/index.ts` and there's no `bin.hhu`, but the source compiles and is
-fully tested. Two practical consequences: tests of the `hardhat utils …` path must
-register the plugin explicitly (see Testing), and the binary runs from the build —
-`node packages/hardhat/dist/src/hhu.js <ns> <cmd>` — rather than a `hhu` command.
-
 ## Architecture
 
 - **Prefix toggle.** `tasks/index.ts` exports `generateTasks({ prefixWithUtils })`. It computes the id prefix once (`["utils"]` when true, `[]` when false) and passes it to each namespace builder, which it iterates over from a `CATEGORIES` array. The Hardhat plugin (`hhu/index.ts`) calls `generateTasks({ prefixWithUtils: true })`; the `hhu` binary (`cli/hhu.ts`) calls `generateTasks({ prefixWithUtils: false })`. This is the _only_ difference between the two surfaces.
@@ -56,12 +50,12 @@ Mirror an existing one (e.g. `tasks/fetch/`): a `<ns>/index.ts` exporting `<ns>(
 
 ## Testing
 
-- **Test util logic as a normal Hardhat task**, not through `hhu`. Put it under `test/internal/builtin-plugins/hhu/tasks/<ns>/<cmd>.ts` (one file per util, mirroring the source layout): create a real HRE with the plugin injected (it's de-registered while internal) — `createHardhatRuntimeEnvironment({ plugins: [hhu] }, {}, process.cwd())` — run `hre.tasks.getTask(["utils", "<ns>", "<cmd>"]).run({})`, and capture output with `captureConsole()` from `@nomicfoundation/hardhat-test-utils`.
+- **Test util logic as a normal Hardhat task**, not through `hhu`. Put it under `test/internal/builtin-plugins/hhu/tasks/<ns>/<cmd>.ts` (one file per util, mirroring the source layout): create a real HRE (the plugin is built in) — `createHardhatRuntimeEnvironment({})` — run `hre.tasks.getTask(["utils", "<ns>", "<cmd>"]).run({})`, and capture output with `captureConsole()` from `@nomicfoundation/hardhat-test-utils`.
 - **Only add an `hhu`-level test when the util exercises something the `hhu` path hasn't before** — e.g. a new global flag/option, or the first use of the network. A plain print-only util needs no new `hhu` test. Examples of when we did add one:
   - Adding `--network`: a `parseHhuGlobalOptions` assertion in `test/internal/cli/hhu.ts`.
   - The first network util: an end-to-end smoke test in `test/internal/cli/hhu.ts` that runs `hhu <ns> <cmd>` and exercises the fake HRE's `network.create`.
-- **Network/HRE-creating `hhu` tests** need a fixture project (`useFixtureProject`, e.g. `cli/parsing/base-project`) and must call `resetGlobalHardhatRuntimeEnvironment()` afterward. They pass in the test runner (it has TS loading); the standalone binary would additionally need tsx to load a TS config — a known, separate limitation.
-- **Help-snapshot gotcha.** Adding a util changes the `hhu` global-help listing, an exact-match snapshot in `test/internal/cli/hhu.ts`. Update it. (While the feature is internal, the Hardhat `main.ts` help snapshot does **not** list `utils`, so leave it alone — it only needs updating once the plugin is re-registered.) Capture exact `hhu` output by running the built binary, e.g. `node dist/src/hhu.js`, `node dist/src/hhu.js <ns> --help`.
+- **Network/HRE-creating `hhu` tests** need a fixture project (`useFixtureProject`, e.g. `cli/parsing/base-project`) and must call `resetGlobalHardhatRuntimeEnvironment()` afterward. They pass in the test runner (it has TS loading); the binary registers tsx itself before loading the config.
+- **Help-snapshot gotcha.** Two exact-match help snapshots list the utils; check and update both: the `hhu` global help in `test/internal/cli/hhu.ts` (changes for every new util), and the `hardhat --help` output in `test/internal/cli/main.ts` (lists only `utils <ns>`, so it changes for a new namespace or a top-level util like `rpc`). Capture exact output by running the built binaries, e.g. `node dist/src/hhu.js`, `node dist/src/hhu.js <ns> --help`, `npx hardhat --help`.
 
 ## Verify
 
@@ -81,5 +75,7 @@ arguments/flags:
 node packages/hardhat/dist/src/hhu.js <ns> <cmd> [args/flags]
 ```
 
-For network utils, run it from inside a Hardhat project and add a TS-config loader, e.g.
-`node --import tsx/esm packages/hardhat/dist/src/hhu.js fetch block-number --network <name>`.
+From a project in this repo (e.g. `packages/example-project`, after `pnpm install`), `npx hhu <ns> <cmd>` and `npx hardhat utils <ns> <cmd>` also work.
+
+For network utils, run it from inside a Hardhat project, e.g.
+`node packages/hardhat/dist/src/hhu.js fetch block-number --network <name>`.
