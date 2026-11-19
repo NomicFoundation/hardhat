@@ -1,5 +1,5 @@
 import { HardhatNetworkConfig } from "../../../types";
-import { HardforkName } from "../../util/hardforks";
+import { HardforkName, LATEST_STABLE_HARDFORK } from "../../util/hardforks";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.7.3";
@@ -36,7 +36,7 @@ export const defaultHardhatNetworkParams: Omit<
   HardhatNetworkConfig,
   "gas" | "initialDate"
 > = {
-  hardfork: HardforkName.OSAKA,
+  hardfork: LATEST_STABLE_HARDFORK,
   blockGasLimit: 60_000_000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
