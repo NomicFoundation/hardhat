@@ -9,6 +9,7 @@
     "pnpm_config_dangerously_allow_all_builds": "true"
   },
   "submodules": true,
+  "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {

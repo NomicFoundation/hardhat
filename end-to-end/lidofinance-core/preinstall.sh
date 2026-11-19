@@ -30,14 +30,20 @@ fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 # Remove lockfile so yarn resolves the latest from Verdaccio instead of the pinned version
 rm -f yarn.lock
 
-# Run the benchmark on Amsterdam: the repo pins its networks to Prague
+# Run the benchmark on Amsterdam: the repo pins its networks to Prague. Its
+# 30M block gas limit can't fit its contracts' Amsterdam (EIP-8037) code deposit.
 node -e "
 const fs = require('fs');
-const config = fs.readFileSync('hardhat.config.ts', 'utf8');
-const pin = /hardfork: \"prague\"/g;
-if (!pin.test(config)) {
-  console.error('lidofinance-core preinstall: no prague hardfork pin found in hardhat.config.ts');
-  process.exit(1);
+let config = fs.readFileSync('hardhat.config.ts', 'utf8');
+for (const [pin, to] of [
+  [/hardfork: \"prague\"/g, 'hardfork: \"amsterdam\"'],
+  [/blockGasLimit: 30000000,/g, 'blockGasLimit: 1_000_000_000,'],
+]) {
+  if (!pin.test(config)) {
+    console.error('lidofinance-core preinstall: no match in hardhat.config.ts for ' + pin);
+    process.exit(1);
+  }
+  config = config.replace(pin, to);
 }
-fs.writeFileSync('hardhat.config.ts', config.replace(pin, 'hardfork: \"amsterdam\"'));
+fs.writeFileSync('hardhat.config.ts', config);
 "

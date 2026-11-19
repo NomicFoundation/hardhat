@@ -45,3 +45,19 @@ for (const [from, to] of [
 }
 fs.writeFileSync(testFile, test);
 "
+
+# Run the benchmark on Amsterdam. Hardhat's default 60M block gas limit can't
+# fit the upgrade contracts' Amsterdam (EIP-8037) code deposit and storage.
+node -e "
+const fs = require('fs');
+const config = fs.readFileSync('hardhat.config.ts', 'utf8');
+const anchor = /^( *)allowUnlimitedContractSize: true,$/m;
+if (!anchor.test(config) || config.includes('blockGasLimit')) {
+  console.error('rocketpool preinstall: expected one allowUnlimitedContractSize and no blockGasLimit in hardhat.config.ts');
+  process.exit(1);
+}
+fs.writeFileSync(
+  'hardhat.config.ts',
+  config.replace(anchor, '\$&\n\$1blockGasLimit: 1_000_000_000,'),
+);
+"

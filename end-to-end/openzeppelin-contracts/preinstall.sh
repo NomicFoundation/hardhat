@@ -1,3 +1,5 @@
+set -euo pipefail
+
 rm package-lock.json
 
 # Run the benchmark on Amsterdam. Only the network hardfork changes: `argv.evm`
@@ -12,3 +14,6 @@ if (!config.includes(pin)) {
 }
 fs.writeFileSync('hardhat.config.ts', config.replace(pin, \"hardfork: 'amsterdam',\"));
 "
+
+# Adapt the tests that fail on Amsterdam's gas prices and header fields
+git apply "$E2E_TEST_DIR/amsterdam-tests.patch"
