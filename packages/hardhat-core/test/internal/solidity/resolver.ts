@@ -299,6 +299,7 @@ describe("Resolver", function () {
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
           "Library @not-installed/contracts is not installed"
         );
+
       });
 
       it("Should fail if the library is installed byt the file not found", async function () {
@@ -421,6 +422,12 @@ describe("Resolver", function () {
         await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "non-installed/asd.sol"),
           ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED
+        );
+
+        await expectHardhatErrorAsync(
+          () => resolver.resolveImport(localFrom, "@hardhat/console.sol"),
+          ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED,
+          "The library @hardhat/console.sol"
         );
       });
 

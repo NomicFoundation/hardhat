@@ -463,7 +463,9 @@ export class Resolver {
   private _getLibraryName(sourceName: string): string {
     let endIndex: number;
     if (this._isScopedPackage(sourceName)) {
-      endIndex = sourceName.indexOf("/", sourceName.indexOf("/") + 1);
+      const firstSlash = sourceName.indexOf("/");
+      const secondSlash = sourceName.indexOf("/", firstSlash + 1);
+      endIndex = secondSlash === -1 ? sourceName.length : secondSlash;
     } else if (sourceName.indexOf("/") === -1) {
       endIndex = sourceName.length;
     } else {
