@@ -30,7 +30,10 @@ import {
   getRealPathSync,
 } from "../../../../src/internal/util/fs-utils";
 import { useEnvironment } from "../../../helpers/environment";
-import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../../../../src/internal/constants";
+import {
+  EIP_8037_MAX_TRANSACTION_GAS_LIMIT,
+  FUSAKA_TRANSACTION_GAS_LIMIT,
+} from "../../../../src/internal/constants";
 
 function getBuildInfos() {
   return getAllFilesMatchingSync(getRealPathSync("artifacts/build-info"), (f) =>
@@ -332,6 +335,29 @@ describe("Config resolution", () => {
           initialDate:
             configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
         });
+      });
+
+      it("Should bound the default gas by EIP-8037's limit from Amsterdam", function () {
+        const amsterdam = resolveConfig(__filename, {
+          networks: { hardhat: { hardfork: "amsterdam" } },
+        });
+        // The default 60M block gas limit
+        assert.equal(amsterdam.networks.hardhat.gas, 60_000_000);
+
+        const amsterdamWithLargeBlocks = resolveConfig(__filename, {
+          networks: {
+            hardhat: { hardfork: "amsterdam", blockGasLimit: 2 ** 40 },
+          },
+        });
+        assert.equal(
+          amsterdamWithLargeBlocks.networks.hardhat.gas,
+          EIP_8037_MAX_TRANSACTION_GAS_LIMIT
+        );
+
+        const osaka = resolveConfig(__filename, {
+          networks: { hardhat: { hardfork: "osaka" } },
+        });
+        assert.equal(osaka.networks.hardhat.gas, FUSAKA_TRANSACTION_GAS_LIMIT);
       });
 
       it("Should resolve initialDate to the current time", function () {

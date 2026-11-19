@@ -33,10 +33,11 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import {
+  EIP_8037_MAX_TRANSACTION_GAS_LIMIT,
   FUSAKA_TRANSACTION_GAS_LIMIT,
   HARDHAT_NETWORK_NAME,
 } from "../../constants";
-import { HardforkName } from "../../util/hardforks";
+import { HardforkName, hardforkGte } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
@@ -184,9 +185,15 @@ function resolveHardhatNetworkConfig(
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
 
+  const hardfork = (hardhatNetworkConfig.hardfork ??
+    clonedDefaultHardhatNetworkParams.hardfork) as HardforkName;
+
+  const transactionGasLimit = hardforkGte(hardfork, HardforkName.AMSTERDAM)
+    ? EIP_8037_MAX_TRANSACTION_GAS_LIMIT
+    : FUSAKA_TRANSACTION_GAS_LIMIT;
+
   const gas =
-    hardhatNetworkConfig.gas ??
-    Math.min(FUSAKA_TRANSACTION_GAS_LIMIT, blockGasLimit);
+    hardhatNetworkConfig.gas ?? Math.min(transactionGasLimit, blockGasLimit);
   const gasPrice =
     hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice;
   const initialBaseFeePerGas =
