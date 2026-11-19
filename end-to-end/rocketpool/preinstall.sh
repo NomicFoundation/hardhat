@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Use node for file transforms to avoid BSD/GNU sed portability issues
 # (matches the convention used by the other scenarios' preinstall scripts).
 node -e "
@@ -60,4 +62,31 @@ fs.writeFileSync(
   'hardhat.config.ts',
   config.replace(anchor, '\$&\n\$1blockGasLimit: 1_000_000_000,'),
 );
+"
+
+# Amsterdam's state gas (EIP-8037) for the new storage slots of 32 exits
+# exceeds the 12M budget of the max-size challenge tests. Raise it to 30M to
+# record the Amsterdam gas they log.
+node -e "
+const fs = require('fs');
+for (const [file, replacements] of [
+  ['test/tests/network/network-participation-minipool-tests.ts', [
+    'finaliseChallenge(id, { gasLimit: 12_000_000n })',
+    'assert(result.gasUsed < 12_000_000n)',
+  ]],
+  ['test/tests/network/network-participation-tests.ts', [
+    'finaliseList(current, c, c.validatorIds, 12_000_000n)',
+    'assert(receipt.gasUsed < 12_000_000n)',
+  ]],
+]) {
+  let test = fs.readFileSync(file, 'utf8');
+  for (const from of replacements) {
+    if (test.split(from).length !== 2) {
+      console.error('rocketpool preinstall: expected exactly one match in ' + file + ' for: ' + from);
+      process.exit(1);
+    }
+    test = test.replace(from, from.replace('12_000_000n', '30_000_000n'));
+  }
+  fs.writeFileSync(file, test);
+}
 "
