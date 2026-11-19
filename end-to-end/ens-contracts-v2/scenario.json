@@ -5,7 +5,16 @@
   "repo": "ensdomains/contracts-v2",
   "commit": "48b3e2d39513b9dd32ef1850877a29009bc807b9",
   "packageManager": "bun",
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
+    "FOUNDRY_ISOLATE": "false",
+    "FOUNDRY_LINT_LINT_ON_BUILD": "false",
+    "FOUNDRY_SOLC_VERSION": "0.8.25",
+    "FOUNDRY_OPTIMIZER_RUNS": "1000",
+    "FOUNDRY_EXTRA_OUTPUT": "[storageLayout]"
+  },
   "submodules": true,
+  "preinstall": "./preinstall-foundry.sh",
   "workingDirectory": "contracts",
   "defaultCommand": "npx hardhat test && npx vitest run",
   "benchmark": {
@@ -14,50 +23,45 @@
         "runs": 2,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/unit/utils/LibLabel.t.sol test/unit/migration/LockedMigrationController.t.sol src/registry/interfaces/IRegistry.sol && npx hardhat clean",
+            "command": "git checkout -- test/unit/utils/LibLabel.t.sol test/unit/migration/LockedMigrationController.t.sol src/registry/interfaces/IRegistry.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile",
+            "command": "forge build",
             "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: test/unit/utils/LibLabel.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/utils/LibLabel.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/utils/LibLabel.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: test/unit/migration/LockedMigrationController.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/migration/LockedMigrationController.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/migration/LockedMigrationController.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: src/registry/interfaces/IRegistry.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/registry/interfaces/IRegistry.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/registry/interfaces/IRegistry.sol && forge build",
             "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
         "runs": 2,
-        "command": "npx hardhat compile",
+        "command": "forge build",
         "dependsOn": ["cold compile"]
       },
       "test solidity": {
         "runs": 5,
-        "command": "npx hardhat test solidity --no-compile",
+        "command": "forge test",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvv": {
         "runs": 5,
-        "command": "npx hardhat test solidity --no-compile -vvv",
+        "command": "forge test -vvv",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvvv": {
         "runs": 5,
-        "command": "npx hardhat test solidity --no-compile -vvvv",
-        "dependsOn": ["cold compile"]
-      },
-      "test vitest": {
-        "runs": 2,
-        "command": "npx vitest run",
+        "command": "forge test -vvvv",
         "dependsOn": ["cold compile"]
       }
     }
