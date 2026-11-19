@@ -1,3 +1,5 @@
+import picocolors from "picocolors";
+
 import { assertHardhatInvariant } from "../core/errors";
 
 export enum HardforkName {
@@ -80,4 +82,34 @@ export function hardforkGte(
   const indexB = HARDFORKS_ORDER.lastIndexOf(hardforkB);
 
   return indexA >= indexB;
+}
+
+const warnedHardforks = new Set<HardforkName>();
+
+/**
+ * Warns, once per process, that `hardfork` is experimental if it comes after
+ * `LATEST_STABLE_HARDFORK`.
+ */
+export function warnIfExperimentalHardfork(
+  hardfork: HardforkName,
+  warn: (message: string) => void = (message) => console.warn(message)
+): void {
+  if (
+    hardfork === LATEST_STABLE_HARDFORK ||
+    !hardforkGte(hardfork, LATEST_STABLE_HARDFORK) ||
+    warnedHardforks.has(hardfork)
+  ) {
+    return;
+  }
+
+  warnedHardforks.add(hardfork);
+
+  const label = picocolors.bold(picocolors.yellow("Warning:"));
+  warn(
+    `${label} you have configured the "${hardfork}" hardfork, which is ` +
+      `experimental and not yet finalized, so its behavior may change or be ` +
+      `incomplete. The latest stable hardfork is "${LATEST_STABLE_HARDFORK}". ` +
+      `Keep Hardhat up to date to track changes to "${hardfork}" and to pick ` +
+      `up its stable version once it activates on mainnet.\n`
+  );
 }
