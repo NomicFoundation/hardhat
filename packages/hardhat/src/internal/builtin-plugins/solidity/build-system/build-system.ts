@@ -741,10 +741,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         typeFilePath,
       } = cacheResult;
 
+      // A root file without contracts emits no artifacts, so nothing
+      // references its build info and `cleanupArtifacts` deletes it. Its
+      // outputs don't depend on it, so we don't require it to exist.
+      const buildInfoFiles =
+        artifactPaths.length > 0 ? [buildInfoPath, buildInfoOutputPath] : [];
+
       for (const outputFilePath of [
         ...artifactPaths,
-        buildInfoPath,
-        buildInfoOutputPath,
+        ...buildInfoFiles,
         typeFilePath,
       ]) {
         // Type declaration file can be undefined (e.g. for solidity tests)
