@@ -1822,6 +1822,7 @@ describe("Config validation", function () {
           },
         });
       });
+
       it("Should validate good config with chainId as a string", function () {
         validateConfig({
           networks: {
@@ -1838,6 +1839,20 @@ describe("Config validation", function () {
           },
         });
       });
+
+      it("should accept the amsterdam hardfork, for the network and in a history", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              hardfork: "amsterdam",
+              chains: {
+                1: { hardforkHistory: { osaka: 0, amsterdam: 100 } },
+              },
+            },
+          },
+        });
+      });
+
       it("should reject an invalid hardfork name", function () {
         expectHardhatError(() => {
           validateConfig({
@@ -1851,6 +1866,7 @@ describe("Config validation", function () {
           });
         }, ERRORS.GENERAL.INVALID_CONFIG);
       });
+
       it("should reject an empty hardfork history", function () {
         expectHardhatError(
           () => {

@@ -20,6 +20,7 @@ export enum HardforkName {
   CANCUN = "cancun",
   PRAGUE = "prague",
   OSAKA = "osaka",
+  AMSTERDAM = "amsterdam",
 }
 
 /** All hardforks, from oldest to newest. */
@@ -43,7 +44,13 @@ export const HARDFORKS_ORDER: HardforkName[] = [
   HardforkName.CANCUN,
   HardforkName.PRAGUE,
   HardforkName.OSAKA,
+  HardforkName.AMSTERDAM,
 ];
+
+/**
+ * The latest stable hardfork, which is also the default.
+ */
+export const LATEST_STABLE_HARDFORK: HardforkName = HardforkName.OSAKA;
 
 export function getHardforkName(name: string): HardforkName {
   const hardforkName =

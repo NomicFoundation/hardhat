@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import {
   getHardforkName,
+  hardforkGte,
   HardforkName,
 } from "../../../src/internal/util/hardforks";
 import { expectHardhatError } from "../../helpers/errors";
@@ -30,6 +31,14 @@ describe("Hardfork utils", function () {
       assert.equal("cancun", HardforkName.CANCUN);
       assert.equal("prague", HardforkName.PRAGUE);
       assert.equal("osaka", HardforkName.OSAKA);
+      assert.equal("amsterdam", HardforkName.AMSTERDAM);
+    });
+  });
+
+  describe("hardforkGte", function () {
+    it("orders amsterdam after osaka", function () {
+      assert.isTrue(hardforkGte(HardforkName.AMSTERDAM, HardforkName.OSAKA));
+      assert.isFalse(hardforkGte(HardforkName.OSAKA, HardforkName.AMSTERDAM));
     });
   });
 });
