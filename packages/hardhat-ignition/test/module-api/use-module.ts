@@ -1,3 +1,5 @@
+import type { ContractFuture } from "@nomicfoundation/ignition-core";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -70,6 +72,34 @@ describe("useModule", function () {
       assert.deepStrictEqual(
         [entry1, entry2, entry3, entry4],
         ["first", "second", "third", "fourth"],
+      );
+    });
+
+    it("should deploy a module that passes one of its own futures into a submodule it depends on", async function () {
+      const buildSubmodule = (foo: ContractFuture<"Foo">) =>
+        buildModule("Submodule", (m) => {
+          const usesFoo = m.contract("UsesContract", [foo], { id: "UsesFoo" });
+
+          return { usesFoo };
+        });
+
+      const userModule = buildModule("UserModule", (m) => {
+        const foo = m.contract("Foo");
+        const { usesFoo } = m.useModule(buildSubmodule(foo));
+        const usesUsesFoo = m.contract("UsesContract", [usesFoo]);
+
+        return { foo, usesFoo, usesUsesFoo };
+      });
+
+      const result = await this.ignition.deploy(userModule);
+
+      assert.equal(
+        await result.usesFoo.read.contractAddress(),
+        result.foo.address,
+      );
+      assert.equal(
+        await result.usesUsesFoo.read.contractAddress(),
+        result.usesFoo.address,
       );
     });
   });

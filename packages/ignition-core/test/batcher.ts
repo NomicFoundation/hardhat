@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { buildModule } from "../src/build-module.js";
@@ -8,7 +10,11 @@ import {
   ExecutionSateType,
   ExecutionStatus,
 } from "../src/internal/execution/types/execution-state.js";
-import { FutureType, type IgnitionModule } from "../src/types/module.js";
+import {
+  type ContractFuture,
+  FutureType,
+  type IgnitionModule,
+} from "../src/types/module.js";
 
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -177,6 +183,85 @@ describe("batcher", () => {
         },
       },
       [["Module1#Contract1"], ["Module1#Contract3"]],
+    );
+  });
+
+  it("should batch a module that passes one of its own futures into a submodule it depends on", () => {
+    const buildSubmodule = (token: ContractFuture<string>) =>
+      buildModule("Submodule", (m) => {
+        const vault = m.contract("Vault", [token]);
+
+        return { vault };
+      });
+
+    const ignitionModule = buildModule("Module", (m) => {
+      const token = m.contract("Token");
+      const { vault } = m.useModule(buildSubmodule(token));
+      const pair = m.contract("Pair", [vault]);
+
+      return { pair };
+    });
+
+    assertBatching({ ignitionModule }, [
+      ["Module#Token"],
+      ["Submodule#Vault"],
+      ["Module#Pair"],
+    ]);
+  });
+
+  it("should batch a module that passes one of its own futures into a nested submodule it depends on", () => {
+    const buildInner = (token: ContractFuture<string>) =>
+      buildModule("Inner", (m) => {
+        const vault = m.contract("Vault", [token]);
+        m.call(vault, "configure");
+
+        return { vault };
+      });
+
+    const buildMiddle = (token: ContractFuture<string>) =>
+      buildModule("Middle", (m) => {
+        const { vault } = m.useModule(buildInner(token));
+        const router = m.contract("Router", [vault]);
+
+        return { router };
+      });
+
+    const ignitionModule = buildModule("Module", (m) => {
+      const token = m.contract("Token");
+      const { router } = m.useModule(buildMiddle(token));
+      const pair = m.contract("Pair", [router]);
+
+      return { pair };
+    });
+
+    assertBatching({ ignitionModule }, [
+      ["Module#Token"],
+      ["Inner#Vault"],
+      ["Inner#Vault.configure"],
+      ["Middle#Router"],
+      ["Module#Pair"],
+    ]);
+  });
+
+  it("should throw instead of looping forever if the dependencies contain a cycle", () => {
+    const ignitionModule = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+      const contract2 = m.contract("Contract2", [contract1]);
+
+      return { contract1, contract2 };
+    });
+
+    const { results } = ignitionModule;
+    results.contract1.dependencies.add(results.contract2);
+
+    assertThrowsHardhatError(
+      () =>
+        Batcher.batch(ignitionModule, { chainId: 123, executionStates: {} }),
+      HardhatError.ERRORS.IGNITION.GENERAL.ASSERTION_ERROR,
+      {
+        description:
+          "Unable to resolve the next batch, the futures' dependencies contain a cycle",
+      },
     );
   });
 });

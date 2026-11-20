@@ -4,6 +4,7 @@ import type { Future, IgnitionModule } from "../types/module.js";
 
 import { ExecutionStatus } from "./execution/types/execution-state.js";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter.js";
+import { assertIgnitionInvariant } from "./utils/assertions.js";
 import { getFuturesFromModule } from "./utils/get-futures-from-module.js";
 
 enum VisitStatus {
@@ -31,6 +32,11 @@ export class Batcher {
 
     while (!this._allVisited(batchState)) {
       const nextBatch = this._resolveNextBatch(batchState);
+
+      assertIgnitionInvariant(
+        nextBatch.length > 0,
+        "Unable to resolve the next batch, the futures' dependencies contain a cycle",
+      );
 
       batches.push(nextBatch);
 
