@@ -16,10 +16,7 @@ export function assertValidationError(
   errors: string[],
   expectedError: string,
 ): void {
-  assert.includeMembers(
-    errors.map((e) => e.split(/^\w+\d+: /)[1]),
-    [expectedError],
-  );
+  assert.ok(errors.map((e) => e.split(/^\w+\d+: /)[1]).includes(expectedError));
 }
 
 export function assertInstanceOf<ObjectT>(

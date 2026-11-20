@@ -37,9 +37,9 @@ describe("Libraries handling", () => {
       ).map((e) => e.message);
 
       assert(error !== undefined);
-      assert.include(error, `The name "Lib" is ambiguous`);
-      assert.include(error, `contracts/C.sol:Lib`);
-      assert.include(error, `contracts/Libs.sol:Lib`);
+      assert.ok(error.includes(`The name "Lib" is ambiguous`));
+      assert.ok(error.includes(`contracts/C.sol:Lib`));
+      assert.ok(error.includes(`contracts/Libs.sol:Lib`));
     });
 
     it("Should throw if a library is missing", () => {
@@ -49,8 +49,8 @@ describe("Libraries handling", () => {
       ).map((e) => e.message);
 
       assert(error !== undefined);
-      assert.include(error, `The following libraries are missing:`);
-      assert.include(error, `contracts/C.sol:Lib`);
+      assert.ok(error.includes(`The following libraries are missing:`));
+      assert.ok(error.includes(`contracts/C.sol:Lib`));
     });
 
     it("Should throw if a name is used twice, as FQN and bare name", () => {
@@ -105,8 +105,8 @@ describe("Libraries handling", () => {
       );
 
       // We don't really validate if they were linked correctly here
-      assert.include(linkedBytecode, mockAddress.slice(2));
-      assert.include(linkedBytecode, mockAddress2.slice(2));
+      assert.ok(linkedBytecode.includes(mockAddress.slice(2)));
+      assert.ok(linkedBytecode.includes(mockAddress2.slice(2)));
     });
 
     it("Should link by bare name", () => {
@@ -117,7 +117,7 @@ describe("Libraries handling", () => {
         },
       );
 
-      assert.include(linkedBytecode, mockAddress.slice(2));
+      assert.ok(linkedBytecode.includes(mockAddress.slice(2)));
 
       const firstRef =
         deploymentFixturesArtifacts.WithLibrary.linkReferences[

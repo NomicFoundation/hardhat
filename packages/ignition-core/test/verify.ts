@@ -99,9 +99,8 @@ describe("verify", () => {
     for await (const info of getVerificationInformation(deploymentDir)) {
       // Note: the library in this test is called UUUUU
       assert(typeof info !== "string", "Expected a VerifyInfo, got a string");
-      assert.notInclude(
-        info.contract,
-        "contracts/Lib.sol:contracts/Lib.sol:",
+      assert.ok(
+        !info.contract.includes("contracts/Lib.sol:contracts/Lib.sol:"),
         "Source name should not be duplicated in the contract FQN",
       );
       if (info.contract.endsWith(":UUUUU")) {
