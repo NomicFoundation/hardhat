@@ -3,10 +3,6 @@ import type { AbiParameter } from "@nomicfoundation/hardhat-utils/abi";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { parseAbiFunctionSignature } from "@nomicfoundation/hardhat-utils/abi";
 import {
-  isAddress,
-  isValidChecksumAddress,
-} from "@nomicfoundation/hardhat-utils/eth";
-import {
   getUnprefixedHexString,
   isHexString,
   isPrefixedHexString,
@@ -16,6 +12,7 @@ import {
 
 import { parseSignatureArgument } from "../abi/arguments.js";
 import { encodeFunctionCall } from "../abi/encode.js";
+import { parseAddressArgument } from "../address.js";
 import { parseBlockArgument } from "../block.js";
 
 export interface CallRequestArguments {
@@ -48,11 +45,9 @@ export async function buildCallRequest({
   params: unknown[];
   outputs: readonly AbiParameter[];
 }> {
-  await assertAddressArgument(to, "to");
-
-  if (from !== undefined) {
-    await assertAddressArgument(from, "from");
-  }
+  const toAddress = await parseAddressArgument(to, "to");
+  const fromAddress =
+    from !== undefined ? await parseAddressArgument(from, "from") : undefined;
 
   if (data !== undefined && signature !== undefined) {
     throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
@@ -91,8 +86,8 @@ export async function buildCallRequest({
 
   // Lowercased, as some nodes reject a "0X" prefix
   const transaction = {
-    to: normalizeHexString(to),
-    ...(from !== undefined && { from: normalizeHexString(from) }),
+    to: toAddress,
+    ...(fromAddress !== undefined && { from: fromAddress }),
     data: normalizeHexString(calldata),
     value: numberToHexString(value),
   };
@@ -101,32 +96,4 @@ export async function buildCallRequest({
     params: [transaction, parseBlockArgument(block, "block")],
     outputs,
   };
-}
-
-async function assertAddressArgument(
-  value: string,
-  name: string,
-): Promise<void> {
-  if (!isAddress(value)) {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value,
-      name,
-      reason: "it must be a valid Ethereum address",
-    });
-  }
-
-  // Like the encoder, mixed-case addresses must pass the EIP-55 checksum, to
-  // catch typos. The prefix can be "0X".
-  const hex = value.slice(2);
-  if (
-    hex !== hex.toLowerCase() &&
-    hex !== hex.toUpperCase() &&
-    !(await isValidChecksumAddress(`0x${hex}`))
-  ) {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value,
-      name,
-      reason: "it has an invalid address checksum",
-    });
-  }
 }
