@@ -281,6 +281,10 @@ function taskDefinitionsToTasksMap(tasks: TaskDefinition[]): Map<string, Task> {
         "hhu's proxied network",
         {
           create: async (networkOrParams) => {
+            // Like the hardhat CLI: tsx handles TS configs that native type stripping can't (Deno has its own).
+            if (!("Deno" in globalThis)) {
+              (await import("tsx/esm/api")).register();
+            }
             const hre = await import("../../index.js");
             return await hre.network.create(networkOrParams);
           },

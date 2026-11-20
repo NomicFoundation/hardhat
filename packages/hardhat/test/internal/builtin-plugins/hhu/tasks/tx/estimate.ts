@@ -10,7 +10,6 @@ import {
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 // The identity precompile, which returns its calldata
@@ -20,8 +19,6 @@ const IDENTITY = "0x0000000000000000000000000000000000000004";
 const REVERTER = `0x${"ee".repeat(20)}`;
 const REVERTER_CODE = "0x5f5ffd";
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 // The request is built as in `tx call`, whose tests cover its arguments.
 describe("hhu utils tx estimate task", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -29,11 +26,7 @@ describe("hhu utils tx estimate task", () => {
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
 
     // Each connection is a fresh chain, so the contract is redeployed
     const networkHooks: Partial<NetworkHooks> = {

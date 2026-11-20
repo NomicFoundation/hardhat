@@ -284,6 +284,13 @@ AVAILABLE TASKS:
 AVAILABLE SUBTASKS:
 
   test solidity            Run the Solidity tests
+  utils abi                Work with ABI signatures and data
+  utils constants          Commonly used Ethereum constants
+  utils convert            Convert values between common Ethereum representations
+  utils fetch              Fetch on-chain data
+  utils hash               Hash values
+  utils rpc                Send a JSON-RPC request and print its result as JSON
+  utils tx                 Work with transactions
 
 GLOBAL OPTIONS:
 

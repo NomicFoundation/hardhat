@@ -9,25 +9,18 @@ import {
   captureConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 const INT256_MIN =
   "-57896044618658097711785492504343953926634992332820282019728792003956564819968";
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 describe("hhu utils constants tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
   });
 
   describe("min-value", () => {
