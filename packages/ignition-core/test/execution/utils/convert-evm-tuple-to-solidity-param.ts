@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import type { EvmTuple } from "../../../src/internal/execution/types/evm-execution.js";
 import { convertEvmTupleToSolidityParam } from "../../../src/internal/execution/utils/convert-evm-tuple-to-solidity-param.js";

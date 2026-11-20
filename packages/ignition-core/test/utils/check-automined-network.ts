@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import { checkAutominedNetwork } from "../../src/internal/utils/check-automined-network.js";
 import type { EIP1193Provider } from "../../src/types/provider.js";

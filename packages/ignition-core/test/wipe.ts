@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import type { ArtifactResolver } from "../src/index.js";
 import { EphemeralDeploymentLoader } from "../src/internal/deployment-loader/ephemeral-deployment-loader.js";

@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
+import { describe, it, beforeEach } from "node:test";
 
 import { monitorOnchainInteraction } from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction.js";
 import { decodeSimulationResult } from "../../../../src/internal/execution/future-processor/helpers/decode-simulation-result.js";

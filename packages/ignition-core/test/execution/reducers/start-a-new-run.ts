@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it, beforeEach } from "node:test";
 
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
 import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";

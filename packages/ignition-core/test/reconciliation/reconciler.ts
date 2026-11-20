@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import { buildModule } from "../../src/build-module.js";
 import {

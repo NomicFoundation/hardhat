@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/ephemeral-deployment-loader.js";
 import { FileDeploymentLoader } from "../../src/internal/deployment-loader/file-deployment-loader.js";

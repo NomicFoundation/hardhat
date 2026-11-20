@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 import path from "node:path";
 
 import { listDeployments } from "../src/index.js";

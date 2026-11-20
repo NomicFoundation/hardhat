@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import { type VerifyResult, getVerificationInformation } from "../src/index.js";
 

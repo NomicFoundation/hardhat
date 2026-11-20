@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it, beforeEach } from "node:test";
 
 import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";

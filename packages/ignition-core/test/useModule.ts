@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import { type Artifact, DeploymentResultType } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
