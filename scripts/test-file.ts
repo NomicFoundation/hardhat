@@ -34,7 +34,6 @@ EXAMPLES
 // These use Mocha or composite runners and aren't supported by test:file.
 // Remove entries here once a package migrates to node --test.
 const UNSUPPORTED_TEST_RUNNERS = new Set([
-  "@nomicfoundation/ignition-ui",
   "@nomicfoundation/hardhat-ignition",
   "@nomicfoundation/ignition-core",
   "@nomicfoundation/example-project",
