@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
 
 import type { Artifact, ArtifactResolver } from "../src/index.js";
 import { DeploymentLoader } from "../src/internal/deployment-loader/types.js";
@@ -16,17 +16,14 @@ export function assertValidationError(
   errors: string[],
   expectedError: string,
 ): void {
-  assert.includeMembers(
-    errors.map((e) => e.split(/^\w+\d+: /)[1]),
-    [expectedError],
-  );
+  assert.ok(errors.map((e) => e.split(/^\w+\d+: /)[1]).includes(expectedError));
 }
 
 export function assertInstanceOf<ObjectT>(
   obj: unknown,
   klass: new (...args: any[]) => ObjectT,
 ): asserts obj is ObjectT {
-  assert.instanceOf(obj, klass, `Not a valid instance of ${klass.name}`);
+  assert.ok(obj instanceof klass, `Not a valid instance of ${klass.name}`);
 }
 
 export const fakeArtifact: Artifact = {

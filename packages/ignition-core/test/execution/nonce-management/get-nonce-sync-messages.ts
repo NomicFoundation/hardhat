@@ -3,7 +3,8 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
 
 import {
   FutureType,

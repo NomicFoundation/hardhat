@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { ethers } from "ethers";
 import type { Artifact } from "../../src/types/artifact.js";
 
@@ -231,16 +232,19 @@ describe("abi", () => {
 
   describe("decodeArtifactFunctionCallResult", () => {
     function decodeResult(contractName: string, functionName: string) {
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixturesArtifacts[contractName],
+        undefined,
         `No artifact for ${contractName}`,
       );
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixtures[contractName],
+        undefined,
         `No fixtures for ${contractName}`,
       );
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixtures[contractName][functionName],
+        undefined,
         `No fixtures for ${contractName}.${functionName}`,
       );
 
@@ -445,7 +449,10 @@ describe("abi", () => {
       const encoded = encodeArtifactDeploymentData(artifact, [], libraries);
 
       assert.notEqual(encoded, artifact.bytecode);
-      assert.isTrue(encoded.startsWith(linkLibraries(artifact, libraries)));
+      assert.equal(
+        encoded.startsWith(linkLibraries(artifact, libraries)),
+        true,
+      );
     });
 
     // TODO: Validate that we throw a nice error in these cases
@@ -459,9 +466,17 @@ describe("abi", () => {
   describe("encodeArtifactFunctionCall", () => {
     it("Should validate function names", () => {
       const artifact = callEncodingFixtures.WithComplexArguments;
-      assert.throws(() => {
-        encodeArtifactFunctionCall(artifact, "nonExistent", []);
-      }, "Function 'nonExistent' not found in contract WithComplexArguments");
+      assertThrowsHardhatError(
+        () => {
+          encodeArtifactFunctionCall(artifact, "nonExistent", []);
+        },
+        HardhatError.ERRORS.IGNITION.VALIDATION.OVERLOAD_NOT_FOUND,
+        {
+          name: "nonExistent",
+          eventOrFunction: "Function",
+          contractName: "WithComplexArguments",
+        },
+      );
     });
 
     it("Should encode the arguments and return them", () => {
@@ -555,7 +570,7 @@ describe("abi", () => {
         staticCallResultFixtures.C.revertWithUnknownCustomError.returnData,
       );
 
-      assert.isUndefined(decoded);
+      assert.equal(decoded, undefined);
     });
   });
 
