@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import type { EvmTuple } from "../../../src/internal/execution/types/evm-execution.js";

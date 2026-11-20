@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import type { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";

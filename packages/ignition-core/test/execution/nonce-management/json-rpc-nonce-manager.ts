@@ -2,7 +2,7 @@ import type { JsonRpcClient } from "../../../src/internal/execution/jsonrpc-clie
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { JsonRpcNonceManager } from "../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";

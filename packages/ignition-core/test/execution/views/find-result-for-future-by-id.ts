@@ -1,6 +1,6 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";

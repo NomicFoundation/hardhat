@@ -5,7 +5,7 @@ import {
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import type { Artifact } from "../../../src/index.js";

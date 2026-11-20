@@ -3,7 +3,7 @@ import {
   assertThrows,
   assertThrowsHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildModule } from "../src/build-module.js";

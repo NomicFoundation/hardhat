@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";

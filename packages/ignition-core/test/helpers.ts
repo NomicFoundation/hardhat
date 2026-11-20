@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
 
 import type { Artifact, ArtifactResolver } from "../src/index.js";
 import { DeploymentLoader } from "../src/internal/deployment-loader/types.js";
