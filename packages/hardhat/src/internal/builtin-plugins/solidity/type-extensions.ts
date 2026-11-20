@@ -460,6 +460,58 @@ declare module "../../../types/hooks.js" {
     ) => Promise<string>;
 
     /**
+     * Hook triggered to discover the root files within one of the Solidity
+     * sources or tests directories.
+     *
+     * The default implementation returns every `.sol` file in the directory,
+     * recursively. Plugins can call `next` and add or remove entries, e.g. to
+     * include files written in other languages. Files ending in `.t.sol` are
+     * still classified as tests afterwards.
+     *
+     * @param context The hook context.
+     * @param directoryPath The absolute path of the directory to search.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     * @returns The absolute paths of the root files in the directory.
+     */
+    discoverRootFilePaths: (
+      context: HookContext,
+      directoryPath: string,
+      next: (
+        nextContext: HookContext,
+        nextDirectoryPath: string,
+      ) => Promise<string[]>,
+    ) => Promise<string[]>;
+
+    /**
+     * Hook triggered to decide whether a root file is compiled in its own
+     * compilation job, instead of being merged with other root files that
+     * share its compiler config.
+     *
+     * The default implementation returns `isolated`, the value set by the
+     * build profile. Plugins can force isolation for some root files, e.g.
+     * those whose compiler input can't be shared with others.
+     *
+     * @param context The hook context.
+     * @param rootFilePath The root file, as an absolute path or an
+     * `npm:<package-name>/<file-path>` URI.
+     * @param isolated Whether the build profile is isolated.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     * @returns Whether the root file must be compiled in isolation.
+     */
+    isRootFileIsolated: (
+      context: HookContext,
+      rootFilePath: string,
+      isolated: boolean,
+      next: (
+        nextContext: HookContext,
+        nextRootFilePath: string,
+        nextIsolated: boolean,
+      ) => Promise<boolean>,
+    ) => Promise<boolean>;
+
+    /**
      * Hook triggered when a Solidity build process is run using the `build`
      * method of the Solidity build system.
      *
