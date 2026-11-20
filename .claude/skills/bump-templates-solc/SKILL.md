@@ -5,7 +5,9 @@ description: Update the `hardhat --init` templates and the other default solc as
 
 # Bump the templates to a new solc version
 
-Reference PR: https://github.com/NomicFoundation/hardhat/pull/8541 (commits `6547d41c2`, `ec737a289` on `main`) bumped 0.8.28 → 0.8.34. Diff it and repeat, plus the extra step below that it did not need.
+This covers Hardhat 3 (`main`). Hardhat 2 (`v2` branch) needs its own, different update.
+
+Reference PR: https://github.com/NomicFoundation/hardhat/pull/8541 (merge commit `54e9c5778` on `main`, diff it against its first parent) bumped 0.8.28 → 0.8.34. Repeat it, plus the extra steps below that it did not need.
 
 ## 1. Templates and example project
 
@@ -21,17 +23,21 @@ Leave alone:
 
 `packages/hardhat/src/internal/builtin-plugins/solidity/build-system/solc-info.ts` has `defaultEvmTargets`, one entry per solc version. It must contain every version up to the new one, or `compilation-job.ts` sends no `evmVersion` for them.
 
-Each version's value is the solc default for that release. Read the solc changelog: it changes only when a release says "Set default EVM version to X" (last time: 0.8.31 → `osaka`); otherwise copy the previous entry. If a release moves the default to a hardfork missing from `packages/hardhat/src/internal/builtin-plugins/network-manager/edr/types/hardfork.ts`, EDR has to support it first; stop and say so.
+Each version's value is the solc default for that release. Read the solc changelog: it changes only when a release says "Set default EVM version to X" (last time: 0.8.31 → `osaka`); otherwise copy the previous entry. If a release moves the default past `L1_LATEST_STABLE_HARDFORK` in `packages/hardhat/src/internal/builtin-plugins/network-manager/edr/types/hardfork.ts` (the enum there also lists experimental forks; those don't count), EDR has to support it first; stop and say so.
 
-## 3. forge-std
+## 3. EDR support (the other step the reference PR didn't need)
+
+From `packages/hardhat`, `node -e 'console.log(require("@nomicfoundation/edr").latestSupportedSolidityVersion())'` must print the new version or higher. No test catches a lag: coverage instrumentation silently falls back to the older grammar. If it lags, stop and say so; EDR needs a Slang bump first.
+
+## 4. forge-std
 
 The reference PR also bumped `forge-std` (in `packages/example-project/package.json` and the templates' `package.json`) to the latest `foundry-rs/forge-std` tag. Do the same, then run `pnpm install` so `pnpm-lock.yaml` follows.
 
-## 4. Changeset and docs
+## 5. Changeset and docs
 
 `"hardhat": minor`, with a `#docs:` line (format in the reference PR's `.changeset/templates-solc-0-8-34.md`). The website docs show the template config and live in `NomicFoundation/hardhat-website`; the developer opens that PR and fills in the URL. Do not open any PR: only make local changes.
 
-## 5. Verify
+## 6. Verify
 
 `pnpm -r build` first (the test spawns `pnpm hardhat compile` inside each template), then:
 
