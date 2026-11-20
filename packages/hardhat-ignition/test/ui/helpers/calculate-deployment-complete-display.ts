@@ -7,6 +7,7 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";

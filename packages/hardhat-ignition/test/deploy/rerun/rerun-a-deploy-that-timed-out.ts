@@ -1,6 +1,8 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import {} from "@nomicfoundation/hardhat-network-helpers";
+import { describe, it } from "node:test";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { buildModule, wipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";

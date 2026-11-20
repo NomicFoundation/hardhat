@@ -1,3 +1,5 @@
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 

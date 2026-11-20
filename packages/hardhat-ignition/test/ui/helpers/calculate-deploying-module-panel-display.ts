@@ -1,6 +1,7 @@
 import type { UiState } from "../../../src/internal/ui/types.js";
 
 import path from "node:path";
+import { describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import { assert } from "chai";

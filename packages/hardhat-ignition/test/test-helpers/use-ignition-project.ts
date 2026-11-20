@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { cpSync } from "node:fs";
 import path, { dirname } from "node:path";
+import { before, after, beforeEach, afterEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
@@ -88,7 +89,7 @@ export function useEphemeralIgnitionProject(
   let projectPath: string;
   let prevWorkingDir: string;
 
-  beforeEach("Load environment", async function () {
+  beforeEach(async function () {
     projectPath = path.join(
       __dirname,
       "../fixture-projects",
@@ -131,7 +132,7 @@ export function useEphemeralIgnitionProject(
     project.deploymentDir = undefined;
   });
 
-  afterEach("reset hardhat context", function () {
+  afterEach(function () {
     process.chdir(prevWorkingDir);
   });
 
@@ -147,7 +148,7 @@ export function useFileIgnitionProject(
   let projectPath: string;
   let prevWorkingDir: string;
 
-  beforeEach("Load environment", async function () {
+  beforeEach(async function () {
     projectPath = path.join(
       __dirname,
       "../fixture-projects",
@@ -218,7 +219,7 @@ export function useFileIgnitionProject(
     };
   });
 
-  afterEach("reset hardhat context", async function () {
+  afterEach(async function () {
     if (project.deploymentDir === undefined) {
       throw new Error(
         "Deployment dir not set during cleanup of file based project",

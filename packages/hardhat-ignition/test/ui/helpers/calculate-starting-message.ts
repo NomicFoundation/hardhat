@@ -1,3 +1,4 @@
+import { describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import { assert } from "chai";

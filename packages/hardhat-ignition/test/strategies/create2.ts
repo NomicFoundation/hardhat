@@ -1,5 +1,7 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
+import { describe, it, beforeEach } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";

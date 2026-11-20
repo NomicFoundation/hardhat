@@ -1,4 +1,5 @@
 import path from "node:path";
+import { describe, it } from "node:test";
 
 import { emptyDir, readdir } from "@nomicfoundation/hardhat-utils/fs";
 import { assert } from "chai";

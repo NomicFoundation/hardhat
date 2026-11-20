@@ -1,5 +1,7 @@
 import type { OpenCommand } from "../../src/internal/utils/open.js";
 
+import { describe, it } from "node:test";
+
 import { assert } from "chai";
 
 import { getOpenCommand } from "../../src/internal/utils/open.js";

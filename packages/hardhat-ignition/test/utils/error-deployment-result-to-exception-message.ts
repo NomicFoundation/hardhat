@@ -5,6 +5,8 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { describe, it } from "node:test";
+
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 

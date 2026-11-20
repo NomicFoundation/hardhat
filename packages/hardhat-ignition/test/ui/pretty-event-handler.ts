@@ -1,5 +1,7 @@
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
+import { describe, it, beforeEach, afterEach } from "node:test";
+
 import {
   DeploymentResultType,
   ExecutionEventResultType,
@@ -75,6 +77,7 @@ describe("ui - pretty event handler", () => {
 
   afterEach(() => {
     process.stdout.isTTY = originalIsTTY;
+    sinon.restore();
   });
 
   describe("when stdout is not a TTY", () => {
