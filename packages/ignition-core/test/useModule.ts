@@ -127,17 +127,15 @@ describe("useModule", () => {
         },
       };
 
-      await assert.isFulfilled(
-        validate(
-          moduleWithSubmodule,
-          setupMockArtifactResolver({
-            Contract1: fakerArtifact,
-            Contract2: fakerArtifact,
-            Contract3: fakerArtifact,
-          }),
-          moduleParams,
-          [],
-        ),
+      await validate(
+        moduleWithSubmodule,
+        setupMockArtifactResolver({
+          Contract1: fakerArtifact,
+          Contract2: fakerArtifact,
+          Contract3: fakerArtifact,
+        }),
+        moduleParams,
+        [],
       );
     });
 

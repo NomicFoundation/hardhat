@@ -695,13 +695,11 @@ m.contract(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT,
       );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateArtifactContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 
@@ -761,13 +759,11 @@ m.contract(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT,
       );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateArtifactContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 
@@ -800,13 +796,11 @@ m.contract(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT,
       );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateArtifactContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 

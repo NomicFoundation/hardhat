@@ -724,13 +724,11 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedEncodeFunctionCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedEncodeFunctionCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
@@ -767,13 +765,11 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedEncodeFunctionCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedEncodeFunctionCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 

@@ -1,5 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import { describe, it } from "node:test";
 
@@ -100,9 +101,10 @@ describe("JSON-RPC client", function () {
             maxFeePerGasLimit: 1n,
           });
 
-          await assert.isRejected(
-            failClient.getNetworkFees(),
-            /HHE10406: The calculated max fee per gas exceeds the configured limit./,
+          await assertRejects(failClient.getNetworkFees(), (e) =>
+            /HHE10406: The calculated max fee per gas exceeds the configured limit./.test(
+              e.message,
+            ),
           );
         });
 
@@ -556,7 +558,7 @@ describe("JSON-RPC client", function () {
           params: [],
         });
 
-        await assert.isRejected(
+        await assertRejects(
           mockClient.call(
             {
               data: "0x",
@@ -565,7 +567,10 @@ describe("JSON-RPC client", function () {
             },
             "latest",
           ),
-          /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
+          (e) =>
+            /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./.test(
+              e.message,
+            ),
         );
       });
 
@@ -938,7 +943,7 @@ describe("JSON-RPC client", function () {
           accounts,
         });
 
-        await assert.isRejected(
+        await assertRejects(
           client.estimateGas({
             to: address,
             from: accounts[0],

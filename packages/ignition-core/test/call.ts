@@ -747,13 +747,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
@@ -909,13 +907,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
@@ -952,13 +948,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
