@@ -1,5 +1,7 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { createWalletClient, custom, parseEther } from "viem";

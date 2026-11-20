@@ -1,5 +1,7 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -14,8 +16,6 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * This covers a bug in the nonce management code: see #576
  */
 describe("execution - rerun after kill", function () {
-  this.timeout(60000);
-
   const project = useFileIgnitionProject("minimal", "rerun-after-kill");
 
   it("should pickup deployment and run contracts to completion", async function () {

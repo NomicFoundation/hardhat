@@ -1,4 +1,5 @@
 import path, { dirname } from "node:path";
+import { describe, it, before, beforeEach, afterEach } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -21,12 +22,12 @@ const deploymentDir = path.join(
 describe("reset flag", function () {
   const project = useFileIgnitionProject("reset-flag", deploymentId);
 
-  beforeEach("clean filesystem", async function () {
+  beforeEach(async function () {
     // make sure nothing is left over from a previous test
     await remove(deploymentDir);
   });
 
-  afterEach("clean filesystem", async function () {
+  afterEach(async function () {
     // cleanup
     await remove(deploymentDir);
   });

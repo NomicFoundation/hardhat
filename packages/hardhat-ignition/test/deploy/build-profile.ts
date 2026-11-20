@@ -1,4 +1,5 @@
 import path from "node:path";
+import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { assert } from "chai";

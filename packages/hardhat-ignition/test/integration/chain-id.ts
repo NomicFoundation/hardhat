@@ -1,3 +1,5 @@
+import { describe, it, afterEach } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
@@ -7,8 +9,6 @@ import {
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("chainId reconciliation", function () {
-  this.timeout(60000);
-
   const project = useEphemeralIgnitionProject("default-with-new-chain-id");
 
   // NOTE: This package runs its tests with mocha, so it uses `createEnvChanges`

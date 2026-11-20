@@ -1,4 +1,5 @@
 import path, { dirname } from "node:path";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
@@ -18,12 +19,12 @@ const deploymentDir = path.join(
 describe("localhost deployment flag", function () {
   const project = useEphemeralIgnitionProject(fixtureProjectName);
 
-  beforeEach("clean filesystem", async function () {
+  beforeEach(async function () {
     // make sure nothing is left over from a previous test
     await remove(deploymentDir);
   });
 
-  afterEach("clean filesystem", async function () {
+  afterEach(async function () {
     // cleanup
     await remove(deploymentDir);
   });

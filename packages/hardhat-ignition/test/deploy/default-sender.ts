@@ -1,5 +1,7 @@
 import type { DeploymentResult } from "@nomicfoundation/ignition-core";
 
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";

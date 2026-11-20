@@ -1,5 +1,7 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";

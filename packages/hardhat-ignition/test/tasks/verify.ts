@@ -3,6 +3,8 @@ import type { VerifyResult } from "@nomicfoundation/ignition-core";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
+import { describe, it, beforeEach, afterEach } from "node:test";
+
 import { assert } from "chai";
 import sinon from "sinon";
 

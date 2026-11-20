@@ -1,6 +1,7 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import path from "node:path";
+import { describe, it } from "node:test";
 
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { assert } from "chai";
