@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.2.3
+
+### Patch Changes
+
+- [#8826](https://github.com/NomicFoundation/hardhat/pull/8826) [`be15e1f`](https://github.com/NomicFoundation/hardhat/commit/be15e1f07d3408c39a04b3e59662fffcfa43411b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fixed `HardhatEthersSigner.sendTransaction` hanging forever instead of rejecting when fetching the sent transaction fails.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.2.0
+
 ## 4.2.2
 
 ### Patch Changes

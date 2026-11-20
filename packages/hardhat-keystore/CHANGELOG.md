@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.1.3
+
+### Patch Changes
+
+- [#8834](https://github.com/NomicFoundation/hardhat/pull/8834) [`f19f42e`](https://github.com/NomicFoundation/hardhat/commit/f19f42ef793972599278fe6cc446f4e4dbdc296b) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Restricted newly written keystore and development password files to the current user. Files written by earlier versions keep their existing permissions until they are written again. If you share a keystore with other OS users (for example a CI service account or a container running as a different user), they lose read access once the file is rewritten.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.2.0
+
 ## 3.1.2
 
 ### Patch Changes
