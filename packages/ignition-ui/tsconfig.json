@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["mocha"],
+    "types": ["node"],
 
     /* Linting */
     "strict": true,
