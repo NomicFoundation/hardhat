@@ -1,9 +1,11 @@
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import { before, describe, it } from "node:test";
 
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import WebSocket from "ws";
 
 import { HttpProvider } from "../../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { JsonRpcServerImplementation } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";
@@ -46,6 +48,80 @@ describe("JSON-RPC server", function () {
       assert.deepEqual(httpResponse, edrResponse);
     } finally {
       await server.close();
+    }
+  });
+
+  describe("close", function () {
+    for (const { name, clientCount, pauseClients, closeClients } of [
+      { name: "no connected clients", clientCount: 0 },
+      { name: "multiple connected clients", clientCount: 2 },
+      {
+        name: "a client that does not respond to the closing handshake",
+        clientCount: 1,
+        pauseClients: true,
+      },
+      {
+        name: "an already disconnected client",
+        clientCount: 1,
+        closeClients: true,
+      },
+    ]) {
+      it(`should close with ${name}`, { timeout: 5_000 }, async function (t) {
+        const server = await hre.network.createServer({}, "127.0.0.1", 0);
+        const { port } = await server.listen();
+        const clients: WebSocket[] = [];
+        let closing: Promise<void> | null = null;
+
+        t.after(async () => {
+          for (const client of clients) {
+            client.terminate();
+          }
+          await (closing ?? server.close());
+        });
+
+        for (let i = 0; i < clientCount; i++) {
+          const client = new WebSocket(`ws://127.0.0.1:${port}`);
+          clients.push(client);
+          await once(client, "open", { signal: t.signal });
+        }
+
+        if (closeClients === true) {
+          for (const client of clients) {
+            const closed = once(client, "close", { signal: t.signal });
+            client.close();
+            await closed;
+          }
+        }
+
+        if (pauseClients === true) {
+          for (const client of clients) {
+            // Stop reading frames so the client cannot acknowledge the close.
+            client.pause();
+          }
+        }
+
+        const clientsClosed = clients
+          .filter((client) => client.readyState !== WebSocket.CLOSED)
+          .map((client) => once(client, "close", { signal: t.signal }));
+        const afterClosed = server.afterClosed();
+        closing = server.close();
+        const serverClosed = Promise.all([closing, afterClosed]).then(() => {
+          for (const client of clients) {
+            client.resume();
+          }
+        });
+        const [, closeEvents] = await Promise.all([
+          serverClosed,
+          Promise.all(clientsClosed),
+        ]);
+
+        if (pauseClients !== true && closeClients !== true) {
+          for (const [code, reason] of closeEvents) {
+            assert.equal(code, 1001);
+            assert.equal(reason.toString(), "Server shutting down");
+          }
+        }
+      });
     }
   });
 });
