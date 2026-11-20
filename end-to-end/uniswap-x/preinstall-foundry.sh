@@ -4,7 +4,7 @@ set -euo pipefail
 # runPreinstallScript) to this scenario's directory — the one holding
 # scenario.json — so we can reach the shared helper in end-to-end/_shared/.
 . "$E2E_TEST_DIR/../_shared/foundry-install.sh"
-install_foundry v1.9.0
+install_foundry v1.10.0
 
 # CaliburEntry.sol has `pragma solidity 0.8.29;` (exact) and requires `via_ir`,
 # which conflicts with the main project's pinned 0.8.30 / no-via_ir settings.

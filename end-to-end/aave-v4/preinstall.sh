@@ -7,7 +7,7 @@ set -euo pipefail
 # set by scripts/end-to-end/subcommands/init.ts (see runPreinstallScript) to
 # this scenario's directory, so we can reach the shared helper in _shared/.
 . "$E2E_TEST_DIR/../_shared/foundry-install.sh"
-install_foundry v1.9.0
+install_foundry v1.10.0
 
 # Reduce the Solidity-test fuzz workload for benchmarking.
 #
