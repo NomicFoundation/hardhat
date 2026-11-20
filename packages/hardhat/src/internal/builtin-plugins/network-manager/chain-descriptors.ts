@@ -547,4 +547,18 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
+  // whitechain sepolia testnet
+  [
+    1_874n,
+    {
+      name: "Whitechain Sepolia",
+      chainType: OPTIMISM_CHAIN_TYPE,
+      blockExplorers: {
+        blockscout: {
+          url: "https://explorer.testnet.whitechain.io",
+          apiUrl: "https://explorer.testnet.whitechain.io/api",
+        },
+      },
+    },
+  ],
 ]);
