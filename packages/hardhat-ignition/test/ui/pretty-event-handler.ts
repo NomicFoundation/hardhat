@@ -108,10 +108,13 @@ describe("ui - pretty event handler", () => {
       ]);
 
       // The starting message ends its line, as it can't be cleared.
-      assert.include(logs[0], "Hardhat Ignition starting for [ MyModule ]...");
+      assert.ok(
+        logs[0].includes("Hardhat Ignition starting for [ MyModule ]..."),
+      );
       // No cursor movement or clearing escape codes were written.
-      assert.isFalse(
+      assert.equal(
         write.getCalls().some((call) => String(call.args[0]).includes("\x1b[")),
+        false,
       );
     });
   });

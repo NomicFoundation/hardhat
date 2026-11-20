@@ -68,9 +68,9 @@ describe("ignition verify task", () => {
     );
 
     assert.equal(verifyCallsByProvider.length, 3);
-    assert.include(verifyCallsByProvider, "etherscan");
-    assert.include(verifyCallsByProvider, "blockscout");
-    assert.include(verifyCallsByProvider, "sourcify");
+    assert.ok(verifyCallsByProvider.includes("etherscan"));
+    assert.ok(verifyCallsByProvider.includes("blockscout"));
+    assert.ok(verifyCallsByProvider.includes("sourcify"));
 
     assert.equal(process.exitCode, undefined);
   });
@@ -105,9 +105,9 @@ describe("ignition verify task", () => {
     );
 
     assert.equal(verifyCallsByProvider.length, 3);
-    assert.include(verifyCallsByProvider, "etherscan");
-    assert.include(verifyCallsByProvider, "blockscout");
-    assert.include(verifyCallsByProvider, "sourcify");
+    assert.ok(verifyCallsByProvider.includes("etherscan"));
+    assert.ok(verifyCallsByProvider.includes("blockscout"));
+    assert.ok(verifyCallsByProvider.includes("sourcify"));
 
     assert.equal(process.exitCode, 1);
   });
@@ -136,7 +136,7 @@ describe("ignition verify task", () => {
       async function* () {},
     );
 
-    assert.isFalse(verifyContractCalled);
+    assert.equal(verifyContractCalled, false);
   });
 
   it("should verify multiple contracts on all enabled providers", async function () {
@@ -225,8 +225,9 @@ describe("ignition verify task", () => {
     );
 
     assert.equal(forceValues.length, 3);
-    assert.isTrue(
+    assert.equal(
       forceValues.every((f) => f === true),
+      true,
       "Expected all verify calls to have force: true",
     );
   });
@@ -249,6 +250,6 @@ describe("ignition verify task", () => {
       mockGetVerificationInformation,
     );
 
-    assert.isFalse(verifyContractCalled);
+    assert.equal(verifyContractCalled, false);
   });
 });
