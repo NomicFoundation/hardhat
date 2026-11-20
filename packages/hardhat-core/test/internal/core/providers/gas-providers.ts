@@ -112,6 +112,41 @@ describe("AutomaticGasProvider", () => {
     assert.equal(tx.gas, 567);
   });
 
+  describe("With an estimate near EIP-7825's 2^24 cap", function () {
+    async function sendWithEstimate(estimate: number): Promise<number> {
+      mockedProvider.setReturnValue("eth_getBlockByNumber", {
+        gasLimit: numberToRpcQuantity(60_000_000),
+      });
+      mockedProvider.setReturnValue(
+        "eth_estimateGas",
+        numberToRpcQuantity(estimate)
+      );
+      provider = new AutomaticGasProvider(mockedProvider, 1.2);
+
+      await provider.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: "0x0000000000000000000000000000000000000011",
+            to: "0x0000000000000000000000000000000000000011",
+            value: 1,
+          },
+        ],
+      });
+
+      const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
+      return rpcQuantityToNumber(tx.gas);
+    }
+
+    it("Should cap the multiplied estimate below 2^24", async () => {
+      assert.equal(await sendWithEstimate(15_000_000), 16_777_215);
+    });
+
+    it("Should not go below an estimate above 2^24, as Amsterdam allows", async () => {
+      assert.equal(await sendWithEstimate(20_000_000), 20_000_000);
+    });
+  });
+
   it("Should forward the other calls", async () => {
     const input = [1, 2, 3];
     await provider.request({ method: "A", params: input });

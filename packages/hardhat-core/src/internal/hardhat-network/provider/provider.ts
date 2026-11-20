@@ -59,6 +59,7 @@ import {
   getHardforkName,
   hardforkGte,
   HardforkName,
+  warnIfExperimentalHardfork,
 } from "../../util/hardforks";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
@@ -223,6 +224,7 @@ export class EdrProviderWrapper
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
     const hardforkName = getHardforkName(config.hardfork);
+    warnIfExperimentalHardfork(hardforkName);
 
     const [genesisState, ownedAccounts] = _genesisStateAndOwnedAccounts(
       config.forkConfig !== undefined,

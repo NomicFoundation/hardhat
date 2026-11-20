@@ -90,7 +90,13 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
       );
 
       const multiplied = Math.floor(normalGas * this._gasMultiplier);
-      const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
+
+      // Cap the multiplier's headroom, but never go below the node's estimate.
+      // From Amsterdam, EIP-8037 lets a transaction's total gas exceed 2^24, so
+      // the estimate can be above the cap, and the node only estimates gas it
+      // would accept.
+      const gas =
+        multiplied > gasLimit ? Math.max(gasLimit - 1, normalGas) : multiplied;
 
       return numberToRpcQuantity(gas);
     } catch (error) {
