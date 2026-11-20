@@ -1,8 +1,5 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertThrows,
-  assertThrowsHardhatError,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import { describe, it } from "node:test";
 import { ethers } from "ethers";
@@ -469,14 +466,16 @@ describe("abi", () => {
   describe("encodeArtifactFunctionCall", () => {
     it("Should validate function names", () => {
       const artifact = callEncodingFixtures.WithComplexArguments;
-      assertThrows(
+      assertThrowsHardhatError(
         () => {
           encodeArtifactFunctionCall(artifact, "nonExistent", []);
         },
-        (e) =>
-          e.message.includes(
-            "Function 'nonExistent' not found in contract WithComplexArguments",
-          ),
+        HardhatError.ERRORS.IGNITION.VALIDATION.OVERLOAD_NOT_FOUND,
+        {
+          name: "nonExistent",
+          eventOrFunction: "Function",
+          contractName: "WithComplexArguments",
+        },
       );
     });
 

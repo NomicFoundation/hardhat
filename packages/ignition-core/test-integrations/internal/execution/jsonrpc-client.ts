@@ -1,6 +1,10 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import { describe, it } from "node:test";
 
@@ -101,10 +105,11 @@ describe("JSON-RPC client", function () {
             maxFeePerGasLimit: 1n,
           });
 
-          await assertRejects(failClient.getNetworkFees(), (e) =>
-            /HHE10406: The calculated max fee per gas exceeds the configured limit./.test(
-              e.message,
-            ),
+          await assertRejectsWithHardhatError(
+            failClient.getNetworkFees(),
+            HardhatError.ERRORS.IGNITION.EXECUTION
+              .MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
+            {},
           );
         });
 
@@ -558,7 +563,7 @@ describe("JSON-RPC client", function () {
           params: [],
         });
 
-        await assertRejects(
+        await assertRejectsWithHardhatError(
           mockClient.call(
             {
               data: "0x",
@@ -567,10 +572,8 @@ describe("JSON-RPC client", function () {
             },
             "latest",
           ),
-          (e) =>
-            /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./.test(
-              e.message,
-            ),
+          HardhatError.ERRORS.IGNITION.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT,
+          {},
         );
       });
 
