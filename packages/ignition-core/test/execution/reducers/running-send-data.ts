@@ -214,8 +214,8 @@ describe("DeploymentStateReducer", () => {
           rest,
           requestNetworkInteractionMessage.networkInteraction,
         );
-        assert.isArray(transactions);
-        assert.lengthOf(transactions, 0);
+        assert.ok(Array.isArray(transactions));
+        assert.equal(transactions.length, 0);
         assert.equal(shouldBeResent, false);
         assert.equal(nonce, undefined);
       });

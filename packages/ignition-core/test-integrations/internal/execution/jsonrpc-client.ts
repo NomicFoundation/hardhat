@@ -66,8 +66,8 @@ describe("JSON-RPC client", function () {
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 0);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
 
       it("Should return the second block in the correct format", async function () {
@@ -76,8 +76,8 @@ describe("JSON-RPC client", function () {
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 1);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
     });
 
@@ -90,8 +90,8 @@ describe("JSON-RPC client", function () {
           assert("maxFeePerGas" in fees);
           assert("maxPriorityFeePerGas" in fees);
 
-          assert.typeOf(fees.maxFeePerGas, "bigint");
-          assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
+          assert.equal(typeof fees.maxFeePerGas, "bigint");
+          assert.equal(typeof fees.maxPriorityFeePerGas, "bigint");
           assert.equal(fees.maxFeePerGas > fees.maxPriorityFeePerGas, true);
         });
 
@@ -727,7 +727,7 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
 
       it("Should return the tx hash in a network without automining", async function () {
@@ -755,7 +755,7 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
 
@@ -1438,8 +1438,8 @@ describe("JSON-RPC client", function () {
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
           assert.equal(receipt!.contractAddress, undefined);
 
-          assert.isArray(receipt!.logs);
-          assert.lengthOf(receipt!.logs, 2);
+          assert.ok(Array.isArray(receipt!.logs));
+          assert.equal(receipt!.logs.length, 2);
 
           const event0 = receipt!.logs[0];
           const event1 = receipt!.logs[1];
@@ -1613,7 +1613,7 @@ describe("JSON-RPC client", function () {
           },
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
   });
