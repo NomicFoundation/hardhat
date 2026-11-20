@@ -31,7 +31,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithASingleContract);
+    assert.notEqual(moduleWithASingleContract, undefined);
 
     // 1 contract future & 1 call future
     assert.equal(moduleWithASingleContract.futures.size, 1);
@@ -62,7 +62,7 @@ describe("send", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -95,7 +95,7 @@ describe("send", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -121,7 +121,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#test_send",
@@ -141,7 +141,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#test_send",
@@ -164,7 +164,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#test_send",
@@ -184,7 +184,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#test_send",
@@ -205,7 +205,7 @@ describe("send", () => {
       return {};
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#test_send",
@@ -256,7 +256,7 @@ describe("send", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)",
@@ -299,8 +299,8 @@ describe("send", () => {
         ({ id }) => id === "Module1#second",
       );
 
-      assert.isDefined(sendFuture);
-      assert.isDefined(sendFuture2);
+      assert.notEqual(sendFuture, undefined);
+      assert.notEqual(sendFuture2, undefined);
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {

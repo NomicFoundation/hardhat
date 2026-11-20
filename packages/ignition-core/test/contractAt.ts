@@ -26,7 +26,7 @@ describe("contractAt", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithContractFromArtifact);
+    assert.notEqual(moduleWithContractFromArtifact, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithContractFromArtifact.id, "Module1");

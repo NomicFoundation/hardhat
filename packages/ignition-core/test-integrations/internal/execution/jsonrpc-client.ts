@@ -44,9 +44,9 @@ describe("JSON-RPC client", function () {
 
       const receipt = await client.getTransactionReceipt(tx);
 
-      assert.isDefined(receipt);
+      assert.notEqual(receipt, undefined);
       assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-      assert.isDefined(receipt!.contractAddress);
+      assert.notEqual(receipt!.contractAddress, undefined);
 
       return { artifact, address: receipt!.contractAddress! };
     }
@@ -1153,7 +1153,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
 
             assert.equal(tx!.hash, hash);
             assert("maxFeePerGas" in tx!.fees);
@@ -1199,7 +1199,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
             assert.equal(tx!.hash, hash);
             assert("maxFeePerGas" in tx!.fees);
             assert("maxPriorityFeePerGas" in tx!.fees);
@@ -1217,7 +1217,7 @@ describe("JSON-RPC client", function () {
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             );
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
           it("Should return undefined if the transaction was replaced by a different one", async function () {
@@ -1260,7 +1260,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(firstTxHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
           it("Should return undefined if the transaction was dropped", async function () {
@@ -1296,7 +1296,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(txHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
         });
       });
@@ -1329,11 +1329,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1362,11 +1362,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isDefined(receipt!.contractAddress);
+          assert.notEqual(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1394,11 +1394,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.FAILURE);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1432,11 +1432,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
 
           assert.isArray(receipt!.logs);
           assert.lengthOf(receipt!.logs, 2);
@@ -1453,10 +1453,10 @@ describe("JSON-RPC client", function () {
           assert.notEqual(event0.data, "0x");
           assert.notEqual(event1.data, "0x");
 
-          assert.isDefined(event0.topics[0]);
+          assert.notEqual(event0.topics[0], undefined);
           assert.notEqual(event0.topics[0], "0x");
 
-          assert.isDefined(event1.topics[0]);
+          assert.notEqual(event1.topics[0], undefined);
           assert.notEqual(event1.topics[0], "0x");
 
           assert.notEqual(event0.topics[0], event1.topics[0]);
@@ -1492,7 +1492,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
@@ -1502,7 +1502,7 @@ describe("JSON-RPC client", function () {
             "0x0000000000000000000000000000000000000000000000000000000000000001",
           );
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was replaced by a different one", async function () {
@@ -1545,7 +1545,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(firstTxHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was dropped", async function () {
@@ -1581,7 +1581,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(txHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
       });
     });

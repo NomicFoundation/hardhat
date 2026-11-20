@@ -58,9 +58,14 @@ describe("execution-result-fixture tests", function () {
       });
 
       const receipt = await client.getTransactionReceipt(tx);
-      assert.isDefined(receipt, `No receipt for deployment of ${name}`);
-      assert.isDefined(
+      assert.notEqual(
+        receipt,
+        undefined,
+        `No receipt for deployment of ${name}`,
+      );
+      assert.notEqual(
         receipt!.contractAddress,
+        undefined,
         `No receipt address from deployment of ${name}`,
       );
 

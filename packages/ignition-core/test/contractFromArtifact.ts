@@ -32,7 +32,7 @@ describe("contractFromArtifact", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithContractFromArtifact);
+    assert.notEqual(moduleWithContractFromArtifact, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithContractFromArtifact.id, "Module1");
@@ -106,7 +106,7 @@ describe("contractFromArtifact", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -136,7 +136,7 @@ describe("contractFromArtifact", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -160,7 +160,7 @@ describe("contractFromArtifact", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -187,7 +187,7 @@ describe("contractFromArtifact", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -211,7 +211,7 @@ describe("contractFromArtifact", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",

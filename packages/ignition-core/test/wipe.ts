@@ -75,13 +75,13 @@ describe("wipe", () => {
       deploymentLoader,
     );
 
-    assert.isDefined(deploymentState.executionStates[contract1Id]);
+    assert.notEqual(deploymentState.executionStates[contract1Id], undefined);
 
     const wiper = new Wiper(deploymentLoader);
 
     deploymentState = await wiper.wipe(contract1Id);
 
-    assert.isUndefined(deploymentState.executionStates[contract1Id]);
+    assert.equal(deploymentState.executionStates[contract1Id], undefined);
   });
 
   it("should error if the deployment hasn't been initialized", async () => {
@@ -138,8 +138,8 @@ describe("wipe", () => {
       deploymentLoader,
     );
 
-    assert.isDefined(deploymentState.executionStates[contract1Id]);
-    assert.isDefined(deploymentState.executionStates[contract2Id]);
+    assert.notEqual(deploymentState.executionStates[contract1Id], undefined);
+    assert.notEqual(deploymentState.executionStates[contract2Id], undefined);
 
     const wiper = new Wiper(deploymentLoader);
 

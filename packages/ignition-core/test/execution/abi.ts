@@ -232,16 +232,19 @@ describe("abi", () => {
 
   describe("decodeArtifactFunctionCallResult", () => {
     function decodeResult(contractName: string, functionName: string) {
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixturesArtifacts[contractName],
+        undefined,
         `No artifact for ${contractName}`,
       );
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixtures[contractName],
+        undefined,
         `No fixtures for ${contractName}`,
       );
-      assert.isDefined(
+      assert.notEqual(
         staticCallResultFixtures[contractName][functionName],
+        undefined,
         `No fixtures for ${contractName}.${functionName}`,
       );
 
@@ -556,7 +559,7 @@ describe("abi", () => {
         staticCallResultFixtures.C.revertWithUnknownCustomError.returnData,
       );
 
-      assert.isUndefined(decoded);
+      assert.equal(decoded, undefined);
     });
   });
 

@@ -192,7 +192,7 @@ function assertBatching(
   },
   expectedBatches: string[][],
 ) {
-  assert.isDefined(ignitionModule);
+  assert.notEqual(ignitionModule, undefined);
 
   const actualBatches = Batcher.batch(ignitionModule, deploymentState);
 

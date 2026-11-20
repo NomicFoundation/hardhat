@@ -235,7 +235,7 @@ describe("DeploymentStateReducer", () => {
         assert.isArray(transactions);
         assert.lengthOf(transactions, 0);
         assert.isFalse(shouldBeResent);
-        assert.isUndefined(nonce);
+        assert.equal(nonce, undefined);
       });
     });
 

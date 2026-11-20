@@ -17,7 +17,7 @@ describe("DeploymentLoaderImpls", function () {
         Omit<FileDeploymentLoader, "readBuildInfo">
       > = new FileDeploymentLoader("./example");
 
-      assert.isDefined(_implementation);
+      assert.notEqual(_implementation, undefined);
     });
   });
 
@@ -28,7 +28,7 @@ describe("DeploymentLoaderImpls", function () {
         EphemeralDeploymentLoader
       > = new EphemeralDeploymentLoader(setupMockArtifactResolver());
 
-      assert.isDefined(_implementation);
+      assert.notEqual(_implementation, undefined);
     });
   });
 });

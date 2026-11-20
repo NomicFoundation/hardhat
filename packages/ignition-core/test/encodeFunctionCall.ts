@@ -31,7 +31,7 @@ describe("encodeFunctionCall", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithASingleContract);
+    assert.notEqual(moduleWithASingleContract, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithASingleContract.id, "Module1");
@@ -65,7 +65,7 @@ describe("encodeFunctionCall", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -105,7 +105,7 @@ describe("encodeFunctionCall", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -314,8 +314,8 @@ describe("encodeFunctionCall", () => {
         ({ id }) => id === "Module1#second",
       );
 
-      assert.isDefined(callFuture);
-      assert.isDefined(callFuture2);
+      assert.notEqual(callFuture, undefined);
+      assert.notEqual(callFuture2, undefined);
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {
