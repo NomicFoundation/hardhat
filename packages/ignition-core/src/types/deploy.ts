@@ -7,6 +7,12 @@ import type { ModuleParameters } from "./module.js";
  */
 export interface DeployConfig {
   /**
+   * The maximum number of futures in each deployment batch.
+   * Must be a positive safe integer. Omit to leave the batch size unlimited.
+   */
+  maxBatchSize?: number;
+
+  /**
    * The interval, in milliseconds, between checks to see if a new block
    * has been created
    */

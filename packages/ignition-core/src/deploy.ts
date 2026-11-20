@@ -24,6 +24,7 @@ import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client.js";
 import { equalAddresses } from "./internal/execution/utils/address.js";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender.js";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network.js";
+import { validateMaxBatchSize } from "./internal/utils/split-batches.js";
 import { validate } from "./internal/validation/validate.js";
 import { resolveStrategy } from "./strategies/resolve-strategy.js";
 import { ExecutionEventType } from "./types/execution-events.js";
@@ -77,6 +78,8 @@ export async function deploy<
   gasPrice?: bigint;
   disableFeeBumping?: boolean;
 }): Promise<DeploymentResult> {
+  validateMaxBatchSize(config.maxBatchSize);
+
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
     strategyConfig,
