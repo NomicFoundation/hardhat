@@ -28,6 +28,7 @@ describe("hardhat-slang default EVM version", { skip: skipSlow }, () => {
     ["0.8.25", "cancun"],
     ["0.8.30", "prague"],
     ["0.8.34", "osaka"],
+    ["0.8.37", "osaka"],
   ]) {
     it(`keeps Hardhat's default of ${evmVersion} for Solidity ${version}`, async () => {
       assert.equal(
@@ -36,13 +37,6 @@ describe("hardhat-slang default EVM version", { skip: skipSlow }, () => {
       );
     });
   }
-
-  it("leaves the EVM version unset where Hardhat has no default", async () => {
-    assert.equal(
-      await getSlangEvmVersion({ type: "slang", version: "0.8.37" }),
-      undefined,
-    );
-  });
 
   it("keeps a user-set EVM version over the plugin's default", async () => {
     assert.equal(
