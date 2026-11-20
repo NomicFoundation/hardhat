@@ -3,9 +3,9 @@ import type { VerifyResult } from "@nomicfoundation/ignition-core";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
+import assert from "node:assert/strict";
 import { describe, it, beforeEach, afterEach } from "node:test";
 
-import { assert } from "chai";
 import sinon from "sinon";
 
 import { verify } from "../../src/internal/tasks/verify.js";

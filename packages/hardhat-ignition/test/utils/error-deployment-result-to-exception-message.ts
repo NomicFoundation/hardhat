@@ -5,10 +5,10 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { errorDeploymentResultToExceptionMessage } from "../../src/helpers/error-deployment-result-to-exception-message.js";
 

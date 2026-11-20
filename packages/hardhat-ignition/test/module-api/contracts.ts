@@ -1,7 +1,7 @@
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";

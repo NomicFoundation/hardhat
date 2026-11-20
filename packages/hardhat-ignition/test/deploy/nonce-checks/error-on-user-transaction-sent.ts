@@ -1,11 +1,11 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
 import { hardhat } from "viem/chains";
 

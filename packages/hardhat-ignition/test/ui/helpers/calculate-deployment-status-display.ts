@@ -1,9 +1,8 @@
 import type { StatusResult } from "@nomicfoundation/ignition-core";
 
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { styleText } from "node:util";
-
-import { assert } from "chai";
 
 import { calculateDeploymentStatusDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-status-display.js";
 

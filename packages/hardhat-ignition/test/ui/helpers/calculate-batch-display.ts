@@ -1,8 +1,7 @@
 import type { UiFuture, UiState } from "../../../src/internal/ui/types.js";
 
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
-import { assert } from "chai";
 
 import { calculateBatchDisplay } from "../../../src/internal/ui/helpers/calculate-batch-display.js";
 import {

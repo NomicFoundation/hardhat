@@ -1,5 +1,6 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
+import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -8,7 +9,6 @@ import {
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";
@@ -70,7 +70,7 @@ describe("create2", function () {
           assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
           assert.equal(project.connection.networkConfig.chainId, 1);
-          assert.equal(await result.foo.read.x(), Number(1));
+          assert.equal(await result.foo.read.x(), 1n);
         });
       });
 
@@ -101,7 +101,7 @@ describe("create2", function () {
           params: [result.foo.address, "latest"],
         });
 
-        assert.equal(balance, 1_000_000_000n);
+        assert.equal(BigInt(balance), 1_000_000_000n);
       });
 
       it(`should throw if you attempt to endow when the constructor isn't payable`, async function () {
@@ -147,7 +147,7 @@ describe("create2", function () {
         );
 
         assert.equal(project.connection.networkConfig.chainId, 1);
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(await result.foo.read.x(), 1n);
       });
     });
 
@@ -189,7 +189,7 @@ describe("create2", function () {
       assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
       assert.equal(project.connection.networkConfig.chainId, 31337);
-      assert.equal(await result.foo.read.x(), Number(1));
+      assert.equal(await result.foo.read.x(), 1n);
     });
 
     it("should use an existing createX factory to deploy the given contract", async function () {

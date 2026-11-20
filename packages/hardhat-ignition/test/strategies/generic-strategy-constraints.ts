@@ -1,7 +1,7 @@
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { mineBlock } from "../test-helpers/mine-block.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
@@ -40,7 +40,7 @@ describe("strategies - generic constraints", function () {
 
         assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(await result.foo.read.x(), 1n);
       });
 
       it("should deploy multiple contracts", async function () {
@@ -64,7 +64,7 @@ describe("strategies - generic constraints", function () {
         assert.notEqual(result.foo.address, undefined);
         assert.notEqual(result.bar.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(await result.foo.read.x(), 1n);
         assert.equal(await result.bar.read.isBar(), true);
       });
 
@@ -91,7 +91,7 @@ describe("strategies - generic constraints", function () {
 
         assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(2));
+        assert.equal(await result.foo.read.x(), 2n);
       });
 
       it("should static call a contract function", async function () {
@@ -132,7 +132,7 @@ describe("strategies - generic constraints", function () {
 
         assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(6));
+        assert.equal(await result.foo.read.x(), 6n);
       });
 
       it("should support using existing contracts", async function () {
@@ -172,7 +172,7 @@ describe("strategies - generic constraints", function () {
 
         const contractAtResult = await contractAtPromise;
 
-        assert.equal(await contractAtResult.contractAtFoo.read.x(), Number(2));
+        assert.equal(await contractAtResult.contractAtFoo.read.x(), 2n);
       });
 
       it("should read an event emitted from a constructor", async function () {

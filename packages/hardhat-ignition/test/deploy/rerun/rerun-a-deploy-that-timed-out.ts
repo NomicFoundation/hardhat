@@ -1,12 +1,12 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import {} from "@nomicfoundation/hardhat-network-helpers";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule, wipe } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../../src/helpers/hardhat-artifact-resolver.js";
 import { mineBlock } from "../../test-helpers/mine-block.js";

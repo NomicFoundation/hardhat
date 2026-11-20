@@ -1,8 +1,8 @@
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 

@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import path, { dirname } from "node:path";
 import { describe, it, before, beforeEach, afterEach } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -5,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { remove } from "@nomicfoundation/hardhat-utils/fs";
 import { status } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../src/helpers/hardhat-artifact-resolver.js";
 import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
