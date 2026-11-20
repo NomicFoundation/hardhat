@@ -11,7 +11,8 @@
     "FOUNDRY_LINT_LINT_ON_BUILD": "false",
     "FOUNDRY_SOLC_VERSION": "0.8.25",
     "FOUNDRY_OPTIMIZER_RUNS": "1000",
-    "FOUNDRY_EXTRA_OUTPUT": "[storageLayout]"
+    "FOUNDRY_EXTRA_OUTPUT": "[storageLayout]",
+    "FOUNDRY_FUZZ_RUNS": "256"
   },
   "submodules": true,
   "preinstall": "./preinstall-foundry.sh",
