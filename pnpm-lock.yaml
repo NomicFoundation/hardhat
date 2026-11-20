@@ -1923,9 +1923,6 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
     devDependencies:
-      '@istanbuljs/nyc-config-typescript':
-        specifier: 1.0.2
-        version: 1.0.2(nyc@18.0.0(supports-color@8.1.1))
       '@microsoft/api-extractor':
         specifier: 7.60.1
         version: 7.60.1(@types/node@22.20.5)
@@ -1935,30 +1932,18 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/chai':
-        specifier: ^5.2.3
-        version: 5.2.3
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.2
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
-      '@types/mocha':
-        specifier: '>=10.0.10'
-        version: 10.0.10
       '@types/ndjson':
         specifier: 2.0.4
         version: 2.0.4
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.5
-      chai:
-        specifier: ^6.2.2
-        version: 6.3.0
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.2(chai@6.3.0)
+      c8:
+        specifier: ^12.0.0
+        version: 12.0.0
       cross-env:
         specifier: 10.1.0
         version: 10.1.0
@@ -1968,12 +1953,6 @@ importers:
       hardhat:
         specifier: workspace:^3.20.0
         version: link:../hardhat
-      mocha:
-        specifier: ^12.0.0
-        version: 12.0.3
-      nyc:
-        specifier: 18.0.0
-        version: 18.0.0(supports-color@8.1.1)
       prettier:
         specifier: 3.9.10
         version: 3.9.10

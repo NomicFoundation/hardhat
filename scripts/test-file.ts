@@ -35,7 +35,6 @@ EXAMPLES
 // Remove entries here once a package migrates to node --test.
 const UNSUPPORTED_TEST_RUNNERS = new Set([
   "@nomicfoundation/hardhat-ignition",
-  "@nomicfoundation/ignition-core",
   "@nomicfoundation/example-project",
 ]);
 
