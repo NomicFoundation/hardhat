@@ -14,6 +14,9 @@ import { pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import {
   calibrationFailure,
+  CappedBuffer,
+  CAPTURED_HEAD_BYTES,
+  CAPTURED_TAIL_BYTES,
   CommandFailedError,
   formatOutput,
   measureShellSpawnOverhead,
@@ -159,6 +162,49 @@ describe("formatOutput", () => {
   });
 });
 
+describe("CappedBuffer", () => {
+  const capture = (chunks: string[], headBytes = 4, tailBytes = 4) => {
+    const buffer = new CappedBuffer(headBytes, tailBytes);
+    for (const chunk of chunks) buffer.append(Buffer.from(chunk));
+    return buffer.toString();
+  };
+
+  it("returns the output verbatim while it fits the head", () => {
+    assert.equal(capture(["ab", "cd"]), "abcd");
+  });
+
+  it("joins head and tail seamlessly while nothing is omitted", () => {
+    assert.equal(capture(["abc", "defgh"]), "abcdefgh");
+  });
+
+  it("replaces the middle with a marker counting the omitted bytes", () => {
+    assert.equal(
+      capture(["abcd", "efgh", "ijkl", "mnop"]),
+      "abcd\n[8 bytes of output omitted here; only the first 0 MiB and the last 0 MiB are kept]\nmnop",
+    );
+  });
+
+  it("splits a single chunk across head, omitted middle and tail", () => {
+    assert.match(capture(["abcdefghijkl"]), /^abcd\n\[4 bytes .*\]\nijkl$/);
+  });
+
+  it("trims the oldest tail chunk to keep exactly tailBytes", () => {
+    assert.match(
+      capture(["abcd", "efg", "hij"]),
+      /^abcd\n\[2 bytes .*\]\nghij$/,
+    );
+  });
+
+  it("names the caps in MiB in the marker", () => {
+    const kept = new CappedBuffer(1024 * 1024, (1024 * 1024) / 2);
+    kept.append(Buffer.alloc(2 * 1024 * 1024, "x"));
+    assert.match(
+      kept.toString(),
+      /only the first 1 MiB and the last 0\.5 MiB are kept/,
+    );
+  });
+});
+
 describe("runMeasured (subprocess)", { skip: !HAS_BASH }, () => {
   const { dir, reports } = measuredTmp;
   const options = { cwd: dir, peakRssMethod: undefined };
@@ -203,6 +249,28 @@ describe("runMeasured (subprocess)", { skip: !HAS_BASH }, () => {
         assert.ok(error instanceof CommandFailedError);
         assert.match(error.message, /exited with code 3/);
         assert.match(error.stderr, /boom/);
+        return true;
+      },
+    );
+  });
+
+  it("keeps the end of a failing command's output past the capture cap", async () => {
+    const overflow = 1024 * 1024;
+    const padding = CAPTURED_HEAD_BYTES + CAPTURED_TAIL_BYTES + overflow;
+    const trailer = "\nthe-last-line\n";
+    const command = `head -c ${padding} /dev/zero | tr '\\0' x; printf ${shellQuote(trailer)}; exit 1`;
+
+    await assert.rejects(
+      runMeasured(command, reports, NO_SPAWN_OVERHEAD, options),
+      (error: unknown) => {
+        assert.ok(error instanceof CommandFailedError);
+        const omitted = (overflow + trailer.length).toLocaleString("en-US");
+        assert.match(
+          error.stdout,
+          new RegExp(`^x+\\n\\[${omitted} bytes of output omitted here`),
+        );
+        assert.ok(error.stdout.endsWith(trailer));
+        assert.ok(error.stdout.length < padding);
         return true;
       },
     );
