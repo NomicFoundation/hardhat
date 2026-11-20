@@ -1,7 +1,5 @@
 import { describe, it } from "node:test";
 
-import { assert } from "chai";
-
 import { createHre } from "../test-helpers/create-hre.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -15,10 +13,8 @@ describe("Running deployment in CI environment", function () {
     const hre = await createHre();
 
     const ignitionTask = hre.tasks.getTask(["ignition", "deploy"]);
-    await assert.isFulfilled(
-      ignitionTask.run({
-        modulePath: "./ignition/modules/LockModule.js",
-      }),
-    );
+    await ignitionTask.run({
+      modulePath: "./ignition/modules/LockModule.js",
+    });
   });
 });

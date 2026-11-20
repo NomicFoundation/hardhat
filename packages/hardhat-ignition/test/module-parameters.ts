@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -31,31 +32,40 @@ describe("module parameters", () => {
     });
 
     it("should fail if the module path is invalid", async function () {
-      await assert.isRejected(
+      await assertRejects(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
         }),
-        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
+        (e) =>
+          /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/.test(
+            e.message,
+          ),
       );
     });
 
     it("should fail if the module parameters path is invalid", async function () {
-      await assert.isRejected(
+      await assertRejects(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
           parameters: "./ignition/modules/nonexistant.json",
         }),
-        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
+        (e) =>
+          /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/.test(
+            e.message,
+          ),
       );
     });
 
     it("should fail if parameters file number is larger than allowed", async function () {
-      await assert.isRejected(
+      await assertRejects(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/,
+        (e) =>
+          /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/.test(
+            e.message,
+          ),
       );
     });
 
