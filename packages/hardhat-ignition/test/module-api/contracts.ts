@@ -1,11 +1,13 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("contract deploys", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -14,7 +16,7 @@ describe("contract deploys", () => {
       return { foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.read.x(), 1n);
   });
@@ -26,7 +28,7 @@ describe("contract deploys", () => {
       return { greeter };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const greeting = await result.greeter.read.getGreeting();
     assert.equal(greeting, "Hello World");
@@ -40,10 +42,10 @@ describe("contract deploys", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    assert.notEqual(result.bar, undefined);
+    assert.notEqual(result.usesContract, undefined);
 
     const usedAddress =
       (await result.usesContract.read.contractAddress()) as string;
@@ -59,7 +61,7 @@ describe("contract deploys", () => {
       return { foo, bar };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const x = await result.foo.read.x();
     const isBar = await result.bar.read.isBar();
@@ -69,9 +71,9 @@ describe("contract deploys", () => {
   });
 
   it("should be able to use an artifact to deploy a contract", async function () {
-    await this.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask("build").run({ quiet: true });
 
-    const artifact = await this.hre.artifacts.readArtifact("Greeter");
+    const artifact = await project.hre.artifacts.readArtifact("Greeter");
 
     const moduleDefinition = buildModule("ArtifactModule", (m) => {
       const greeter = m.contract("Greeter", artifact, ["Hello World"]);
@@ -79,7 +81,7 @@ describe("contract deploys", () => {
       return { greeter };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const greeting = await result.greeter.read.getGreeting();
     assert.equal(greeting, "Hello World");
@@ -95,12 +97,12 @@ describe("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition);
+      const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 
@@ -124,12 +126,12 @@ describe("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition);
+      const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 
@@ -155,12 +157,12 @@ describe("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition);
+      const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 
@@ -190,12 +192,12 @@ describe("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition);
+      const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 

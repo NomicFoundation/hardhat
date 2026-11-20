@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { cpSync } from "node:fs";
 import path, { dirname } from "node:path";
+import { before, after, beforeEach, afterEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
@@ -28,18 +29,20 @@ import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-declare module "mocha" {
-  interface Context {
-    hre: HardhatRuntimeEnvironment;
-    ignition: TestIgnitionHelper;
-    connection: NetworkConnection;
-    deploymentDir: string | undefined;
-    runControlledDeploy: (
-      ignitionModule: IgnitionModule,
-      chainUpdates: (c: TestChainHelper) => Promise<void>,
-    ) => ReturnType<typeof runDeploy>;
-    config: Partial<DeployConfig>;
-  }
+/**
+ * The Hardhat environment of a fixture project, set up again before each test
+ * by `useEphemeralIgnitionProject` or `useFileIgnitionProject`.
+ */
+export interface IgnitionProject {
+  hre: HardhatRuntimeEnvironment;
+  ignition: TestIgnitionHelper;
+  connection: NetworkConnection;
+  deploymentDir: string | undefined;
+  runControlledDeploy: (
+    ignitionModule: IgnitionModule,
+    chainUpdates: (c: TestChainHelper) => Promise<void>,
+  ) => ReturnType<typeof runDeploy>;
+  config: Partial<DeployConfig>;
 }
 
 const defaultTestConfig: DeployConfig = {
@@ -79,11 +82,14 @@ export function useProject(fixtureProjectName: string): void {
   });
 }
 
-export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
+export function useEphemeralIgnitionProject(
+  fixtureProjectName: string,
+): IgnitionProject {
+  const project = {} as IgnitionProject;
   let projectPath: string;
   let prevWorkingDir: string;
 
-  beforeEach("Load environment", async function () {
+  beforeEach(async function () {
     projectPath = path.join(
       __dirname,
       "../fixture-projects",
@@ -120,26 +126,29 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
 
-    this.hre = hre;
-    this.connection = connection;
-    this.ignition = new TestIgnitionHelper(hre, connection);
-    this.deploymentDir = undefined;
+    project.hre = hre;
+    project.connection = connection;
+    project.ignition = new TestIgnitionHelper(hre, connection);
+    project.deploymentDir = undefined;
   });
 
-  afterEach("reset hardhat context", function () {
+  afterEach(function () {
     process.chdir(prevWorkingDir);
   });
+
+  return project;
 }
 
 export function useFileIgnitionProject(
   fixtureProjectName: string,
   deploymentId: string,
   config?: Partial<DeployConfig>,
-): void {
+): IgnitionProject {
+  const project = {} as IgnitionProject;
   let projectPath: string;
   let prevWorkingDir: string;
 
-  beforeEach("Load environment", async function () {
+  beforeEach(async function () {
     projectPath = path.join(
       __dirname,
       "../fixture-projects",
@@ -180,10 +189,10 @@ export function useFileIgnitionProject(
       params: [false],
     });
 
-    this.hre = hre;
-    this.connection = connection;
-    this.ignition = new TestIgnitionHelper(hre, connection);
-    this.deploymentDir = deploymentDir;
+    project.hre = hre;
+    project.connection = connection;
+    project.ignition = new TestIgnitionHelper(hre, connection);
+    project.deploymentDir = deploymentDir;
 
     const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
@@ -193,11 +202,11 @@ export function useFileIgnitionProject(
       ...config,
     };
 
-    this.config = testConfig;
+    project.config = testConfig;
 
     await ensureDir(deploymentDir);
 
-    this.runControlledDeploy = (
+    project.runControlledDeploy = (
       ignitionModule: IgnitionModule,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
     ) => {
@@ -210,17 +219,19 @@ export function useFileIgnitionProject(
     };
   });
 
-  afterEach("reset hardhat context", async function () {
-    if (this.deploymentDir === undefined) {
+  afterEach(async function () {
+    if (project.deploymentDir === undefined) {
       throw new Error(
         "Deployment dir not set during cleanup of file based project",
       );
     }
 
-    await remove(this.deploymentDir);
+    await remove(project.deploymentDir);
 
     process.chdir(prevWorkingDir);
   });
+
+  return project;
 }
 
 async function runDeploy(

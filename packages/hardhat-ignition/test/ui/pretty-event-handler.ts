@@ -1,11 +1,13 @@
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
+import assert from "node:assert/strict";
+import { describe, it, beforeEach, afterEach } from "node:test";
+
 import {
   DeploymentResultType,
   ExecutionEventResultType,
   ExecutionEventType,
 } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import sinon from "sinon";
 
 import { PrettyEventHandler } from "../../src/helpers/pretty-event-handler.js";
@@ -75,6 +77,7 @@ describe("ui - pretty event handler", () => {
 
   afterEach(() => {
     process.stdout.isTTY = originalIsTTY;
+    sinon.restore();
   });
 
   describe("when stdout is not a TTY", () => {
@@ -105,10 +108,13 @@ describe("ui - pretty event handler", () => {
       ]);
 
       // The starting message ends its line, as it can't be cleared.
-      assert.include(logs[0], "Hardhat Ignition starting for [ MyModule ]...");
+      assert.ok(
+        logs[0].includes("Hardhat Ignition starting for [ MyModule ]..."),
+      );
       // No cursor movement or clearing escape codes were written.
-      assert.isFalse(
+      assert.equal(
         write.getCalls().some((call) => String(call.args[0]).includes("\x1b[")),
+        false,
       );
     });
   });

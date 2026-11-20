@@ -1,10 +1,13 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("static calls", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to use the output of a static call in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -23,14 +26,14 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
   });
 
   it("should be able to use the output of a static call in an artifact contract at", async function () {
-    const artifact = await this.hre.artifacts.readArtifact("Foo");
+    const artifact = await project.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
@@ -48,7 +51,7 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -71,7 +74,7 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -100,7 +103,7 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -123,7 +126,7 @@ describe("static calls", () => {
       return { tupleContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.tupleContract.read.arg1Captured(), true);
     assert.equal(await result.tupleContract.read.arg2Captured(), true);
@@ -146,14 +149,15 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    await assert.isRejected(
-      this.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/.test(
+        e.message,
+      ),
     );
   });
 
   it("should not be able to use the output of a non-address static call in an artifact contract at", async function () {
-    const artifact = await this.hre.artifacts.readArtifact("Foo");
+    const artifact = await project.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
@@ -171,9 +175,10 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    await assert.isRejected(
-      this.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/.test(
+        e.message,
+      ),
     );
   });
 });
