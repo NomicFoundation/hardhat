@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -20,9 +20,10 @@ describe("gas estimation", function () {
       params: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x1"],
     });
 
-    await assert.isRejected(
-      project.ignition.deploy(moduleDefinition),
-      /Simulating the transaction failed with error: Reverted with reason "Constructor failed"/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Simulating the transaction failed with error: Reverted with reason "Constructor failed"/.test(
+        e.message,
+      ),
     );
   });
 });

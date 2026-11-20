@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 
-import { assert } from "chai";
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 
 import { loadModule } from "../../src/internal/utils/load-module.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
@@ -9,9 +9,12 @@ describe("loadModule", function () {
   useEphemeralIgnitionProject("user-modules");
 
   it("should throw if the full path to the module does not exist", async () => {
-    await assert.isRejected(
+    await assertRejects(
       loadModule("ignition", "./ignition/modules/Fake.js"),
-      'Could not find a module file at the path: "./ignition/modules/Fake.js"',
+      (e) =>
+        e.message.includes(
+          'Could not find a module file at the path: "./ignition/modules/Fake.js"',
+        ),
     );
   });
 
@@ -23,9 +26,8 @@ describe("loadModule", function () {
         ? unixErrorMessage.replace("ignition/modules", "ignition\\modules")
         : unixErrorMessage;
 
-    await assert.isRejected(
-      loadModule("ignition", "./hardhat.config.js"),
-      expectedErrorMessage,
+    await assertRejects(loadModule("ignition", "./hardhat.config.js"), (e) =>
+      e.message.includes(expectedErrorMessage),
     );
   });
 });

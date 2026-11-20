@@ -2,8 +2,8 @@ import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js
 
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
@@ -31,7 +31,7 @@ describe("execution - deploy run times out", () => {
     });
 
     // Deploying the module that uses accounts[2] throws with a warning
-    await assert.isRejected(
+    await assertRejects(
       project.runControlledDeploy(
         moduleDefinition,
         async (c: TestChainHelper) => {
@@ -51,7 +51,10 @@ describe("execution - deploy run times out", () => {
           await c.mineBlock();
         },
       ),
-      "The deployment wasn't successful, there were timeouts:\n\nTimed out:\n\n  * FooModule#Foo/1",
+      (e) =>
+        e.message.includes(
+          "The deployment wasn't successful, there were timeouts:\n\nTimed out:\n\n  * FooModule#Foo/1",
+        ),
     );
   });
 });

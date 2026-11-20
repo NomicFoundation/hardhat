@@ -3,6 +3,7 @@ import type { HardhatConfig, NetworkConfig } from "hardhat/types/config";
 
 import { describe, it, beforeEach } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
@@ -146,13 +147,16 @@ describe("config", () => {
         return { foo };
       });
 
-      await assert.isRejected(
+      await assertRejects(
         project.ignition.deploy(moduleDefinition, {
           config: {
             requiredConfirmations: 0,
           },
         }),
-        `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '0'`,
+        (e) =>
+          e.message.includes(
+            `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '0'`,
+          ),
       );
     });
   });

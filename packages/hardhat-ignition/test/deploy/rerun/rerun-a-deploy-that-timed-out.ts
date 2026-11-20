@@ -4,6 +4,7 @@ import {} from "@nomicfoundation/hardhat-network-helpers";
 import { describe, it } from "node:test";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule, wipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -42,7 +43,7 @@ describe("execution - rerun a deploy that timed out", () => {
 
     // Deploying the module that uses accounts[2], but force timeout,
     // by not processing any blocks
-    await assert.isRejected(
+    await assertRejects(
       project.runControlledDeploy(
         moduleDefinition,
         async (c: TestChainHelper) => {
@@ -63,7 +64,7 @@ describe("execution - rerun a deploy that timed out", () => {
       ),
     );
 
-    await assert.isRejected(
+    await assertRejects(
       project.runControlledDeploy(
         moduleDefinition,
         async (c: TestChainHelper) => {
@@ -71,9 +72,11 @@ describe("execution - rerun a deploy that timed out", () => {
           await c.mineBlock(1);
         },
       ),
-      `The deployment wasn\'t run because of the following errors in a previous run:
+      (e) =>
+        e.message
+          .includes(`The deployment wasn\'t run because of the following errors in a previous run:
 
-  * FooModule#Foo: The previous run of the future FooModule#Foo timed out, and will need wiped before running again`,
+  * FooModule#Foo: The previous run of the future FooModule#Foo timed out, and will need wiped before running again`),
     );
   });
 
@@ -97,7 +100,7 @@ describe("execution - rerun a deploy that timed out", () => {
 
     // Deploying the module that uses accounts[2], but force timeout,
     // by not processing any blocks
-    await assert.isRejected(
+    await assertRejects(
       project.runControlledDeploy(
         moduleDefinition,
         async (c: TestChainHelper) => {

@@ -3,7 +3,10 @@ import type { NetworkConnection } from "hardhat/types/network";
 import { describe, it, beforeEach } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -102,7 +105,7 @@ describe("create2", function () {
       });
 
       it(`should throw if you attempt to endow when the constructor isn't payable`, async function () {
-        await assert.isRejected(
+        await assertRejects(
           project.ignition.deploy(
             buildModule("ValueModule", (m) => {
               const foo = m.contract("Unpayable", [], {
@@ -118,7 +121,10 @@ describe("create2", function () {
               },
             },
           ),
-          /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/,
+          (e) =>
+            /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/.test(
+              e.message,
+            ),
         );
       });
 
@@ -150,14 +156,15 @@ describe("create2", function () {
 
       it("should throw when no createX contract exists on the network", async function () {
         assert.equal(project.connection.networkConfig.chainId, 88888);
-        await assert.isRejected(
+        await assertRejects(
           project.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             strategyConfig: {
               salt: example32ByteSalt,
             },
           }),
-          /CreateX not deployed on current network 88888/,
+          (e) =>
+            /CreateX not deployed on current network 88888/.test(e.message),
         );
       });
     });

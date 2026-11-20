@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -153,9 +154,10 @@ describe("params validation", () => {
 
     const deployPromise = project.ignition.deploy(userModule);
 
-    await assert.isRejected(
-      deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none",
+    await assertRejects(deployPromise, (e) =>
+      e.message.includes(
+        "Module parameter 'MyNumber' requires a value but was given none",
+      ),
     );
   });
 
@@ -180,9 +182,10 @@ describe("params validation", () => {
       },
     });
 
-    await assert.isRejected(
-      deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none",
+    await assertRejects(deployPromise, (e) =>
+      e.message.includes(
+        "Module parameter 'MyNumber' requires a value but was given none",
+      ),
     );
   });
 });

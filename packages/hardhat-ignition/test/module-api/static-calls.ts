@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -148,9 +149,10 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    await assert.isRejected(
-      project.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/.test(
+        e.message,
+      ),
     );
   });
 
@@ -173,9 +175,10 @@ describe("static calls", () => {
       return { fooFactory, foo };
     });
 
-    await assert.isRejected(
-      project.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/.test(
+        e.message,
+      ),
     );
   });
 });
