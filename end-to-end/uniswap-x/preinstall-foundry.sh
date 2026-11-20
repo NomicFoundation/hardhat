@@ -9,7 +9,13 @@ install_foundry v1.10.0
 # CaliburEntry.sol has `pragma solidity 0.8.29;` (exact) and requires `via_ir`,
 # which conflicts with the main project's pinned 0.8.30 / no-via_ir settings.
 # Build calibur in isolation so CaliburEntry's artifact is produced on disk.
-(cd lib/calibur && forge build)
+#
+# Forge v1.10.0 scopes a dependency's remappings to that dependency, so the
+# root remappings v1.9.0 inferred from calibur's libs must be passed explicitly.
+(cd lib/calibur && forge build \
+  --remappings @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/ \
+  --remappings openzeppelin-contracts/=lib/openzeppelin-contracts/ \
+  --remappings solmate/=lib/permit2/lib/solmate/)
 
 # Use node for file transforms to avoid BSD/GNU sed portability issues
 # (matches the convention used by the other scenarios' preinstall scripts).
