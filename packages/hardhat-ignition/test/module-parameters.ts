@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -32,40 +33,35 @@ describe("module parameters", () => {
     });
 
     it("should fail if the module path is invalid", async function () {
-      await assertRejects(
+      await assertRejectsWithHardhatError(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
         }),
-        (e) =>
-          /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/.test(
-            e.message,
-          ),
+        HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_NOT_FOUND_AT_PATH,
+        { modulePath: "./ignition/modules/nonexistant.ts" },
       );
     });
 
     it("should fail if the module parameters path is invalid", async function () {
-      await assertRejects(
+      await assertRejectsWithHardhatError(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
           parameters: "./ignition/modules/nonexistant.json",
         }),
-        (e) =>
-          /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/.test(
-            e.message,
-          ),
+        HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_NOT_FOUND_AT_PATH,
+        { modulePath: "./ignition/modules/nonexistant.ts" },
       );
     });
 
     it("should fail if parameters file number is larger than allowed", async function () {
-      await assertRejects(
+      await assertRejectsWithHardhatError(
         project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        (e) =>
-          /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/.test(
-            e.message,
-          ),
+        HardhatError.ERRORS.IGNITION.INTERNAL
+          .PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
+        { parameter: "unlockTime", value: 1893499200000000000 },
       );
     });
 

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 
-import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { resolveDeploymentId } from "../../src/helpers/resolve-deployment-id.js";
@@ -24,14 +25,12 @@ describe("deploy id rules", () => {
   });
 
   it("should throw if the user provided an invalid deploymentId", () => {
-    assertThrows(
+    assertThrowsHardhatError(
       () => {
         resolveDeploymentId("deployment/test", exampleChainId);
       },
-      (e) =>
-        /The deployment-id "deployment\/test" contains banned characters, ids can only contain alphanumerics, dashes or underscores/.test(
-          e.message,
-        ),
+      HardhatError.ERRORS.IGNITION.INTERNAL.INVALID_DEPLOYMENT_ID,
+      { deploymentId: "deployment/test" },
     );
   });
 });
