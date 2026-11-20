@@ -156,15 +156,15 @@ describe("create2", function () {
 
       it("should throw when no createX contract exists on the network", async function () {
         assert.equal(project.connection.networkConfig.chainId, 88888);
-        await assertRejects(
+        await assertRejectsWithHardhatError(
           project.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             strategyConfig: {
               salt: example32ByteSalt,
             },
           }),
-          (e) =>
-            /CreateX not deployed on current network 88888/.test(e.message),
+          HardhatError.ERRORS.IGNITION.STRATEGIES.CREATE_X_NOT_DEPLOYED,
+          { chainId: 88888 },
         );
       });
     });
