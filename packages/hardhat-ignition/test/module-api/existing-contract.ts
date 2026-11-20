@@ -44,8 +44,8 @@ describe("existing contract", () => {
 
     const result = await project.ignition.deploy(secondModuleDefinition);
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    assert.notEqual(result.bar, undefined);
+    assert.notEqual(result.usesContract, undefined);
 
     const usedAddress =
       (await result.usesContract.read.contractAddress()) as string;

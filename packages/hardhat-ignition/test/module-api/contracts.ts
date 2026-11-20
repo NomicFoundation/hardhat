@@ -44,8 +44,8 @@ describe("contract deploys", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    assert.notEqual(result.bar, undefined);
+    assert.notEqual(result.usesContract, undefined);
 
     const usedAddress =
       (await result.usesContract.read.contractAddress()) as string;
@@ -99,7 +99,7 @@ describe("contract deploys", () => {
 
       const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,
@@ -128,7 +128,7 @@ describe("contract deploys", () => {
 
       const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,
@@ -159,7 +159,7 @@ describe("contract deploys", () => {
 
       const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,
@@ -194,7 +194,7 @@ describe("contract deploys", () => {
 
       const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,

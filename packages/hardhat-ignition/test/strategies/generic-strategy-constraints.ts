@@ -38,7 +38,7 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.x(), Number(1));
       });
@@ -61,8 +61,8 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
-        assert.isDefined(result.bar.address);
+        assert.notEqual(result.foo.address, undefined);
+        assert.notEqual(result.bar.address, undefined);
 
         assert.equal(await result.foo.read.x(), Number(1));
         assert.equal(await result.bar.read.isBar(), true);
@@ -89,7 +89,7 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.x(), Number(2));
       });
@@ -130,7 +130,7 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.x(), Number(6));
       });
@@ -199,7 +199,7 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.argWasValidated(), true);
       });
@@ -234,7 +234,7 @@ describe("strategies - generic constraints", function () {
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.wasEmitted(), true);
       });

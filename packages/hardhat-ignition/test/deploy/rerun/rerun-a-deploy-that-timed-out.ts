@@ -141,7 +141,7 @@ describe("execution - rerun a deploy that timed out", () => {
       },
     );
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
     assert.equal(await result.foo.read.x(), 1n);
   });
 });

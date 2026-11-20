@@ -22,7 +22,7 @@ describe("libraries", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
     const contractThatDependsOnLib = result.dependsOnLib;
 
     const libBasedAddition =
@@ -50,7 +50,7 @@ describe("libraries", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
     const contractThatDependsOnLib = result.dependsOnLib;
 
     const libBasedAddition =
@@ -115,7 +115,7 @@ describe("libraries", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
     const contractThatDependsOnLibOnLib = result.dependsOnLibThatDependsOnLib;
 
     const libBasedAddition =
