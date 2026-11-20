@@ -15,12 +15,16 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * TODO: Needs to be updated to deal with fee bumps
  */
 describe("execution - rerun a deploy that timed out", () => {
-  useFileIgnitionProject("minimal", "rerun-a-deploy-that-timed-out", {
-    blockPollingInterval: 50,
-    timeBeforeBumpingFees: 45,
-    maxFeeBumps: 2,
-    requiredConfirmations: 1,
-  });
+  const project = useFileIgnitionProject(
+    "minimal",
+    "rerun-a-deploy-that-timed-out",
+    {
+      blockPollingInterval: 50,
+      timeBeforeBumpingFees: 45,
+      maxFeeBumps: 2,
+      requiredConfirmations: 1,
+    },
+  );
 
   it("shows an error indicating a wipe is required", async function () {
     // Setup a module with a contract deploy on accounts[2]
@@ -37,28 +41,34 @@ describe("execution - rerun a deploy that timed out", () => {
     // Deploying the module that uses accounts[2], but force timeout,
     // by not processing any blocks
     await assert.isRejected(
-      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
-        // wait for the deploy transaction to hit the memory pool,
-        // but then never mine the block that will complete it.
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(10_000_000_000n);
-        await c.mineBlock();
+      project.runControlledDeploy(
+        moduleDefinition,
+        async (c: TestChainHelper) => {
+          // wait for the deploy transaction to hit the memory pool,
+          // but then never mine the block that will complete it.
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(10_000_000_000n);
+          await c.mineBlock();
 
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(100_000_000_000n);
-        await c.mineBlock();
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(100_000_000_000n);
+          await c.mineBlock();
 
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
-        await c.mineBlock();
-      }),
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
+          await c.mineBlock();
+        },
+      ),
     );
 
     await assert.isRejected(
-      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
-        // Mine the block, confirming foo
-        await c.mineBlock(1);
-      }),
+      project.runControlledDeploy(
+        moduleDefinition,
+        async (c: TestChainHelper) => {
+          // Mine the block, confirming foo
+          await c.mineBlock(1);
+        },
+      ),
       `The deployment wasn\'t run because of the following errors in a previous run:
 
   * FooModule#Foo: The previous run of the future FooModule#Foo timed out, and will need wiped before running again`,
@@ -86,37 +96,42 @@ describe("execution - rerun a deploy that timed out", () => {
     // Deploying the module that uses accounts[2], but force timeout,
     // by not processing any blocks
     await assert.isRejected(
-      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
-        // wait for the deploy transaction to hit the memory pool,
-        // but then never mine the block that will complete it.
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(10_000_000_000n);
-        await c.mineBlock();
+      project.runControlledDeploy(
+        moduleDefinition,
+        async (c: TestChainHelper) => {
+          // wait for the deploy transaction to hit the memory pool,
+          // but then never mine the block that will complete it.
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(10_000_000_000n);
+          await c.mineBlock();
 
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(100_000_000_000n);
-        await c.mineBlock();
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(100_000_000_000n);
+          await c.mineBlock();
 
-        await c.waitForPendingTxs(1);
-        await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
-        await c.mineBlock();
-      }),
+          await c.waitForPendingTxs(1);
+          await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
+          await c.mineBlock();
+        },
+      ),
     );
 
-    await this.connection.networkHelpers.setNextBlockBaseFeePerGas(1_000_000n);
-    await mineBlock(this.connection);
+    await project.connection.networkHelpers.setNextBlockBaseFeePerGas(
+      1_000_000n,
+    );
+    await mineBlock(project.connection);
 
     assertHardhatInvariant(
-      this.deploymentDir !== undefined,
+      project.deploymentDir !== undefined,
       "Deployment dir is undefined",
     );
     await wipe(
-      this.deploymentDir,
-      new HardhatArtifactResolver(this.hre.artifacts),
+      project.deploymentDir,
+      new HardhatArtifactResolver(project.hre.artifacts),
       "FooModule#Foo",
     );
 
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Mine the block, confirming foo

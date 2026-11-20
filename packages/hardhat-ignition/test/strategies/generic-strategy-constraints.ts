@@ -17,7 +17,7 @@ const exampleConfig = {
 describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
     describe(strategy, function () {
-      useEphemeralIgnitionProject("minimal");
+      const project = useEphemeralIgnitionProject("minimal");
 
       it("should deploy a contract", async function () {
         const moduleDefinition = buildModule("FooModule", (m) => {
@@ -26,13 +26,13 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -49,13 +49,13 @@ describe("strategies - generic constraints", function () {
           return { foo, bar };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 2, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 2, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -75,15 +75,15 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -112,19 +112,19 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -140,10 +140,10 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition);
+        const deployPromise = project.ignition.deploy(moduleDefinition);
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -157,13 +157,16 @@ describe("strategies - generic constraints", function () {
           return { contractAtFoo };
         });
 
-        const contractAtPromise = this.ignition.deploy(contractAtDefinition, {
-          strategy,
-          strategyConfig: exampleConfig[strategy],
-        });
+        const contractAtPromise = project.ignition.deploy(
+          contractAtDefinition,
+          {
+            strategy,
+            strategyConfig: exampleConfig[strategy],
+          },
+        );
 
-        await waitForPendingTxs(this.connection, 1, contractAtPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, contractAtPromise);
+        await mineBlock(project.connection);
 
         const contractAtResult = await contractAtPromise;
 
@@ -182,15 +185,15 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -215,17 +218,17 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 

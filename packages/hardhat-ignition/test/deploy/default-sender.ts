@@ -8,11 +8,11 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("default sender", function () {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should throw if default sender is not in configured accounts", async function () {
     await assertRejectsWithHardhatError(
-      this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "ignition/modules/OwnModule.js",
         defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
       }),
@@ -26,7 +26,7 @@ describe("default sender", function () {
   it("should allow setting default sender via cli", async function () {
     const secondAccountAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
-    const result: DeploymentResult | null = await this.hre.tasks
+    const result: DeploymentResult | null = await project.hre.tasks
       .getTask(["ignition", "deploy"])
       .run({
         modulePath:

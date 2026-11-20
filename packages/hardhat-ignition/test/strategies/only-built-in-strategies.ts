@@ -4,11 +4,11 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("strategies - only built in strategies", function () {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should throw if a non-recognized strategy is specified", async function () {
     await assertRejectsWithHardhatError(
-      this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/MyModule.js",
         strategy: "non-recognized-strategy",
       }),

@@ -135,7 +135,7 @@ describe("config", () => {
   });
 
   describe("validating", () => {
-    useEphemeralIgnitionProject("with-invalid-config");
+    const project = useEphemeralIgnitionProject("with-invalid-config");
 
     it("should throw when given a `requiredConfirmations` value less than 1", async function () {
       const moduleDefinition = buildModule("FooModule", (m) => {
@@ -145,7 +145,7 @@ describe("config", () => {
       });
 
       await assert.isRejected(
-        this.ignition.deploy(moduleDefinition, {
+        project.ignition.deploy(moduleDefinition, {
           config: {
             requiredConfirmations: 0,
           },

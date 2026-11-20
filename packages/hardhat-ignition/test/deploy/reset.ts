@@ -19,7 +19,7 @@ const deploymentDir = path.join(
 );
 
 describe("reset flag", function () {
-  useFileIgnitionProject("reset-flag", deploymentId);
+  const project = useFileIgnitionProject("reset-flag", deploymentId);
 
   beforeEach("clean filesystem", async function () {
     // make sure nothing is left over from a previous test
@@ -37,27 +37,27 @@ describe("reset flag", function () {
   });
 
   it("should reset a deployment", async function () {
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/FirstPass.js",
       deploymentId,
       writeLocalhostDeployment: true,
       reset: false,
     });
 
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/SecondPass.js",
       deploymentId,
       writeLocalhostDeployment: true,
       reset: true,
     });
 
-    const artifactResolver = new HardhatArtifactResolver(this.hre.artifacts);
+    const artifactResolver = new HardhatArtifactResolver(project.hre.artifacts);
 
     assertHardhatInvariant(
-      this.deploymentDir !== undefined,
+      project.deploymentDir !== undefined,
       "Deployment dir is undefined",
     );
-    const result = await status(this.deploymentDir, artifactResolver);
+    const result = await status(project.deploymentDir, artifactResolver);
 
     // ResetModule#B will only be in the success list if the second
     // run ran without any reconciliation errors - so the retry
