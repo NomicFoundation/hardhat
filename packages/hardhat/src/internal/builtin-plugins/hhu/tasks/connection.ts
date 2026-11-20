@@ -1,12 +1,17 @@
 import type { NetworkConnection } from "../../../../types/network.js";
 import type { UtilsHardhatRuntimeEnvironment } from "../types.js";
+import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { hexStringToBigInt } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  hexStringToBigInt,
+  isHexString,
+  isPrefixedHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 
 import { ProviderError } from "../../network-manager/provider-errors.js";
 
@@ -48,21 +53,32 @@ export async function withConnection<T>(
   }
 }
 
-/** Sends a request whose result is a hex quantity, and returns it as a bigint. */
-export async function requestQuantity(
+/** Sends a request whose result is 0x-prefixed hex, and returns it. */
+export async function requestHex(
   hre: UtilsHardhatRuntimeEnvironment,
   method: string,
   params?: unknown[],
-): Promise<bigint> {
+): Promise<PrefixedHexString> {
   const result = await withConnection(
     hre,
     async (connection) => await connection.provider.request({ method, params }),
   );
 
   assertHardhatInvariant(
-    typeof result === "string",
-    `${method} should return a string`,
+    typeof result === "string" &&
+      isPrefixedHexString(result) &&
+      isHexString(result),
+    `${method} should return a hex string`,
   );
 
-  return hexStringToBigInt(result);
+  return result;
+}
+
+/** Sends a request whose result is a hex quantity, and returns it as a bigint. */
+export async function requestQuantity(
+  hre: UtilsHardhatRuntimeEnvironment,
+  method: string,
+  params?: unknown[],
+): Promise<bigint> {
+  return hexStringToBigInt(await requestHex(hre, method, params));
 }

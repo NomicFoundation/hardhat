@@ -1,19 +1,15 @@
 import type { CallRequestArguments } from "./request.js";
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   decodeAbiParameters,
   isAbiDecodingError,
 } from "@nomicfoundation/hardhat-utils/abi";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { formatAbiValue } from "../abi/format.js";
-import { withConnection } from "../connection.js";
+import { requestHex } from "../connection.js";
 
 import { buildCallRequest } from "./request.js";
 
@@ -23,16 +19,7 @@ const txCallAction: NewUtilsTaskActionFunction<CallRequestArguments> = async (
 ) => {
   const { params, outputs } = await buildCallRequest(taskArguments);
 
-  const result = await withConnection(
-    hre,
-    async (connection) =>
-      await connection.provider.request({ method: "eth_call", params }),
-  );
-
-  assertHardhatInvariant(
-    typeof result === "string" && isPrefixedHexString(result),
-    "eth_call should return a hex string",
-  );
+  const result = await requestHex(hre, "eth_call", params);
 
   if (outputs.length === 0) {
     console.log(result);
