@@ -13,7 +13,10 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * the transaction should be resubmitted.
  */
 describe("execution - rerun with dropped ignition transactions", () => {
-  useFileIgnitionProject("minimal", "rerun-with-dropped-ignition-transactions");
+  const project = useFileIgnitionProject(
+    "minimal",
+    "rerun-with-dropped-ignition-transactions",
+  );
 
   it("should deploy successfully on second run", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -25,7 +28,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
     });
 
     // Start the deploy
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Wait for the submission of foo to mempool
@@ -37,14 +40,14 @@ describe("execution - rerun with dropped ignition transactions", () => {
     );
 
     // remove the submitted foo deploy from mempool
-    await clearPendingTransactionsFromMemoryPool(this.connection);
+    await clearPendingTransactionsFromMemoryPool(project.connection);
 
     // Further blocks with no pending transactions
-    await mineBlock(this.connection);
-    await mineBlock(this.connection);
+    await mineBlock(project.connection);
+    await mineBlock(project.connection);
 
     // Rerun the deployment
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should include deployment of foo via resend

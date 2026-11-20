@@ -12,7 +12,10 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * is deployed.
  */
 describe("execution - rerun with new contract deploy", () => {
-  useFileIgnitionProject("minimal", "rerun-with-new-contract-deploy");
+  const project = useFileIgnitionProject(
+    "minimal",
+    "rerun-with-new-contract-deploy",
+  );
 
   it("should deploy only one contract on second run", async function () {
     const moduleDefinition = buildModule("BarModule", (m) => {
@@ -24,7 +27,7 @@ describe("execution - rerun with new contract deploy", () => {
     });
 
     // Start the deploy
-    const { bar: originalBar } = await this.runControlledDeploy(
+    const { bar: originalBar } = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should include deployment of foo1
@@ -35,8 +38,8 @@ describe("execution - rerun with new contract deploy", () => {
     const firstRunBarAddress = originalBar.address.toLowerCase();
 
     // Further blocks with no pending transactions
-    await mineBlock(this.connection);
-    await mineBlock(this.connection);
+    await mineBlock(project.connection);
+    await mineBlock(project.connection);
 
     const updatedModuleDefinition = buildModule("BarModule", (m) => {
       const bar = m.contract("Bar");
@@ -49,7 +52,7 @@ describe("execution - rerun with new contract deploy", () => {
     });
 
     // Rerun the deployment
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       updatedModuleDefinition,
       async (c: TestChainHelper) => {
         // this block should include deployment of foo2

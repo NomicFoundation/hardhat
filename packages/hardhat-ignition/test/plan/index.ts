@@ -6,14 +6,14 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("visualize", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should create a visualization", async function () {
     const visualizationPath = path.resolve("../minimal/cache/visualization");
     await emptyDir(visualizationPath);
 
-    await this.hre.tasks.getTask("build").run({ quiet: true });
-    await this.hre.tasks.getTask(["ignition", "visualize"]).run({
+    await project.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask(["ignition", "visualize"]).run({
       noOpen: true,
       modulePath: "./ignition/modules/MyModule.js",
     });

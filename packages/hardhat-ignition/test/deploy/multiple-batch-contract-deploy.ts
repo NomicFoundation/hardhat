@@ -10,7 +10,7 @@ import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-projec
  * The intent here is to test batching.
  */
 describe("execution - multiple batch contract deploy", function () {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should deploy over multiple batches", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -45,16 +45,25 @@ describe("execution - multiple batch contract deploy", function () {
       };
     });
 
-    const deployPromise = this.ignition.deploy(moduleDefinition);
+    const deployPromise = project.ignition.deploy(moduleDefinition);
 
     await sleep(300);
-    await this.connection.provider.request({ method: "evm_mine", params: [] });
+    await project.connection.provider.request({
+      method: "evm_mine",
+      params: [],
+    });
 
     await sleep(300);
-    await this.connection.provider.request({ method: "evm_mine", params: [] });
+    await project.connection.provider.request({
+      method: "evm_mine",
+      params: [],
+    });
 
     await sleep(300);
-    await this.connection.provider.request({ method: "evm_mine", params: [] });
+    await project.connection.provider.request({
+      method: "evm_mine",
+      params: [],
+    });
 
     const result = await deployPromise;
 

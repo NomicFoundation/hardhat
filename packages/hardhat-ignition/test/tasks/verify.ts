@@ -10,7 +10,7 @@ import { verify } from "../../src/internal/tasks/verify.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("ignition verify task", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   // TODO: replace with disableConsole() once converted to `node:test`
   let consoleLogStub: sinon.SinonStub;
@@ -60,7 +60,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
@@ -97,7 +97,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
@@ -116,9 +116,9 @@ describe("ignition verify task", () => {
     await verify(
       { deploymentId: "test-deployment", force: false },
       {
-        ...this.hre,
+        ...project.hre,
         config: {
-          ...this.hre.config,
+          ...project.hre.config,
           verify: {
             etherscan: { enabled: false, apiKey: "" as any },
             blockscout: { enabled: false },
@@ -176,7 +176,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
@@ -217,7 +217,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: true },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
@@ -238,7 +238,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       async () => {
         verifyContractCalled = true;
 

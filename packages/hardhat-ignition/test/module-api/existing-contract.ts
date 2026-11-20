@@ -4,14 +4,14 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("existing contract", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to use an existing contract", async function () {
-    await this.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask("build").run({ quiet: true });
 
-    const barArtifact = await this.hre.artifacts.readArtifact("Bar");
+    const barArtifact = await project.hre.artifacts.readArtifact("Bar");
     const usesContractArtifact =
-      await this.hre.artifacts.readArtifact("UsesContract");
+      await project.hre.artifacts.readArtifact("UsesContract");
 
     const firstModuleDefinition = buildModule("FirstModule", (m) => {
       const bar = m.contract("Bar");
@@ -22,7 +22,7 @@ describe("existing contract", () => {
       return { bar, usesContract };
     });
 
-    const firstResult = await this.ignition.deploy(firstModuleDefinition);
+    const firstResult = await project.ignition.deploy(firstModuleDefinition);
 
     const barAddress: string = firstResult.bar.address;
     const usesContractAddress: string = firstResult.usesContract.address;
@@ -40,7 +40,7 @@ describe("existing contract", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.ignition.deploy(secondModuleDefinition);
+    const result = await project.ignition.deploy(secondModuleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);

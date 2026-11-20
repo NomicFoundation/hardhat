@@ -9,7 +9,7 @@ import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-projec
 describe("chainId reconciliation", function () {
   this.timeout(60000);
 
-  useEphemeralIgnitionProject("default-with-new-chain-id");
+  const project = useEphemeralIgnitionProject("default-with-new-chain-id");
 
   // NOTE: This package runs its tests with mocha, so it uses `createEnvChanges`
   // and restores from mocha's own hook, instead of `createTestEnvManager`, which
@@ -24,7 +24,7 @@ describe("chainId reconciliation", function () {
     envChanges.setEnvVar("HARDHAT_IGNITION_CONFIRM_DEPLOYMENT", "true");
 
     await assertRejectsWithHardhatError(
-      this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/LockModule.js",
         deploymentId: "chain-1337",
         writeLocalhostDeployment: true,

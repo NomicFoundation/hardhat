@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("events", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to use the output of a readEvent in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -25,14 +25,14 @@ describe("events", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
   });
 
   it("should be able to use the output of a readEvent in an artifact contract at", async function () {
-    const artifact = await this.hre.artifacts.readArtifact("Foo");
+    const artifact = await project.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
@@ -52,7 +52,7 @@ describe("events", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -73,7 +73,7 @@ describe("events", () => {
       return { sendEmitter };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.sendEmitter.read.wasEmitted(), true);
   });
@@ -97,7 +97,7 @@ describe("events", () => {
       return { tupleContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.tupleContract.read.arg1Captured(), true);
     assert.equal(await result.tupleContract.read.arg2Captured(), true);

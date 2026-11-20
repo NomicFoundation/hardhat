@@ -16,7 +16,7 @@ const deploymentDir = path.join(
 );
 
 describe("localhost deployment flag", function () {
-  useEphemeralIgnitionProject(fixtureProjectName);
+  const project = useEphemeralIgnitionProject(fixtureProjectName);
 
   beforeEach("clean filesystem", async function () {
     // make sure nothing is left over from a previous test
@@ -29,7 +29,7 @@ describe("localhost deployment flag", function () {
   });
 
   it("true should write deployment to disk", async function () {
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/OwnModule.js",
       writeLocalhostDeployment: true,
     });
@@ -38,7 +38,7 @@ describe("localhost deployment flag", function () {
   });
 
   it("false should not write deployment to disk", async function () {
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/OwnModule.js",
       writeLocalhostDeployment: false,
     });

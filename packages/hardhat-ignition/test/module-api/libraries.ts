@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("libraries", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
     const moduleDefinition = buildModule("WithLibModule", (m) => {
@@ -18,7 +18,7 @@ describe("libraries", () => {
       return { rubbishMath, dependsOnLib };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -30,10 +30,10 @@ describe("libraries", () => {
   });
 
   it("should be able to deploy a contract that depends on an artifact library", async function () {
-    await this.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask("build").run({ quiet: true });
 
     const libraryArtifact =
-      await this.hre.artifacts.readArtifact("RubbishMath");
+      await project.hre.artifacts.readArtifact("RubbishMath");
 
     const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
       const rubbishMath = m.library("RubbishMath", libraryArtifact);
@@ -46,7 +46,7 @@ describe("libraries", () => {
       return { rubbishMath, dependsOnLib };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -64,7 +64,9 @@ describe("libraries", () => {
       return { rubbishMath };
     });
 
-    const libDeployResult = await this.ignition.deploy(libraryModuleDefinition);
+    const libDeployResult = await project.ignition.deploy(
+      libraryModuleDefinition,
+    );
 
     const libAddress = libDeployResult.rubbishMath.address;
 
@@ -80,7 +82,7 @@ describe("libraries", () => {
       return { dependsOnLib };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.equal(await libDeployResult.rubbishMath.read.add([1, 2]), 3);
     assert.equal(await result.dependsOnLib.read.addThreeNumbers([1, 2, 3]), 6);
@@ -109,7 +111,7 @@ describe("libraries", () => {
       return { rubbishMath, libDependsOnLib, dependsOnLibThatDependsOnLib };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLibOnLib = result.dependsOnLibThatDependsOnLib;

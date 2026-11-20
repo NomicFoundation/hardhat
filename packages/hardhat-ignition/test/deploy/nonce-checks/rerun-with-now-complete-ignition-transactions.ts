@@ -12,7 +12,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * a second run completes the deploy.
  */
 describe("execution - rerun with now complete ignition transactions", () => {
-  useFileIgnitionProject(
+  const project = useFileIgnitionProject(
     "minimal",
     "rerun-with-now-complete-ignition-transactions",
   );
@@ -60,7 +60,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
       };
     });
 
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Process the first block, include foo1 and foo2
@@ -73,11 +73,11 @@ describe("execution - rerun with now complete ignition transactions", () => {
     );
 
     // Further blocks are processed confirming foo3 and foo4
-    await mineBlock(this.connection);
-    await mineBlock(this.connection);
+    await mineBlock(project.connection);
+    await mineBlock(project.connection);
 
     // Rerun the deployment, with foo3 and foo3 now confirmed
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(2);
