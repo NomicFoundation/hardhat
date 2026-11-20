@@ -43,7 +43,7 @@ const RESERVED_KEYWORDS = new Set([
   "constructor",
 ]);
 
-const UNKNOWN_TYPE_HINT =
+export const UNKNOWN_TYPE_HINT =
   "write structs as tuples like (address,uint256), contracts as address, enums as uint8 and user-defined value types as their underlying type";
 
 /**
