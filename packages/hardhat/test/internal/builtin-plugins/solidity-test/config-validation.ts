@@ -249,6 +249,41 @@ describe("config validation", () => {
     );
   });
 
+  it("should accept `eip712Types.exclude`", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      test: {
+        solidity: {
+          eip712Types: { exclude: ["contracts/vendor/**"] },
+        },
+      },
+    });
+
+    assert.deepEqual(hre.config.test.solidity.profiles.default.eip712Types, {
+      exclude: ["contracts/vendor/**"],
+    });
+  });
+
+  it("should reject a leftover `eip712Types.include`", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- intentionally violating the types for the test */
+        solidity: {
+          eip712Types: { include: ["contracts/**"] },
+        } as any,
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.eip712Types.include: `include` is no longer supported. Every struct that a test source reaches is collected, so use `exclude` to keep a file out",
+      },
+    );
+  });
+
   it("should reject a non-integer memoryLimit", async () => {
     const userConfig: HardhatUserConfig = {
       test: {

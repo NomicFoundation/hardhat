@@ -1,9 +1,13 @@
 import type {
   ArtifactId,
   InlineConfigDirectiveProblem,
-  InlineConfigError,
-  InlineConfigSourceProblem,
+  TestSourceError,
+  TestSourceFileProblem,
 } from "@nomicfoundation/edr";
+
+// The parse diagnostics belong to the problem that lists them, so they are
+// indented to set them apart.
+const PARSE_REASON_INDENT = "    ";
 
 export function formatArtifactId(
   artifactId: ArtifactId,
@@ -16,11 +20,12 @@ export function formatArtifactId(
 }
 
 /**
- * Formats the inline test configuration problems that EDR reports, one per
- * line, each located at the user-facing path of the source it was found in.
+ * Formats the problems that EDR found while collecting from the test sources,
+ * one per line. Each is located at the user-facing path of the source it was
+ * found in.
  */
-export function formatInlineConfigErrors(
-  errors: InlineConfigError[],
+export function formatTestSourceErrors(
+  errors: TestSourceError[],
   sourceNameToUserSourceName: Map<string, string>,
 ): string {
   return errors
@@ -29,7 +34,7 @@ export function formatInlineConfigErrors(
         sourceNameToUserSourceName.get(error.sourceName) ?? error.sourceName;
 
       if (error.kind === "source") {
-        return `- ${sourceName}: ${formatInlineConfigSourceProblem(error.problem)}`;
+        return `- ${sourceName}: ${formatTestSourceFileProblem(error.problem)}`;
       }
 
       return `- ${sourceName}:${error.line}: ${formatDirectiveOrigin(error.contract, error.function)}: ${formatInlineConfigDirectiveProblem(error.problem)}`;
@@ -68,15 +73,17 @@ function formatInlineConfigDirectiveProblem(
   }
 }
 
-function formatInlineConfigSourceProblem(
-  problem: InlineConfigSourceProblem,
-): string {
+function formatTestSourceFileProblem(problem: TestSourceFileProblem): string {
   switch (problem.kind) {
-    case "InlineConfigInvalidSolcVersion":
-      return "the Solidity version of this source is not supported by the inline configuration parser";
-    case "InlineConfigSourceFileNotFound":
+    case "TestSourceUnsupportedSolcVersion":
+      return `this source was compiled with Solidity ${problem.version}, and parsing test sources requires 0.8.0 or newer`;
+    case "TestSourceFileNotFound":
       return `the source file could not be read at "${problem.path}": ${problem.reason}`;
-    case "InlineConfigDirectiveLocation":
+    case "TestSourcePathNotProvided":
+      return "the path of this source was not provided, so it could not be parsed";
+    case "TestSourceParseErrors":
+      return `the source could not be parsed:\n${problem.reasons.map((reason) => `${PARSE_REASON_INDENT}${reason}`).join("\n")}`;
+    case "TestSourceDirectiveLocation":
       return `a directive of ${formatDirectiveOrigin(problem.contract, problem.function)} could not be located: ${problem.reason}`;
   }
 }

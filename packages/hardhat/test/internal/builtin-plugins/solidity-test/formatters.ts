@@ -1,13 +1,13 @@
 import type {
   InlineConfigDirectiveProblem,
-  InlineConfigError,
-  InlineConfigSourceProblem,
+  TestSourceError,
+  TestSourceFileProblem,
 } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { formatInlineConfigErrors } from "../../../../src/internal/builtin-plugins/solidity-test/formatters.js";
+import { formatTestSourceErrors } from "../../../../src/internal/builtin-plugins/solidity-test/formatters.js";
 
 const SOURCE_NAME = "project/test/Foo.t.sol";
 
@@ -15,7 +15,7 @@ const sourceNameToUserSourceName = new Map([[SOURCE_NAME, "test/Foo.t.sol"]]);
 
 function directiveError(
   problem: InlineConfigDirectiveProblem,
-): InlineConfigError {
+): TestSourceError {
   return {
     kind: "directive",
     sourceName: SOURCE_NAME,
@@ -28,7 +28,7 @@ function directiveError(
 
 function contractLevelDirectiveError(
   problem: InlineConfigDirectiveProblem,
-): InlineConfigError {
+): TestSourceError {
   return {
     kind: "directive",
     sourceName: SOURCE_NAME,
@@ -41,7 +41,7 @@ function contractLevelDirectiveError(
   };
 }
 
-function sourceError(problem: InlineConfigSourceProblem): InlineConfigError {
+function sourceError(problem: TestSourceFileProblem): TestSourceError {
   return {
     kind: "source",
     sourceName: SOURCE_NAME,
@@ -49,15 +49,18 @@ function sourceError(problem: InlineConfigSourceProblem): InlineConfigError {
   };
 }
 
-describe("formatInlineConfigErrors", () => {
+describe("formatTestSourceErrors", () => {
   it("reports every problem in order, one per line", () => {
-    const formatted = formatInlineConfigErrors(
+    const formatted = formatTestSourceErrors(
       [
         directiveError({
           kind: "InlineConfigDuplicateKey",
           key: "default.fuzz.runs",
         }),
-        sourceError({ kind: "InlineConfigInvalidSolcVersion" }),
+        sourceError({
+          kind: "TestSourceUnsupportedSolcVersion",
+          version: "0.7.6",
+        }),
       ],
       sourceNameToUserSourceName,
     );
@@ -66,13 +69,13 @@ describe("formatInlineConfigErrors", () => {
       formatted,
       [
         `- test/Foo.t.sol:12: FooTest.testFuzz: duplicate key "default.fuzz.runs"`,
-        "- test/Foo.t.sol: the Solidity version of this source is not supported by the inline configuration parser",
+        "- test/Foo.t.sol: this source was compiled with Solidity 0.7.6, and parsing test sources requires 0.8.0 or newer",
       ].join("\n"),
     );
   });
 
   it("falls back to EDR's source name when there is no user-facing path for it", () => {
-    const formatted = formatInlineConfigErrors(
+    const formatted = formatTestSourceErrors(
       [directiveError({ kind: "InlineConfigInvalidKey", key: "nope" })],
       new Map(),
     );
@@ -84,7 +87,7 @@ describe("formatInlineConfigErrors", () => {
   });
 
   it("names only the contract for a contract-level directive", () => {
-    const formatted = formatInlineConfigErrors(
+    const formatted = formatTestSourceErrors(
       [
         contractLevelDirectiveError({
           kind: "InlineConfigDuplicateKey",
@@ -101,10 +104,10 @@ describe("formatInlineConfigErrors", () => {
   });
 
   it("names only the contract for a contract-level directive that can't be located", () => {
-    const formatted = formatInlineConfigErrors(
+    const formatted = formatTestSourceErrors(
       [
         sourceError({
-          kind: "InlineConfigDirectiveLocation",
+          kind: "TestSourceDirectiveLocation",
           contract: "FooTest",
           function: undefined,
           reason: "offset out of bounds",
@@ -162,7 +165,7 @@ describe("formatInlineConfigErrors", () => {
 
     for (const [problem, expected] of problems) {
       assert.equal(
-        formatInlineConfigErrors(
+        formatTestSourceErrors(
           [directiveError(problem)],
           sourceNameToUserSourceName,
         ),
@@ -172,23 +175,48 @@ describe("formatInlineConfigErrors", () => {
     }
   });
 
-  it("describes every source problem", () => {
-    const problems: Array<[InlineConfigSourceProblem, string]> = [
+  it("lists the parse errors of a source that doesn't parse, one per line", () => {
+    const formatted = formatTestSourceErrors(
       [
-        { kind: "InlineConfigInvalidSolcVersion" },
-        "the Solidity version of this source is not supported by the inline configuration parser",
+        sourceError({
+          kind: "TestSourceParseErrors",
+          reasons: ["12: expected `;`", "40: unexpected `}`"],
+        }),
+      ],
+      sourceNameToUserSourceName,
+    );
+
+    assert.equal(
+      formatted,
+      [
+        "- test/Foo.t.sol: the source could not be parsed:",
+        "    12: expected `;`",
+        "    40: unexpected `}`",
+      ].join("\n"),
+    );
+  });
+
+  it("describes every source problem", () => {
+    const problems: Array<[TestSourceFileProblem, string]> = [
+      [
+        { kind: "TestSourceUnsupportedSolcVersion", version: "0.6.12" },
+        "this source was compiled with Solidity 0.6.12, and parsing test sources requires 0.8.0 or newer",
       ],
       [
         {
-          kind: "InlineConfigSourceFileNotFound",
+          kind: "TestSourceFileNotFound",
           path: "/project/test/Foo.t.sol",
           reason: "no such file or directory",
         },
         `the source file could not be read at "/project/test/Foo.t.sol": no such file or directory`,
       ],
       [
+        { kind: "TestSourcePathNotProvided" },
+        "the path of this source was not provided, so it could not be parsed",
+      ],
+      [
         {
-          kind: "InlineConfigDirectiveLocation",
+          kind: "TestSourceDirectiveLocation",
           contract: "FooTest",
           function: "testFuzz",
           reason: "offset out of bounds",
@@ -199,7 +227,7 @@ describe("formatInlineConfigErrors", () => {
 
     for (const [problem, expected] of problems) {
       assert.equal(
-        formatInlineConfigErrors(
+        formatTestSourceErrors(
           [sourceError(problem)],
           sourceNameToUserSourceName,
         ),

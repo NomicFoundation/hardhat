@@ -31,18 +31,22 @@ import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js"
 import { getCoverageManager } from "../coverage/helpers/accessors.js";
 import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
+import { buildDependencyGraph } from "../solidity/build-system/dependency-graph-building.js";
+import { readSourceFileFactory } from "../solidity/build-system/read-source-file.js";
 
 import {
   buildEdrArtifactsWithMetadata,
   getBuildInfosAndOutputs,
 } from "./edr-artifacts.js";
-import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
   isTestSuiteArtifact,
+  selectTestSourcePaths,
   warnDeprecatedTestFail,
+  warnUnparsableTestSources,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
   writeTestRunOutput,
 } from "./helpers.js";
+import { collectImportMappings } from "./import-mappings.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 import {
@@ -218,26 +222,42 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
-  // Maps each test suite's solc source name to its absolute path on disk, so
-  // EDR can read the inline test configuration from the sources. A source
-  // without an entry has no inline configuration collected.
-  //
-  // EDR skips every source that carries no inline config directive, so there's
-  // no need to filter these paths here.
-  const testSourcePaths = Object.fromEntries(
-    testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
-      edrArtifact.id.source,
-      resolveFromRoot(hre.config.paths.root, userSourceName),
-    ]),
+  // Maps each test suite's solc source name to its absolute path on disk. EDR
+  // reads those to collect the inline test configuration and the EIP-712 struct
+  // definitions.
+  const { testSourcePaths, unparsableSources } = selectTestSourcePaths(
+    testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => ({
+      sourceName: edrArtifact.id.source,
+      userSourceName,
+      path: resolveFromRoot(hre.config.paths.root, userSourceName),
+      solcVersion: edrArtifact.id.solcVersion,
+    })),
   );
+
+  if (unparsableSources.length > 0) {
+    warnUnparsableTestSources(unparsableSources);
+  }
+
+  let importMappings: Record<string, string> | undefined;
+  if (testSourcePaths !== undefined) {
+    // The build already resolved these imports, but it doesn't keep the
+    // resolution around, so it's redone here. It costs one more pass over the
+    // test sources and the files they import, which the build just read.
+    const dependencyGraph = await buildDependencyGraph(
+      testRootPathsToRun,
+      hre.config.paths.root,
+      readSourceFileFactory(hre.hooks),
+      hre.hooks,
+    );
+
+    importMappings = collectImportMappings(dependencyGraph);
+  }
 
   console.log("Running Solidity tests");
   console.log();
 
   let includesFailures = false;
   let includesErrors = false;
-
-  const { eip712Types, ...solidityTestConfig } = selectedTestProfile;
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -265,18 +285,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const eip712CanonicalTypes = await collectEip712CanonicalTypes(
-    allBuildInfosAndOutputs,
-    sourceNameToUserSourceName,
-    eip712Types,
-  );
-
   const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
       hardfork,
-      config: solidityTestConfig,
+      config: selectedTestProfile,
       verbosity,
       includeTraces: parsedIncludeTraces,
       observability: observabilityConfig,
@@ -285,8 +299,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
-      eip712CanonicalTypes,
       testSourcePaths,
+      importMappings,
       testProfile: testProfileName,
       declaredTestProfiles: Object.keys(hre.config.test.solidity.profiles),
     });

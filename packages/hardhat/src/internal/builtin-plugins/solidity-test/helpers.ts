@@ -20,6 +20,7 @@ import {
 } from "@nomicfoundation/edr";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+import { lt } from "semver";
 
 import { ALWAYS_COLLECT_STACK_TRACES_VERBOSITY } from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
@@ -32,19 +33,26 @@ import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-for
 
 import { formatArtifactId } from "./formatters.js";
 
+/**
+ * The oldest solc version whose sources EDR can parse. Collecting the inline
+ * test configuration and the EIP-712 struct definitions requires parsing, and
+ * EDR exempts no source from it.
+ */
+const OLDEST_PARSABLE_SOLC_VERSION = "0.8.0";
+
 interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
   hardfork?: string;
-  config: Omit<SolidityTestProfileConfig, "eip712Types">;
+  config: SolidityTestProfileConfig;
   verbosity: number;
   includeTraces?: IncludeTraces;
   observability?: ObservabilityConfig;
   testPattern?: string;
   excludeTestPattern?: string;
   generateGasReport: boolean;
-  eip712CanonicalTypes?: string[];
   testSourcePaths?: Record<string, string>;
+  importMappings?: Record<string, string>;
   testProfile?: string;
   declaredTestProfiles?: string[];
 }
@@ -60,8 +68,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   testPattern,
   excludeTestPattern,
   generateGasReport,
-  eip712CanonicalTypes,
   testSourcePaths,
+  importMappings,
   testProfile,
   declaredTestProfiles,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
@@ -147,10 +155,14 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const shouldAlwaysCollectStackTraces =
     verbosity >= ALWAYS_COLLECT_STACK_TRACES_VERBOSITY;
 
+  // `eip712Types` is Hardhat's own shape, so it's replaced by the field EDR
+  // takes rather than spread into the runner arguments.
+  const { eip712Types, ...otherConfig } = config;
+
   return {
     projectRoot,
     hardfork: resolvedHardfork,
-    ...config,
+    ...otherConfig,
     fsPermissions,
     localPredeploys,
     sender,
@@ -173,8 +185,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     collectStackTraces: shouldAlwaysCollectStackTraces
       ? CollectStackTraces.Always
       : CollectStackTraces.OnFailure,
-    eip712CanonicalTypes,
     testSourcePaths,
+    importMappings,
+    eip712ExcludeGlobs: eip712Types.exclude,
     testProfile,
     declaredTestProfiles,
   };
@@ -269,4 +282,71 @@ export function warnDeprecatedTestFail(
       console.warn(warningMessage);
     }
   });
+}
+
+/** A source backing at least one of the test suites a run selected. */
+export interface SelectedTestSource {
+  /** The solc source name, which EDR keys its sources by. */
+  sourceName: string;
+  /** The user-facing path of the source. */
+  userSourceName: string;
+  /** The absolute path of the source on disk. */
+  path: string;
+  /** The solc version the source's artifact was compiled with. */
+  solcVersion: string;
+}
+
+export interface TestSourcePathsSelection {
+  /**
+   * The paths of every selected source, or `undefined` when one of them is too
+   * old to parse, which disables collection for the whole run.
+   */
+  testSourcePaths: Record<string, string> | undefined;
+  /**
+   * The user-facing paths of the sources that are too old to parse, sorted and
+   * deduplicated. Empty when `testSourcePaths` is defined.
+   */
+  unparsableSources: string[];
+}
+
+/**
+ * Decides which test source paths to hand EDR.
+ *
+ * A non-empty map must name every selected source, and EDR rejects the run when
+ * one of them is too old to parse. Collection is therefore all or nothing, and a
+ * single source older than `OLDEST_PARSABLE_SOLC_VERSION` disables it for the
+ * whole run.
+ */
+export function selectTestSourcePaths(
+  sources: SelectedTestSource[],
+): TestSourcePathsSelection {
+  const unparsableSources = Array.from(
+    new Set(
+      sources
+        .filter(({ solcVersion }) =>
+          lt(solcVersion, OLDEST_PARSABLE_SOLC_VERSION),
+        )
+        .map(({ userSourceName }) => userSourceName),
+    ),
+  ).sort();
+
+  if (unparsableSources.length > 0) {
+    return { testSourcePaths: undefined, unparsableSources };
+  }
+
+  return {
+    testSourcePaths: Object.fromEntries(
+      sources.map(({ sourceName, path }) => [sourceName, path]),
+    ),
+    unparsableSources,
+  };
+}
+
+export function warnUnparsableTestSources(userSourceNames: string[]): void {
+  const sources = userSourceNames
+    .map((userSourceName) => `- ${userSourceName}`)
+    .join("\n");
+  const warningMessage = `${styleText("yellow", "Warning")}: These test sources were compiled with a Solidity version older than ${OLDEST_PARSABLE_SOLC_VERSION}, which cannot be parsed:\n${sources}\nInline test configuration and the EIP-712 cheatcodes are disabled for this whole run.\n`;
+
+  console.warn(warningMessage);
 }
