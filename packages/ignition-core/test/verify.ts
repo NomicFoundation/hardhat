@@ -109,7 +109,7 @@ describe("verify", () => {
         sawLibrary = true;
       }
     }
-    assert.isTrue(sawLibrary, "Expected to find the UUUUU library entry");
+    assert.equal(sawLibrary, true, "Expected to find the UUUUU library entry");
   });
 
   it("should yield a verify result for contract with libraries", async () => {
@@ -130,6 +130,6 @@ describe("verify", () => {
       }
     }
 
-    assert.isTrue(success);
+    assert.equal(success, true);
   });
 });

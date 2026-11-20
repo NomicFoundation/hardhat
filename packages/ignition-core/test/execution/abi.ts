@@ -449,7 +449,10 @@ describe("abi", () => {
       const encoded = encodeArtifactDeploymentData(artifact, [], libraries);
 
       assert.notEqual(encoded, artifact.bytecode);
-      assert.isTrue(encoded.startsWith(linkLibraries(artifact, libraries)));
+      assert.equal(
+        encoded.startsWith(linkLibraries(artifact, libraries)),
+        true,
+      );
     });
 
     // TODO: Validate that we throw a nice error in these cases

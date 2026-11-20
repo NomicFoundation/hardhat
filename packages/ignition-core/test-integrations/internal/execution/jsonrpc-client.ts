@@ -92,7 +92,7 @@ describe("JSON-RPC client", function () {
 
           assert.typeOf(fees.maxFeePerGas, "bigint");
           assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
-          assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+          assert.equal(fees.maxFeePerGas > fees.maxPriorityFeePerGas, true);
         });
 
         it('Should throw if the "maxFeePerGas" exceeds the configured limit', async function () {
@@ -337,9 +337,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should return the raw result in successful non-deployment calls", async function () {
@@ -370,9 +370,9 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000";
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should not throw on execution failures, but return a result", async function () {
@@ -393,9 +393,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should return the returnData on execution failures", async function () {
@@ -430,9 +430,9 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000006726561736f6e0000000000000000000000000000000000000000000000000000";
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async function () {
@@ -478,9 +478,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
 
         const result2 = await mockClient.call(
           {
@@ -491,9 +491,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result2.success);
+        assert.equal(result2.success, false);
         assert.equal(result2.returnData, "0x");
-        assert.isFalse(result2.customErrorReported);
+        assert.equal(result2.customErrorReported, false);
       });
 
       it("[Other nodes] Should return an empty returnData if the error message indicates a revert", async function () {
@@ -528,9 +528,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
       });
 
       it("Should rethrow an HardhatError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async function () {
@@ -597,9 +597,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isTrue(result.customErrorReported);
+        assert.equal(result.customErrorReported, true);
       });
 
       it("Should return customErrorReported false when the server does not reports a custom error", async function () {
@@ -630,9 +630,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should accept pending as blockTag", async function () {
@@ -679,9 +679,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(resultLatest.success);
+        assert.equal(resultLatest.success, true);
         assert.equal(resultLatest.returnData, "0x");
-        assert.isFalse(resultLatest.customErrorReported);
+        assert.equal(resultLatest.customErrorReported, false);
 
         const resultPending = await client.call(
           {
@@ -697,9 +697,9 @@ describe("JSON-RPC client", function () {
           "pending",
         );
 
-        assert.isFalse(resultPending.success);
+        assert.equal(resultPending.success, false);
         assert.notEqual(resultPending.returnData, "0x");
-        assert.isFalse(resultPending.customErrorReported);
+        assert.equal(resultPending.customErrorReported, false);
       });
 
       // TODO: Should we test that eth_call validates the account balance?
