@@ -1,10 +1,9 @@
 import type { UiState } from "../../../src/internal/ui/types.js";
 
+import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { styleText } from "node:util";
-
-import { assert } from "chai";
 
 import { calculateDeployingModulePanel } from "../../../src/internal/ui/helpers/calculate-deploying-module-panel.js";
 import { UiStateDeploymentStatus } from "../../../src/internal/ui/types.js";

@@ -1,9 +1,9 @@
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
@@ -78,7 +78,7 @@ describe("module parameters", () => {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use a global parameter instead of the default value", async function () {
@@ -94,7 +94,7 @@ describe("module parameters", () => {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use the module parameter even if global parameters exist but not that specific parameter", async function () {
@@ -115,7 +115,7 @@ describe("module parameters", () => {
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use the global parameter even if module parameters exist but not that specific parameter", async function () {
@@ -136,7 +136,7 @@ describe("module parameters", () => {
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use a module parameter instead of a global parameter if both are present", async function () {
@@ -155,7 +155,7 @@ describe("module parameters", () => {
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 9876543210000);
+      assert.equal(await result.lock.read.unlockTime(), 9876543210000n);
     });
   });
 });

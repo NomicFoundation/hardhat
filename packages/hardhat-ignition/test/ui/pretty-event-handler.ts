@@ -1,5 +1,6 @@
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
+import assert from "node:assert/strict";
 import { describe, it, beforeEach, afterEach } from "node:test";
 
 import {
@@ -7,7 +8,6 @@ import {
   ExecutionEventResultType,
   ExecutionEventType,
 } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import sinon from "sinon";
 
 import { PrettyEventHandler } from "../../src/helpers/pretty-event-handler.js";

@@ -1,9 +1,9 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { clearPendingTransactionsFromMemoryPool } from "../../test-helpers/clear-pending-transactions-from-memory-pool.js";
 import { mineBlock } from "../../test-helpers/mine-block.js";

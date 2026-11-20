@@ -1,9 +1,9 @@
+import assert from "node:assert/strict";
 import path, { dirname } from "node:path";
 import { describe, it, beforeEach, afterEach } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 

@@ -1,10 +1,10 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
+import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { assert } from "chai";
 
 import taskMigrate from "../../src/internal/tasks/migrate.js";
 import { useProject } from "../test-helpers/use-ignition-project.js";

@@ -1,11 +1,11 @@
 import type { KeyListOf } from "./test-helpers/type-helper.js";
 import type { HardhatConfig, NetworkConfig } from "hardhat/types/config";
 
+import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import "../src/type-extensions.js";
