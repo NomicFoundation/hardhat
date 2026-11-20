@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.1.4
+
+### Patch Changes
+
+- 1ee26da: Fixed `HardhatEthersSigner.sendTransaction` hanging forever instead of rejecting when fetching the sent transaction fails.
+
 ## 3.1.3
 
 ### Patch Changes
