@@ -1,6 +1,7 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { assert } from "chai";
+import { describe, it } from "node:test";
 
 import type { Artifact } from "../../../src/index.js";
 import {

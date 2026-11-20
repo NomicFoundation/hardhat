@@ -48,7 +48,7 @@
     "test:debug": "DEBUG='ignition:*' pnpm test",
     "test:coverage": "nyc mocha --recursive \"test/**/*.ts\" \"test-integrations/**/*.ts\"",
     "test:unit": "mocha --recursive \"test/**/*.ts\"",
-    "test:integrations": "mocha --recursive \"test-integrations/**/*.ts\"",
+    "test:integrations": "node --import tsx/esm --import ./test/setup.ts --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test-integrations/*.ts\" \"test-integrations/!(fixture-projects|helpers)/**/*.ts\"",
     "clean": "rimraf dist",
     "prepack": "pnpm build"
   },
@@ -61,6 +61,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@microsoft/api-extractor": "7.60.1",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
