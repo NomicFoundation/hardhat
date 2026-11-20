@@ -36,7 +36,7 @@ describe("default sender", function () {
         defaultSender: secondAccountAddress,
       });
 
-    assert.isNotNull(result);
+    assert.ok(result !== null);
 
     assert.equal(result.type, DeploymentResultType.SUCCESSFUL_DEPLOYMENT);
   });

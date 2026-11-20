@@ -86,7 +86,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
       },
     );
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
 
     const x1 = await result.foo1.read.x();
     const x2 = await result.foo2.read.x();

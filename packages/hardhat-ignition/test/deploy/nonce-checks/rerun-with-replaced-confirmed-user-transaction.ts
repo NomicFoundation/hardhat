@@ -91,7 +91,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       },
     );
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
 
     assert.equal(await result.foo1.read.x(), 1n);
     assert.equal(await result.foo2.read.x(), 1n);

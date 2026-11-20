@@ -23,8 +23,8 @@ describe("calls", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    assert.notEqual(result.bar, undefined);
+    assert.notEqual(result.usesContract, undefined);
 
     const usedAddress =
       (await result.usesContract.read.contractAddress()) as string;
@@ -47,7 +47,7 @@ describe("calls", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.captureArraysContract);
+    assert.notEqual(result.captureArraysContract, undefined);
 
     const captureSucceeded =
       await result.captureArraysContract.read.arraysCaptured();
@@ -74,7 +74,7 @@ describe("calls", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.captureComplexObjectContract);
+    assert.notEqual(result.captureComplexObjectContract, undefined);
 
     const captureSucceeded =
       await result.captureComplexObjectContract.read.complexArgCaptured();
@@ -98,7 +98,7 @@ describe("calls", () => {
 
     const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.trace);
+    assert.notEqual(result.trace, undefined);
 
     const entry1 = await result.trace.read.entries([0n]);
     const entry2 = await result.trace.read.entries([1n]);
@@ -124,7 +124,7 @@ describe("calls", () => {
 
       const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,
@@ -161,7 +161,7 @@ describe("calls", () => {
         },
       });
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
         project.connection,
