@@ -23,11 +23,13 @@ Leave alone:
 
 `packages/hardhat/src/internal/builtin-plugins/solidity/build-system/solc-info.ts` has `defaultEvmTargets`, one entry per solc version. It must contain every version up to the new one, or `compilation-job.ts` sends no `evmVersion` for them.
 
+`packages/hardhat-slang/test/evm-version.ts` asserts which versions have a default, so update it too.
+
 Each version's value is the solc default for that release. Read the solc changelog: it changes only when a release says "Set default EVM version to X" (last time: 0.8.31 → `osaka`); otherwise copy the previous entry. If a release moves the default past `L1_LATEST_STABLE_HARDFORK` in `packages/hardhat/src/internal/builtin-plugins/network-manager/edr/types/hardfork.ts` (the enum there also lists experimental forks; those don't count), EDR has to support it first; stop and say so.
 
 ## 3. EDR support (the other step the reference PR didn't need)
 
-From `packages/hardhat`, `node -e 'console.log(require("@nomicfoundation/edr").latestSupportedSolidityVersion())'` must print the new version or higher. No test catches a lag: coverage instrumentation silently falls back to the older grammar. If it lags, stop and say so; EDR needs a Slang bump first.
+From `packages/hardhat`, `node -e 'console.log(require("@nomicfoundation/edr").latestSupportedSolidityVersion())'` must print the new version or higher. No test catches a lag: coverage instrumentation silently falls back to the older grammar. If it lags, flag it in the summary (EDR needs a Slang bump) and continue.
 
 ## 4. forge-std
 
