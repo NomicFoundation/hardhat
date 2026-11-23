@@ -28,7 +28,7 @@
     "globals": "17.14.0",
     "prettier": "3.9.10",
     "rimraf": "^6.1.3",
-    "typescript-eslint": "8.72.1"
+    "typescript-eslint": "8.72.2"
   },
   "peerDependencies": {
     "eslint": "9.39.5"
