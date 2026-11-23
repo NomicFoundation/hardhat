@@ -1,5 +1,7 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { TransactionStatus } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { calculateListTransactionsDisplay } from "../../../src/internal/ui/helpers/calculate-list-transactions-display.js";
 

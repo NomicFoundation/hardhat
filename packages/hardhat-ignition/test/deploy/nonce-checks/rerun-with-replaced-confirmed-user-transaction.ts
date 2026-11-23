@@ -1,7 +1,9 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createWalletClient, custom, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -17,7 +19,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * the original transaction with a new nonce.
  */
 describe("execution - rerun with replaced confirmed user transaction", () => {
-  useFileIgnitionProject(
+  const project = useFileIgnitionProject(
     "minimal",
     "rerun-with-replaced-confirmed-user-transaction",
     {
@@ -42,7 +44,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     });
 
     // First run fo the deploy
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Wait for the submission of foo1 foo2 and foo3 to mempool,
@@ -52,17 +54,17 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       },
     );
 
-    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
+    const FooArtifact = await project.hre.artifacts.readArtifact("Foo");
 
     // Submit a user interfering deploy transaction
     // to the mempool reusing nonce 2
-    const [, , signer2] = (await this.connection.provider.request({
+    const [, , signer2] = (await project.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.connection.provider),
+      transport: custom(project.connection.provider),
     });
 
     const deployPromise = walletClient.deployContract({
@@ -77,11 +79,11 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     // mine a block confirming foo1, foo2, and the user provided transaction
     // foo3 is no longer in the mempool
     await sleep(300);
-    await mineBlock(this.connection);
+    await mineBlock(project.connection);
 
     // Rerun the deployment with foo3 replaced, causing it to
     // be resubmitted
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should confirm foo3
@@ -89,7 +91,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       },
     );
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
 
     assert.equal(await result.foo1.read.x(), 1n);
     assert.equal(await result.foo2.read.x(), 1n);

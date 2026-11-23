@@ -1,8 +1,11 @@
 import type { KeyListOf } from "./test-helpers/type-helper.js";
 import type { HardhatConfig, NetworkConfig } from "hardhat/types/config";
 
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
+
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import "../src/type-extensions.js";
@@ -135,7 +138,7 @@ describe("config", () => {
   });
 
   describe("validating", () => {
-    useEphemeralIgnitionProject("with-invalid-config");
+    const project = useEphemeralIgnitionProject("with-invalid-config");
 
     it("should throw when given a `requiredConfirmations` value less than 1", async function () {
       const moduleDefinition = buildModule("FooModule", (m) => {
@@ -144,13 +147,16 @@ describe("config", () => {
         return { foo };
       });
 
-      await assert.isRejected(
-        this.ignition.deploy(moduleDefinition, {
+      await assertRejects(
+        project.ignition.deploy(moduleDefinition, {
           config: {
             requiredConfirmations: 0,
           },
         }),
-        `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '0'`,
+        (e) =>
+          e.message.includes(
+            `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '0'`,
+          ),
       );
     });
   });

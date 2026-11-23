@@ -1,15 +1,15 @@
 import path from "node:path";
+import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
 
 import { verifyArtifactsVersion } from "../../src/internal/utils/verifyArtifactsVersion.js";
 
 describe("verifyArtifactsVersion", function () {
   it("should return when the deploymentDir is undefined or nonexistent", async function () {
-    await assert.isFulfilled(verifyArtifactsVersion(undefined));
-    await assert.isFulfilled(verifyArtifactsVersion("nonexistent"));
+    await verifyArtifactsVersion(undefined);
+    await verifyArtifactsVersion("nonexistent");
   });
 
   it("should throw an error if an artifact is in the old format", async function () {

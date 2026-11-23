@@ -1,9 +1,11 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -17,7 +19,7 @@ import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
  * and error if there are any.
  */
 describe("execution - error on pending user transactions", () => {
-  useFileIgnitionProject(
+  const project = useFileIgnitionProject(
     "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction",
   );
@@ -34,16 +36,16 @@ describe("execution - error on pending user transactions", () => {
       };
     });
 
-    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
+    const FooArtifact = await project.hre.artifacts.readArtifact("Foo");
 
     // Before deploy, put a valid transaction into the mempool for accounts[2]
-    const [, , signer2] = (await this.connection.provider.request({
+    const [, , signer2] = (await project.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.connection.provider),
+      transport: custom(project.connection.provider),
     });
 
     const deployPromise = walletClient.deployContract({
@@ -53,11 +55,11 @@ describe("execution - error on pending user transactions", () => {
       account: signer2 as `0x${string}`,
     });
 
-    await waitForPendingTxs(this.connection, 1, deployPromise);
+    await waitForPendingTxs(project.connection, 1, deployPromise);
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assertRejectsWithHardhatError(
-      this.runControlledDeploy(
+      project.runControlledDeploy(
         moduleDefinition,
         async (_c: TestChainHelper) => {},
       ),
@@ -69,7 +71,7 @@ describe("execution - error on pending user transactions", () => {
     );
 
     // Now mine the user interference transaction
-    await mineBlock(this.connection);
+    await mineBlock(project.connection);
 
     // The users interfering transaction completes normally
     const outsideFoo = await deployPromise;
