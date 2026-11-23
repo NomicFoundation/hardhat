@@ -10,7 +10,7 @@ describe("visualize", () => {
   const project = useEphemeralIgnitionProject("minimal");
 
   it("should create a visualization", async function () {
-    const visualizationPath = path.resolve("../minimal/cache/visualization");
+    const visualizationPath = path.resolve("cache/visualization");
     await emptyDir(visualizationPath);
 
     await project.hre.tasks.getTask("build").run({ quiet: true });

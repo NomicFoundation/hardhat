@@ -9,14 +9,13 @@ import type {
   RequestArguments,
 } from "hardhat/types/providers";
 
-import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { cpSync } from "node:fs";
-import path, { dirname } from "node:path";
-import { before, after, beforeEach, afterEach } from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import path from "node:path";
+import { beforeEach, afterEach } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { ensureDir, remove } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -26,8 +25,6 @@ import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transact
 import { mineBlock } from "./mine-block.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
 import { waitForPendingTxs } from "./wait-for-pending-txs.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * The Hardhat environment of a fixture project, set up again before each test
@@ -55,48 +52,17 @@ const defaultTestConfig: DeployConfig = {
   retryInterval: 1000,
 };
 
-// todo: whenever these tests are migrated to node:test,
-// we should use `useEphemeralFixtureProject` from hardhat-test-utils here instead
-export function useProject(fixtureProjectName: string): void {
-  const basePath = path.resolve(import.meta.dirname, "..", "fixture-projects");
-  const tmpProjectPath = path.join("tmp", randomUUID());
-  let prevWorkingDir: string;
-
-  before(function () {
-    cpSync(
-      path.join(basePath, fixtureProjectName),
-      path.join(basePath, tmpProjectPath),
-      {
-        recursive: true,
-        force: true,
-      },
-    );
-
-    prevWorkingDir = process.cwd();
-    process.chdir(path.join(basePath, tmpProjectPath));
-  });
-
-  after(async () => {
-    process.chdir(prevWorkingDir);
-    await remove(path.join(basePath, tmpProjectPath));
-  });
-}
-
 export function useEphemeralIgnitionProject(
   fixtureProjectName: string,
 ): IgnitionProject {
   const project = {} as IgnitionProject;
-  let projectPath: string;
-  let prevWorkingDir: string;
+
+  // Each test file works in its own copy of the fixture project, so that test
+  // files can run in parallel.
+  useEphemeralFixtureProject(fixtureProjectName);
 
   beforeEach(async function () {
-    projectPath = path.join(
-      __dirname,
-      "../fixture-projects",
-      fixtureProjectName,
-    );
-    prevWorkingDir = process.cwd();
-    process.chdir(projectPath);
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
     const { default: userConfig } = await import(
@@ -132,10 +98,6 @@ export function useEphemeralIgnitionProject(
     project.deploymentDir = undefined;
   });
 
-  afterEach(function () {
-    process.chdir(prevWorkingDir);
-  });
-
   return project;
 }
 
@@ -145,17 +107,13 @@ export function useFileIgnitionProject(
   config?: Partial<DeployConfig>,
 ): IgnitionProject {
   const project = {} as IgnitionProject;
-  let projectPath: string;
-  let prevWorkingDir: string;
+
+  // Each test file works in its own copy of the fixture project, so that test
+  // files can run in parallel.
+  useEphemeralFixtureProject(fixtureProjectName);
 
   beforeEach(async function () {
-    projectPath = path.join(
-      __dirname,
-      "../fixture-projects",
-      fixtureProjectName,
-    );
-    prevWorkingDir = process.cwd();
-    process.chdir(projectPath);
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
     const { default: userConfig } = await import(
@@ -227,8 +185,6 @@ export function useFileIgnitionProject(
     }
 
     await remove(project.deploymentDir);
-
-    process.chdir(prevWorkingDir);
   });
 
   return project;

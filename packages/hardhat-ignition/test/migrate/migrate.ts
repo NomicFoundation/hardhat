@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import taskMigrate from "../../src/internal/tasks/migrate.js";
-import { useProject } from "../test-helpers/use-ignition-project.js";
 
 describe("migrate", function () {
   describe("success", function () {
-    useProject("migrate-artifacts");
+    useEphemeralFixtureProject("migrate-artifacts");
 
     it("should migrate old artifacts and build-info to the new format", async function () {
       await taskMigrate({ deploymentId: "test-id" }, {
@@ -45,7 +45,7 @@ describe("migrate", function () {
   });
 
   describe("migrating contracts that share a build info file", function () {
-    useProject("migrate-common-build-info");
+    useEphemeralFixtureProject("migrate-common-build-info");
 
     it("should migrate old artifacts and build-info to the new format", async function () {
       await taskMigrate({ deploymentId: "test-id" }, {
@@ -87,7 +87,7 @@ describe("migrate", function () {
   });
 
   describe("migrating without build-info", function () {
-    useProject("migrate-without-artifacts");
+    useEphemeralFixtureProject("migrate-without-artifacts");
 
     it("should migrate old artifacts to the new format", async function () {
       await taskMigrate({ deploymentId: "test-id" }, {
@@ -109,7 +109,7 @@ describe("migrate", function () {
   });
 
   describe("nothing to migrate", function () {
-    useProject("migrate-artifacts-v3");
+    useEphemeralFixtureProject("migrate-artifacts-v3");
 
     it("should not migrate artifacts and build-info that are already in the new format", async function () {
       await taskMigrate({ deploymentId: "test-id" }, {

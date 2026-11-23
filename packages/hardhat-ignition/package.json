@@ -45,12 +45,12 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --ignore-pattern \"**/*.d.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "pretest": "pnpm run --dir ../ignition-ui prepack",
-    "test": "node --import tsx/esm --test --test-concurrency=1 --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-concurrency=1 --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:build": "tsc --project ./test/",
     "prepack": "pnpm build",
     "build": "tsc --build .",
-    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache ./test/fixture-projects/*-tmp-*-*-*-*-*"
+    "clean": "rimraf coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache ./test/fixture-projects/*-tmp-*-*-*-*-*"
   },
   "files": [
     "dist/src/",

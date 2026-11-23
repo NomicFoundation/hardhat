@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -22,12 +23,10 @@ describe("visualize - build invocation", function () {
     return { buildArgs, buildOverride };
   }
 
+  useEphemeralFixtureProject("minimal");
+
   function getProjectConfig() {
-    const projectPath = path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "../fixture-projects",
-      "minimal",
-    );
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
 
