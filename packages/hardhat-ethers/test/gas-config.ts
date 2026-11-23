@@ -1,5 +1,10 @@
 import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { createProvider } from "hardhat/internal/core/providers/construction";
+import { JsonRpcServer } from "hardhat/internal/hardhat-network/jsonrpc/server";
+import { resetHardhatContext } from "hardhat/plugins-testing";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import path from "path";
 
 import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../src/internal/constants";
 import { useGeneratedEnvironment } from "./environment";
@@ -164,25 +169,63 @@ describe("gas config behavior", function () {
       });
     });
 
-    describe("connected to localhost", function () {
-      useGeneratedEnvironment(
-        "default",
-        "default",
-        "localhost",
-        undefined,
-        "amsterdam"
+    describe("connected to a hardhat node over localhost", function () {
+      // The shared test node runs the default hardfork, so we start a node
+      // for the amsterdam-node fixture project, in process, on a free port.
+      const fixtureProjectPath = path.resolve(
+        __dirname,
+        "fixture-projects",
+        "amsterdam-node"
       );
 
-      it("caps the default gas limit with EIP-8037 instead of EIP-7825", async function () {
-        // the shared test node runs the default hardfork, so it would reject
-        // this gas limit: check the limit the signer resolved instead of
-        // sending a transaction
-        const [signer] = await this.env.ethers.getSigners();
+      // Init code that writes 200 fresh storage slots and deploys an empty
+      // contract. EIP-8037's state gas takes it above 2^24 total gas.
+      const STATE_HEAVY_INIT_CODE = "0x60c85b808055600190038060025700";
 
-        assert.strictEqual(
-          (signer as any)._gasLimit,
-          AMSTERDAM_DEFAULT_GAS_LIMIT
-        );
+      let server: JsonRpcServer | undefined;
+
+      before("Starting an amsterdam node", async function () {
+        const previousCwd = process.cwd();
+        process.chdir(fixtureProjectPath);
+
+        try {
+          process.env.HARDHAT_NETWORK = "hardhat";
+          const nodeEnv: HardhatRuntimeEnvironment = require("hardhat");
+          const provider = await createProvider(nodeEnv.config, "hardhat");
+          resetHardhatContext();
+
+          server = new JsonRpcServer({
+            hostname: "127.0.0.1",
+            port: 0,
+            provider,
+          });
+          const { port } = await server.listen();
+
+          process.env.AMSTERDAM_NODE_URL = `http://127.0.0.1:${port}`;
+          process.env.HARDHAT_NETWORK = "localhost";
+          this.env = require("hardhat");
+        } finally {
+          process.chdir(previousCwd);
+        }
+      });
+
+      after("Stopping the amsterdam node", async function () {
+        resetHardhatContext();
+        delete process.env.AMSTERDAM_NODE_URL;
+        delete process.env.HARDHAT_NETWORK;
+        await server?.close();
+      });
+
+      it("deploys a contract needing more than 2^24 gas without a gas limit", async function () {
+        const [signer] = await this.env.ethers.getSigners();
+        const tx = await signer.sendTransaction({
+          data: STATE_HEAVY_INIT_CODE,
+        });
+        const receipt = await tx.wait();
+
+        assert.strictEqual(tx.gasLimit, BigInt(AMSTERDAM_DEFAULT_GAS_LIMIT));
+        assert.strictEqual(receipt?.status, 1);
+        assert.isAbove(Number(receipt?.gasUsed), FUSAKA_TRANSACTION_GAS_LIMIT);
       });
     });
   });
