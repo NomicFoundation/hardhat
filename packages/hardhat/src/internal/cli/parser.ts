@@ -39,6 +39,10 @@ export async function parseBuiltinGlobalOptions(
   for (let i = 0; i < cliArguments.length; i++) {
     const arg = cliArguments[i];
 
+    if (arg === "--") {
+      break;
+    }
+
     if (arg === "--init") {
       usedCliArguments[i] = true;
       init = true;
