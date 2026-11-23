@@ -141,4 +141,49 @@ describe("gas config behavior", function () {
       });
     });
   }
+
+  describe("amsterdam hardfork", function () {
+    // From Amsterdam, the default gas limit is the block gas limit capped at
+    // EIP-8037's 2^32 - 1, instead of EIP-7825's 2^24.
+    const AMSTERDAM_DEFAULT_GAS_LIMIT = 60_000_000;
+
+    describe("connected to the in-process hardhat network", function () {
+      useGeneratedEnvironment(
+        "default",
+        "default",
+        "hardhat",
+        undefined,
+        "amsterdam"
+      );
+
+      it("plain transaction, default gas limit", async function () {
+        const [signer] = await this.env.ethers.getSigners();
+        const tx = await signer.sendTransaction({ to: signer });
+
+        assert.strictEqual(tx.gasLimit, BigInt(AMSTERDAM_DEFAULT_GAS_LIMIT));
+      });
+    });
+
+    describe("connected to localhost", function () {
+      useGeneratedEnvironment(
+        "default",
+        "default",
+        "localhost",
+        undefined,
+        "amsterdam"
+      );
+
+      it("caps the default gas limit with EIP-8037 instead of EIP-7825", async function () {
+        // the shared test node runs the default hardfork, so it would reject
+        // this gas limit: check the limit the signer resolved instead of
+        // sending a transaction
+        const [signer] = await this.env.ethers.getSigners();
+
+        assert.strictEqual(
+          (signer as any)._gasLimit,
+          AMSTERDAM_DEFAULT_GAS_LIMIT
+        );
+      });
+    });
+  });
 });

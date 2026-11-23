@@ -96,13 +96,16 @@ export function useGeneratedEnvironment<N extends "hardhat" | "localhost">(
   networkName: N,
   accounts?: N extends "hardhat"
     ? HardhatNetworkAccountsUserConfig
-    : HttpNetworkAccountsUserConfig
+    : HttpNetworkAccountsUserConfig,
+  hardfork?: string
 ) {
   const fixtureProjectPath = path.resolve(
     __dirname,
     "fixture-projects",
     "generated-fixtures",
-    `hardhat-gas-${hardhatGasLimit}-localhost-gas-${localhostGasLimit}`
+    `hardhat-gas-${hardhatGasLimit}-localhost-gas-${localhostGasLimit}${
+      hardfork !== undefined ? `-${hardfork}` : ""
+    }`
   );
 
   before("Loading hardhat environment", function () {
@@ -135,6 +138,10 @@ export function useGeneratedEnvironment<N extends "hardhat" | "localhost">(
         },
       },
     };
+    if (hardfork !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      hardhatConfig.networks!.hardhat!.hardfork = hardfork;
+    }
     if (hardhatGasLimit !== "default") {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       hardhatConfig.networks!.hardhat!.gas = hardhatGasLimit;

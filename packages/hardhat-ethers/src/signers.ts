@@ -29,7 +29,10 @@ import {
   resolveProperties,
 } from "./internal/ethers-utils";
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
-import { FUSAKA_TRANSACTION_GAS_LIMIT } from "./internal/constants";
+import {
+  EIP_8037_MAX_TRANSACTION_GAS_LIMIT,
+  FUSAKA_TRANSACTION_GAS_LIMIT,
+} from "./internal/constants";
 
 export class HardhatEthersSigner implements ethers.Signer {
   private readonly _accounts:
@@ -74,10 +77,16 @@ export class HardhatEthersSigner implements ethers.Signer {
           if (isHardhatNetwork) {
             // WARNING: this assumes that the hardhat node is being run in the
             // same project which might be wrong
-            gasLimit = Math.min(
-              FUSAKA_TRANSACTION_GAS_LIMIT,
-              hre.config.networks.hardhat.blockGasLimit
-            );
+            const { hardfork, blockGasLimit } = hre.config.networks.hardhat;
+
+            // From Amsterdam, EIP-8037 caps a transaction's total gas at
+            // 2^32 - 1 instead of EIP-7825's 2^24
+            const transactionGasLimit =
+              hardfork === "amsterdam"
+                ? EIP_8037_MAX_TRANSACTION_GAS_LIMIT
+                : FUSAKA_TRANSACTION_GAS_LIMIT;
+
+            gasLimit = Math.min(transactionGasLimit, blockGasLimit);
           }
         }
       }
