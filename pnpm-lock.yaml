@@ -189,7 +189,7 @@ importers:
         version: 6.0.3
       verdaccio:
         specifier: ^6.8.0
-        version: 6.11.1(encoding@0.1.13)(supports-color@8.1.1)(typanion@3.14.0)
+        version: 6.11.2(encoding@0.1.13)(supports-color@8.1.1)(typanion@3.14.0)
 
   packages/config:
     devDependencies:
@@ -198,7 +198,7 @@ importers:
         version: 4.8.1(eslint@9.39.5(supports-color@8.1.1))
       '@tsconfig/node22':
         specifier: ^22.0.5
-        version: 22.0.6
+        version: 22.0.7
       '@types/eslint':
         specifier: 9.6.1
         version: 9.6.1
@@ -324,7 +324,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat:
     dependencies:
@@ -378,7 +378,7 @@ importers:
         version: 4.23.15
       ws:
         specifier: ^8.21.1
-        version: 8.22.2
+        version: 8.23.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -711,7 +711,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-ignition-ethers:
     dependencies:
@@ -833,7 +833,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-keystore:
     dependencies:
@@ -1421,7 +1421,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-typechain:
     dependencies:
@@ -1588,7 +1588,7 @@ importers:
         version: link:../hardhat-zod-utils
       cbor2:
         specifier: ^2.0.0
-        version: 2.4.1
+        version: 2.4.2
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -1671,7 +1671,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-viem-assertions:
     dependencies:
@@ -1720,7 +1720,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat-zod-utils:
     dependencies:
@@ -1812,7 +1812,7 @@ importers:
         version: 6.0.3
       viem:
         specifier: ^2.47.6
-        version: 2.57.17(typescript@6.0.3)(zod@3.25.76)
+        version: 2.57.20(typescript@6.0.3)(zod@3.25.76)
 
   packages/hardhat/templates/02-mocha-ethers:
     dependencies:
@@ -1909,13 +1909,13 @@ importers:
         version: 0.1.2
       cbor2:
         specifier: ^2.0.0
-        version: 2.4.1
+        version: 2.4.2
       ethers:
         specifier: ^6.14.0
         version: 6.17.0
       immer:
-        specifier: 11.2.9
-        version: 11.2.9
+        specifier: 11.2.10
+        version: 11.2.10
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -2012,7 +2012,7 @@ importers:
         version: 7.18.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react-tooltip:
         specifier: ^6.0.0
-        version: 6.0.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 6.0.12(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       rimraf:
         specifier: ^6.1.3
         version: 6.1.4
@@ -2464,8 +2464,8 @@ packages:
     resolution: {integrity: sha512-abYYgI29wJhWIfWTYrYuzRYDcHQUQ1N5ylnhxYn1NJnIQMqUWGLbDmt12JABtZ+R6h6UNatQrS7rhP86etvJyQ==}
     engines: {node: '>=22.18.0'}
 
-  '@cto.af/wtf8@1.0.0':
-    resolution: {integrity: sha512-qI0XnZxcj/FmASB8XXWqG49bSIzu0I/02deAjhnTni9IZ7KMRVlh8EFLE+mmJlMA169lET6rTCFhEsZSjOwlhA==}
+  '@cto.af/wtf8@1.0.1':
+    resolution: {integrity: sha512-kl6pH/D6SOCqArCVBcx7E45urbzBAPNr4xkMMaRAjrFSeI3y/s2+x78x5H0/UNr6F4GCgdxooTutPCNRymVzMg==}
     engines: {node: '>=22'}
 
   '@cypress/request@4.0.1':
@@ -3259,8 +3259,8 @@ packages:
   '@streamparser/json@0.0.26':
     resolution: {integrity: sha512-46597LNFI+MFdUnzX2QJWwmdTRdq0XVD+vVNJTtGVzIrnCuhG9pFo1OAzbNBqci8UJgk/X5KJZ6LcV+y7PTuDQ==}
 
-  '@tsconfig/node22@22.0.6':
-    resolution: {integrity: sha512-/5thavHAnWDZwH2H6eEn/T8pBEBhtuKaWGMslsj82kJfvzQgOgEMK7X4goBbIUjgVtAzPTtM9Ml64LA0uxO6Iw==}
+  '@tsconfig/node22@22.0.7':
+    resolution: {integrity: sha512-xnYM5q+HTeLm+jRBIB7Mu61OyOmNpgzPmJuhwPODSyITDPIWVK2TXxn/+O5fJ4n/P0u/gPsgSyPw/Dl3Cz/L4g==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -3717,8 +3717,8 @@ packages:
     resolution: {integrity: sha512-q8GaRaqZpMUQZ81D88pI4ZlMZoBgLxCZT+9o5ieSUVm5pCT2i4wo3xMBxlYLIkhez6daG6aS2NoGJ1tuNZcxNw==}
     engines: {node: '>=22'}
 
-  '@verdaccio/ui-theme@9.0.0-next-9.40':
-    resolution: {integrity: sha512-5DSirvMmeIIgKGlvCM2JH3OJqYcbuAuafLepin1Xskpx3plLq7vargX3RdQSP/WlHr+jtRcy4g2OZni3tK15MA==}
+  '@verdaccio/ui-theme@9.0.0-next-9.45':
+    resolution: {integrity: sha512-u/jorpvHrYs+k1HuQWEfPqjzGOzemKyJrqtMdYPb5v1Xvlger+wMILOMA4XEsxfMBYd3H7PbM+mLo5tQSms4lw==}
 
   '@verdaccio/url@13.1.7':
     resolution: {integrity: sha512-a93xon0PXP8zXEsZyR+XCox1nllCYVq0HNEics3vTxkTXN/d5RrOix6/rVoCUc8+IF+iy+mYk/u7L+GdxT197g==}
@@ -3945,14 +3945,6 @@ packages:
   axios@1.13.5:
     resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
 
-  b4a@1.8.1:
-    resolution: {integrity: sha512-aiqre1Nr0B/6DgE2N5vwTc+2/oQZ4Wh1t4NznYY4E00y8LCt6NqdRv81so00oo27D8MVKTpUa/MwUUtBLXCoDw==}
-    peerDependencies:
-      react-native-b4a: '*'
-    peerDependenciesMeta:
-      react-native-b4a:
-        optional: true
-
   b4a@1.9.0:
     resolution: {integrity: sha512-dpfcF9fDNR6++cthXR67iyhgqWy9CBouAvIWhIntzBG6cvK/cnIPiZQjBwi/ZqjjBEDGfoNDtmB0kTjroOJ3pQ==}
     peerDependencies:
@@ -4142,8 +4134,8 @@ packages:
   caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
 
-  cbor2@2.4.1:
-    resolution: {integrity: sha512-h4OqPnSvIEUNCxTNb9pwMZPKjhNKO9bkPwQJOR7d5oBIrZR/CO098atrLl4AkQmB1p3opCvo2UFt4fhRSWC/vQ==}
+  cbor2@2.4.2:
+    resolution: {integrity: sha512-fuz4FXnURAEvtFA8rS+3R85eSZAKZRL4vI9AU6eokOE1TghPsp7WZSh+VvB/3ltKaWZreWtjR/kahn/ogmsgsQ==}
     engines: {node: '>=22'}
 
   chai-as-promised@8.0.2:
@@ -5306,8 +5298,8 @@ packages:
     resolution: {integrity: sha512-BAg6QkE8W+TuQLrrw0Ugr7HegXduRuuj8/ti2kSOc+jz1dmx8/WNcjr6XGnq5YpDWxFwwaavqD0+jIUOKelTsw==}
     engines: {node: '>= 4'}
 
-  immer@11.2.9:
-    resolution: {integrity: sha512-IQ4UEtXjZjyefyWjtLEDXUSrF6T2hwjKPi6BIJl3bY/2XXW24d6cNGdXJSBOA/+KNnuiXkZY6DR0C3efolhitA==}
+  immer@11.2.10:
+    resolution: {integrity: sha512-pzANBj+0A9u+prdhBJ14DVi44vCvVUQzBa8DKt6I0AMCokPHtt722BK9IX5bFC70xUSU9TnzLRIJLTGqIzjEFw==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -6129,8 +6121,8 @@ packages:
     resolution: {integrity: sha512-19YVAg7T+WTrxggPukVq7DjTv6+PJ867TmhCvBsYwmbFCsZd344rq2Ld1p0wo8f8Qrrhgp82c6FJRqdXWtSEhg==}
     engines: {node: '>= 0.4'}
 
-  ox@0.14.63:
-    resolution: {integrity: sha512-TSKYN151boL1Aq/vsFrd8Buvd7v+oTQr8V7z4f4QQTSMB+ohD8cbNbHCtKRLI0Gs8LuYKirf5qvElTKVIFe2jw==}
+  ox@0.14.67:
+    resolution: {integrity: sha512-6v6UlwgsmiyTujZp0aVDuN8uIBAtl/QZadBADFRZ2zp1+CM9TqDzd+rPKJ5PYvWPlCvz8JvoO9dTr42+1PhBhA==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -6428,8 +6420,8 @@ packages:
       react-dom:
         optional: true
 
-  react-tooltip@6.0.10:
-    resolution: {integrity: sha512-dEecVZIbU0aeYgaJtkr1JVmzRolI5+maQwMEWXq8yKnKOYM1Sqx1uEhWtvhOqbYj8i6NdqS9iFf4w8INlZFltg==}
+  react-tooltip@6.0.12:
+    resolution: {integrity: sha512-3ideFpTFyZiC4obEBYdcDFKLCf2w9+ZnSPdkSz0DE9qUXarVSd3pS5GUcnRdxXvvZpQx0N6i1Jhmdd3CB1PTNg==}
     peerDependencies:
       react: '>=16.14.0'
       react-dom: '>=16.14.0'
@@ -6751,9 +6743,6 @@ packages:
 
   stream-shift@1.0.3:
     resolution: {integrity: sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==}
-
-  streamx@2.28.0:
-    resolution: {integrity: sha512-1Yowhzjf0ivGMrTIkY9hav5TxobO9qIVqUE41fiCGMGgc3CLlf4MY+9AHmZqBWgDTue0fY9zWjYFVyf6Diuobw==}
 
   streamx@2.28.1:
     resolution: {integrity: sha512-zEzXb0s5Cds7tqMH6rhZ05lcJydCWiQPEwiNngVqzsxCc962vLY4Uw+mW7od8kDH258k2Uz/JrOkdIAAhSh9VA==}
@@ -7158,16 +7147,16 @@ packages:
     resolution: {integrity: sha512-7GHeRBfCLG8nC7eXN8RGHcUWJR63yjzZui7+gE8L3gYf458DCMAMe5rsIcofXx431DkeYYsRV7AdCWYXeGNhSQ==}
     engines: {node: '>=22'}
 
-  verdaccio@6.11.1:
-    resolution: {integrity: sha512-tI3uiviWmMPYq0FRHnXYWN0ZU/QYMdts8kMNf8BwpPLI7aXh2cmy+uyiYeNfskh3EMM6gJ2NpXr81lkmgFr+0A==}
+  verdaccio@6.11.2:
+    resolution: {integrity: sha512-nCzOtMyBGI+y0TcbVPiapoyyS34a0areUTnKL5li7DWWfD7WIEVO1gwPsaGb/Pn4laEEhRxVWAbWZoK7Ss7o1A==}
     engines: {node: '>=22'}
     hasBin: true
 
   verror@1.10.0:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
 
-  viem@2.57.17:
-    resolution: {integrity: sha512-yIMqNoKoVAMwX+zVbqkxfqq7qbGHmKXZidh/xfVpiPTJlAbbDDdDIMH5dDQWxhZcj56L8tPOwsIIxF618P+TOg==}
+  viem@2.57.20:
+    resolution: {integrity: sha512-LSvREzKT7xFXpmxW2YFJ/OtcZRkSGLp5zywSgadBf0qQCeqh2+FxHHWyrS2zEG7ZfBWQQvk8HI1i4HPzSMD14g==}
     peerDependencies:
       mppx: '>=0.17.0'
       typescript: '>=5.0.4'
@@ -7311,8 +7300,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.22.2:
-    resolution: {integrity: sha512-/rEZ2ejown2N5gxVTHUu9bVVC7ttu0/Tgzf5hbTOixR3Fs7mbbXgn2DbdbcKgJOmpQMtrIUWivtYuVMnp/W/yA==}
+  ws@8.23.0:
+    resolution: {integrity: sha512-wCkmX8QMOrKjgO8HW2WyDbTSGeqkocxgDzS9iR79rEAexty6/2qzilx3Ag8Tqf9ykop3irLKle0MtVn5qjVnoQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -7890,7 +7879,7 @@ snapshots:
 
   '@cspell/url@10.0.1': {}
 
-  '@cto.af/wtf8@1.0.0': {}
+  '@cto.af/wtf8@1.0.1': {}
 
   '@cypress/request@4.0.1':
     dependencies:
@@ -8701,7 +8690,7 @@ snapshots:
 
   '@streamparser/json@0.0.26': {}
 
-  '@tsconfig/node22@22.0.6': {}
+  '@tsconfig/node22@22.0.7': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -9248,7 +9237,7 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@verdaccio/ui-theme@9.0.0-next-9.40(supports-color@8.1.1)':
+  '@verdaccio/ui-theme@9.0.0-next-9.45(supports-color@8.1.1)':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -9464,8 +9453,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  b4a@1.8.1: {}
-
   b4a@1.9.0: {}
 
   balanced-match@1.0.2: {}
@@ -9489,8 +9476,8 @@ snapshots:
 
   bare-stream@2.13.3(bare-events@2.9.1):
     dependencies:
-      b4a: 1.8.1
-      streamx: 2.28.0
+      b4a: 1.9.0
+      streamx: 2.28.1
       teex: 1.0.1
     optionalDependencies:
       bare-events: 2.9.1
@@ -9659,9 +9646,9 @@ snapshots:
 
   caseless@0.12.0: {}
 
-  cbor2@2.4.1:
+  cbor2@2.4.2:
     dependencies:
-      '@cto.af/wtf8': 1.0.0
+      '@cto.af/wtf8': 1.0.1
 
   chai-as-promised@8.0.2(chai@6.3.0):
     dependencies:
@@ -11046,7 +11033,7 @@ snapshots:
 
   ignore@7.0.6: {}
 
-  immer@11.2.9: {}
+  immer@11.2.10: {}
 
   import-fresh@3.3.1:
     dependencies:
@@ -11362,7 +11349,7 @@ snapshots:
       lodash.isstring: 4.0.1
       lodash.once: 4.1.1
       ms: 2.1.3
-      semver: 7.8.6
+      semver: 7.8.5
 
   jsprim@2.0.2:
     dependencies:
@@ -11853,7 +11840,7 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  ox@0.14.63(typescript@6.0.3)(zod@3.25.76):
+  ox@0.14.67(typescript@6.0.3)(zod@3.25.76):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -12145,7 +12132,7 @@ snapshots:
     optionalDependencies:
       react-dom: 19.3.1(react@19.3.1)
 
-  react-tooltip@6.0.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  react-tooltip@6.0.12(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@floating-ui/dom': 1.7.6
       clsx: 2.1.1
@@ -12525,15 +12512,6 @@ snapshots:
 
   stream-shift@1.0.3: {}
 
-  streamx@2.28.0:
-    dependencies:
-      events-universal: 1.0.1
-      fast-fifo: 1.3.2
-      text-decoder: 1.2.7
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - react-native-b4a
-
   streamx@2.28.1:
     dependencies:
       events-universal: 1.0.1
@@ -12692,7 +12670,7 @@ snapshots:
 
   teex@1.0.1:
     dependencies:
-      streamx: 2.28.0
+      streamx: 2.28.1
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
@@ -12707,7 +12685,7 @@ snapshots:
 
   text-decoder@1.2.7:
     dependencies:
-      b4a: 1.8.1
+      b4a: 1.9.0
     transitivePeerDependencies:
       - react-native-b4a
 
@@ -13002,7 +12980,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  verdaccio@6.11.1(encoding@0.1.13)(supports-color@8.1.1)(typanion@3.14.0):
+  verdaccio@6.11.2(encoding@0.1.13)(supports-color@8.1.1)(typanion@3.14.0):
     dependencies:
       '@cypress/request': 4.0.1
       '@verdaccio/auth': 8.1.7(supports-color@8.1.1)
@@ -13018,7 +12996,7 @@ snapshots:
       '@verdaccio/signature': 8.1.7(supports-color@8.1.1)
       '@verdaccio/streams': 10.3.0
       '@verdaccio/tarball': 13.1.7(supports-color@8.1.1)
-      '@verdaccio/ui-theme': 9.0.0-next-9.40(supports-color@8.1.1)
+      '@verdaccio/ui-theme': 9.0.0-next-9.45(supports-color@8.1.1)
       '@verdaccio/url': 13.1.7(supports-color@8.1.1)
       JSONStream: 1.3.5
       async: 3.2.6
@@ -13048,7 +13026,7 @@ snapshots:
       core-util-is: 1.0.2
       extsprintf: 1.3.0
 
-  viem@2.57.17(typescript@6.0.3)(zod@3.25.76):
+  viem@2.57.20(typescript@6.0.3)(zod@3.25.76):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
@@ -13056,7 +13034,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@6.0.3)(zod@3.25.76)
       isows: 1.0.7(ws@8.21.0)
-      ox: 0.14.63(typescript@6.0.3)(zod@3.25.76)
+      ox: 0.14.67(typescript@6.0.3)(zod@3.25.76)
       ws: 8.21.0
     optionalDependencies:
       typescript: 6.0.3
@@ -13180,7 +13158,7 @@ snapshots:
 
   ws@8.21.0: {}
 
-  ws@8.22.2: {}
+  ws@8.23.0: {}
 
   xdg-basedir@5.1.0: {}
 
