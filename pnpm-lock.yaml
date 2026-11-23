@@ -701,9 +701,6 @@ importers:
         specifier: workspace:^3.0.15
         version: link:../hardhat-errors
     devDependencies:
-      '@istanbuljs/nyc-config-typescript':
-        specifier: 1.0.2
-        version: 1.0.2(nyc@18.0.0(supports-color@8.1.1))
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0
         version: link:../hardhat-ethers
@@ -740,9 +737,6 @@ importers:
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
-      nyc:
-        specifier: 18.0.0
-        version: 18.0.0(supports-color@8.1.1)
       prettier:
         specifier: 3.9.10
         version: 3.9.10
@@ -762,9 +756,6 @@ importers:
         specifier: workspace:^3.0.15
         version: link:../hardhat-errors
     devDependencies:
-      '@istanbuljs/nyc-config-typescript':
-        specifier: 1.0.2
-        version: 1.0.2(nyc@18.0.0(supports-color@8.1.1))
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.1.2
         version: link:../hardhat-ignition
@@ -798,9 +789,6 @@ importers:
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
-      nyc:
-        specifier: 18.0.0
-        version: 18.0.0(supports-color@8.1.1)
       prettier:
         specifier: 3.9.10
         version: 3.9.10
