@@ -33,10 +33,7 @@ EXAMPLES
 // Packages whose `test` script doesn't use `node --import tsx/esm --test`.
 // These use Mocha or composite runners and aren't supported by test:file.
 // Remove entries here once a package migrates to node --test.
-const UNSUPPORTED_TEST_RUNNERS = new Set([
-  "@nomicfoundation/hardhat-ignition",
-  "@nomicfoundation/example-project",
-]);
+const UNSUPPORTED_TEST_RUNNERS = new Set(["@nomicfoundation/example-project"]);
 
 interface PackageResult {
   name: string;
@@ -116,14 +113,21 @@ function main(): void {
 
     // hardhat-ignition-viem's pretest runs `pnpm test-build`, which compiles
     // the create2/minimal fixture projects + tsconfig.test.json. Required for
-    // tests to run; not covered by --filter ...build. Other packages' pretest
-    // is `pnpm build`, already covered. Remove this branch when ignition-viem's
-    // fixture-build moves into the regular `build` script.
+    // tests to run; not covered by --filter ...build. Remove this case when
+    // ignition-viem's fixture-build moves into the regular `build` script.
+    //
+    // hardhat-ignition's pretest builds ignition-ui's bundle with vite, which
+    // its visualize tests need and ignition-ui's `build` script doesn't make.
+    //
+    // Other packages' pretest is `pnpm build`, already covered.
     //
     // We deliberately don't run posttest/postlint hooks: in this repo they
     // dispatch to heavyweight side-channel work (integration suites, api
     // extraction), not validation of the file the agent edited.
-    if (pkg.name === "@nomicfoundation/hardhat-ignition-viem") {
+    if (
+      pkg.name === "@nomicfoundation/hardhat-ignition-viem" ||
+      pkg.name === "@nomicfoundation/hardhat-ignition"
+    ) {
       log(`Running pretest for ${pkg.name}...`);
       const pretest = spawnSync("pnpm", ["run", "pretest"], {
         cwd: pkg.path,
