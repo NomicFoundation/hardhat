@@ -1,20 +1,14 @@
 import assert from "node:assert/strict";
-import path, { dirname } from "node:path";
+import path from "node:path";
 import { describe, it, beforeEach, afterEach } from "node:test";
-import { fileURLToPath } from "node:url";
 
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const fixtureProjectName = "minimal";
-const deploymentDir = path.join(
-  path.resolve(__dirname, `../fixture-projects/${fixtureProjectName}/ignition`),
-  "deployments",
-  "chain-31337",
-);
+// Relative to the test's copy of the fixture project, the working directory.
+const deploymentDir = path.join("ignition", "deployments", "chain-31337");
 
 describe("localhost deployment flag", function () {
   const project = useEphemeralIgnitionProject(fixtureProjectName);
