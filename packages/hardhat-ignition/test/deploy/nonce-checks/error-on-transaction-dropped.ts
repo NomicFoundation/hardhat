@@ -1,5 +1,7 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
@@ -11,7 +13,10 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * before it is confirmed, then we halt and display an error.
  */
 describe("execution - error on transaction dropped", () => {
-  useFileIgnitionProject("minimal", "error-on-transaction-dropped");
+  const project = useFileIgnitionProject(
+    "minimal",
+    "error-on-transaction-dropped",
+  );
 
   it("should error on the drop being detected", async function () {
     // Setup a module with two contract deploys (foo1 and foo2) over 2 batches
@@ -38,16 +43,19 @@ describe("execution - error on transaction dropped", () => {
     // is detected
 
     await assertRejectsWithHardhatError(
-      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
-        // Process block 1 confirming foo1
-        await c.mineBlock(1);
+      project.runControlledDeploy(
+        moduleDefinition,
+        async (c: TestChainHelper) => {
+          // Process block 1 confirming foo1
+          await c.mineBlock(1);
 
-        // Wait for foo2 to be pending, then wipe it from memory pool
-        await c.clearMempool(1);
+          // Wait for foo2 to be pending, then wipe it from memory pool
+          await c.clearMempool(1);
 
-        // Mine further block allowing foo2 to be checked again
-        await c.mineBlock();
-      }),
+          // Mine further block allowing foo2 to be checked again
+          await c.mineBlock();
+        },
+      ),
       HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,
       {
         futureId: "FooModule#Foo2",

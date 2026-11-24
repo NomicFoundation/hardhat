@@ -3,14 +3,16 @@ import type { VerifyResult } from "@nomicfoundation/ignition-core";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach, afterEach } from "node:test";
+
 import sinon from "sinon";
 
 import { verify } from "../../src/internal/tasks/verify.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("ignition verify task", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   // TODO: replace with disableConsole() once converted to `node:test`
   let consoleLogStub: sinon.SinonStub;
@@ -60,15 +62,15 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
 
     assert.equal(verifyCallsByProvider.length, 3);
-    assert.include(verifyCallsByProvider, "etherscan");
-    assert.include(verifyCallsByProvider, "blockscout");
-    assert.include(verifyCallsByProvider, "sourcify");
+    assert.ok(verifyCallsByProvider.includes("etherscan"));
+    assert.ok(verifyCallsByProvider.includes("blockscout"));
+    assert.ok(verifyCallsByProvider.includes("sourcify"));
 
     assert.equal(process.exitCode, undefined);
   });
@@ -97,15 +99,15 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
 
     assert.equal(verifyCallsByProvider.length, 3);
-    assert.include(verifyCallsByProvider, "etherscan");
-    assert.include(verifyCallsByProvider, "blockscout");
-    assert.include(verifyCallsByProvider, "sourcify");
+    assert.ok(verifyCallsByProvider.includes("etherscan"));
+    assert.ok(verifyCallsByProvider.includes("blockscout"));
+    assert.ok(verifyCallsByProvider.includes("sourcify"));
 
     assert.equal(process.exitCode, 1);
   });
@@ -116,9 +118,9 @@ describe("ignition verify task", () => {
     await verify(
       { deploymentId: "test-deployment", force: false },
       {
-        ...this.hre,
+        ...project.hre,
         config: {
-          ...this.hre.config,
+          ...project.hre.config,
           verify: {
             etherscan: { enabled: false, apiKey: "" as any },
             blockscout: { enabled: false },
@@ -134,7 +136,7 @@ describe("ignition verify task", () => {
       async function* () {},
     );
 
-    assert.isFalse(verifyContractCalled);
+    assert.equal(verifyContractCalled, false);
   });
 
   it("should verify multiple contracts on all enabled providers", async function () {
@@ -176,7 +178,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
@@ -217,14 +219,15 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: true },
-      this.hre,
+      project.hre,
       mockVerifyContract,
       mockGetVerificationInformation,
     );
 
     assert.equal(forceValues.length, 3);
-    assert.isTrue(
+    assert.equal(
       forceValues.every((f) => f === true),
+      true,
       "Expected all verify calls to have force: true",
     );
   });
@@ -238,7 +241,7 @@ describe("ignition verify task", () => {
 
     await verify(
       { deploymentId: "test-deployment", force: false },
-      this.hre,
+      project.hre,
       async () => {
         verifyContractCalled = true;
 
@@ -247,6 +250,6 @@ describe("ignition verify task", () => {
       mockGetVerificationInformation,
     );
 
-    assert.isFalse(verifyContractCalled);
+    assert.equal(verifyContractCalled, false);
   });
 });

@@ -1,7 +1,11 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { buildModule } from "../src/build-module.js";
-import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module.js";
+import {
+  AccountRuntimeValueImplementation,
+  ModuleParameterRuntimeValueImplementation,
+} from "../src/internal/module.js";
 import type { SolidityParameterType } from "../src/types/module.js";
 
 import { assertInstanceOf } from "./helpers.js";
@@ -121,10 +125,10 @@ describe("getParameter", () => {
       const param = mod.results.contract.constructorArgs[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
       assert.equal(param.name, "p");
-      assert.deepEqual(param.defaultValue, {
-        accountIndex: 1,
-        type: "ACCOUNT",
-      });
+      assert.deepEqual(
+        param.defaultValue,
+        new AccountRuntimeValueImplementation(1),
+      );
     });
   });
 });

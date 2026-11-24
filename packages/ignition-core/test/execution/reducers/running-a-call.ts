@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
 
 import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";
@@ -225,10 +226,10 @@ describe("DeploymentStateReducer", () => {
           rest,
           requestNetworkInteractionMessage.networkInteraction,
         );
-        assert.isArray(transactions);
-        assert.lengthOf(transactions, 0);
-        assert.isFalse(shouldBeResent);
-        assert.isUndefined(nonce);
+        assert.ok(Array.isArray(transactions));
+        assert.equal(transactions.length, 0);
+        assert.equal(shouldBeResent, false);
+        assert.equal(nonce, undefined);
       });
     });
 

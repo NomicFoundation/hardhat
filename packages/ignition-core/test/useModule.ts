@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { type Artifact, DeploymentResultType } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
@@ -126,17 +127,15 @@ describe("useModule", () => {
         },
       };
 
-      await assert.isFulfilled(
-        validate(
-          moduleWithSubmodule,
-          setupMockArtifactResolver({
-            Contract1: fakerArtifact,
-            Contract2: fakerArtifact,
-            Contract3: fakerArtifact,
-          }),
-          moduleParams,
-          [],
-        ),
+      await validate(
+        moduleWithSubmodule,
+        setupMockArtifactResolver({
+          Contract1: fakerArtifact,
+          Contract2: fakerArtifact,
+          Contract3: fakerArtifact,
+        }),
+        moduleParams,
+        [],
       );
     });
 

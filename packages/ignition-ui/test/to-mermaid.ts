@@ -1,9 +1,11 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import {
   type Artifact,
   type IgnitionModule,
   buildModule,
 } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { toMermaid } from "../src/utils/to-mermaid.js";
 

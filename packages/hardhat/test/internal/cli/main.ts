@@ -140,6 +140,31 @@ describe("main", function () {
       });
     });
 
+    describe("builtin global options after --", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      it("should still print the version without --", async function () {
+        const lines = await runMain("npx hardhat task --version");
+
+        assert.deepEqual(lines, [await getHardhatVersion()]);
+        assert.equal((await getTasksAndSubtaskResults()).wasArg1Used, false);
+      });
+
+      it("should run the task when --version is a positional argument", async function () {
+        const lines = await runMain("npx hardhat task -- --version value");
+
+        assert.deepEqual(lines, []);
+        assert.equal((await getTasksAndSubtaskResults()).wasArg1Used, true);
+      });
+
+      it("should run the task when --help is a positional argument", async function () {
+        const lines = await runMain("npx hardhat task -- --help value");
+
+        assert.deepEqual(lines, []);
+        assert.equal((await getTasksAndSubtaskResults()).wasArg1Used, true);
+      });
+    });
+
     describe("different configuration file path", function () {
       useFixtureProject("cli/parsing/user-config");
 
@@ -485,6 +510,37 @@ GLOBAL OPTIONS:
         init: false,
         configPath: undefined,
         showStackTraces: expected,
+        help: false,
+        version: false,
+      });
+    });
+
+    it("should leave builtin options after -- unconsumed", async function () {
+      const cliArguments = [
+        "task",
+        "--",
+        "--version",
+        "--help",
+        "--show-stack-traces",
+        "--init",
+        "--config",
+        "path",
+      ];
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(
+        usedCliArguments,
+        new Array(cliArguments.length).fill(false),
+      );
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: isCi(),
         help: false,
         version: false,
       });
@@ -1874,6 +1930,23 @@ GLOBAL OPTIONS:
           new Array(cliArguments.length).fill(true),
         );
         assert.deepEqual(res.taskArguments, { posArg: "--arg" });
+      });
+
+      it("should preserve --show-stack-traces as a positional argument after --", async function () {
+        const cliArguments = ["task0", "--", "--show-stack-traces"];
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+          cliArguments,
+          usedCliArguments,
+        );
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.equal(builtinGlobalOptions.showStackTraces, isCi());
+        assert.ok(!Array.isArray(res), "Result should be an array");
+        assert.deepEqual(res.taskArguments, {
+          posArg: "--show-stack-traces",
+        });
       });
 
       it("should get the task, its arguments passed in the cli and ignore global option", function () {

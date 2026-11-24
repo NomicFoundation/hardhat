@@ -1,9 +1,11 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -15,7 +17,10 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * we should error and halt immediately
  */
 describe("execution - error on user transaction sent", () => {
-  useFileIgnitionProject("minimal", "error-on-user-transaction-sent");
+  const project = useFileIgnitionProject(
+    "minimal",
+    "error-on-user-transaction-sent",
+  );
 
   it("should error on the drop being detected", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -40,40 +45,43 @@ describe("execution - error on user transaction sent", () => {
     // The deploy should exception when the additional user interfering
     // transaction is detected
     await assertRejectsWithHardhatError(
-      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
-        // wait for foo1 to be submitted
-        await c.waitForPendingTxs(1);
+      project.runControlledDeploy(
+        moduleDefinition,
+        async (c: TestChainHelper) => {
+          // wait for foo1 to be submitted
+          await c.waitForPendingTxs(1);
 
-        const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
+          const FooArtifact = await project.hre.artifacts.readArtifact("Foo");
 
-        // Submit user interference transaction to mempool (note a fresh
-        // nonce is used, so no replacement)
-        const [, , signer2] = (await this.connection.provider.request({
-          method: "eth_accounts",
-        })) as string[];
+          // Submit user interference transaction to mempool (note a fresh
+          // nonce is used, so no replacement)
+          const [, , signer2] = (await project.connection.provider.request({
+            method: "eth_accounts",
+          })) as string[];
 
-        const walletClient = createWalletClient({
-          chain: hardhat,
-          transport: custom(this.connection.provider),
-        });
+          const walletClient = createWalletClient({
+            chain: hardhat,
+            transport: custom(project.connection.provider),
+          });
 
-        const deployPromise = walletClient.deployContract({
-          abi: FooArtifact.abi,
-          bytecode: FooArtifact.bytecode as `0x${string}`,
-          args: [],
-          account: signer2 as `0x${string}`,
-          gasPrice: 500_000_000_000n,
-        });
+          const deployPromise = walletClient.deployContract({
+            abi: FooArtifact.abi,
+            bytecode: FooArtifact.bytecode as `0x${string}`,
+            args: [],
+            account: signer2 as `0x${string}`,
+            gasPrice: 500_000_000_000n,
+          });
 
-        // Process block 1 with foo1
-        await c.mineBlock(1);
+          // Process block 1 with foo1
+          await c.mineBlock(1);
 
-        const fooAddress = await deployPromise;
-        assert.equal(
-          fooAddress,
-          "0x2827d72f957f8c222974e724765629a79689e177729fad094065ad220f35e5e7",
-        );
-      }),
+          const fooAddress = await deployPromise;
+          assert.equal(
+            fooAddress,
+            "0x2827d72f957f8c222974e724765629a79689e177729fad094065ad220f35e5e7",
+          );
+        },
+      ),
       HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH,
       {
         sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",

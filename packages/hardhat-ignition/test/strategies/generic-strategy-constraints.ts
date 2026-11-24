@@ -1,5 +1,7 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { mineBlock } from "../test-helpers/mine-block.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
@@ -17,7 +19,7 @@ const exampleConfig = {
 describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
     describe(strategy, function () {
-      useEphemeralIgnitionProject("minimal");
+      const project = useEphemeralIgnitionProject("minimal");
 
       it("should deploy a contract", async function () {
         const moduleDefinition = buildModule("FooModule", (m) => {
@@ -26,19 +28,19 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(await result.foo.read.x(), 1n);
       });
 
       it("should deploy multiple contracts", async function () {
@@ -49,20 +51,20 @@ describe("strategies - generic constraints", function () {
           return { foo, bar };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 2, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 2, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
-        assert.isDefined(result.bar.address);
+        assert.notEqual(result.foo.address, undefined);
+        assert.notEqual(result.bar.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(await result.foo.read.x(), 1n);
         assert.equal(await result.bar.read.isBar(), true);
       });
 
@@ -75,21 +77,21 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(2));
+        assert.equal(await result.foo.read.x(), 2n);
       });
 
       it("should static call a contract function", async function () {
@@ -112,25 +114,25 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
-        assert.equal(await result.foo.read.x(), Number(6));
+        assert.equal(await result.foo.read.x(), 6n);
       });
 
       it("should support using existing contracts", async function () {
@@ -140,10 +142,10 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition);
+        const deployPromise = project.ignition.deploy(moduleDefinition);
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -157,17 +159,20 @@ describe("strategies - generic constraints", function () {
           return { contractAtFoo };
         });
 
-        const contractAtPromise = this.ignition.deploy(contractAtDefinition, {
-          strategy,
-          strategyConfig: exampleConfig[strategy],
-        });
+        const contractAtPromise = project.ignition.deploy(
+          contractAtDefinition,
+          {
+            strategy,
+            strategyConfig: exampleConfig[strategy],
+          },
+        );
 
-        await waitForPendingTxs(this.connection, 1, contractAtPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, contractAtPromise);
+        await mineBlock(project.connection);
 
         const contractAtResult = await contractAtPromise;
 
-        assert.equal(await contractAtResult.contractAtFoo.read.x(), Number(2));
+        assert.equal(await contractAtResult.contractAtFoo.read.x(), 2n);
       });
 
       it("should read an event emitted from a constructor", async function () {
@@ -182,19 +187,19 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.argWasValidated(), true);
       });
@@ -215,21 +220,21 @@ describe("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        assert.isDefined(result.foo.address);
+        assert.notEqual(result.foo.address, undefined);
 
         assert.equal(await result.foo.read.wasEmitted(), true);
       });

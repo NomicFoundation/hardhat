@@ -1,6 +1,10 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import {
+  assertThrows,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { buildModule } from "../src/build-module.js";
 
@@ -17,12 +21,12 @@ describe("buildModule", () => {
     });
 
     it("should error on module throwing an exception", async function () {
-      assert.throws(
+      assertThrows(
         () =>
           buildModule("AsyncModule", () => {
             throw new Error("User thrown error");
           }),
-        /User thrown error/,
+        (e) => /User thrown error/.test(e.message),
       );
     });
   });

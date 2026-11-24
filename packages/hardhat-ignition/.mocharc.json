@@ -1,8 +1,0 @@
-{
-  "extension": ["ts"],
-  "node-option": ["import=tsx/esm"],
-  "file": "./test/setup.ts",
-  "timeout": 20000,
-  "exit": true,
-  "ignore": ["**/*.d.ts", "test/fixture-projects/**"]
-}

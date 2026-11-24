@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { buildModule } from "../src/build-module.js";
 import {
@@ -25,7 +26,7 @@ describe("library", () => {
       return { library1 };
     });
 
-    assert.isDefined(moduleWithASingleContract);
+    assert.notEqual(moduleWithASingleContract, undefined);
 
     // Sets ids based on module id and library name
     assert.equal(moduleWithASingleContract.id, "Module1");
@@ -58,7 +59,7 @@ describe("library", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -89,7 +90,7 @@ describe("library", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -119,7 +120,7 @@ describe("library", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -143,7 +144,7 @@ describe("library", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",

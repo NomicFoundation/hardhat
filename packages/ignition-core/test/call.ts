@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import type { Artifact } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
@@ -30,7 +31,7 @@ describe("call", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithASingleContract);
+    assert.notEqual(moduleWithASingleContract, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithASingleContract.id, "Module1");
@@ -64,7 +65,7 @@ describe("call", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -102,7 +103,7 @@ describe("call", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -135,7 +136,7 @@ describe("call", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example.test",
@@ -157,7 +158,7 @@ describe("call", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example.test",
@@ -182,7 +183,7 @@ describe("call", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example.test",
@@ -204,7 +205,7 @@ describe("call", () => {
       return { example };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example.test",
@@ -403,8 +404,8 @@ describe("call", () => {
         ({ id }) => id === "Module1#second",
       );
 
-      assert.isDefined(callFuture);
-      assert.isDefined(callFuture2);
+      assert.notEqual(callFuture, undefined);
+      assert.notEqual(callFuture2, undefined);
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {
@@ -746,13 +747,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
@@ -908,13 +907,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 
@@ -951,13 +948,11 @@ m.call(..., { id: "MyUniqueId"})`,
         (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        [],
       );
     });
 

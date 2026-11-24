@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import type { NamedArtifactContractAtFuture } from "../../../src/index.js";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";

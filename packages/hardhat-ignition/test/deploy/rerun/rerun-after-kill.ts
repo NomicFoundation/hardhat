@@ -1,7 +1,9 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
@@ -14,9 +16,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * This covers a bug in the nonce management code: see #576
  */
 describe("execution - rerun after kill", function () {
-  this.timeout(60000);
-
-  useFileIgnitionProject("minimal", "rerun-after-kill");
+  const project = useFileIgnitionProject("minimal", "rerun-after-kill");
 
   it("should pickup deployment and run contracts to completion", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -36,7 +36,7 @@ describe("execution - rerun after kill", function () {
     });
 
     // Start the deploy
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should include deployment of foo1
@@ -47,7 +47,7 @@ describe("execution - rerun after kill", function () {
     );
 
     // Rerun the deployment
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should include deployment of foo2

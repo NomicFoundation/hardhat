@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import type { Artifact } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
@@ -30,7 +31,7 @@ describe("contract", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithASingleContract);
+    assert.notEqual(moduleWithASingleContract, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithASingleContract.id, "Module1");
@@ -58,7 +59,7 @@ describe("contract", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -93,7 +94,7 @@ describe("contract", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -124,7 +125,7 @@ describe("contract", () => {
       return { example, another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Example",
@@ -152,7 +153,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -176,7 +177,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -206,7 +207,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -233,7 +234,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -258,7 +259,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -280,7 +281,7 @@ describe("contract", () => {
       return { another };
     });
 
-    assert.isDefined(moduleWithDependentContracts);
+    assert.notEqual(moduleWithDependentContracts, undefined);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
       ({ id }) => id === "Module1#Another",
@@ -678,13 +679,11 @@ m.contract(..., { id: "MyUniqueId"})`,
 
       const [future] = getFuturesFromModule(module);
 
-      await assert.isFulfilled(
-        validateNamedContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 
@@ -833,13 +832,11 @@ m.contract(..., { id: "MyUniqueId"})`,
 
       const [future] = getFuturesFromModule(module);
 
-      await assert.isFulfilled(
-        validateNamedContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 
@@ -870,13 +867,11 @@ m.contract(..., { id: "MyUniqueId"})`,
 
       const [future] = getFuturesFromModule(module);
 
-      await assert.isFulfilled(
-        validateNamedContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          [],
-        ),
+      await validateNamedContractDeployment(
+        future as any,
+        setupMockArtifactResolver({ Test: fakerArtifact }),
+        {},
+        [],
       );
     });
 

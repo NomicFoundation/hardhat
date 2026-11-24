@@ -1,11 +1,13 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("calls", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to call contracts", async function () {
     const moduleDefinition = buildModule("SetAddressModule", (m) => {
@@ -19,10 +21,10 @@ describe("calls", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    assert.notEqual(result.bar, undefined);
+    assert.notEqual(result.usesContract, undefined);
 
     const usedAddress =
       (await result.usesContract.read.contractAddress()) as string;
@@ -43,9 +45,9 @@ describe("calls", () => {
       return { captureArraysContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.captureArraysContract);
+    assert.notEqual(result.captureArraysContract, undefined);
 
     const captureSucceeded =
       await result.captureArraysContract.read.arraysCaptured();
@@ -70,9 +72,9 @@ describe("calls", () => {
       return { captureComplexObjectContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.captureComplexObjectContract);
+    assert.notEqual(result.captureComplexObjectContract, undefined);
 
     const captureSucceeded =
       await result.captureComplexObjectContract.read.complexArgCaptured();
@@ -94,9 +96,9 @@ describe("calls", () => {
       return { trace };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
-    assert.isDefined(result.trace);
+    assert.notEqual(result.trace, undefined);
 
     const entry1 = await result.trace.read.entries([0n]);
     const entry2 = await result.trace.read.entries([1n]);
@@ -120,12 +122,12 @@ describe("calls", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition);
+      const result = await project.ignition.deploy(moduleDefinition);
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 
@@ -151,7 +153,7 @@ describe("calls", () => {
         return { passingValue };
       });
 
-      const result = await this.ignition.deploy(moduleDefinition, {
+      const result = await project.ignition.deploy(moduleDefinition, {
         parameters: {
           Submodule: {
             depositValue: 1_000_000_000n,
@@ -159,10 +161,10 @@ describe("calls", () => {
         },
       });
 
-      assert.isDefined(result.passingValue);
+      assert.notEqual(result.passingValue, undefined);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.connection,
+        project.connection,
         result.passingValue.address,
       );
 

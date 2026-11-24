@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { buildModule } from "../src/build-module.js";
 import { Batcher } from "../src/internal/batcher.js";
@@ -191,7 +192,7 @@ function assertBatching(
   },
   expectedBatches: string[][],
 ) {
-  assert.isDefined(ignitionModule);
+  assert.notEqual(ignitionModule, undefined);
 
   const actualBatches = Batcher.batch(ignitionModule, deploymentState);
 

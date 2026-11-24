@@ -1,9 +1,14 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";
@@ -37,10 +42,10 @@ describe("create2", function () {
 
   describe("non-hardhat network", function () {
     describe("preexisting createX contract", function () {
-      useEphemeralIgnitionProject("create2-exists-chain");
+      const project = useEphemeralIgnitionProject("create2-exists-chain");
 
       beforeEach(async function () {
-        await deployCreateXFactory(this.connection);
+        await deployCreateXFactory(project.connection);
       });
 
       [
@@ -49,7 +54,7 @@ describe("create2", function () {
         "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
       ].forEach((accountAddress) => {
         it(`should deploy a contract from account <${accountAddress}> using the createX factory to the expected address`, async function () {
-          const deployPromise = this.ignition.deploy(moduleDefinition, {
+          const deployPromise = project.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             defaultSender: accountAddress,
             strategyConfig: {
@@ -57,20 +62,20 @@ describe("create2", function () {
             },
           });
 
-          await waitForPendingTxs(this.connection, 1, deployPromise);
-          await mineBlock(this.connection);
+          await waitForPendingTxs(project.connection, 1, deployPromise);
+          await mineBlock(project.connection);
 
           const result = await deployPromise;
 
           assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
-          assert.equal(this.connection.networkConfig.chainId, 1);
-          assert.equal(await result.foo.read.x(), Number(1));
+          assert.equal(project.connection.networkConfig.chainId, 1);
+          assert.equal(await result.foo.read.x(), 1n);
         });
       });
 
       it(`should support endowing eth to the deployed contract`, async function () {
-        const deployPromise = this.ignition.deploy(
+        const deployPromise = project.ignition.deploy(
           buildModule("ValueModule", (m) => {
             const foo = m.contract("Foo", [], {
               value: 1_000_000_000n,
@@ -86,22 +91,22 @@ describe("create2", function () {
           },
         );
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
-        const balance = await this.connection.provider.request({
+        const balance = await project.connection.provider.request({
           method: "eth_getBalance",
           params: [result.foo.address, "latest"],
         });
 
-        assert.equal(balance, 1_000_000_000n);
+        assert.equal(BigInt(balance), 1_000_000_000n);
       });
 
       it(`should throw if you attempt to endow when the constructor isn't payable`, async function () {
-        await assert.isRejected(
-          this.ignition.deploy(
+        await assertRejects(
+          project.ignition.deploy(
             buildModule("ValueModule", (m) => {
               const foo = m.contract("Unpayable", [], {
                 value: 1_000_000_000n,
@@ -116,20 +121,23 @@ describe("create2", function () {
               },
             },
           ),
-          /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/,
+          (e) =>
+            /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/.test(
+              e.message,
+            ),
         );
       });
 
       it("should deploy with a custom salt", async function () {
-        const deployPromise = this.ignition.deploy(moduleDefinition, {
+        const deployPromise = project.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
             salt: anotherExample32ByteSalt,
           },
         });
 
-        await waitForPendingTxs(this.connection, 1, deployPromise);
-        await mineBlock(this.connection);
+        await waitForPendingTxs(project.connection, 1, deployPromise);
+        await mineBlock(project.connection);
 
         const result = await deployPromise;
 
@@ -138,67 +146,68 @@ describe("create2", function () {
           EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS,
         );
 
-        assert.equal(this.connection.networkConfig.chainId, 1);
-        assert.equal(await result.foo.read.x(), Number(1));
+        assert.equal(project.connection.networkConfig.chainId, 1);
+        assert.equal(await result.foo.read.x(), 1n);
       });
     });
 
     describe("no preexisting createX contract", function () {
-      useEphemeralIgnitionProject("create2-not-exists-chain");
+      const project = useEphemeralIgnitionProject("create2-not-exists-chain");
 
       it("should throw when no createX contract exists on the network", async function () {
-        assert.equal(this.connection.networkConfig.chainId, 88888);
-        await assert.isRejected(
-          this.ignition.deploy(moduleDefinition, {
+        assert.equal(project.connection.networkConfig.chainId, 88888);
+        await assertRejectsWithHardhatError(
+          project.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             strategyConfig: {
               salt: example32ByteSalt,
             },
           }),
-          /CreateX not deployed on current network 88888/,
+          HardhatError.ERRORS.IGNITION.STRATEGIES.CREATE_X_NOT_DEPLOYED,
+          { chainId: 88888 },
         );
       });
     });
   });
 
   describe("hardhat network", function () {
-    useEphemeralIgnitionProject("minimal");
+    const project = useEphemeralIgnitionProject("minimal");
 
     it("should deploy a createX factory then use it to deploy the given contract", async function () {
-      const deployPromise = this.ignition.deploy(moduleDefinition, {
+      const deployPromise = project.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
         },
       });
 
-      await waitForPendingTxs(this.connection, 1, deployPromise);
-      await mineBlock(this.connection);
+      await waitForPendingTxs(project.connection, 1, deployPromise);
+      await mineBlock(project.connection);
 
       const result = await deployPromise;
 
       assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
-      assert.equal(this.connection.networkConfig.chainId, 31337);
-      assert.equal(await result.foo.read.x(), Number(1));
+      assert.equal(project.connection.networkConfig.chainId, 31337);
+      assert.equal(await result.foo.read.x(), 1n);
     });
 
     it("should use an existing createX factory to deploy the given contract", async function () {
       // Run create2 once deploying the factory
-      const firstDeployPromise = this.ignition.deploy(moduleDefinition, {
+      const firstDeployPromise = project.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
         },
       });
 
-      await waitForPendingTxs(this.connection, 1, firstDeployPromise);
-      await mineBlock(this.connection);
+      await waitForPendingTxs(project.connection, 1, firstDeployPromise);
+      await mineBlock(project.connection);
 
       await firstDeployPromise;
 
       // Run a second deploy, this time leveraging the existing create2 factory
-      const secondDeployPromise = this.ignition.deploy(
+      const secondDeployPromise = project.ignition.deploy(
         buildModule("Second", (m) => {
           const bar = m.contract("Bar");
 
@@ -212,8 +221,8 @@ describe("create2", function () {
         },
       );
 
-      await waitForPendingTxs(this.connection, 1, secondDeployPromise);
-      await mineBlock(this.connection);
+      await waitForPendingTxs(project.connection, 1, secondDeployPromise);
+      await mineBlock(project.connection);
 
       const secondDeployResult = await secondDeployPromise;
 
@@ -226,13 +235,16 @@ describe("create2", function () {
   });
 
   describe("config", function () {
-    useFileIgnitionProject("create2-bad-config", "attempt-bad-config");
+    const project = useFileIgnitionProject(
+      "create2-bad-config",
+      "attempt-bad-config",
+    );
 
     it("should throw if salt is not defined in Hardhat config", async function () {
       // TODO: HH3 can this pattern be improved on with utils?
 
       await assertRejectsWithHardhatError(
-        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+        project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/MyModule.js",
           strategy: "create2",
         }),
