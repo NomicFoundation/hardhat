@@ -87,7 +87,7 @@ describe("hhu utils fetch tasks", () => {
           runStorage({ address: CONTRACT, slot }),
           HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
           {
-            value: slot,
+            value: slot.toString(),
             name: "slot",
             reason: "it must be between 0 and 2^256 - 1",
           },
