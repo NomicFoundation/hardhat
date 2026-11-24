@@ -894,6 +894,7 @@ describe("abi", () => {
 
   describe("decodeAbiParameters", () => {
     const ADDRESS = "0x752c8191e6b1db38b41a8c8921f7a703f2969d18";
+    const CHECKSUMMED_ADDRESS = "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18";
     const PADDING_REASON =
       "a bool is neither 0 nor 1, or an address is longer than 20 bytes";
     const word = (value: number) => value.toString(16).padStart(64, "0");
@@ -957,7 +958,7 @@ describe("abi", () => {
         50n,
         -5n,
         true,
-        ADDRESS,
+        CHECKSUMMED_ADDRESS,
         Uint8Array.from([0xde, 0xad, 0xbe, 0xef]),
         "hi",
         new Uint8Array(),
@@ -986,7 +987,7 @@ describe("abi", () => {
           tuple,
           await encodeAbiParameters(tuple, [[1, ADDRESS]]),
         ),
-        [[1n, ADDRESS]],
+        [[1n, CHECKSUMMED_ADDRESS]],
       );
     });
 
@@ -1051,6 +1052,8 @@ describe("abi", () => {
 
     it("Should throw if an address's padding isn't zero, even nested", async () => {
       const MAX_ADDRESS = `0x${"ff".repeat(20)}`;
+      const CHECKSUMMED_MAX_ADDRESS =
+        "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF";
       // Sets the lowest padding byte of the first word holding ADDRESS to 1
       const dirty = (encoded: `0x${string}`): `0x${string}` =>
         `0x${encoded.slice(2).replace(`00${ADDRESS.slice(2)}`, `01${ADDRESS.slice(2)}`)}`;
@@ -1061,7 +1064,7 @@ describe("abi", () => {
           address,
           await encodeAbiParameters(address, [MAX_ADDRESS]),
         ),
-        [MAX_ADDRESS],
+        [CHECKSUMMED_MAX_ADDRESS],
       );
       await assertDecodingError(
         address,
@@ -1082,7 +1085,9 @@ describe("abi", () => {
       const value = [[[MAX_ADDRESS, ADDRESS], true, "hi"]];
       const data = await encodeAbiParameters(tuples, [value]);
 
-      assert.deepEqual(await decodeAbiParameters(tuples, data), [value]);
+      assert.deepEqual(await decodeAbiParameters(tuples, data), [
+        [[[CHECKSUMMED_MAX_ADDRESS, CHECKSUMMED_ADDRESS], true, "hi"]],
+      ]);
       await assertDecodingError(tuples, dirty(data), PADDING_REASON);
     });
 

@@ -23,6 +23,7 @@ import {
 import {
   assertDecodableAbiTypes,
   assertNoDuplicateAbiParameterNames,
+  checksumDecodedAddresses,
   normalizeAbiValue,
   toPaddingCheckedType,
   toUnnamedAbiParameters,
@@ -250,7 +251,7 @@ export async function encodeAbiParameters(
 
 /**
  * ABI-decodes data, like a function's return data. Integers are bigints,
- * bytes are Uint8Arrays, addresses lowercase, arrays and tuples arrays.
+ * bytes are Uint8Arrays, addresses checksummed, arrays and tuples arrays.
  *
  * @param parameters The parameters to decode as.
  * @param data The encoded data. Trailing data is ignored.
@@ -310,11 +311,10 @@ export async function decodeAbiParameters(
   }
 
   // A single parameter decodes to its bare value
-  if (parameters.length === 1) {
-    return [decoded];
-  }
+  const values =
+    parameters.length === 1 ? [decoded] : Array.isArray(decoded) ? decoded : [];
 
-  return Array.isArray(decoded) ? decoded : [];
+  return await checksumDecodedAddresses(parameters, values);
 }
 
 /**
