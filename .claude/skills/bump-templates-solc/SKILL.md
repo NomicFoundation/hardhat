@@ -7,7 +7,7 @@ description: Update the `hardhat --init` templates and the other default solc as
 
 This covers Hardhat 3 (`main`). Hardhat 2 (`v2` branch) needs its own, different update.
 
-Reference PR: https://github.com/NomicFoundation/hardhat/pull/8541 (merge commit `54e9c5778` on `main`, diff it against its first parent) bumped 0.8.28 → 0.8.34. Repeat it, plus the extra steps below that it did not need.
+Reference PR: https://github.com/NomicFoundation/hardhat/pull/8541 (merge commit `54e9c5778` on `main`, diff it against its first parent) bumped 0.8.28 → 0.8.34. Repeat it, except its forge-std bump (commit `f53d6e79e`, plus the forge-std mention in its changeset): forge-std upgrades are their own PRs. Add the extra steps below that it did not need.
 
 ## 1. Templates and example project
 
@@ -31,15 +31,11 @@ Each version's value is the solc default for that release. Read the solc changel
 
 From `packages/hardhat`, `node -e 'console.log(require("@nomicfoundation/edr").latestSupportedSolidityVersion())'` must print the new version or higher. No test catches a lag: coverage instrumentation silently falls back to the older grammar. If it lags, flag it in the summary (EDR needs a Slang bump) and continue.
 
-## 4. forge-std
-
-The reference PR also bumped `forge-std` (in `packages/example-project/package.json` and the templates' `package.json`) to the latest `foundry-rs/forge-std` tag. Do the same, then run `pnpm install` so `pnpm-lock.yaml` follows.
-
-## 5. Changeset and docs
+## 4. Changeset and docs
 
 `"hardhat": minor`, with a `#docs:` line (format in the reference PR's `.changeset/templates-solc-0-8-34.md`). The website docs show the template config and live in `NomicFoundation/hardhat-website`; the developer opens that PR and fills in the URL. Do not open any PR: only make local changes.
 
-## 6. Verify
+## 5. Verify
 
 `pnpm -r build` first (the test spawns `pnpm hardhat compile` inside each template), then:
 
@@ -50,3 +46,32 @@ pnpm test:file packages/hardhat/test/internal/cli/init/template.ts
 It downloads the new solc, so it fails if the version doesn't exist yet on the solc binaries list.
 
 Then, from `packages/example-project`, run `pnpm hardhat build --force --build-profile slang` and `--build-profile slang-solx`. The `^0.8.x` files must still compile with `slang … (Solidity <slang version>)` / `slang-solx … (Solidity <slang version>)`, not with the new solc.
+
+## 6. Verify through Verdaccio
+
+The template test uses workspace links. This runs the published packages the way a user gets them.
+
+Verdaccio is a root devDependency. Run `test -d node_modules/verdaccio` from the repo root first; if it is missing, stop and ask the user to approve `pnpm install` before continuing.
+
+```
+pnpm verdaccio start --background
+pnpm verdaccio publish --since-release
+```
+
+Then, in an empty directory outside the repo, once per template (`node-test-runner-viem`, `mocha-ethers`, `minimal`):
+
+```
+export npm_config_registry=http://127.0.0.1:4873 npm_config_prefer_online=true
+npx -y hardhat@latest --init --template <name>
+npm ls hardhat
+npx hardhat compile && npx hardhat test
+```
+
+`npm ls hardhat` must show the version `publish` printed (a minor above npm's), not npm's release; `prefer_online` keeps npm from reusing a stale cached tarball of that same version from an earlier run. The compile line must name the new solc (`minimal` has no contracts). Read the output for new warnings: nothing asserts on them.
+
+Clean up. `--since-release` rewrites `package.json` versions and `pnpm-lock.yaml`; restore them:
+
+```
+pnpm verdaccio stop
+git checkout -- pnpm-lock.yaml 'packages/*/package.json'
+```
