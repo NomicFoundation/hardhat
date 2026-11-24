@@ -40,12 +40,35 @@ export function stripAnsi(text: string): string {
  */
 export const SHELL_OPTIONS = "set -eo pipefail";
 
+/** What the shell prints before each command it traces. */
+export const TRACE_PREFIX = "$ ";
+
 /**
  * The file a scenario's code block is run as: the shell options, stderr merged
- * into stdout, then the block exactly as written.
+ * into stdout, a trace of each command as it runs, then the block.
+ *
+ * The trace is what puts `$ pnpm hardhat compile` in the output, at the point
+ * it ran, so a failure shows which command it was and a pass shows what was
+ * exercised. It comes after the `exec`, so the setup itself is not traced.
  */
 export function scenarioScript(block: string): string {
-  return `${SHELL_OPTIONS}\nexec 2>&1\n\n${block}\n`;
+  return [
+    SHELL_OPTIONS,
+    "exec 2>&1",
+    `PS4='${TRACE_PREFIX}'`,
+    "set -x",
+    "",
+    block,
+    "",
+  ].join("\n");
+}
+
+/** The traced commands in a script's output, without their prefix. */
+export function tracedCommands(output: string): string[] {
+  return output
+    .split("\n")
+    .filter((line) => line.startsWith(TRACE_PREFIX))
+    .map((line) => line.slice(TRACE_PREFIX.length));
 }
 
 export interface ScriptResult {
@@ -55,6 +78,9 @@ export interface ScriptResult {
 
 /**
  * Run a scenario script and capture what it printed.
+ *
+ * `env` is the whole environment, not additions to this process's: the
+ * caller decides what a scenario inherits.
  *
  * Output is captured rather than streamed: a failure has to be able to show
  * the output that caused it, and from phase 3 the output is the assertion.
@@ -70,7 +96,7 @@ export function runScript(
     cwd,
     encoding: "utf-8",
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, ...env },
+    env,
   });
 
   if (result.error !== undefined) {

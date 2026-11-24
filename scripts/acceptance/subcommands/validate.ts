@@ -2,6 +2,7 @@ import {
   discoverScenarioPaths,
   loadScenario,
   SCENARIOS_DIR,
+  scenarioCells,
 } from "../helpers/scenario.ts";
 import { fmt, log, logStep } from "../helpers/log.ts";
 import { selectScenarioPaths } from "../helpers/select.ts";
@@ -24,9 +25,18 @@ export function validate(scenario: string | undefined): void {
 
   for (const scenarioPath of scenarioPaths) {
     try {
-      const { slug } = loadScenario(scenarioPath);
+      const scenario = loadScenario(scenarioPath);
 
-      log(`${fmt.success("valid")}   ${fmt.scenario(slug)}`);
+      // Expanding catches nothing parsing has not, but it is what a run does,
+      // so a scenario that validates is one that expands.
+      scenarioCells(scenario);
+
+      const matrix =
+        scenario.packageManagers === undefined
+          ? ""
+          : ` [${scenario.packageManagers.join(", ")}]`;
+
+      log(`${fmt.success("valid")}   ${fmt.scenario(scenario.slug)}${matrix}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 

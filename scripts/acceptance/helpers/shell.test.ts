@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
 
-import { runScript, scenarioScript } from "./shell.ts";
+import { runScript, scenarioScript, tracedCommands } from "./shell.ts";
 
 describe("scenarioScript", () => {
   const dir = mkdtempSync(join(tmpdir(), "acceptance-shell-"));
@@ -15,7 +15,7 @@ describe("scenarioScript", () => {
     const path = join(dir, "scenario.sh");
     writeFileSync(path, scenarioScript(block));
 
-    return runScript(path, dir, {});
+    return runScript(path, dir, { PATH: process.env.PATH ?? "" });
   }
 
   it("passes a block whose commands all succeed", () => {
@@ -39,5 +39,17 @@ describe("scenarioScript", () => {
 
   it("captures stderr alongside stdout", () => {
     assert.match(run("echo oops >&2").output, /oops/);
+  });
+
+  it("traces each command as it runs, expanded", () => {
+    const { output } = run('NAME=hardhat\necho "$NAME"');
+
+    assert.deepEqual(tracedCommands(output), ["NAME=hardhat", "echo hardhat"]);
+  });
+
+  it("traces the command that failed, and none after it", () => {
+    const { output } = run("echo before\nfalse\necho after");
+
+    assert.deepEqual(tracedCommands(output), ["echo before", "false"]);
   });
 });

@@ -8,15 +8,27 @@ import { stop as verdaccioStop } from "../../verdaccio/stop.ts";
 
 import { fmt, log, logStep, logWarning } from "../helpers/log.ts";
 import { assertPackagesPublished } from "../helpers/registry.ts";
-import { runScript, scenarioScript, SHELL_OPTIONS } from "../helpers/shell.ts";
+import {
+  runScript,
+  scenarioScript,
+  SHELL_OPTIONS,
+  TRACE_PREFIX,
+  tracedCommands,
+} from "../helpers/shell.ts";
 import { selectScenarioPaths } from "../helpers/select.ts";
 import {
+  type Cell,
   discoverScenarioPaths,
   loadScenario,
   SCENARIOS_DIR,
-  type Scenario,
+  scenarioCells,
 } from "../helpers/scenario.ts";
-import { prepareWorkspace, scenarioEnv } from "../helpers/workspace.ts";
+import {
+  clearScenarioDirectory,
+  prepareCaches,
+  prepareWorkspace,
+  scenarioEnv,
+} from "../helpers/workspace.ts";
 
 /**
  * Run the acceptance scenarios.
@@ -36,10 +48,10 @@ export async function run(
     scenario,
   );
 
-  // Load every scenario before starting a registry: a typo in a scenario
-  // should not cost a publish.
-  const scenarios = scenarioPaths.map((scenarioPath) =>
-    loadScenario(scenarioPath),
+  // Load and expand every scenario before starting a registry: a typo in a
+  // scenario should not cost a publish.
+  const cells = scenarioPaths.flatMap((scenarioPath) =>
+    scenarioCells(loadScenario(scenarioPath)),
   );
 
   // Force-publishing needs a registry started in overriding mode, so it never
@@ -86,9 +98,15 @@ export async function run(
       assertPackagesPublished();
     }
 
-    for (const scenario of scenarios) {
-      if (!runScenario(scenario, acceptanceDirectory)) {
-        failures.push(scenario.slug);
+    const cacheDir = prepareCaches(acceptanceDirectory);
+
+    for (const slug of new Set(cells.map((cell) => cell.slug))) {
+      clearScenarioDirectory(acceptanceDirectory, slug);
+    }
+
+    for (const cell of cells) {
+      if (!runCell(cell, acceptanceDirectory, cacheDir)) {
+        failures.push(cell.label);
       }
     }
   } finally {
@@ -99,52 +117,65 @@ export async function run(
 
   logStep("Summary");
 
-  for (const { slug } of scenarios) {
-    const failed = failures.includes(slug);
+  for (const { label } of cells) {
+    const failed = failures.includes(label);
 
     log(
-      `${failed ? fmt.fail("fail") : fmt.success("pass")}  ${fmt.scenario(slug)}`,
+      `${failed ? fmt.fail("fail") : fmt.success("pass")}  ${fmt.scenario(label)}`,
     );
   }
 
   if (failures.length > 0) {
     throw new Error(
-      `${failures.length} of ${scenarios.length} scenarios failed: ${failures.join(", ")}`,
+      `${failures.length} of ${cells.length} runs failed: ${failures.join(", ")}`,
     );
   }
 }
 
 /**
- * Run one scenario, and report it. Returns whether it passed.
+ * Run one cell, and report it. Returns whether it passed.
  *
  * Version one asserts nothing about the output: the script either runs to
- * completion and exits 0, or it fails and the output is what we show.
+ * completion and exits 0, or it fails and the output is what we show. Either
+ * way the commands it ran are printed as a user would type them, expanded.
  */
-function runScenario(scenario: Scenario, acceptanceDirectory: string): boolean {
-  const { slug, script } = scenario;
+function runCell(
+  cell: Cell,
+  acceptanceDirectory: string,
+  cacheDir: string,
+): boolean {
+  const { label, directory, script } = cell;
 
-  logStep(`Running ${slug}`);
+  logStep(`Running ${label}`);
 
-  const workingDir = prepareWorkspace(acceptanceDirectory, slug);
+  const workingDir = prepareWorkspace(acceptanceDirectory, cell);
 
   // The script lives beside the working directory rather than in it, so the
-  // scenario runs in a directory holding nothing but its own .npmrc.
-  const scriptPath = resolve(acceptanceDirectory, `${slug}.sh`);
+  // scenario runs in a directory holding nothing but its registry config.
+  const scriptPath = resolve(acceptanceDirectory, `${directory}.sh`);
 
   writeFileSync(scriptPath, scenarioScript(script));
 
-  const { exitCode, output } = runScript(scriptPath, workingDir, scenarioEnv());
+  const { exitCode, output } = runScript(
+    scriptPath,
+    workingDir,
+    scenarioEnv(cacheDir),
+  );
 
   if (exitCode === 0) {
-    log(`${fmt.success("passed")} ${fmt.scenario(slug)}`);
+    for (const command of tracedCommands(output)) {
+      console.log(fmt.deemphasize(`${TRACE_PREFIX}${command}`));
+    }
+
+    log(`${fmt.success("passed")} ${fmt.scenario(label)}`);
 
     return true;
   }
 
-  log(`${fmt.fail("failed")} ${fmt.scenario(slug)} (exit code ${exitCode})`);
+  console.log(output);
+  log(`${fmt.fail("failed")} ${fmt.scenario(label)} (exit code ${exitCode})`);
   log(fmt.deemphasize(`  script:  ${scriptPath} (${SHELL_OPTIONS})`));
   log(fmt.deemphasize(`  workdir: ${workingDir}`));
-  console.log(output);
 
   return false;
 }

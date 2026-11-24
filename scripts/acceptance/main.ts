@@ -13,8 +13,15 @@ DESCRIPTION
   block is a script: it runs to completion and exits 0, or the scenario fails
   and its output is printed.
 
-  A scenario runs in an empty directory holding an .npmrc pointing at a local
-  Verdaccio registry, which serves the packages built from this working tree.
+  A scenario runs in an empty directory holding only the registry configuration
+  pointing at a local Verdaccio, which serves the packages built from this
+  working tree.
+
+  A scenario whose frontmatter lists package managers, such as
+    packageManager: [npm, pnpm, bun]
+  runs once for each, with {{runRemote}}, {{run}} and {{packageManager}} in its
+  script replaced by that package manager's commands (npx, pnpm dlx, bunx, ...).
+  The output shows each command as it ran, expanded. See acceptance/README.md.
 
 COMMANDS
   run                          Run the scenarios
