@@ -61,7 +61,7 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
   const padTask = buildUtilsTask(
     task(
       [...prefix, "convert", "pad"],
-      "Pad a hex string to a given byte length",
+      "Pad a hex string to a given byte length, to the left unless --right is set",
     )
       .addPositionalArgument({
         name: "value",
@@ -75,7 +75,7 @@ export function convert(prefix: string[]): UtilsTaskDefinition[] {
       })
       .addFlag({
         name: "left",
-        description: "Pad to the left (default)",
+        description: "Pad to the left",
       })
       .addFlag({
         name: "right",
