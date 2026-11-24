@@ -18,7 +18,7 @@ const fetchStorageAction: NewUtilsTaskActionFunction<
 > = async ({ address, slot, block }, hre) => {
   if (slot < 0n || slot >= 2n ** 256n) {
     throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
-      value: slot,
+      value: slot.toString(),
       name: "slot",
       reason: "it must be between 0 and 2^256 - 1",
     });
