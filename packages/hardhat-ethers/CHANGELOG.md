@@ -1,5 +1,12 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.1.4
+
+### Patch Changes
+
+- 1ee26da: Fixed `HardhatEthersSigner.sendTransaction` hanging forever instead of rejecting when fetching the sent transaction fails.
+- 6758256: Fixed the default gas limit of transactions sent over `localhost` to a Hardhat node running the `amsterdam` hardfork, which was capped at 2^24 and ran out of gas for large deployments.
+
 ## 3.1.3
 
 ### Patch Changes
