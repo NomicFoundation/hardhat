@@ -190,6 +190,9 @@ importers:
       verdaccio:
         specifier: ^6.8.0
         version: 6.11.2(encoding@0.1.13)(supports-color@8.1.1)(typanion@3.14.0)
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
 
   packages/config:
     devDependencies:
