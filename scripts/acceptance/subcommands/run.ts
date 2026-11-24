@@ -8,7 +8,7 @@ import { stop as verdaccioStop } from "../../verdaccio/stop.ts";
 
 import { fmt, log, logStep, logWarning } from "../helpers/log.ts";
 import { assertPackagesPublished } from "../helpers/registry.ts";
-import { runScript } from "../helpers/shell.ts";
+import { runScript, scenarioScript, SHELL_OPTIONS } from "../helpers/shell.ts";
 import { selectScenarioPaths } from "../helpers/select.ts";
 import {
   discoverScenarioPaths,
@@ -131,7 +131,7 @@ function runScenario(scenario: Scenario, acceptanceDirectory: string): boolean {
   // scenario runs in a directory holding nothing but its own .npmrc.
   const scriptPath = resolve(acceptanceDirectory, `${slug}.sh`);
 
-  writeFileSync(scriptPath, `set -e\nexec 2>&1\n\n${script}\n`);
+  writeFileSync(scriptPath, scenarioScript(script));
 
   const { exitCode, output } = runScript(scriptPath, workingDir, scenarioEnv());
 
@@ -142,7 +142,7 @@ function runScenario(scenario: Scenario, acceptanceDirectory: string): boolean {
   }
 
   log(`${fmt.fail("failed")} ${fmt.scenario(slug)} (exit code ${exitCode})`);
-  log(fmt.deemphasize(`  script:  ${scriptPath}`));
+  log(fmt.deemphasize(`  script:  ${scriptPath} (${SHELL_OPTIONS})`));
   log(fmt.deemphasize(`  workdir: ${workingDir}`));
   console.log(output);
 

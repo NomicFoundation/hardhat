@@ -28,6 +28,26 @@ export function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, "");
 }
 
+/**
+ * The shell options a scenario runs under, as the first line of its script.
+ *
+ * `-e` stops at the first failing command. `pipefail` makes a pipeline fail
+ * when any command in it fails, not only the last: until output is asserted
+ * the exit status is the whole test, and `npx hardhat test | tee log` would
+ * otherwise pass on a failing test. The cost is that a pipeline whose reader
+ * stops early (`| head`, `| grep -q`, `yes |`) can fail on SIGPIPE, so
+ * scenarios avoid those.
+ */
+export const SHELL_OPTIONS = "set -eo pipefail";
+
+/**
+ * The file a scenario's code block is run as: the shell options, stderr merged
+ * into stdout, then the block exactly as written.
+ */
+export function scenarioScript(block: string): string {
+  return `${SHELL_OPTIONS}\nexec 2>&1\n\n${block}\n`;
+}
+
 export interface ScriptResult {
   exitCode: number;
   output: string;
