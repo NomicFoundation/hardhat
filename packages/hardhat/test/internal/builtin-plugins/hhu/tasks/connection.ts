@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -25,6 +26,21 @@ describe("withConnection", () => {
       HardhatError.ERRORS.CORE.NETWORK.JSON_RPC_REQUEST_FAILED,
       { code: 3, message: 'execution reverted, data: "0xdeadbeef"' },
     );
+  });
+
+  it("connects without the network's accounts when read-only", async () => {
+    const hre = await createHardhatRuntimeEnvironment({});
+
+    // The default network has 20 accounts; a read-only connection has none,
+    // so a keystore-backed private key is never resolved
+    const accounts = await withConnection(
+      hre,
+      async (connection) =>
+        await connection.provider.request({ method: "eth_accounts" }),
+      { readOnly: true },
+    );
+
+    assert.deepEqual(accounts, []);
   });
 });
 

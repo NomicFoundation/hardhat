@@ -97,7 +97,7 @@ describe("hhu utils tx call task", () => {
       "1000000000000000000000",
       "-5",
       "true",
-      LOWERCASE_ADDRESS,
+      ADDRESS,
       "hi",
       "0xbeef",
     ]);
@@ -170,7 +170,7 @@ describe("hhu utils tx call task", () => {
       value: 16n,
     });
 
-    assert.deepEqual(capture.lines, [LOWERCASE_ADDRESS, "16"]);
+    assert.deepEqual(capture.lines, [ADDRESS, "16"]);
   });
 
   it("runs the call on the --block tag, number or hash", async () => {

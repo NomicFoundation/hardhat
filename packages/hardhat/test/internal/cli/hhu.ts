@@ -75,7 +75,7 @@ AVAILABLE SUBTASKS:
   convert format-units             Format an integer as a decimal amount with the given number of decimals
   convert from-hex                 Convert a hex value to a decimal integer
   convert from-wei                 Convert an amount of wei to ether, gwei or wei
-  convert pad                      Pad a hex string to a given byte length
+  convert pad                      Pad a hex string to a given byte length, to the left unless --right is set
   convert parse-units              Parse a decimal amount into an integer with the given number of decimals
   convert to-checksum-address      Convert an address to its EIP-55 checksummed representation
   convert to-hex                   Convert a non-negative integer to hex

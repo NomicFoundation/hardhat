@@ -8,7 +8,11 @@ import {
   InvalidAbiValueError,
   UnsupportedAbiTypeError,
 } from "../errors/abi.js";
-import { isAddress, isValidChecksumAddress } from "../eth.js";
+import {
+  isAddress,
+  isValidChecksumAddress,
+  toChecksumAddress,
+} from "../eth.js";
 import {
   getPrefixedHexString,
   getUnprefixedHexString,
@@ -126,6 +130,48 @@ export function toUnnamedAbiParameters(
 export function toPaddingCheckedType(type: string): string {
   return type.replace(/^(bool|address)(?=\[|$)/, (base) =>
     base === "bool" ? "uint8" : "uint160",
+  );
+}
+
+/**
+ * Checksums the addresses in decoded values, at any nesting level. The decoder
+ * returns them lowercase.
+ *
+ * @param parameters The parameters the values were decoded as.
+ * @param values The decoded values.
+ * @returns The same values, with every address checksummed.
+ */
+export async function checksumDecodedAddresses(
+  parameters: readonly AbiParameter[],
+  values: unknown[],
+): Promise<unknown[]> {
+  return await Promise.all(
+    values.map(async (value, i) => {
+      const { type, components } = parameters[i];
+
+      const arrayMatch = ARRAY_REGEX.exec(type);
+      if (arrayMatch !== null && Array.isArray(value)) {
+        const element = { type: arrayMatch[1], components };
+        return await checksumDecodedAddresses(
+          value.map(() => element),
+          value,
+        );
+      }
+
+      if (
+        type === "tuple" &&
+        components !== undefined &&
+        Array.isArray(value)
+      ) {
+        return await checksumDecodedAddresses(components, value);
+      }
+
+      if (type === "address" && typeof value === "string") {
+        return await toChecksumAddress(value);
+      }
+
+      return value;
+    }),
   );
 }
 
