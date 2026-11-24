@@ -13,12 +13,18 @@ import { ProviderError } from "../../network-manager/provider-errors.js";
 /**
  * Creates a connection to the selected network, runs `fn` with it, and closes
  * it afterwards, even if `fn` throws.
+ *
+ * A read-only connection drops the network's accounts, so they are never
+ * resolved: a keystore-backed private key would prompt for the password.
  */
 export async function withConnection<T>(
   hre: UtilsHardhatRuntimeEnvironment,
   fn: (connection: NetworkConnection) => Promise<T>,
+  { readOnly = false }: { readOnly?: boolean } = {},
 ): Promise<T> {
-  const connection = await hre.network.create();
+  const connection = await hre.network.create(
+    readOnly ? { override: { accounts: [] } } : undefined,
+  );
 
   try {
     return await fn(connection);
