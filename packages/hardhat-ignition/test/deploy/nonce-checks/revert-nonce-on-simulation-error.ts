@@ -1,5 +1,7 @@
+import { describe, it } from "node:test";
+
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
@@ -11,7 +13,7 @@ import { useEphemeralIgnitionProject } from "../../test-helpers/use-ignition-pro
  * because the second transaction does not fail the nonce check.
  */
 describe("execution - revert nonce on simulation error", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should raise the simulation error if there are multiple transactions in a batch and fails simulation", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -27,9 +29,10 @@ describe("execution - revert nonce on simulation error", () => {
 
     // We check that it doesn't fail because of a nonce validation,
     // but because of the actual simulation
-    await assert.isRejected(
-      this.ignition.deploy(moduleDefinition),
-      /Simulating the transaction failed with error: Reverted with reason "fails"/,
+    await assertRejects(project.ignition.deploy(moduleDefinition), (e) =>
+      /Simulating the transaction failed with error: Reverted with reason "fails"/.test(
+        e.message,
+      ),
     );
   });
 });

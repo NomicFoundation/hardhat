@@ -1,10 +1,12 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("useModule", function () {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   describe("returning futures from module usage", () => {
     it("using useModule", async function () {
@@ -22,7 +24,7 @@ describe("useModule", function () {
         return { foo };
       });
 
-      const result = await this.ignition.deploy(userModule);
+      const result = await project.ignition.deploy(userModule);
 
       assert.equal(await result.foo.read.x(), 2n);
     });
@@ -60,7 +62,7 @@ describe("useModule", function () {
         return { trace };
       });
 
-      const result = await this.ignition.deploy(userModule);
+      const result = await project.ignition.deploy(userModule);
 
       const entry1 = await result.trace.read.entries([0n]);
       const entry2 = await result.trace.read.entries([1n]);

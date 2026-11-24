@@ -1,35 +1,30 @@
-import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import assert from "node:assert/strict";
+import path from "node:path";
+import { describe, it, beforeEach, afterEach } from "node:test";
 
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const fixtureProjectName = "minimal";
-const deploymentDir = path.join(
-  path.resolve(__dirname, `../fixture-projects/${fixtureProjectName}/ignition`),
-  "deployments",
-  "chain-31337",
-);
+// Relative to the test's copy of the fixture project, the working directory.
+const deploymentDir = path.join("ignition", "deployments", "chain-31337");
 
 describe("localhost deployment flag", function () {
-  useEphemeralIgnitionProject(fixtureProjectName);
+  const project = useEphemeralIgnitionProject(fixtureProjectName);
 
-  beforeEach("clean filesystem", async function () {
+  beforeEach(async function () {
     // make sure nothing is left over from a previous test
     await remove(deploymentDir);
   });
 
-  afterEach("clean filesystem", async function () {
+  afterEach(async function () {
     // cleanup
     await remove(deploymentDir);
   });
 
   it("true should write deployment to disk", async function () {
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/OwnModule.js",
       writeLocalhostDeployment: true,
     });
@@ -38,7 +33,7 @@ describe("localhost deployment flag", function () {
   });
 
   it("false should not write deployment to disk", async function () {
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await project.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/OwnModule.js",
       writeLocalhostDeployment: false,
     });

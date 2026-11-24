@@ -1,6 +1,12 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { assert } from "chai";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import type { Artifact } from "../../../src/index.js";
 import {
@@ -43,9 +49,9 @@ describe("JSON-RPC client", function () {
 
       const receipt = await client.getTransactionReceipt(tx);
 
-      assert.isDefined(receipt);
+      assert.notEqual(receipt, undefined);
       assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-      assert.isDefined(receipt!.contractAddress);
+      assert.notEqual(receipt!.contractAddress, undefined);
 
       return { artifact, address: receipt!.contractAddress! };
     }
@@ -65,8 +71,8 @@ describe("JSON-RPC client", function () {
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 0);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
 
       it("Should return the second block in the correct format", async function () {
@@ -75,8 +81,8 @@ describe("JSON-RPC client", function () {
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 1);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
     });
 
@@ -89,9 +95,9 @@ describe("JSON-RPC client", function () {
           assert("maxFeePerGas" in fees);
           assert("maxPriorityFeePerGas" in fees);
 
-          assert.typeOf(fees.maxFeePerGas, "bigint");
-          assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
-          assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+          assert.equal(typeof fees.maxFeePerGas, "bigint");
+          assert.equal(typeof fees.maxPriorityFeePerGas, "bigint");
+          assert.equal(fees.maxFeePerGas > fees.maxPriorityFeePerGas, true);
         });
 
         it('Should throw if the "maxFeePerGas" exceeds the configured limit', async function () {
@@ -99,9 +105,11 @@ describe("JSON-RPC client", function () {
             maxFeePerGasLimit: 1n,
           });
 
-          await assert.isRejected(
+          await assertRejectsWithHardhatError(
             failClient.getNetworkFees(),
-            /HHE10406: The calculated max fee per gas exceeds the configured limit./,
+            HardhatError.ERRORS.IGNITION.EXECUTION
+              .MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
+            {},
           );
         });
 
@@ -336,9 +344,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should return the raw result in successful non-deployment calls", async function () {
@@ -369,9 +377,9 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000";
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should not throw on execution failures, but return a result", async function () {
@@ -392,9 +400,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should return the returnData on execution failures", async function () {
@@ -429,9 +437,9 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000006726561736f6e0000000000000000000000000000000000000000000000000000";
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async function () {
@@ -477,9 +485,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
 
         const result2 = await mockClient.call(
           {
@@ -490,9 +498,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result2.success);
+        assert.equal(result2.success, false);
         assert.equal(result2.returnData, "0x");
-        assert.isFalse(result2.customErrorReported);
+        assert.equal(result2.customErrorReported, false);
       });
 
       it("[Other nodes] Should return an empty returnData if the error message indicates a revert", async function () {
@@ -527,9 +535,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
       });
 
       it("Should rethrow an HardhatError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async function () {
@@ -555,7 +563,7 @@ describe("JSON-RPC client", function () {
           params: [],
         });
 
-        await assert.isRejected(
+        await assertRejectsWithHardhatError(
           mockClient.call(
             {
               data: "0x",
@@ -564,7 +572,8 @@ describe("JSON-RPC client", function () {
             },
             "latest",
           ),
-          /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
+          HardhatError.ERRORS.IGNITION.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT,
+          {},
         );
       });
 
@@ -596,9 +605,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isTrue(result.customErrorReported);
+        assert.equal(result.customErrorReported, true);
       });
 
       it("Should return customErrorReported false when the server does not reports a custom error", async function () {
@@ -629,9 +638,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
       it("Should accept pending as blockTag", async function () {
@@ -678,9 +687,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(resultLatest.success);
+        assert.equal(resultLatest.success, true);
         assert.equal(resultLatest.returnData, "0x");
-        assert.isFalse(resultLatest.customErrorReported);
+        assert.equal(resultLatest.customErrorReported, false);
 
         const resultPending = await client.call(
           {
@@ -696,9 +705,9 @@ describe("JSON-RPC client", function () {
           "pending",
         );
 
-        assert.isFalse(resultPending.success);
+        assert.equal(resultPending.success, false);
         assert.notEqual(resultPending.returnData, "0x");
-        assert.isFalse(resultPending.customErrorReported);
+        assert.equal(resultPending.customErrorReported, false);
       });
 
       // TODO: Should we test that eth_call validates the account balance?
@@ -726,7 +735,7 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
 
       it("Should return the tx hash in a network without automining", async function () {
@@ -754,7 +763,7 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
 
@@ -937,7 +946,7 @@ describe("JSON-RPC client", function () {
           accounts,
         });
 
-        await assert.isRejected(
+        await assertRejects(
           client.estimateGas({
             to: address,
             from: accounts[0],
@@ -1152,7 +1161,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
 
             assert.equal(tx!.hash, hash);
             assert("maxFeePerGas" in tx!.fees);
@@ -1198,7 +1207,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
             assert.equal(tx!.hash, hash);
             assert("maxFeePerGas" in tx!.fees);
             assert("maxPriorityFeePerGas" in tx!.fees);
@@ -1216,7 +1225,7 @@ describe("JSON-RPC client", function () {
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             );
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
           it("Should return undefined if the transaction was replaced by a different one", async function () {
@@ -1259,7 +1268,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(firstTxHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
           it("Should return undefined if the transaction was dropped", async function () {
@@ -1295,7 +1304,7 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(txHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
         });
       });
@@ -1328,11 +1337,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1361,11 +1370,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isDefined(receipt!.contractAddress);
+          assert.notEqual(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1393,11 +1402,11 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.FAILURE);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
@@ -1431,14 +1440,14 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
 
-          assert.isArray(receipt!.logs);
-          assert.lengthOf(receipt!.logs, 2);
+          assert.ok(Array.isArray(receipt!.logs));
+          assert.equal(receipt!.logs.length, 2);
 
           const event0 = receipt!.logs[0];
           const event1 = receipt!.logs[1];
@@ -1452,10 +1461,10 @@ describe("JSON-RPC client", function () {
           assert.notEqual(event0.data, "0x");
           assert.notEqual(event1.data, "0x");
 
-          assert.isDefined(event0.topics[0]);
+          assert.notEqual(event0.topics[0], undefined);
           assert.notEqual(event0.topics[0], "0x");
 
-          assert.isDefined(event1.topics[0]);
+          assert.notEqual(event1.topics[0], undefined);
           assert.notEqual(event1.topics[0], "0x");
 
           assert.notEqual(event0.topics[0], event1.topics[0]);
@@ -1491,7 +1500,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
@@ -1501,7 +1510,7 @@ describe("JSON-RPC client", function () {
             "0x0000000000000000000000000000000000000000000000000000000000000001",
           );
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was replaced by a different one", async function () {
@@ -1544,7 +1553,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(firstTxHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
         it("Should return undefined if the transaction was dropped", async function () {
@@ -1580,7 +1589,7 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(txHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
       });
     });
@@ -1612,7 +1621,7 @@ describe("JSON-RPC client", function () {
           },
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
   });

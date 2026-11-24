@@ -1,5 +1,7 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
@@ -15,7 +17,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * error that there is a pending non-ignition transaction.
  */
 describe("execution - error on rerun with replaced pending user transaction", () => {
-  useFileIgnitionProject(
+  const project = useFileIgnitionProject(
     "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction",
   );
@@ -38,7 +40,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
 
     // Start the deployment, but exit before processing a block,
     // so transactions are in memory pool but not confirmed
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Wait for the submission of foo1 foo2 and foo3 to mempool
@@ -49,18 +51,18 @@ describe("execution - error on rerun with replaced pending user transaction", ()
       },
     );
 
-    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
+    const FooArtifact = await project.hre.artifacts.readArtifact("Foo");
 
     // Send user interefering deploy transaction, between runs
     // so it is in mempool, overriding the existing nonce 2
     // transaction
-    const [, , signer2] = (await this.connection.provider.request({
+    const [, , signer2] = (await project.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.connection.provider),
+      transport: custom(project.connection.provider),
     });
 
     void walletClient.deployContract({
@@ -75,7 +77,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
     // On the second run, we should detect the user interference
     // and error
     await assertRejectsWithHardhatError(
-      this.ignition.deploy(moduleDefinition),
+      project.ignition.deploy(moduleDefinition),
       HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
       {
         sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",

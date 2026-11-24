@@ -12,9 +12,12 @@ export async function waitForPendingTxs(
   finished: Promise<any>,
 ): Promise<void> {
   let stopWaiting = false;
-  void finished.finally(() => {
+  const stop = () => {
     stopWaiting = true;
-  });
+  };
+  // Handle both outcomes: `finished.finally()` would return a second promise
+  // that rejects whenever `finished` does, and nothing would handle it.
+  void finished.then(stop, stop);
 
   while (true) {
     if (stopWaiting) {

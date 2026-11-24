@@ -34,32 +34,32 @@ for (const dir of dirs) {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
+  // ignition-core splits its tests into test:unit and test:integrations,
+  // only lints src, and builds in prepack instead of prepublishOnly.
   if (dir.name === "ignition-core") {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
+  // ignition-ui builds its UI with vite in prepack instead of prepublishOnly,
+  // and its clean removes the vite and tsc build outputs.
   if (dir.name === "ignition-ui") {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
+  // hardhat-ignition's pretest builds ignition-ui's bundle, it has no
+  // test:only, and it builds in prepack instead of prepublishOnly.
   if (dir.name === "hardhat-ignition") {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
+  // hardhat-ignition-viem compiles its test fixtures in test-build before
+  // testing, and builds in prepack instead of prepublishOnly.
   if (dir.name === "hardhat-ignition-viem") {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
+  // hardhat-ignition-ethers builds in prepack instead of prepublishOnly, and
+  // its clean also removes the test fixtures' build outputs.
   if (dir.name === "hardhat-ignition-ethers") {
     continue;
   }

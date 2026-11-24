@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import type { NamedArtifactContractDeploymentFuture } from "../../../src/index.js";
 import type { TransactionParams } from "../../../src/internal/execution/jsonrpc-client.js";

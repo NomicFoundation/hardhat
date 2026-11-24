@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/ephemeral-deployment-loader.js";
 import { FileDeploymentLoader } from "../../src/internal/deployment-loader/file-deployment-loader.js";
@@ -16,7 +17,7 @@ describe("DeploymentLoaderImpls", function () {
         Omit<FileDeploymentLoader, "readBuildInfo">
       > = new FileDeploymentLoader("./example");
 
-      assert.isDefined(_implementation);
+      assert.notEqual(_implementation, undefined);
     });
   });
 
@@ -27,7 +28,7 @@ describe("DeploymentLoaderImpls", function () {
         EphemeralDeploymentLoader
       > = new EphemeralDeploymentLoader(setupMockArtifactResolver());
 
-      assert.isDefined(_implementation);
+      assert.notEqual(_implementation, undefined);
     });
   });
 });
