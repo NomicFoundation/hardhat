@@ -13,6 +13,7 @@ const fetchBlockNumberAction: NewUtilsTaskActionFunction = async (
     hre,
     async (connection) =>
       await connection.provider.request({ method: "eth_blockNumber" }),
+    { readOnly: true },
   );
 
   assertHardhatInvariant(
