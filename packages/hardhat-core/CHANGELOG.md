@@ -1,5 +1,63 @@
 # hardhat
 
+## 2.30.0
+
+### Minor Changes
+
+- d9605fd: Added experimental support for the `amsterdam` hardfork.
+
+  Under `amsterdam`, the default `gas` of the Hardhat network is `min(blockGasLimit, 2^32 - 1)`, following EIP-8037. With the default block gas limit that is 60,000,000, up from 16,777,216 under `osaka`.
+
+  With a `gasMultiplier`, the automatically estimated gas is no longer trimmed below the node's estimate. This applies to every network and hardfork.
+
+- b501bed: Updated `debug_traceTransaction` and `debug_traceCall`:
+
+  - Added support for geth's built-in tracers, such as `callTracer` and `prestateTracer`, which return geth's output unchanged.
+  - Fixed an empty `tracer` to select the default tracer, as the Ethereum execution API spec requires.
+  - Added the `enableMemory` and `enableReturnData` options to the default tracer. `enableMemory` takes precedence over `disableMemory`, and `enableReturnData` adds `returnData` to each step.
+  - Changed the default tracer output in a few places:
+    - A step that halts now has an `error` message that comes from EDR, so do not match on its exact text.
+    - An unknown opcode is now named `Unknown`.
+    - A `STOP` at the first step is no longer dropped, so traces can have one more step.
+    - Storage no longer shows slots of another contract after a warm `SLOAD`.
+    - When `disableStack` is set, storage values can be stale until the next `SLOAD` or `SSTORE`.
+    - With the default tracer and storage enabled, `debug_traceTransaction` now reads the traced transaction to find its recipient. That costs one remote request when the transaction is on a forked chain.
+
+- b501bed: Raised the minimum glibc version of the prebuilt Linux gnu binaries of EDR from 2.29 to 2.34.
+- b501bed: Reduced Hardhat's install size because EDR now installs only the native build for the current platform through `optionalDependencies`.
+- b501bed: Fixed the EIP-4788 and EIP-2935 system accounts to have nonce `1` in the genesis state, matching their on-chain deployments. The genesis block hash of local Cancun or later networks therefore differs from previous Hardhat versions. The hashes of all later blocks change as well.
+- b501bed: Fixed interval mining accepting a `mining.interval` range that it could not honour:
+
+  - A range must now satisfy `1 <= min <= max`. An invalid range is rejected when the config is loaded, when the provider is created and when `evm_setIntervalMining` is called. The config error names `networks.hardhat.mining.interval` and the offending range.
+  - BREAKING CHANGE: `[0, 0]` and `[0, N]` ranges are no longer accepted. Use a range with a minimum of at least `1`, such as `[1, N]`, instead. Set `mining.interval` to `0` to disable interval mining.
+
+- b501bed: Added the `blockTimestamp` field to logs. Logs returned by `eth_getLogs`, `eth_getFilterLogs`, `eth_getFilterChanges` and `eth_subscribe("logs")` carry it, as do the logs in transaction receipts. When forking, the field is passed through from the remote node and is absent if the node does not serve it.
+- b501bed: Updated the minimal supported version of Node to v22, because EDR declares `engines.node >= 22`. Node 20 reached end of life on 2026-04-30.
+
+  On Node 20, Hardhat prints its unsupported-version warning and keeps running. Hardhat's own `package.json` declares no `engines`, so installing it is not blocked. Package managers warn that `@nomicfoundation/edr` requires Node 22, and those that enforce `engines`, such as Yarn 1, refuse the install. EDR's loader has no Node version check, so EDR itself still loads on Node 20, but that combination is untested.
+
+### Patch Changes
+
+- af684ee: - Fixed `networks.hardhat.chains` hardfork histories being ignored.
+  - Changed a configured hardfork history to replace EDR's built-in activations for that chain, so it must list every hardfork the forked range needs.
+  - Removed the default `networks.hardhat.chains` entry for Sepolia.
+  - Rejected an empty `hardforkHistory` for a `networks.hardhat.chains` entry at config validation.
+- b501bed: Fixed Solidity stack traces not recognising `console.log` calls made through the Hardhat console address.
+- b501bed: Fixed `eth_call` and `eth_estimateGas` requests without a `gas` field failing under the Osaka transaction gas cap. Hardhat no longer passes a default transaction gas limit to EDR. EDR derives it from the hardfork and gas limit of the block that runs the request.
+- c8df269: Upgraded EDR to v0.26.0.
+- b501bed: Improved the performance of the Hardhat Network provider by reducing the memory used to record the call traces of transactions and calls.
+- c8df269: Thanks @anaPerezGhiglia! Fixed `eth_estimateGas` over-estimating at historical blocks on forked chains whose hardfork differs from the configured one.
+- c8df269: Thanks @anaPerezGhiglia! Fixed blocks mined on a fork using default blob and base fee parameters instead of the forked chain's when the configured `chainId` differs from the remote chain's.
+- b501bed: Fixed `eth_estimateGas` failing from the Osaka hardfork when its search probed gas values above the EIP-7825 transaction gas cap.
+- b501bed: Fixed forking requests to loopback URLs being sent through `HTTP_PROXY` or `HTTPS_PROXY`. Requests to `localhost`, `*.localhost`, `127.0.0.0/8`, `0.0.0.0` and `::1` now bypass the proxy.
+- b501bed: Fixed forking from a block that precedes the oldest supported hardfork being silently accepted. It now fails with an error that names the oldest supported hardfork.
+- b501bed: Changed the error of a forking request that fails on every retry. It now reads `Request failed after 9 retries` and no longer names the host or the cause, such as a DNS error.
+- b501bed: Changed the location of the forking RPC cache to an `rpc_cache/v2` subdirectory. Data cached by previous Hardhat versions is not reused. Everything else in the `rpc_cache` directory is ignored and can be deleted.
+- b501bed: Fixed a deadlock that hung the process when a Hardhat Network provider with interval mining and logging enabled was destroyed.
+- b501bed: Fixed the transaction `Value` in the `hardhat node` logs dropping leading zeros of the fractional part, which logged `0.01 ETH` as `0.1 ETH`. Whole amounts no longer end with a trailing dot.
+- b501bed: Fixed Solidity stack traces after a precompile call. A failing precompile call is now reported as a precompile error, and later calls in the same function point at the right line.
+- b501bed: Fixed calls through proxy contracts being logged as `<unrecognized-selector>`. A selector that is missing from the called contract is now resolved against the implementation behind the proxy. The call is labeled with the full delegation chain, such as `Proxy>Implementation#setValue`.
+
 ## 2.29.2
 
 ### Patch Changes
