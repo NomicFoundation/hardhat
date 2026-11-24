@@ -30,6 +30,14 @@ runs:
     - name: Install Linux system dependencies
       if: runner.os == 'Linux'
       shell: bash
+      # The runner is discarded after the job, so skip the package triggers
+      # that prepare the next boot and index man pages. On ARM, libudev-dev
+      # pulls in a systemd upgrade whose initramfs rebuild alone took about
+      # 13 seconds a job.
       run: |
+        if [ -f /etc/initramfs-tools/update-initramfs.conf ]; then
+          echo 'update_initramfs=no' | sudo tee -a /etc/initramfs-tools/update-initramfs.conf > /dev/null
+        fi
+        sudo rm -f /var/lib/man-db/auto-update
         sudo apt-get update
-        sudo apt-get install -y libusb-1.0-0-dev libudev-dev time
+        sudo apt-get install -y --no-install-recommends libusb-1.0-0-dev libudev-dev time
