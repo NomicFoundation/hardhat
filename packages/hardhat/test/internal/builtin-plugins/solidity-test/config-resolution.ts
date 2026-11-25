@@ -54,6 +54,19 @@ describe("config resolution", () => {
       assert.equal(result.timeout, 30);
       assert.equal(result.seed, DEFAULT_FUZZ_SEED);
     });
+
+    it("should pass `workers` through when it is set", () => {
+      const result = resolveFuzzConfig({ workers: 1 });
+
+      assert.deepEqual(result, { seed: DEFAULT_FUZZ_SEED, workers: 1 });
+    });
+
+    it("should leave `workers` out when it isn't set, so EDR's default applies", () => {
+      const result = resolveFuzzConfig({ runs: 500 });
+
+      assert.ok(result !== undefined, "result is undefined");
+      assert.equal("workers" in result, false);
+    });
   });
 
   describe("resolveInvariantConfig", () => {
@@ -181,6 +194,24 @@ describe("config resolution", () => {
       assert.equal(ci.fuzz.seed, DEFAULT_FUZZ_SEED);
       assert.equal(ci.forking?.blockNumber, 123n);
       assert.equal(await ci.forking?.url?.get(), "https://example.com/ci");
+    });
+
+    it("should resolve `workers` per profile", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            profiles: {
+              default: { fuzz: { runs: 500 } },
+              ci: { fuzz: { workers: 1 } },
+            },
+          },
+        },
+      });
+
+      const { default: defaultProfile, ci } = hre.config.test.solidity.profiles;
+
+      assert.equal(defaultProfile.fuzz.workers, undefined);
+      assert.equal(ci.fuzz.workers, 1);
     });
   });
 });

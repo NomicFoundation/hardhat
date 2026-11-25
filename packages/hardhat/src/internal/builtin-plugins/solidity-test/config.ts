@@ -91,6 +91,7 @@ const solidityTestProfileUserConfigType = z.object({
       includePushBytes: z.boolean().optional(),
       showLogs: z.boolean().optional(),
       timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
+      workers: z.number().int().positive().safe().optional(),
     })
     .optional(),
   forking: z

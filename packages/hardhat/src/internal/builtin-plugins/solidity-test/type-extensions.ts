@@ -46,6 +46,7 @@ declare module "../../../types/test.js" {
     includePushBytes?: boolean;
     showLogs?: boolean;
     timeout?: number | bigint;
+    workers?: number;
   }
 
   export interface SolidityTestForkingUserConfig {
@@ -122,6 +123,7 @@ declare module "../../../types/test.js" {
     includePushBytes?: boolean;
     showLogs?: boolean;
     timeout?: number;
+    workers?: number;
   }
 
   export interface SolidityTestForkingConfig {

@@ -207,6 +207,42 @@ describe("config validation", () => {
     );
   });
 
+  it("should accept a positive integer `fuzz.workers`", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      test: {
+        solidity: {
+          fuzz: { workers: 1 },
+        },
+      },
+    });
+
+    assert.equal(hre.config.test.solidity.profiles.default.fuzz.workers, 1);
+  });
+
+  it("should reject a `fuzz.workers` that isn't a positive integer", async () => {
+    for (const [workers, message] of [
+      [0, "Number must be greater than 0"],
+      [-1, "Number must be greater than 0"],
+      [1.5, "Expected integer, received float"],
+    ] as const) {
+      const userConfig: HardhatUserConfig = {
+        test: {
+          solidity: {
+            fuzz: { workers },
+          },
+        },
+      };
+
+      await assertRejectsWithHardhatError(
+        createHardhatRuntimeEnvironment(userConfig),
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+        {
+          errors: `\t* Config error in config.test.solidity.fuzz.workers: ${message}`,
+        },
+      );
+    }
+  });
+
   it("should reject the removed `fuzz.failurePersistFile` field", async () => {
     const userConfig: HardhatUserConfig = {
       test: {
