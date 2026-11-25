@@ -3,7 +3,7 @@
   "description": "Aave v4 fork to Hardhat 3.",
   "tags": ["external-repo"],
   "repo": "anaPerezGhiglia/aave-v4",
-  "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
+  "commit": "9e7eca984ab4b5f89b070c19af50c320564c6ade",
   "packageManager": "yarn",
   "submodules": true,
   "preinstall": "./preinstall.sh",

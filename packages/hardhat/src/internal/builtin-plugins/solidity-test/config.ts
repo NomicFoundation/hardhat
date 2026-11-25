@@ -119,7 +119,9 @@ const solidityTestProfileUserConfigType = z.object({
     .optional(),
   eip712Types: z
     .object({
-      include: z.array(z.string()).optional(),
+      include: incompatibleFieldType(
+        "`include` is no longer supported. Every struct that a test source reaches is collected, so use `exclude` to keep a file out",
+      ),
       exclude: z.array(z.string()).optional(),
     })
     .optional(),
@@ -344,7 +346,6 @@ export function resolveEip712TypesConfig(
   eip712TypesUserConfig: SolidityTestProfileUserConfig["eip712Types"] = {},
 ): SolidityTestProfileConfig["eip712Types"] {
   return {
-    include: eip712TypesUserConfig.include ?? [],
     exclude: eip712TypesUserConfig.exclude ?? [],
   };
 }
