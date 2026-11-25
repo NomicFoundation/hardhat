@@ -138,6 +138,34 @@ describe("toTypedData", () => {
     }
   });
 
+  it("should reject names the signer kit would drop or reorder", () => {
+    for (const data of [
+      // Keyed by name in a plain object, this field sets the prototype.
+      {
+        ...DATA,
+        types: { ...TYPES, Mail: [{ name: "__proto__", type: "string" }] },
+      },
+      // Integer-like keys enumerate first, which reorders the struct.
+      {
+        ...DATA,
+        types: {
+          ...TYPES,
+          Mail: [
+            { name: "contents", type: "string" },
+            { name: "123", type: "string" },
+          ],
+        },
+      },
+    ]) {
+      assertInvalid(data);
+    }
+
+    // `JSON.parse` keeps `__proto__` as an own property.
+    assertInvalid(
+      '{"types":{"EIP712Domain":[],"__proto__":[]},"primaryType":"EIP712Domain","domain":{},"message":{}}',
+    );
+  });
+
   it("should reject an integer that has already lost precision", () => {
     // `JSON.parse` rounds this before validation sees it.
     assertInvalid(

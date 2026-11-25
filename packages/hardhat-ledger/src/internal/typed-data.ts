@@ -38,6 +38,8 @@ export function toTypedData(data: string | object): TypedData {
     throwInvalidDataParam();
   }
 
+  assertNamesSurviveSignerKit(types);
+
   assertValuesSurvivedParsing(message);
   assertValuesSurvivedParsing(domain);
 
@@ -72,6 +74,26 @@ function isTypeDefinitions(types: unknown): types is TypedData["types"] {
         ),
     )
   );
+}
+
+/**
+ * Rejects names the signer kit cannot send to the device as given. It keys
+ * struct fields by name in plain objects, so a `__proto__` field is dropped
+ * and digit-only fields are reordered. The device would then sign different
+ * typed data, which the handler would only detect after the user approved it.
+ */
+function assertNamesSurviveSignerKit(types: TypedData["types"]): void {
+  for (const [typeName, fields] of Object.entries(types)) {
+    if (typeName === "__proto__") {
+      throwInvalidDataParam();
+    }
+
+    for (const { name } of fields) {
+      if (name === "__proto__" || /^\d+$/u.test(name)) {
+        throwInvalidDataParam();
+      }
+    }
+  }
 }
 
 /**

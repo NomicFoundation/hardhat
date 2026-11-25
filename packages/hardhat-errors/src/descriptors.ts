@@ -3465,15 +3465,13 @@ Please check that you are sending a "data" parameter with a JSON string or objec
       },
       ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH: {
         number: 90010,
-        messageTemplate: `The Ledger did not sign the typed data you requested for {address}, so Hardhat discarded the signature. Rename any field named only with digits (e.g. "123") or "__proto__", and check that the connected Ledger holds this account.`,
+        messageTemplate: `The Ledger did not sign the typed data you requested for {address}, so Hardhat discarded the signature. Check that the connected Ledger holds this account.`,
         websiteTitle: `The Ledger did not sign the requested typed data`,
         websiteDescription: `The signature returned by your Ledger is not a signature of the typed data you sent by the account you requested, so Hardhat discarded it.
 
-To fix it:
-- Rename any field whose name is only digits (e.g. "123") or is "__proto__". The Ledger can't sign these fields as sent.
-- Check that the connected Ledger, and its passphrase if you use one, holds the account you are signing with.
+Check that the connected Ledger, and its passphrase if you use one, holds the account you are signing with.
 
-If neither applies, please [report it](https://github.com/NomicFoundation/hardhat/issues/new) with the typed data.`,
+If it does, please [report it](https://github.com/NomicFoundation/hardhat/issues/new) with the typed data.`,
       },
       CONNECTION_CLOSED: {
         number: 90011,
