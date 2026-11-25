@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.38;
+pragma solidity ^0.8.39;
 
 contract Counter {
   uint public x;
