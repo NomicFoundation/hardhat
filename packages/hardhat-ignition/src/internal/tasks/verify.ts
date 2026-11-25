@@ -60,48 +60,42 @@ export async function verify(
 
   const connection = await hre.network.create();
 
-  try {
-    for await (const contractInfo of getVerificationInformationFn(
-      deploymentDir,
-    )) {
-      if (typeof contractInfo === "string") {
-        console.log(
-          `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.\n`,
-        );
-
-        continue;
-      }
-
+  for await (const contractInfo of getVerificationInformationFn(
+    deploymentDir,
+  )) {
+    if (typeof contractInfo === "string") {
       console.log(
-        `\nVerifying contract "${contractInfo.contract}" for network ${connection.networkName}...`,
+        `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.\n`,
       );
 
-      for (const provider of enabledProviders) {
-        try {
-          console.log(
-            styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`),
-          );
+      continue;
+    }
 
-          await verifyContractFn(
-            {
-              ...contractInfo,
-              force,
-              provider,
-            },
-            hre,
-          );
-        } catch (error) {
-          ensureError(error);
+    console.log(
+      `\nVerifying contract "${contractInfo.contract}" for network ${connection.networkName}...`,
+    );
 
-          console.error(styleText("red", error.message));
-          process.exitCode = 1;
-        }
+    for (const provider of enabledProviders) {
+      try {
+        console.log(
+          styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`),
+        );
+
+        await verifyContractFn(
+          {
+            ...contractInfo,
+            force,
+            provider,
+          },
+          hre,
+        );
+      } catch (error) {
+        ensureError(error);
+
+        console.error(styleText("red", error.message));
+        process.exitCode = 1;
       }
     }
-  } finally {
-    // Plugins can hold resources open on the connection until it is closed,
-    // and Hardhat never closes connections on its own.
-    await connection.close();
   }
 }
 

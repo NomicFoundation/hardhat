@@ -101,6 +101,8 @@ export class LedgerHandler {
   #device: LedgerDevice | undefined;
   #chainId: bigint | undefined;
   #closed: boolean = false;
+  /** Sessions are reopened per request; only the first connection is announced. */
+  #hasConnected: boolean = false;
 
   public readonly options: LedgerOptions;
   public paths: Paths = {};
@@ -159,9 +161,16 @@ export class LedgerHandler {
       return jsonRpcRequest;
     }
 
-    return await signingRequestMutex.exclusiveRun(() =>
-      this.#handleSigningRequest(jsonRpcRequest),
-    );
+    return await signingRequestMutex.exclusiveRun(async () => {
+      try {
+        return await this.#handleSigningRequest(jsonRpcRequest);
+      } finally {
+        // An open session keeps the process alive, so release it once the
+        // request is done. The next request reconnects. Releasing it inside
+        // the mutex keeps the next request from starting mid-disconnect.
+        await this.#resetConnection();
+      }
+    });
   }
 
   async #handleSigningRequest(
@@ -334,7 +343,11 @@ export class LedgerHandler {
    */
   async #connect(retryAttempts: number, reconnecting: boolean): Promise<void> {
     try {
-      await this.#displayMessage("Connecting to Ledger...");
+      const announce = !this.#hasConnected;
+
+      if (announce) {
+        await this.#displayMessage("Connecting to Ledger...");
+      }
 
       this.#device = await this.#deviceFactory(
         reconnecting
@@ -343,7 +356,11 @@ export class LedgerHandler {
         this.options.useRemoteLedgerServices,
       );
 
-      await this.#displayMessage("Connection successful");
+      this.#hasConnected = true;
+
+      if (announce) {
+        await this.#displayMessage("Connection successful");
+      }
     } catch (error) {
       ensureError(error);
 
@@ -623,8 +640,9 @@ export class LedgerHandler {
   }
 
   /**
-   * Cancels retries and actions, then releases the session. Scripts must call
-   * `connection.close()` so the session does not keep the process alive.
+   * Cancels retries and actions, then releases the session. Each request
+   * already releases its session, so this only matters for a request that is
+   * still running.
    */
   public async close(): Promise<void> {
     this.#closed = true;

@@ -139,8 +139,6 @@ const MAIL_TYPES = {
   ],
 };
 
-/** Set by `forgetToClose()`, the one scenario that must hang. */
-let expectedToHang = false;
 /** Set by each scenario, printed by `run()` once it is over. */
 let expectedResult: string | undefined;
 let loggingRequests = false;
@@ -194,8 +192,8 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // error, with no retry loop, and the process still exits.
 // await run(rejectOnDevice);
 
-// TEST NR 8: a script that never closes the connection hangs after it ends,
-// until Ctrl+C. This is the one scenario that is supposed to hang.
+// TEST NR 8: a script that never closes the connection still exits on its
+// own: the plugin releases the device session at the end of every request.
 // await run(forgetToClose);
 
 // TEST NR 9 (approve on the device): a field named only with digits, which the
@@ -220,9 +218,9 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // device or on Ledger's servers.
 // ===========================================================================
 
-// TEST NR 12 (unplug and replug during the countdown): the plugin reconnects,
-// waiting up to 10 s for the device to come back, and the second signature
-// works.
+// TEST NR 12 (unplug and replug during the countdown): the second request
+// opens a new session as usual, since the first one released its session,
+// and the second signature works.
 // await run(unplugAndReplugBetweenRequests);
 
 // TEST NR 13 (do not approve on the device): closing the connection while a
@@ -266,8 +264,9 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // the other, and the process exits once both are closed.
 // await run(twoConnectionsAtOnce);
 
-// TEST NR 22: two concurrent requests share one device session: a single
-// "Connecting to Ledger..." line, two approvals, two valid signatures.
+// TEST NR 22: two concurrent requests run one at a time, each on its own
+// device session: a single "Connecting to Ledger..." line (only the first
+// connection is announced), two approvals, two valid signatures.
 // await run(concurrentRequestsShareOneSession);
 
 // TEST NR 23 (forks mainnet for the second half): a recipient with an ENS name
@@ -416,15 +415,10 @@ async function rejectOnDevice(): Promise<void> {
 
 async function unplugAndReplugBetweenRequests(): Promise<void> {
   expected(
-    "'[hardhat-ledger] Reconnecting to Ledger...' then 'Connecting to " +
-      "Ledger...' before the second request: the DMK reported the lost " +
-      "device as an error, the plugin dropped the session and connected " +
-      "again (at most twice), waiting up to 10 seconds for the device to " +
-      "show up again. If it was not back in time: 'Device did not " +
-      "reconnect. Please check that your Ledger is plugged in and " +
-      "unlocked. Retrying in 30 seconds...' and another attempt. The " +
-      "second signature verifies. If the DMK reconnected the session by " +
-      "itself, no such line appears and the request just works.",
+    "no 'Reconnecting to Ledger...' line, and no second 'Connecting to " +
+      "Ledger...' either: the first request released its session when it " +
+      "finished, so the replugged device is found by a normal, silent " +
+      "connect. The second signature verifies.",
   );
 
   await withConnection(async (ctx) => {
@@ -441,11 +435,10 @@ async function unplugAndReplugBetweenRequests(): Promise<void> {
 
 async function concurrentRequestsShareOneSession(): Promise<void> {
   expected(
-    "'[hardhat-ledger] Connecting to Ledger...' printed once, not twice: " +
-      "the two requests share one device session. Two approvals on the " +
-      "device, one after the other; the second one may wait, or print " +
-      "'Device not ready ... Retrying in 30 seconds...', while the first is " +
-      "on the screen. Both signatures verify.",
+    "'[hardhat-ledger] Connecting to Ledger...' printed once: the second " +
+      "request waits for the first to finish, then opens its own session " +
+      "silently, since only the first connection is announced. Two " +
+      "approvals on the device, one after the other. Both signatures verify.",
   );
 
   await withConnection(async (ctx) => {
@@ -480,11 +473,10 @@ async function derivationPathCache(): Promise<void> {
 
 async function forgetToClose(): Promise<void> {
   expected(
-    "the script is done but the process does not exit: the DMK keeps the USB " +
-      "session open and Node cannot exit while it is. Stop it with Ctrl+C.",
+    "the process exits within a second of the last line even though the " +
+      "connection was never closed: the plugin released the device session " +
+      "at the end of the request, so nothing holds the process open.",
   );
-
-  expectedToHang = true;
 
   const ctx = await connect();
 
@@ -1816,9 +1808,7 @@ function recordRequestsToLedgerServers(): void {
 function armExitWatchdog(seconds: number = 5): void {
   setTimeout(() => {
     console.error(
-      expectedToHang
-        ? `\nStill alive ${seconds}s after the script ended, as this scenario expects. Press Ctrl+C.`
-        : `\n!!! Still alive ${seconds}s after the script ended: something is holding the process open.`,
+      `\n!!! Still alive ${seconds}s after the script ended: something is holding the process open.`,
     );
   }, seconds * 1000).unref();
 }

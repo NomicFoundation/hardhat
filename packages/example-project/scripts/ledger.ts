@@ -3,8 +3,7 @@ import assert from "node:assert";
 
 const BALANCE_TO_SEND = 1000000000000000000n;
 
-const connection = await hre.network.create("edrOp");
-const { provider, ethers } = connection;
+const { provider, ethers } = await hre.network.create("edrOp");
 
 const signers = await ethers.getSigners();
 
@@ -14,26 +13,21 @@ const hardhatAddress = hardhatSigner.address;
 const ledgerSigner = signers[signers.length - 1];
 const ledgerAddress = ledgerSigner.address;
 
-try {
-  // Be sure that the ledger account has some ETH
-  await hardhatSigner.sendTransaction({
-    to: ledgerAddress,
-    value: BALANCE_TO_SEND,
-  });
+// Be sure that the ledger account has some ETH
+await hardhatSigner.sendTransaction({
+  to: ledgerAddress,
+  value: BALANCE_TO_SEND,
+});
 
-  // Uncomment the RPC method you want to test
+// Uncomment the RPC method you want to test
 
-  await ethSendTransaction();
+await ethSendTransaction();
 
-  // await ethSign();
+// await ethSign();
 
-  // await personalSign();
+// await personalSign();
 
-  // await ethSignTypedDataV4();
-} finally {
-  // The Ledger session keeps the process alive until the connection is closed
-  await connection.close();
-}
+// await ethSignTypedDataV4();
 
 async function ethSendTransaction() {
   const txParams = {

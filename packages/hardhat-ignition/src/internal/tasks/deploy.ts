@@ -3,7 +3,6 @@ import type {
   DeploymentResult,
 } from "@nomicfoundation/ignition-core";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { NetworkConnection } from "hardhat/types/network";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
@@ -43,21 +42,6 @@ interface TaskDeployArguments {
 }
 
 const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
-  args,
-  hre: HardhatRuntimeEnvironment,
-): Promise<DeploymentResult | null> => {
-  const connection = await hre.network.create();
-
-  try {
-    return await deployWithConnection(args, hre, connection);
-  } finally {
-    // Plugins can hold resources open on the connection until it is closed,
-    // and Hardhat never closes connections on its own.
-    await connection.close();
-  }
-};
-
-async function deployWithConnection(
   {
     modulePath,
     parameters: parametersInput,
@@ -67,10 +51,11 @@ async function deployWithConnection(
     verify,
     strategy: strategyName,
     writeLocalhostDeployment,
-  }: TaskDeployArguments,
+  },
   hre: HardhatRuntimeEnvironment,
-  connection: NetworkConnection,
-): Promise<DeploymentResult | null> {
+): Promise<DeploymentResult | null> => {
+  const connection = await hre.network.create();
+
   const chainId = Number(
     await connection.provider.request({
       method: "eth_chainId",
@@ -278,7 +263,7 @@ async function deployWithConnection(
       userInterruptionsHandlers,
     );
   }
-}
+};
 
 async function resolveParametersFromModuleName(
   moduleName: string,
