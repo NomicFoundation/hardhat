@@ -340,6 +340,7 @@ export class LedgerHandler {
         reconnecting
           ? LedgerHandler.RECONNECTION_TIMEOUT
           : LedgerHandler.DEFAULT_TIMEOUT,
+        this.options.useRemoteLedgerServices,
       );
 
       await this.#displayMessage("Connection successful");

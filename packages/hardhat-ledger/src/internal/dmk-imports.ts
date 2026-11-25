@@ -1,3 +1,4 @@
+import type * as ContextModuleT from "@ledgerhq/context-module";
 import type * as DmkT from "@ledgerhq/device-management-kit";
 import type * as SignerEthT from "@ledgerhq/device-signer-kit-ethereum";
 import type * as NodeHidT from "@ledgerhq/device-transport-kit-node-hid";
@@ -5,15 +6,20 @@ import type * as NodeHidT from "@ledgerhq/device-transport-kit-node-hid";
 import { createRequire } from "node:module";
 
 /**
- * The DMK's ESM entry points are broken, and its Node HID transport is
- * CommonJS-only. Load their CommonJS builds here to isolate the workaround.
+ * The DMK's and context module's ESM entry points are broken, and the Node HID
+ * transport is CommonJS-only. Load their CommonJS builds here to isolate the
+ * workaround.
  */
 
 const require = createRequire(import.meta.url);
 
+const contextModule: typeof ContextModuleT = require("@ledgerhq/context-module");
 const dmk: typeof DmkT = require("@ledgerhq/device-management-kit");
 const signerEth: typeof SignerEthT = require("@ledgerhq/device-signer-kit-ethereum");
 const nodeHid: typeof NodeHidT = require("@ledgerhq/device-transport-kit-node-hid");
+
+const ClearSignContextType: typeof contextModule.ClearSignContextType =
+  contextModule.ClearSignContextType;
 
 const DeviceManagementKitBuilder: typeof dmk.DeviceManagementKitBuilder =
   dmk.DeviceManagementKitBuilder;
@@ -41,6 +47,7 @@ const transportUsb: { usb: { unrefHotplugEvents(): void } } = createRequire(
 const usb: { unrefHotplugEvents(): void } = transportUsb.usb;
 
 export {
+  ClearSignContextType,
   DeviceActionStatus,
   DeviceManagementKitBuilder,
   NodeHidSendReportError,
@@ -51,6 +58,10 @@ export {
   usb,
 };
 
+export type ClearSignContext = ContextModuleT.ClearSignContext;
+export type ContextModule = ContextModuleT.ContextModule;
+export type TypedDataClearSignContext =
+  ContextModuleT.TypedDataClearSignContext;
 export type DeviceManagementKit = DmkT.DeviceManagementKit;
 export type DeviceSessionId = DmkT.DeviceSessionId;
 export type DmkError = DmkT.DmkError;

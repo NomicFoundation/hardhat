@@ -15,6 +15,7 @@ import {
   SignerEthBuilder,
   usb,
 } from "./dmk-imports.js";
+import { offlineContextModule } from "./offline-context-module.js";
 
 const log = createDebug("hardhat:ledger:connect-device");
 
@@ -50,8 +51,13 @@ function getDeviceManagementKit(): DeviceManagementKit {
  * for its session.
  *
  * @param timeoutMs How long to wait for a device to show up.
+ * @param useRemoteLedgerServices Whether the signer may contact Ledger's servers for
+ * clear signing metadata, transaction checks and analytics.
  */
-export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
+export async function connectDevice(
+  timeoutMs: number,
+  useRemoteLedgerServices: boolean,
+): Promise<LedgerDevice> {
   const dmk = getDeviceManagementKit();
 
   let sessionId: DeviceSessionId | undefined;
@@ -72,7 +78,13 @@ export async function connectDevice(timeoutMs: number): Promise<LedgerDevice> {
       sessionRefresherOptions: { isRefresherDisabled: true },
     });
 
-    const signer: SignerEth = new SignerEthBuilder({ dmk, sessionId }).build();
+    const signerBuilder = new SignerEthBuilder({ dmk, sessionId });
+
+    if (!useRemoteLedgerServices) {
+      signerBuilder.withContextModule(offlineContextModule);
+    }
+
+    const signer: SignerEth = signerBuilder.build();
 
     return openedDevice(dmk, sessionId, signer);
   } catch (thrown) {

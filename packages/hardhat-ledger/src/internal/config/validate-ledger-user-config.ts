@@ -23,6 +23,7 @@ const ledgerUserConfigSchema = z.object({
   ledgerOptions: z
     .object({
       derivationFunction: z.function().optional(),
+      useRemoteLedgerServices: z.boolean().optional(),
     })
     .optional(),
 });

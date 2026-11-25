@@ -6,6 +6,8 @@ export type DerivationFunction = (index: number) => string;
 export interface LedgerOptions {
   accounts: string[];
   derivationFunction: DerivationFunction | undefined;
+  /** Whether the signer may contact Ledger's servers. See `connectDevice`. */
+  useRemoteLedgerServices: boolean;
 }
 
 export type Paths = Record<string, string>; // address -> derivation path
@@ -45,4 +47,7 @@ export interface LedgerDevice {
 }
 
 /** An injectable device factory that lets tests avoid USB. */
-export type LedgerDeviceFactory = (timeoutMs: number) => Promise<LedgerDevice>;
+export type LedgerDeviceFactory = (
+  timeoutMs: number,
+  useRemoteLedgerServices: boolean,
+) => Promise<LedgerDevice>;

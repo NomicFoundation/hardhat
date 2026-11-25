@@ -5,6 +5,7 @@ declare module "hardhat/types/config" {
     ledgerAccounts?: string[];
     ledgerOptions?: {
       derivationFunction?: DerivationFunction;
+      useRemoteLedgerServices?: boolean;
     };
   }
 
@@ -12,6 +13,7 @@ declare module "hardhat/types/config" {
     ledgerAccounts?: string[];
     ledgerOptions?: {
       derivationFunction?: DerivationFunction;
+      useRemoteLedgerServices?: boolean;
     };
   }
 
@@ -19,6 +21,7 @@ declare module "hardhat/types/config" {
     ledgerAccounts: string[];
     ledgerOptions?: {
       derivationFunction?: DerivationFunction;
+      useRemoteLedgerServices?: boolean;
     };
   }
 
@@ -26,6 +29,7 @@ declare module "hardhat/types/config" {
     ledgerAccounts: string[];
     ledgerOptions?: {
       derivationFunction?: DerivationFunction;
+      useRemoteLedgerServices?: boolean;
     };
   }
 }

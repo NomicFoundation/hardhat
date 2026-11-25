@@ -85,6 +85,45 @@ describe("config validation", () => {
     });
   });
 
+  it("should work when useRemoteLedgerServices is a boolean", async () => {
+    await createHardhatRuntimeEnvironment({
+      plugins: [hardhatLedger],
+      networks: {
+        "test-network": {
+          type: "edr-simulated",
+          ledgerAccounts: ["0xa809931e3b38059adae9bc5455bc567d0509ab92"],
+          ledgerOptions: {
+            useRemoteLedgerServices: true,
+          },
+        },
+      },
+    });
+  });
+
+  it("should throw when useRemoteLedgerServices is not a boolean", async () => {
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment({
+        plugins: [hardhatLedger],
+        networks: {
+          "test-network": {
+            type: "edr-simulated",
+            ledgerAccounts: ["0xa809931e3b38059adae9bc5455bc567d0509ab92"],
+            ledgerOptions: {
+              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing invalid config
+              useRemoteLedgerServices: "yes" as unknown as boolean,
+            },
+          },
+        },
+      }),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors: [
+          `\t* Config error in config.ledgerOptions.useRemoteLedgerServices: network "test-network" - Expected boolean, received string`,
+        ].join("\n"),
+      },
+    );
+  });
+
   it("should throw when a ledger account is invalid", async () => {
     await assertRejectsWithHardhatError(
       createHardhatRuntimeEnvironment({

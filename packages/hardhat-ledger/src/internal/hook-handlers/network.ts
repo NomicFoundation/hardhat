@@ -78,6 +78,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
               derivationFunction:
                 networkConnection.networkConfig.ledgerOptions
                   ?.derivationFunction,
+              useRemoteLedgerServices:
+                networkConnection.networkConfig.ledgerOptions
+                  ?.useRemoteLedgerServices ?? false,
             },
             context.interruptions.displayMessage.bind(context.interruptions),
           );

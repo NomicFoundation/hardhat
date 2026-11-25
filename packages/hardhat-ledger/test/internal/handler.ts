@@ -184,7 +184,11 @@ describe("LedgerHandler", () => {
   ): LedgerHandler {
     return new LedgerHandler(
       ethereumMockedProvider,
-      { accounts: LEDGER_ADDRESSES, derivationFunction: undefined },
+      {
+        accounts: LEDGER_ADDRESSES,
+        derivationFunction: undefined,
+        useRemoteLedgerServices: false,
+      },
       displayMessage,
       {
         deviceFactory: getLedgerDeviceMock()[0],
@@ -215,6 +219,7 @@ describe("LedgerHandler", () => {
         {
           accounts: uppercaseAccounts,
           derivationFunction: undefined,
+          useRemoteLedgerServices: false,
         },
         mockedDisplayInfo.fn,
       );
@@ -236,6 +241,7 @@ describe("LedgerHandler", () => {
                 "0x343fe45cd2d785a5F2e97a00de8436f9c42Ef444",
               ],
               derivationFunction: undefined,
+              useRemoteLedgerServices: false,
             },
             mockedDisplayInfo.fn,
           ),
@@ -1273,7 +1279,11 @@ describe("LedgerHandler", () => {
 
         ledgerHandler = new LedgerHandler(
           ethereumMockedProvider,
-          { accounts: LEDGER_ADDRESSES, derivationFunction },
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction,
+            useRemoteLedgerServices: false,
+          },
           mockedDisplayInfo.fn,
           { deviceFactory, cachePath: tmpCachePath },
         );
@@ -1281,6 +1291,37 @@ describe("LedgerHandler", () => {
         await ledgerHandler.handle(personalSignRequest);
 
         assert.deepEqual(deviceCalls.getAddress.args, [expectedPath]);
+      });
+
+      it("should tell the device factory whether remote Ledger services are enabled", async () => {
+        const [deviceFactory] = getLedgerDeviceMock({
+          getAddress: findAccountAt("m/44'/60'/0'/0/0"),
+          signMessage: { result: rsv },
+        });
+
+        const factoryArgs: boolean[] = [];
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+            useRemoteLedgerServices: true,
+          },
+          mockedDisplayInfo.fn,
+          {
+            deviceFactory: async (timeoutMs, useRemoteLedgerServices) => {
+              factoryArgs.push(useRemoteLedgerServices);
+
+              return await deviceFactory(timeoutMs, useRemoteLedgerServices);
+            },
+            cachePath: tmpCachePath,
+          },
+        );
+
+        await ledgerHandler.handle(personalSignRequest);
+
+        assert.deepEqual(factoryArgs, [true]);
       });
     });
   });
@@ -1502,14 +1543,17 @@ describe("LedgerHandler", () => {
         const timeouts: number[] = [];
 
         // The first attempt to reconnect finds no device.
-        const deviceFactory: LedgerDeviceFactory = async (timeoutMs) => {
+        const deviceFactory: LedgerDeviceFactory = async (
+          timeoutMs,
+          useRemoteLedgerServices,
+        ) => {
           timeouts.push(timeoutMs);
 
           if (timeouts.length === 2) {
             throw new LedgerNoDeviceFoundError();
           }
 
-          return await mockedDeviceFactory(timeoutMs);
+          return await mockedDeviceFactory(timeoutMs, useRemoteLedgerServices);
         };
 
         ledgerHandler = createHandler({

@@ -65,17 +65,18 @@ describe("connectDevice lifecycle", () => {
     const { connectDevice } = await loadConnectDevice();
     const exitListenersBefore = process.listenerCount("exit");
 
-    await assertRejects(connectDevice(10));
+    await assertRejects(connectDevice(10, false));
 
     hidDevices = [NANO_X_HID_DEVICE];
 
-    const device = await connectDevice(1000);
+    const device = await connectDevice(1000, false);
 
     await device.close();
 
     // Closing a session must leave the kit usable, or the next connection in
     // the same process (e.g. `ignition deploy` then `ignition verify`) fails.
-    const reconnectedDevice = await connectDevice(1000);
+    // The default context module is built the same way, without hardware.
+    const reconnectedDevice = await connectDevice(1000, true);
 
     await reconnectedDevice.close();
 

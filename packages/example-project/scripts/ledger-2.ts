@@ -38,9 +38,10 @@
  *
  *       pnpm build && node dist/scripts/ledger-2.js
  *
- *   - The origin token and switching the network module off: the plugin has no
- *     setting for either (both are open questions in the doc), so there is
- *     nothing to run.
+ *   - The origin token: the plugin has no setting for it (an open question in
+ *     the doc), so there is nothing to run. Switching the network module off
+ *     is now a setting, `useRemoteLedgerServices`, and the two scenarios
+ *     around TEST NR 15 cover both of its positions.
  */
 import type { TypedDataDomain, TypedDataField } from "ethers";
 import type { NetworkConnectionParams } from "hardhat/types/network";
@@ -143,6 +144,8 @@ let expectedToHang = false;
 /** Set by each scenario, printed by `run()` once it is over. */
 let expectedResult: string | undefined;
 let loggingRequests = false;
+/** Every request to Ledger's servers since `recordRequestsToLedgerServers()`. */
+const requestsToLedger: string[] = [];
 
 if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
   logRequestsToLedgerServers();
@@ -231,39 +234,47 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // and amount instead of raw calldata.
 // await run(erc20TransferIsClearSigned);
 
-// TEST NR 15: every request the DMK makes to Ledger's servers is printed: none
-// for personal_sign, metadata plus telemetry for a transaction and for typed
-// data, all without an origin token.
-// await run(requestsToLedgerServers);
+// TEST NR 15 (enable Blind signing in the Ethereum app's settings first, or
+// the device refuses the last two signatures): with the default config, where
+// `useRemoteLedgerServices` is off, nothing at all is sent to Ledger: no
+// [ledger-http] line for any of personal_sign, two transactions and typed
+// data, and the device shows everything raw.
+// await run(noRequestsWithRemoteServicesOff);
 
-// TEST NR 16: a contract call with no descriptor (a local Counter) is shown
+// TEST NR 16: the same run with `useRemoteLedgerServices` on, to compare it
+// against: every request the DMK makes to Ledger's servers is printed, none
+// for personal_sign, metadata plus telemetry for the transactions and for
+// typed data, all without an origin token.
+// await run(requestsWithRemoteServicesOn);
+
+// TEST NR 17: a contract call with no descriptor (a local Counter) is shown
 // raw, with the blind-signing warning, exactly as today.
 // await run(contractCallWithoutDescriptor);
 
-// TEST NR 17: a custom EIP712Domain (an extra salt field, then reordered
+// TEST NR 18: a custom EIP712Domain (an extra salt field, then reordered
 // fields) is signed as declared instead of being rejected.
 // await run(typedDataCustomDomain);
 
-// TEST NR 18: a non-ASCII field name: signs through the blind-signing fallback
+// TEST NR 19: a non-ASCII field name: signs through the blind-signing fallback
 // if Blind signing is enabled on the device, fails otherwise.
 // await run(typedDataNonAsciiFieldName);
 
-// TEST NR 19: typed data through a viem wallet client signs and verifies.
+// TEST NR 20: typed data through a viem wallet client signs and verifies.
 // await run(typedDataWithViem);
 
-// TEST NR 20: two connections to the same Ledger: closing one does not break
+// TEST NR 21: two connections to the same Ledger: closing one does not break
 // the other, and the process exits once both are closed.
 // await run(twoConnectionsAtOnce);
 
-// TEST NR 21: two concurrent requests share one device session: a single
+// TEST NR 22: two concurrent requests share one device session: a single
 // "Connecting to Ledger..." line, two approvals, two valid signatures.
 // await run(concurrentRequestsShareOneSession);
 
-// TEST NR 22 (forks mainnet for the second half): a recipient with an ENS name
+// TEST NR 23 (forks mainnet for the second half): a recipient with an ENS name
 // is shown as the raw address on chain 10 and as "nick.eth" on chain 1.
 // await run(ensRecipientShowsItsName);
 
-// TEST NR 23 (forks mainnet): an NFT transfer (BAYC) shows the collection name
+// TEST NR 24 (forks mainnet): an NFT transfer (BAYC) shows the collection name
 // and the token id.
 // await run(nftTransferIsClearSigned);
 
@@ -272,44 +283,44 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // smoke-tested without a device.
 // ===========================================================================
 
-// TEST NR 24: a request after close() fails with CONNECTION_CLOSED instead of
+// TEST NR 25: a request after close() fails with CONNECTION_CLOSED instead of
 // reopening a device session, and the process exits.
 // await run(requestAfterClose);
 
-// TEST NR 25 (start unplugged, stay unplugged): closing the connection during
+// TEST NR 26 (start unplugged, stay unplugged): closing the connection during
 // the 30-second "device not connected" wait fails the request at once, and the
 // process exits.
 // await run(closeWhileWaitingForDevice);
 
-// TEST NR 26: domain.chainId given as a hexadecimal, then as a decimal, string.
+// TEST NR 27: domain.chainId given as a hexadecimal, then as a decimal, string.
 // await run(typedDataChainIdAsString);
 
-// TEST NR 27: a uint256 above 2^53 passed as a string signs correctly.
+// TEST NR 28: a uint256 above 2^53 passed as a string signs correctly.
 // await run(typedDataBigIntegerAsString);
 
-// TEST NR 28: typed data passed as an object instead of a JSON string.
+// TEST NR 29: typed data passed as an object instead of a JSON string.
 // await run(typedDataAsObject);
 
-// TEST NR 29 (approve on the device): a field named __proto__, whose value the
+// TEST NR 30 (approve on the device): a field named __proto__, whose value the
 // DMK loses: after your approval the plugin refuses the signature with
 // ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH.
 // await run(typedDataProtoFieldName);
 
-// TEST NR 30: an ERC-20 approve is clear-signed like the transfer.
+// TEST NR 31: an ERC-20 approve is clear-signed like the transfer.
 // await run(erc20ApproveIsClearSigned);
 
-// TEST NR 31: a custom derivationFunction with m/-prefixed paths is used to
+// TEST NR 32: a custom derivationFunction with m/-prefixed paths is used to
 // search 21 paths for an unknown address, then
 // CANNOT_FIND_VALID_DERIVATION_PATH quotes them.
 // await run(derivationFunctionOverride);
 
-// TEST NR 32 (approve on the device): an EIP-7702 transaction. A fresh account
+// TEST NR 33 (approve on the device): an EIP-7702 transaction. A fresh account
 // delegates to a local Counter, the Ledger account sends the type-4 transaction
 // that carries the authorization, and the authority's code becomes
 // 0xef0100 + the Counter's address.
 // await run(eip7702DelegationIsSigned);
 
-// TEST NR 33: a request from an address that is not a Ledger account is passed
+// TEST NR 34: a request from an address that is not a Ledger account is passed
 // through to the simulated network without touching the device.
 // await run(unownedAddressIsPassedThrough);
 
@@ -618,47 +629,74 @@ async function twoConnectionsAtOnce(): Promise<void> {
 // Behaviors to be aware of: what the device shows, what goes to Ledger
 // ---------------------------------------------------------------------------
 
-async function requestsToLedgerServers(): Promise<void> {
+async function noRequestsWithRemoteServicesOff(): Promise<void> {
   expected(
-    "connecting, opening the app, deriving the path and personal_sign made " +
-      "no request. The transaction fetched display metadata (Ledger's " +
-      "crypto-assets service, nft.api.live.ledger.com, " +
-      "metadata.api.live.ledger.com...) and ended with a POST to " +
-      "blind-signing.api.ledger.com/ingest, the telemetry. Typed data did " +
-      "the same for the domain's chain id and verifying contract. Every " +
-      "line says 'no origin token': the plugin sends none.",
+    "not one [ledger-http] line, from connecting to the last signature: " +
+      "with `useRemoteLedgerServices` off, which is the default, the plugin " +
+      "never calls Ledger. The device showed raw data throughout: the ETH " +
+      "transfer without the 'Optimism' network name and with no Transaction " +
+      "Check prompt, the USDC transfer as raw calldata behind a " +
+      "blind-signing warning instead of 'Send 100 USDC', and the typed data " +
+      "as a single hash instead of its fields. The scenario fails if any " +
+      "request was made; `requestsWithRemoteServicesOn` is the same run with " +
+      "the setting on, to compare it against.",
   );
 
-  logRequestsToLedgerServers();
+  recordRequestsToLedgerServers();
 
   await withConnection(async (ctx) => {
-    step("personal_sign: expect NO [ledger-http] line");
-    await personalSign(ctx, "no network request for this");
+    await signOnEveryPath(ctx);
 
-    step(
-      "eth_sendTransaction (plain ETH transfer): expect [ledger-http] lines",
-    );
-    await sendEth(ctx, ctx.hardhatAddress, 1n);
-
-    step("eth_signTypedData_v4: expect [ledger-http] lines");
-    const typedData = mail(ctx);
-    const signature = await signTypedData(ctx, JSON.stringify(typedData));
-    assertSameAddress(
-      recoverMail(ctx, typedData, signature),
-      ctx.ledgerAddress,
+    assert.deepEqual(
+      requestsToLedger,
+      [],
+      "The plugin contacted Ledger with useRemoteLedgerServices off",
     );
   });
 }
 
+async function requestsWithRemoteServicesOn(): Promise<void> {
+  expected(
+    "[ledger-http] lines for the two transactions and the typed data, and " +
+      "none for connecting, opening the app, deriving the path or " +
+      "personal_sign. The transactions fetched display metadata (Ledger's " +
+      "crypto-assets service, nft.api.live.ledger.com, " +
+      "metadata.api.live.ledger.com...), so the device showed 'Optimism' " +
+      "and 'Send 100 USDC', and each signature ended with a POST to " +
+      "blind-signing.api.ledger.com/ingest, the telemetry. Typed data did " +
+      "the same for the domain's chain id and verifying contract. Every " +
+      "line says 'no origin token': the plugin sends none. The scenario " +
+      "fails if nothing was sent.",
+  );
+
+  recordRequestsToLedgerServers();
+
+  await withConnection(async (ctx) => {
+    await signOnEveryPath(ctx);
+
+    console.log(`\n>>> ${requestsToLedger.length} request(s) to Ledger`);
+
+    assert.ok(
+      requestsToLedger.length > 0,
+      "The plugin contacted nobody with useRemoteLedgerServices on",
+    );
+  }, withRemoteLedgerServices());
+}
+
 async function plainTransfer(): Promise<void> {
   expected(
-    "on every device except the Nano S the review shows the network name, " +
-      "'Optimism', with its icon on Stax, Flex and Nano Gen5. On a " +
-      "touchscreen device the first transaction may first ask whether to " +
-      "enable Transaction Check, printed as '[hardhat-ledger] Answer the " +
-      "Web3 Checks prompt on your Ledger device'; accepting changes nothing " +
-      "here, because Ledger refuses the check without an origin token, so " +
-      "no verdict is shown. Everything else looks as it does today.",
+    "the amount and the recipient, and everything else as it looks today. " +
+      "This connection is the default one, so `useRemoteLedgerServices` is " +
+      "off and nothing is fetched from Ledger: check whether the network " +
+      "name, 'Optimism', and its icon on Stax, Flex and Nano Gen5 still " +
+      "appear without the network descriptor, and expect no Transaction " +
+      "Check prompt. `requestsWithRemoteServicesOn` is the same transfer " +
+      "with the setting on, where the name and the icon do appear and a " +
+      "touchscreen device may first ask whether to enable Transaction " +
+      "Check, printed as '[hardhat-ledger] Answer the Web3 Checks prompt on " +
+      "your Ledger device'; accepting it changes nothing either way, " +
+      "because Ledger refuses the check without an origin token, so no " +
+      "verdict is shown.",
   );
 
   await withConnection(async (ctx) => {
@@ -670,7 +708,9 @@ async function erc20TransferIsClearSigned(): Promise<void> {
   expected(
     "the device showed 'Send 100 USDC' (or similar: token and amount) and " +
       "the recipient, not raw calldata. The token descriptor came from " +
-      "Ledger's crypto-assets service, which needs no origin token.",
+      "Ledger's crypto-assets service, which needs no origin token. The " +
+      "connection sets `useRemoteLedgerServices`, without which there is no " +
+      "descriptor to fetch and the call is shown raw.",
   );
 
   await withConnection(async (ctx) => {
@@ -694,13 +734,14 @@ async function erc20TransferIsClearSigned(): Promise<void> {
     const balanceAfter: bigint = await usdc.balanceOf(ctx.hardhatAddress);
 
     assert.equal(balanceAfter - balanceBefore, 100n * USDC_UNIT);
-  });
+  }, withRemoteLedgerServices());
 }
 
 async function erc20ApproveIsClearSigned(): Promise<void> {
   expected(
     "the device showed an approval of 50 USDC for the spender, not raw " +
-      "calldata: the ERC-20 approve is clear-signed like the transfer.",
+      "calldata: the ERC-20 approve is clear-signed like the transfer. The " +
+      "connection sets `useRemoteLedgerServices`, as the transfer does.",
   );
 
   await withConnection(async (ctx) => {
@@ -716,14 +757,15 @@ async function erc20ApproveIsClearSigned(): Promise<void> {
       TX_OVERRIDES,
     );
     await tx.wait();
-  });
+  }, withRemoteLedgerServices());
 }
 
 async function nftTransferIsClearSigned(): Promise<void> {
   expected(
     "the device showed the collection, 'BoredApeYachtClub', and the token " +
       "id instead of raw calldata. The NFT descriptor came from Ledger's " +
-      "NFT metadata service, which needs no origin token. The hand-over " +
+      "NFT metadata service, which needs no origin token, so the " +
+      "connection sets `useRemoteLedgerServices`. The hand-over " +
       "transaction before it came from an impersonated account and never " +
       "touched the Ledger.",
   );
@@ -772,7 +814,7 @@ async function nftTransferIsClearSigned(): Promise<void> {
     await tx.wait();
 
     assertSameAddress(await bayc.ownerOf(tokenId), ctx.hardhatAddress);
-  }, mainnetFork());
+  }, withRemoteLedgerServices(mainnetFork()));
 }
 
 async function ensRecipientShowsItsName(): Promise<void> {
@@ -780,20 +822,21 @@ async function ensRecipientShowsItsName(): Promise<void> {
     "on the Optimism fork the recipient is shown as the raw address " +
       "0xb8c2...67d5, because Ledger's name service does not serve chain 10. " +
       "On the mainnet fork it is shown as 'nick.eth'. ENS lookups need no " +
-      "origin token.",
+      "origin token, but they do need `useRemoteLedgerServices`, which both " +
+      "connections set.",
   );
 
   step("First on the Optimism fork (chain 10)...");
 
   await withConnection(async (ctx) => {
     await sendEth(ctx, NICK_ETH, 1000n);
-  });
+  }, withRemoteLedgerServices());
 
   step("Then on a mainnet fork (chain 1)...");
 
   await withConnection(async (ctx) => {
     await sendEth(ctx, NICK_ETH, 1000n);
-  }, mainnetFork());
+  }, withRemoteLedgerServices(mainnetFork()));
 }
 
 async function contractCallWithoutDescriptor(): Promise<void> {
@@ -802,9 +845,11 @@ async function contractCallWithoutDescriptor(): Promise<void> {
       "this contract, so the device shows the raw call (a blind-signing or " +
       "unverified-contract warning). If Blind signing is disabled in the " +
       "Ethereum app's settings the device refuses and the error reaches the " +
-      "script. Without an origin token Ledger answers the clear-signing " +
-      "descriptor request for contract calls with 403, so this is what " +
-      "every contract call looks like.",
+      "script. This is what every contract call looks like either way: the " +
+      "default config asks Ledger for no descriptor at all, and with " +
+      "`useRemoteLedgerServices` on Ledger answers the descriptor request " +
+      "for contract calls with 403, because the plugin sends no origin " +
+      "token.",
   );
 
   await withConnection(async (ctx) => {
@@ -1368,6 +1413,54 @@ function mainnetFork(): NetworkConnectionParams {
   };
 }
 
+/** The same connection, with the clear-signing services switched on. */
+function withRemoteLedgerServices(
+  params: NetworkConnectionParams = { network: "edrOp" },
+): NetworkConnectionParams {
+  return {
+    ...params,
+    override: {
+      ...params.override,
+      ledgerOptions: {
+        ...params.override?.ledgerOptions,
+        useRemoteLedgerServices: true,
+      },
+    },
+  };
+}
+
+/**
+ * Every signing path that can reach Ledger's servers, run once. Both
+ * `useRemoteLedgerServices` scenarios share it, so that their logs line up.
+ */
+async function signOnEveryPath(ctx: Ctx): Promise<void> {
+  step("personal_sign: no metadata to fetch either way");
+  await personalSign(ctx, "no network request for this");
+
+  step("eth_sendTransaction: a plain ETH transfer");
+  await sendEth(ctx, ctx.hardhatAddress, 1n);
+
+  step("eth_sendTransaction: a USDC transfer, the clear-signing case");
+  await fundWithUsdc(ctx, 1_000n * USDC_UNIT);
+
+  const usdc = new ctx.ethers.Contract(
+    USDC_ON_OPTIMISM,
+    ERC20_ABI,
+    ctx.ledgerSigner,
+  );
+  const transfer = await usdc.transfer(
+    ctx.hardhatAddress,
+    100n * USDC_UNIT,
+    TX_OVERRIDES,
+  );
+  await transfer.wait();
+
+  step("eth_signTypedData_v4");
+  const typedData = mail(ctx);
+  const signature = await signTypedData(ctx, JSON.stringify(typedData));
+  assertSameAddress(recoverMail(ctx, typedData, signature), ctx.ledgerAddress);
+}
+
 async function personalSign(ctx: Ctx, message: string): Promise<string> {
   const signature = await ctx.provider.request({
     method: "personal_sign",
@@ -1699,11 +1792,21 @@ function logRequestsToLedgerServers(): void {
       header.toLowerCase().startsWith("x-ledger-client-origin"),
     );
 
-    console.log(
-      `    [ledger-http] ${request.method} ${request.origin}${request.path} ` +
-        `(${hasOriginToken ? "origin token sent" : "no origin token"})`,
-    );
+    const line =
+      `${request.method} ${request.origin}${request.path} ` +
+      `(${hasOriginToken ? "origin token sent" : "no origin token"})`;
+
+    requestsToLedger.push(line);
+
+    console.log(`    [ledger-http] ${line}`);
   });
+}
+
+/** Starts the log above, and forgets the requests of earlier scenarios. */
+function recordRequestsToLedgerServers(): void {
+  logRequestsToLedgerServers();
+
+  requestsToLedger.length = 0;
 }
 
 /**
