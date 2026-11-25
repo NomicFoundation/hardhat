@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { after, before, describe, it, mock } from "node:test";
 import { stripVTControlCharacters } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -85,6 +85,11 @@ const hardhatConfigProfileTests = {
       },
     },
   },
+};
+
+const hardhatConfigTracesTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/traces" } },
 };
 
 const TX_GAS_CAP_TEST_PATH = {
@@ -351,6 +356,154 @@ describe("solidity-test/task-action", function () {
         /HardhatError:|\n\s+at /,
         "The raw error and its stack trace shouldn't be printed",
       );
+    });
+
+    describe("includeTraces", () => {
+      // Returns, for each test name, whether EDR collected call traces for it.
+      function tracesByTest(
+        suiteResults: SuiteResult[],
+      ): Record<string, boolean> {
+        const byTest: Record<string, boolean> = {};
+        for (const suiteResult of suiteResults) {
+          for (const testResult of suiteResult.testResults) {
+            byTest[testResult.name] = testResult.callTraces().length > 0;
+          }
+        }
+        return byTest;
+      }
+
+      async function runCapturingOutput(
+        run: () => Promise<{
+          success: boolean;
+          value?: { suiteResults: SuiteResult[] };
+          error?: { suiteResults: SuiteResult[] };
+        }>,
+      ): Promise<{ suiteResults: SuiteResult[]; output: string }> {
+        // Spy on what is printed without replacing it: `node --test` reads the
+        // child process's stdout.
+        const write = mock.method(process.stdout, "write");
+
+        let result;
+        try {
+          result = await run();
+        } finally {
+          write.mock.restore();
+        }
+
+        const suiteResults = result.success
+          ? result.value?.suiteResults
+          : result.error?.suiteResults;
+        assert.ok(suiteResults !== undefined, "suiteResults should be set");
+
+        return {
+          suiteResults,
+          output: stripVTControlCharacters(
+            write.mock.calls.map((call) => String(call.arguments[0])).join(""),
+          ),
+        };
+      }
+
+      it("collects every test's traces with `all` without printing them", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigTracesTests);
+
+        const { suiteResults, output } = await runCapturingOutput(() =>
+          hre.tasks
+            .getTask(["test", "solidity"])
+            .run({ noCompile: true, includeTraces: "all" }),
+        );
+
+        assert.deepEqual(tracesByTest(suiteResults), {
+          "test_Fails()": true,
+          "test_Passes()": true,
+        });
+        assert.doesNotMatch(output, /Call Traces:/);
+      });
+
+      it("collects only the failing tests' traces with `failing`", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigTracesTests);
+
+        const { suiteResults, output } = await runCapturingOutput(() =>
+          hre.tasks
+            .getTask(["test", "solidity"])
+            .run({ noCompile: true, includeTraces: "failing" }),
+        );
+
+        assert.deepEqual(tracesByTest(suiteResults), {
+          "test_Fails()": true,
+          "test_Passes()": false,
+        });
+        assert.doesNotMatch(output, /Call Traces:/);
+      });
+
+      it("doesn't reduce what -vvvv collects and prints with `failing`", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigTracesTests, {
+          verbosity: 4,
+        });
+
+        const { suiteResults, output } = await runCapturingOutput(() =>
+          hre.tasks
+            .getTask(["test", "solidity"])
+            .run({ noCompile: true, includeTraces: "failing" }),
+        );
+
+        assert.deepEqual(tracesByTest(suiteResults), {
+          "test_Fails()": true,
+          "test_Passes()": true,
+        });
+        assert.equal(output.match(/Call Traces:/g)?.length, 2);
+      });
+
+      it("keeps collecting by verbosity when unset", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigTracesTests);
+
+        const { suiteResults } = await runCapturingOutput(() =>
+          hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true }),
+        );
+
+        assert.deepEqual(tracesByTest(suiteResults), {
+          "test_Fails()": false,
+          "test_Passes()": false,
+        });
+      });
+
+      it("throws on any other value", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigTracesTests);
+
+        await assertRejectsWithHardhatError(
+          hre.tasks
+            .getTask(["test", "solidity"])
+            .run({ noCompile: true, includeTraces: "some" }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: "some",
+            type: '"failing" | "all"',
+            name: "includeTraces",
+          },
+        );
+      });
+
+      it("can be set by a plugin through runSuper", async () => {
+        hre = await createHardhatRuntimeEnvironment({
+          ...hardhatConfigTracesTests,
+          tasks: [
+            overrideTask(["test", "solidity"])
+              .setAction(async () => ({
+                default: (args, _hre, runSuper) =>
+                  runSuper({ ...args, includeTraces: "all" }),
+              }))
+              .build(),
+          ],
+        });
+
+        const { suiteResults } = await runCapturingOutput(() =>
+          hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true }),
+        );
+
+        assert.deepEqual(tracesByTest(suiteResults), {
+          "test_Fails()": true,
+          "test_Passes()": true,
+        });
+      });
     });
 
     describe("when the contracts are in the optimism chain type", () => {

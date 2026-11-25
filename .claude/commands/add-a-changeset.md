@@ -57,6 +57,14 @@ The entry is read as one line among many on the GitHub Release feed. Keep it sca
 
   A hand-written link is justified only when it points at an **issue**, since the generated one already points at the pull request.
 
+- **Exception: thank whoever did the work when the pull request only ports it.** When the change was made by someone other than the pull request's author — most often an EDR change surfaced by an EDR upgrade — open the line with `Thanks @<github-handle>!`, resolving the handle from the upstream commit rather than guessing it. Whenever the body contains a `Thanks @<handle>`, `scripts/custom-changelog.ts` drops the generated thanks, so the entry credits only the person named:
+
+  ```text
+  - [#PR](…) [`sha`](…) - Thanks @contributor! Added experimental EIP-8038 support to the Amsterdam hardfork: state-access operations are repriced.
+  ```
+
+  Never write a thanks to the pull request's own author; that is what the generated one is for.
+
 - **Backtick** every identifier, config key, package name, CLI flag, error code and literal value: `hre.network.create()`, `test.solidity.ffi`, `--coverage`, `HHE27`.
 - Name the **user-visible symptom**, not the internal cause.
 
@@ -113,4 +121,4 @@ Do not modify `.peer-bumps.json`, source code, or changesets other than the ones
 ## Context
 
 - Three checks run on every pull request, each with its own escape label: `no changeset needed`, `no peer bump needed`, `no docs needed`. Release pull requests (head ref starting `changeset-release/`) are exempt from all three.
-- `.changeset/config.json` points the changelog generator at `scripts/custom-changelog.ts`, which uses `@changesets/changelog-github` whenever `GITHUB_TOKEN` is set.
+- `.changeset/config.json` points the changelog generator at `scripts/custom-changelog.ts`, which uses `@changesets/changelog-github` whenever `GITHUB_TOKEN` is set, passing it `disableThanks` for any changeset whose body already carries a `Thanks @<handle>`.

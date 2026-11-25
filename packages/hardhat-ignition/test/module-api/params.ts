@@ -1,10 +1,13 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("module parameters", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should be able to retrieve a default number", async function () {
     const moduleDefinition = buildModule("WithDefaultModule", (m) => {
@@ -17,7 +20,7 @@ describe("module parameters", () => {
       return { foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const v = await result.foo.read.x();
 
@@ -35,7 +38,7 @@ describe("module parameters", () => {
       return { foo };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition, {
+    const result = await project.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultModule: {
           MyNumber: 20,
@@ -55,7 +58,7 @@ describe("module parameters", () => {
       return { greeter };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const v = await result.greeter.read.getGreeting();
 
@@ -71,7 +74,7 @@ describe("module parameters", () => {
       return { greeter };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition, {
+    const result = await project.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultStringModule: {
           MyString: "NotExample",
@@ -93,11 +96,11 @@ describe("module parameters", () => {
       return { ownerContract };
     });
 
-    const result = await this.ignition.deploy(moduleDefinition);
+    const result = await project.ignition.deploy(moduleDefinition);
 
     const v = (await result.ownerContract.read.owner()) as string;
 
-    const accounts = (await this.connection.provider.request({
+    const accounts = (await project.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
@@ -115,11 +118,11 @@ describe("module parameters", () => {
       return { ownerContract };
     });
 
-    const accounts = (await this.connection.provider.request({
+    const accounts = (await project.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
-    const result = await this.ignition.deploy(moduleDefinition, {
+    const result = await project.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultAccountModule: {
           newOwner: accounts[2],
@@ -134,10 +137,10 @@ describe("module parameters", () => {
 });
 
 describe("params validation", () => {
-  useEphemeralIgnitionProject("minimal");
+  const project = useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {
-    await this.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask("build").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");
@@ -149,16 +152,17 @@ describe("params validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.ignition.deploy(userModule);
+    const deployPromise = project.ignition.deploy(userModule);
 
-    await assert.isRejected(
-      deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none",
+    await assertRejects(deployPromise, (e) =>
+      e.message.includes(
+        "Module parameter 'MyNumber' requires a value but was given none",
+      ),
     );
   });
 
   it("should throw if parameter missing from parameters", async function () {
-    await this.hre.tasks.getTask("build").run({ quiet: true });
+    await project.hre.tasks.getTask("build").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");
@@ -170,7 +174,7 @@ describe("params validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.ignition.deploy(userModule, {
+    const deployPromise = project.ignition.deploy(userModule, {
       parameters: {
         UserModule: {
           NotMyNumber: 11,
@@ -178,9 +182,10 @@ describe("params validation", () => {
       },
     });
 
-    await assert.isRejected(
-      deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none",
+    await assertRejects(deployPromise, (e) =>
+      e.message.includes(
+        "Module parameter 'MyNumber' requires a value but was given none",
+      ),
     );
   });
 });

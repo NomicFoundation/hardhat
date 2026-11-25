@@ -453,12 +453,13 @@ You can define it using a plugin like hardhat-keystore, or set it as an environm
       },
       NOT_IN_INTERACTIVE_SHELL: {
         number: 11,
-        messageTemplate:
-          "You are trying to initialize a project but you are not in an interactive shell.",
+        messageTemplate: `You are trying to initialize a project but you are not in an interactive shell.
+
+To initialize a project without prompts, run "npx hardhat --init --templates" to list the available templates, then "npx hardhat --init --template <name>".`,
         websiteTitle: "Not inside an interactive shell",
         websiteDescription: `You are trying to initialize a project but you are not in an interactive shell.
 
-Please re-run the command inside an interactive shell.`,
+Please re-run the command inside an interactive shell, or initialize the project without prompts by choosing a template: run \`npx hardhat --init --templates\` to list the available templates, then \`npx hardhat --init --template <name>\`.`,
       },
       UNSUPPORTED_OPERATION: {
         number: 12,
@@ -1757,6 +1758,18 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         messageTemplate: `The import path "{importPath}" is already defined in the compilation sources`,
         websiteTitle: "Import path already defined in compilation sources",
         websiteDescription: `The import path is already defined in the compilation sources`,
+      },
+      NO_INSTRUMENTED_SOURCES: {
+        number: 1302,
+        messageTemplate: `No contracts were instrumented for coverage, so there is nothing to report.
+
+Coverage can't be used with --no-compile, as contracts are instrumented while compiling. Without --no-compile, check that your project has contracts outside its tests directory, that coverage.skipFiles doesn't exclude all of them, and that the selected test files import at least one of them.`,
+        websiteTitle: "No contracts were instrumented for coverage",
+        websiteDescription: `A test run with \`--coverage\` found no instrumented contracts to report on.
+
+Hardhat instruments your contracts for coverage while compiling them, and only keeps that information for the current run. Running the tests with \`--coverage\` and \`--no-compile\` skips that step, so there is nothing to report against.
+
+Run the tests with \`--coverage\` and without \`--no-compile\`. If you didn't use \`--no-compile\`, check that your project has contracts outside its tests directory, that \`coverage.skipFiles\` in your Hardhat config doesn't exclude all of them, and that the test files you selected import at least one of them. When you pass test files, only the contracts they import are compiled and instrumented.`,
       },
     },
     INIT: {

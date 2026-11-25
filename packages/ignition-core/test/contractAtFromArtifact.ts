@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { FutureType } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
@@ -26,7 +27,7 @@ describe("contractAtFromArtifact", () => {
       return { contract1 };
     });
 
-    assert.isDefined(moduleWithContractFromArtifact);
+    assert.notEqual(moduleWithContractFromArtifact, undefined);
 
     // Sets ids based on module id and contract name
     assert.equal(moduleWithContractFromArtifact.id, "Module1");

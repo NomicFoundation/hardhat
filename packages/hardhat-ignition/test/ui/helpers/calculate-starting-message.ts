@@ -1,6 +1,6 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { styleText } from "node:util";
-
-import { assert } from "chai";
 
 import { calculateStartingMessage } from "../../../src/internal/ui/helpers/calculate-starting-message.js";
 

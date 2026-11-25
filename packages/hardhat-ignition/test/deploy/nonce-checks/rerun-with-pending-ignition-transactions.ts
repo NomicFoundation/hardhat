@@ -1,7 +1,9 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
@@ -11,7 +13,10 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * up where the first run left off and without any other user transactions.
  */
 describe("execution - rerun with pending ignition transactions", () => {
-  useFileIgnitionProject("minimal", "rerun-with-pending-ignition-transactions");
+  const project = useFileIgnitionProject(
+    "minimal",
+    "rerun-with-pending-ignition-transactions",
+  );
 
   it("should complete the run on the second attempt", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -55,7 +60,7 @@ describe("execution - rerun with pending ignition transactions", () => {
       };
     });
 
-    await this.runControlledDeploy(
+    await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // Process the first block, include foo1 and foo2
@@ -70,7 +75,7 @@ describe("execution - rerun with pending ignition transactions", () => {
     // NOTE: no blocks mined between previous run and this run
     // there should two deploy contract transactions for foo3 and foo4
     // in the mempool
-    const result = await this.runControlledDeploy(
+    const result = await project.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should confirm foo3 and foo4
@@ -81,7 +86,7 @@ describe("execution - rerun with pending ignition transactions", () => {
       },
     );
 
-    assert.isDefined(result);
+    assert.notEqual(result, undefined);
 
     const x1 = await result.foo1.read.x();
     const x2 = await result.foo2.read.x();

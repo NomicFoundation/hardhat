@@ -12,6 +12,7 @@ import type {
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { setTimeout } from "node:timers/promises";
 
 import { GasEstimationMode } from "@nomicfoundation/edr";
 import {
@@ -515,28 +516,49 @@ describe("edr-provider", () => {
           },
         });
 
-        const { provider } = await forkedHre.network.create("edrOptimism");
+        // WETH Optimism address
+        const targetAddress = "0x4200000000000000000000000000000000000006";
 
-        try {
-          // WETH Optimism address
-          const targetAddress = "0x4200000000000000000000000000000000000006";
+        // The public Optimism RPC is missing the state of some recent blocks,
+        // and answers eth_getProof for them with "no state found for block
+        // number N". Each new connection forks from a newer block, so we retry
+        // with a new connection when that happens.
+        const maxAttempts = 3;
+        for (let attempt = 1; ; attempt++) {
+          const { provider } = await forkedHre.network.create("edrOptimism");
 
-          const proof = await provider.request({
-            method: "eth_getProof",
-            params: [targetAddress, [], "latest"],
-          });
+          try {
+            const proof = await provider.request({
+              method: "eth_getProof",
+              params: [targetAddress, [], "latest"],
+            });
 
-          assert.equal(
-            proof.address,
-            targetAddress,
-            "Should return proof for the requested address",
-          );
-          assert.ok(
-            proof.accountProof.length > 0,
-            "Should have account proof from remote",
-          );
-        } finally {
-          await provider.close();
+            assert.equal(
+              proof.address,
+              targetAddress,
+              "Should return proof for the requested address",
+            );
+            assert.ok(
+              proof.accountProof.length > 0,
+              "Should have account proof from remote",
+            );
+
+            return;
+          } catch (error) {
+            if (
+              attempt === maxAttempts ||
+              !ProviderError.isProviderError(error) ||
+              !error.message.includes("no state found for block number")
+            ) {
+              throw error;
+            }
+          } finally {
+            await provider.close();
+          }
+
+          // OP Mainnet produces a block every 2 seconds, so after this wait the
+          // next connection forks from a newer block
+          await setTimeout(2000);
         }
       });
 

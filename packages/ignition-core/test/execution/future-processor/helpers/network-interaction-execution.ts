@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
 
 import { monitorOnchainInteraction } from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction.js";
 import { decodeSimulationResult } from "../../../../src/internal/execution/future-processor/helpers/decode-simulation-result.js";
@@ -198,8 +199,8 @@ describe("Network interactions", () => {
           assert.equal(callParams.to, staticCall.to);
           assert.equal(callParams.data, staticCall.data);
           assert.equal(callParams.value, staticCall.value);
-          assert.isUndefined(callParams.fees);
-          assert.isUndefined(callParams.nonce);
+          assert.equal(callParams.fees, undefined);
+          assert.equal(callParams.nonce, undefined);
           assert.equal(blockTag, "latest");
 
           return expectedResult;
@@ -292,7 +293,7 @@ describe("Network interactions", () => {
         return assert.fail("No message returned from monitoring");
       }
 
-      assert.isDefined(message);
+      assert.notEqual(message, undefined);
       assert.equal(message.type, JournalMessageType.TRANSACTION_CONFIRM);
       assert.equal(message.futureId, deploymentExecutionState.id);
     });

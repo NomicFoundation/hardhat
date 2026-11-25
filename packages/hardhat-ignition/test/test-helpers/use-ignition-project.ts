@@ -9,13 +9,13 @@ import type {
   RequestArguments,
 } from "hardhat/types/providers";
 
-import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { cpSync } from "node:fs";
-import path, { dirname } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import path from "node:path";
+import { beforeEach, afterEach } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { ensureDir, remove } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -26,20 +26,20 @@ import { mineBlock } from "./mine-block.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
 import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-declare module "mocha" {
-  interface Context {
-    hre: HardhatRuntimeEnvironment;
-    ignition: TestIgnitionHelper;
-    connection: NetworkConnection;
-    deploymentDir: string | undefined;
-    runControlledDeploy: (
-      ignitionModule: IgnitionModule,
-      chainUpdates: (c: TestChainHelper) => Promise<void>,
-    ) => ReturnType<typeof runDeploy>;
-    config: Partial<DeployConfig>;
-  }
+/**
+ * The Hardhat environment of a fixture project, set up again before each test
+ * by `useEphemeralIgnitionProject` or `useFileIgnitionProject`.
+ */
+export interface IgnitionProject {
+  hre: HardhatRuntimeEnvironment;
+  ignition: TestIgnitionHelper;
+  connection: NetworkConnection;
+  deploymentDir: string | undefined;
+  runControlledDeploy: (
+    ignitionModule: IgnitionModule,
+    chainUpdates: (c: TestChainHelper) => Promise<void>,
+  ) => ReturnType<typeof runDeploy>;
+  config: Partial<DeployConfig>;
 }
 
 const defaultTestConfig: DeployConfig = {
@@ -52,45 +52,17 @@ const defaultTestConfig: DeployConfig = {
   retryInterval: 1000,
 };
 
-// todo: whenever these tests are migrated to node:test,
-// we should use `useEphemeralFixtureProject` from hardhat-test-utils here instead
-export function useProject(fixtureProjectName: string): void {
-  const basePath = path.resolve(import.meta.dirname, "..", "fixture-projects");
-  const tmpProjectPath = path.join("tmp", randomUUID());
-  let prevWorkingDir: string;
+export function useEphemeralIgnitionProject(
+  fixtureProjectName: string,
+): IgnitionProject {
+  const project = {} as IgnitionProject;
 
-  before(function () {
-    cpSync(
-      path.join(basePath, fixtureProjectName),
-      path.join(basePath, tmpProjectPath),
-      {
-        recursive: true,
-        force: true,
-      },
-    );
+  // Each test file works in its own copy of the fixture project, so that test
+  // files can run in parallel.
+  useEphemeralFixtureProject(fixtureProjectName);
 
-    prevWorkingDir = process.cwd();
-    process.chdir(path.join(basePath, tmpProjectPath));
-  });
-
-  after(async () => {
-    process.chdir(prevWorkingDir);
-    await remove(path.join(basePath, tmpProjectPath));
-  });
-}
-
-export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
-  let projectPath: string;
-  let prevWorkingDir: string;
-
-  beforeEach("Load environment", async function () {
-    projectPath = path.join(
-      __dirname,
-      "../fixture-projects",
-      fixtureProjectName,
-    );
-    prevWorkingDir = process.cwd();
-    process.chdir(projectPath);
+  beforeEach(async function () {
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
     const { default: userConfig } = await import(
@@ -120,33 +92,28 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
 
-    this.hre = hre;
-    this.connection = connection;
-    this.ignition = new TestIgnitionHelper(hre, connection);
-    this.deploymentDir = undefined;
+    project.hre = hre;
+    project.connection = connection;
+    project.ignition = new TestIgnitionHelper(hre, connection);
+    project.deploymentDir = undefined;
   });
 
-  afterEach("reset hardhat context", function () {
-    process.chdir(prevWorkingDir);
-  });
+  return project;
 }
 
 export function useFileIgnitionProject(
   fixtureProjectName: string,
   deploymentId: string,
   config?: Partial<DeployConfig>,
-): void {
-  let projectPath: string;
-  let prevWorkingDir: string;
+): IgnitionProject {
+  const project = {} as IgnitionProject;
 
-  beforeEach("Load environment", async function () {
-    projectPath = path.join(
-      __dirname,
-      "../fixture-projects",
-      fixtureProjectName,
-    );
-    prevWorkingDir = process.cwd();
-    process.chdir(projectPath);
+  // Each test file works in its own copy of the fixture project, so that test
+  // files can run in parallel.
+  useEphemeralFixtureProject(fixtureProjectName);
+
+  beforeEach(async function () {
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
     const { default: userConfig } = await import(
@@ -180,10 +147,10 @@ export function useFileIgnitionProject(
       params: [false],
     });
 
-    this.hre = hre;
-    this.connection = connection;
-    this.ignition = new TestIgnitionHelper(hre, connection);
-    this.deploymentDir = deploymentDir;
+    project.hre = hre;
+    project.connection = connection;
+    project.ignition = new TestIgnitionHelper(hre, connection);
+    project.deploymentDir = deploymentDir;
 
     const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
@@ -193,11 +160,11 @@ export function useFileIgnitionProject(
       ...config,
     };
 
-    this.config = testConfig;
+    project.config = testConfig;
 
     await ensureDir(deploymentDir);
 
-    this.runControlledDeploy = (
+    project.runControlledDeploy = (
       ignitionModule: IgnitionModule,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
     ) => {
@@ -210,17 +177,17 @@ export function useFileIgnitionProject(
     };
   });
 
-  afterEach("reset hardhat context", async function () {
-    if (this.deploymentDir === undefined) {
+  afterEach(async function () {
+    if (project.deploymentDir === undefined) {
       throw new Error(
         "Deployment dir not set during cleanup of file based project",
       );
     }
 
-    await remove(this.deploymentDir);
-
-    process.chdir(prevWorkingDir);
+    await remove(project.deploymentDir);
   });
+
+  return project;
 }
 
 async function runDeploy(
@@ -251,12 +218,23 @@ async function runDeploy(
 
     const chainHelper = new TestChainHelper(connection, deployPromise, killFn);
 
-    const [result] = await Promise.all([
+    // Wait for both to settle, even if the deploy finishes first. Otherwise the
+    // rest of `chainUpdates` keeps mining blocks and changing the base fee after
+    // we return, racing with whatever the test does next.
+    const [deployResult, chainUpdatesResult] = await Promise.allSettled([
       deployPromise,
       chainUpdates(chainHelper),
     ]);
 
-    return result;
+    if (deployResult.status === "rejected") {
+      throw deployResult.reason;
+    }
+
+    if (chainUpdatesResult.status === "rejected") {
+      throw chainUpdatesResult.reason;
+    }
+
+    return deployResult.value;
   } catch (error) {
     if (error instanceof Error && error.message === "Killing deploy process") {
       return {};

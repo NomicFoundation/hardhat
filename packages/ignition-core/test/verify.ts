@@ -3,7 +3,8 @@ import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { type VerifyResult, getVerificationInformation } from "../src/index.js";
 
@@ -98,9 +99,8 @@ describe("verify", () => {
     for await (const info of getVerificationInformation(deploymentDir)) {
       // Note: the library in this test is called UUUUU
       assert(typeof info !== "string", "Expected a VerifyInfo, got a string");
-      assert.notInclude(
-        info.contract,
-        "contracts/Lib.sol:contracts/Lib.sol:",
+      assert.ok(
+        !info.contract.includes("contracts/Lib.sol:contracts/Lib.sol:"),
         "Source name should not be duplicated in the contract FQN",
       );
       if (info.contract.endsWith(":UUUUU")) {
@@ -108,7 +108,7 @@ describe("verify", () => {
         sawLibrary = true;
       }
     }
-    assert.isTrue(sawLibrary, "Expected to find the UUUUU library entry");
+    assert.equal(sawLibrary, true, "Expected to find the UUUUU library entry");
   });
 
   it("should yield a verify result for contract with libraries", async () => {
@@ -129,6 +129,6 @@ describe("verify", () => {
       }
     }
 
-    assert.isTrue(success);
+    assert.equal(success, true);
   });
 });

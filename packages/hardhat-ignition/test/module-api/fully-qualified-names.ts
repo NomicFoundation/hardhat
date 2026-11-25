@@ -1,11 +1,15 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("fully qualified names", () => {
   describe("where there are multiple contracts with the same name in the project", () => {
-    useEphemeralIgnitionProject("multiple-contracts-with-same-name");
+    const project = useEphemeralIgnitionProject(
+      "multiple-contracts-with-same-name",
+    );
 
     it("should deploy contracts by referring using fully qualified names", async function () {
       const LaunchModule = buildModule("Apollo", (m) => {
@@ -27,7 +31,7 @@ describe("fully qualified names", () => {
         return { rocket1, rocket2 };
       });
 
-      const result = await this.ignition.deploy(LaunchModule);
+      const result = await project.ignition.deploy(LaunchModule);
 
       assert.equal(await result.rocket1.read.name(), "Rocket 1");
       assert.equal(await result.rocket2.read.name(), "Rocket 2");

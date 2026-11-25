@@ -1,59 +1,67 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 describe("module parameters", () => {
   describe("a standard hardhat project", () => {
-    useEphemeralIgnitionProject("lock");
+    const project = useEphemeralIgnitionProject("lock");
 
     it("should run if provided with a valid module parameters file", async function () {
-      await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/Lock.ts",
         parameters: "./ignition/modules/parameters.json",
       });
     });
 
     it("should run if provided with a valid module parameters file in JSON5 format", async function () {
-      await await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await await project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/Lock.ts",
         parameters: "./ignition/modules/parameters-json5.json5",
       });
     });
 
     it("should run if provided with a valid module parameters file encoding a bigint as a string", async function () {
-      await await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await await project.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/Lock.ts",
         parameters: "./ignition/modules/parameters-bigints-as-strings.json",
       });
     });
 
     it("should fail if the module path is invalid", async function () {
-      await assert.isRejected(
-        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await assertRejectsWithHardhatError(
+        project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
         }),
-        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
+        HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_NOT_FOUND_AT_PATH,
+        { modulePath: "./ignition/modules/nonexistant.ts" },
       );
     });
 
     it("should fail if the module parameters path is invalid", async function () {
-      await assert.isRejected(
-        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await assertRejectsWithHardhatError(
+        project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
           parameters: "./ignition/modules/nonexistant.json",
         }),
-        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
+        HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_NOT_FOUND_AT_PATH,
+        { modulePath: "./ignition/modules/nonexistant.ts" },
       );
     });
 
     it("should fail if parameters file number is larger than allowed", async function () {
-      await assert.isRejected(
-        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      await assertRejectsWithHardhatError(
+        project.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/,
+        HardhatError.ERRORS.IGNITION.INTERNAL
+          .PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
+        { parameter: "unlockTime", value: 1893499200000000000 },
       );
     });
 
@@ -66,11 +74,11 @@ describe("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.ignition.deploy(ignitionModule, {
+      const result = await project.ignition.deploy(ignitionModule, {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use a global parameter instead of the default value", async function () {
@@ -82,11 +90,11 @@ describe("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.ignition.deploy(ignitionModule, {
+      const result = await project.ignition.deploy(ignitionModule, {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use the module parameter even if global parameters exist but not that specific parameter", async function () {
@@ -98,7 +106,7 @@ describe("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.ignition.deploy(ignitionModule, {
+      const result = await project.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { globalLevelParam: "should-not-be-read" },
           Test: {
@@ -107,7 +115,7 @@ describe("module parameters", () => {
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use the global parameter even if module parameters exist but not that specific parameter", async function () {
@@ -119,7 +127,7 @@ describe("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.ignition.deploy(ignitionModule, {
+      const result = await project.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { globalLevelParam: 1893499200000 },
           Test: {
@@ -128,7 +136,7 @@ describe("module parameters", () => {
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000n);
     });
 
     it("should use a module parameter instead of a global parameter if both are present", async function () {
@@ -140,14 +148,14 @@ describe("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.ignition.deploy(ignitionModule, {
+      const result = await project.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { unlockTime: 1893499200000 },
           Test: { unlockTime: 9876543210000 },
         },
       });
 
-      assert.equal(await result.lock.read.unlockTime(), 9876543210000);
+      assert.equal(await result.lock.read.unlockTime(), 9876543210000n);
     });
   });
 });

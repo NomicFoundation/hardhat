@@ -21,3 +21,6 @@
 
 # Hardhat coverage reports
 /coverage
+
+# Manual QA scenario logs and assets
+/scenarios

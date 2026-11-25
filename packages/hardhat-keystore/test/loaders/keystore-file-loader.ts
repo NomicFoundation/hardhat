@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
+import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { after, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
-import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  assertRejects,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import { remove, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { createMasterKey } from "../../src/internal/keystores/encryption.js";
+import { setUpPasswordForDevKeystore } from "../../src/internal/keystores/password.js";
+import { FileManagerImpl } from "../../src/internal/loaders/file-manager.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
 import {
@@ -221,3 +227,38 @@ describe("KeystoreFileLoader", () => {
     });
   }
 });
+
+describe(
+  "FileManagerImpl permissions",
+  { skip: process.platform === "win32" },
+  () => {
+    const tmp = createTmpDir("keystore-perms", "test");
+    const emptyKeystore = new MockFileManager(false).setupExistingKeystoreFile(
+      {},
+    );
+
+    const getMode = async (absolutePath: string) =>
+      // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
+      (await fsPromises.stat(absolutePath)).mode & 0o777;
+
+    it("writes the keystore and the dev password file readable only by the user", async () => {
+      const keystorePath = path.join(tmp.path, "keystore.json");
+      const passwordPath = path.join(tmp.path, "hardhat.checksum");
+
+      await new FileManagerImpl().writeJsonFile(keystorePath, emptyKeystore);
+      await setUpPasswordForDevKeystore(passwordPath);
+
+      assert.equal(await getMode(keystorePath), 0o600);
+      assert.equal(await getMode(passwordPath), 0o600);
+    });
+
+    it("tightens an existing keystore file", async () => {
+      const keystorePath = path.join(tmp.path, "keystore.json");
+      await writeUtf8File(keystorePath, "{}", { mode: 0o644 });
+
+      await new FileManagerImpl().writeJsonFile(keystorePath, emptyKeystore);
+
+      assert.equal(await getMode(keystorePath), 0o600);
+    });
+  },
+);

@@ -1,30 +1,35 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { checkAutominedNetwork } from "../../src/internal/utils/check-automined-network.js";
 import type { EIP1193Provider } from "../../src/types/provider.js";
 
 describe("check-automin-network", () => {
   it("should confirm a Hardhat network that has automining enabled", async () =>
-    assert.isTrue(
+    assert.equal(
       await checkAutominedNetwork(setupMockProvider("hardhat", true)),
+      true,
       "Hardhat network should have automining enabled",
     ));
 
   it("should indicate a Hardhat network that has automining disabled", async () =>
-    assert.isFalse(
+    assert.equal(
       await checkAutominedNetwork(setupMockProvider("hardhat", false)),
+      false,
       "Hardhat network should _not_ have automining enabled",
     ));
 
   it("should confirm a ganache network", async () =>
-    assert.isTrue(
+    assert.equal(
       await checkAutominedNetwork(setupMockProvider("ganache")),
+      true,
       "Ganache networks should have automining enabled",
     ));
 
   it("should indicate not an automining network for other networks", async () =>
-    assert.isFalse(
+    assert.equal(
       await checkAutominedNetwork(setupMockProvider("other")),
+      false,
       "Other network should _not_ have automining enabled",
     ));
 });

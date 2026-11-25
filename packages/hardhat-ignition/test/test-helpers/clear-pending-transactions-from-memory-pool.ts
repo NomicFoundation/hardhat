@@ -1,6 +1,6 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
-import { assert } from "chai";
+import assert from "node:assert/strict";
 
 export async function clearPendingTransactionsFromMemoryPool(
   connection: NetworkConnection,

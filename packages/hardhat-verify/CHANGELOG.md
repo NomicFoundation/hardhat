@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.1.5
+
+### Patch Changes
+
+- [#8791](https://github.com/NomicFoundation/hardhat/pull/8791) [`98c2d83`](https://github.com/NomicFoundation/hardhat/commit/98c2d831dc9161c66fdbe998334e8fb590434b1c) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed an empty `bytes` constructor argument being encoded as one zero byte when an older `@nomicfoundation/hardhat-utils` was installed, by requiring 5.1.1 or later.
+
 ## 3.1.4
 
 ### Patch Changes

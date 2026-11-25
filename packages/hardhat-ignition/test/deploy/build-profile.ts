@@ -1,21 +1,21 @@
+import assert from "node:assert/strict";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
 
-import { assert } from "chai";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatIgnitionPlugin from "../../src/index.js";
 
 describe("build profile", function () {
+  useEphemeralFixtureProject("minimal");
+
   it("should pass the right default build profile to the compile task", async function () {
     let defaultBuildProfile: string | undefined;
 
-    const projectPath = path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "../fixture-projects",
-      "minimal",
-    );
+    const projectPath = process.cwd();
 
     const configPath = path.join(projectPath, "hardhat.config.js");
     const { default: userConfig } = await import(

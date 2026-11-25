@@ -34,7 +34,7 @@ export function setLengthLeft(bytes: Uint8Array, length: number): Uint8Array {
     return padded;
   }
 
-  return bytes.subarray(-length);
+  return length === 0 ? bytes.subarray(0, 0) : bytes.subarray(-length);
 }
 
 /**

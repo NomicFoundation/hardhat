@@ -15,6 +15,7 @@ export type CoverageData = Tag[];
 export interface CoverageManager {
   addData(data: CoverageData): Promise<void>;
   addMetadata(metadata: CoverageMetadata): Promise<void>;
+  hasMetadata(): boolean;
 
   clearData(id: string): Promise<void>;
   saveData(id: string): Promise<void>;

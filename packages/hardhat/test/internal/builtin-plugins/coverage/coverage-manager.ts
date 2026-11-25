@@ -289,6 +289,22 @@ describe("CoverageManagerImplementation", () => {
     assert.ok(allData.length === 0, "The data should be cleared from disk");
   });
 
+  it("should have no metadata before any is added", async () => {
+    assert.equal(coverageManager.hasMetadata(), false);
+  });
+
+  it("should have metadata once some is added", async () => {
+    await coverageManager.addMetadata(metadata);
+
+    assert.equal(coverageManager.hasMetadata(), true);
+  });
+
+  it("should have no metadata when an empty list is added", async () => {
+    await coverageManager.addMetadata([]);
+
+    assert.equal(coverageManager.hasMetadata(), false);
+  });
+
   it("should not clear the metadata", async () => {
     await coverageManager.addMetadata(metadata);
 

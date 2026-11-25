@@ -1,9 +1,13 @@
+import type { DispatcherOptions } from "../src/request.js";
+import type { TestContext } from "node:test";
 import type UndiciT from "undici";
 
 import assert from "node:assert/strict";
+import http from "node:http";
+import net from "node:net";
 import path from "node:path";
 import querystring from "node:querystring";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 import { ProxyAgent, Pool, Agent, Client } from "undici";
@@ -11,10 +15,12 @@ import { ProxyAgent, Pool, Agent, Client } from "undici";
 import { ensureError } from "../src/error.js";
 import { exists, readUtf8File, readdir } from "../src/fs.js";
 import {
+  AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
   generateTempFilePath,
   getBaseDispatcherOptions,
   getBaseRequestOptions,
 } from "../src/internal/request.js";
+import { isObject } from "../src/lang.js";
 import {
   DEFAULT_MAX_REDIRECTS,
   DEFAULT_TIMEOUT_IN_MILLISECONDS,
@@ -240,12 +246,80 @@ describe("Requests util", () => {
       });
     });
 
+    // undici only passes the attempt timeout to Node when `autoSelectFamily` is
+    // set, so these check what Node receives rather than our options object.
+    describe("Connection attempt timeout", () => {
+      let server: http.Server;
+      let url: string;
+
+      before(async () => {
+        server = http.createServer((_req, res) => res.end("ok"));
+        await new Promise<void>((resolve) =>
+          server.listen(0, "127.0.0.1", resolve),
+        );
+
+        const address = server.address();
+        assert.ok(
+          address !== null && typeof address !== "string",
+          "Should listen on a TCP port",
+        );
+        url = `http://127.0.0.1:${address.port}/`;
+      });
+
+      after(async () => {
+        await new Promise((resolve) => server.close(resolve));
+      });
+
+      async function getNodeConnectOptions(
+        t: TestContext,
+        dispatcherOptions: DispatcherOptions,
+      ): Promise<unknown> {
+        const connect = t.mock.method(net, "connect");
+        const dispatcher = await getDispatcher(url, dispatcherOptions);
+
+        try {
+          const response = await getRequest(url, {}, dispatcher);
+          await response.body.text();
+        } finally {
+          await dispatcher.close();
+        }
+
+        assert.equal(connect.mock.callCount(), 1);
+        return connect.mock.calls[0].arguments[0];
+      }
+
+      it("Should pass the attempt timeout to Node for an Agent", async (t) => {
+        const options = await getNodeConnectOptions(t, {});
+
+        assert.ok(isObject(options), "Should connect with an options object");
+        assert.equal(options.autoSelectFamily, true);
+        assert.equal(
+          options.autoSelectFamilyAttemptTimeout,
+          AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
+        );
+      });
+
+      it("Should pass the attempt timeout to Node for a Pool", async (t) => {
+        const options = await getNodeConnectOptions(t, { pool: true });
+
+        assert.ok(isObject(options), "Should connect with an options object");
+        assert.equal(options.autoSelectFamily, true);
+        assert.equal(
+          options.autoSelectFamilyAttemptTimeout,
+          AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
+        );
+      });
+    });
+
     describe("getBaseDispatcherOptions", () => {
       it("Should return the default options if no options are passed", () => {
         const expectedOptions = {
           headersTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           bodyTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           connectTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
+          autoSelectFamily: true,
+          autoSelectFamilyAttemptTimeout:
+            AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
         };
         const options = getBaseDispatcherOptions();
 
@@ -259,6 +333,9 @@ describe("Requests util", () => {
           headersTimeout: timeout,
           bodyTimeout: timeout,
           connectTimeout: timeout,
+          autoSelectFamily: true,
+          autoSelectFamilyAttemptTimeout:
+            AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
         };
         const options = getBaseDispatcherOptions(timeout);
 
@@ -270,6 +347,9 @@ describe("Requests util", () => {
           headersTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           bodyTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
           connectTimeout: DEFAULT_TIMEOUT_IN_MILLISECONDS,
+          autoSelectFamily: true,
+          autoSelectFamilyAttemptTimeout:
+            AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
           keepAliveTimeout: 10,
           keepAliveMaxTimeout: 10,
         };
@@ -284,6 +364,9 @@ describe("Requests util", () => {
           headersTimeout: timeout,
           bodyTimeout: timeout,
           connectTimeout: timeout,
+          autoSelectFamily: true,
+          autoSelectFamilyAttemptTimeout:
+            AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_IN_MILLISECONDS,
           keepAliveTimeout: 10,
           keepAliveMaxTimeout: 10,
         };

@@ -267,4 +267,25 @@ describe("config validation", () => {
       },
     );
   });
+
+  it("should reject a `paths.tests.solidity` that isn't a string", async () => {
+    const userConfig: HardhatUserConfig = {
+      paths: {
+        tests: {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            -- intentionally violating the types for the test */
+          solidity: ["test/unit", "test/integration"] as any,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.paths.tests.solidity: Expected string, received array",
+      },
+    );
+  });
 });

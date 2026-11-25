@@ -178,7 +178,7 @@ const solidityTestUserConfigType = conditionalUnionType(
 const userConfigType = z.object({
   paths: z
     .object({
-      test: conditionalUnionType(
+      tests: conditionalUnionType(
         [
           [isObject, z.object({ solidity: z.string().optional() })],
           [(data) => typeof data === "string", z.string()],
