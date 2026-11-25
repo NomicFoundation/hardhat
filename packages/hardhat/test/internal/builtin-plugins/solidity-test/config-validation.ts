@@ -207,6 +207,53 @@ describe("config validation", () => {
     );
   });
 
+  it("should reject the removed `fuzz.failurePersistFile` field", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            -- intentionally violating the types for the test */
+          fuzz: { failurePersistFile: "failures" } as any,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.fuzz.failurePersistFile: This field was removed, as failures are now persisted as one file per test in `failurePersistDir`",
+      },
+    );
+  });
+
+  it("should reject the removed `fuzz.failurePersistFile` field in a profile", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: {},
+            ci: {
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                -- intentionally violating the types for the test */
+              fuzz: { failurePersistFile: "failures" } as any,
+            },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles.ci.fuzz.failurePersistFile: This field was removed, as failures are now persisted as one file per test in `failurePersistDir`",
+      },
+    );
+  });
+
   it("should reject bigint invariant timeouts that cannot be represented as safe numbers", async () => {
     const userConfig: HardhatUserConfig = {
       test: {

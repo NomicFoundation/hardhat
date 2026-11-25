@@ -38,7 +38,6 @@ declare module "../../../types/test.js" {
 
   export interface SolidityTestFuzzUserConfig {
     failurePersistDir?: string;
-    failurePersistFile?: string;
     runs?: number;
     maxTestRejects?: number;
     seed?: string;
@@ -115,7 +114,6 @@ declare module "../../../types/test.js" {
 
   export interface SolidityTestFuzzConfig {
     failurePersistDir?: string;
-    failurePersistFile?: string;
     runs?: number;
     maxTestRejects?: number;
     seed: string;
