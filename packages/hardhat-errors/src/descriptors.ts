@@ -3419,7 +3419,7 @@ export default { lib1: "0x...", lib2: "0x...", ... };
       },
       CONNECTION_ERROR: {
         number: 90002,
-        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.{transportId}
+        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.
 
 Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.`,
         websiteTitle: "Ledger connection error",
@@ -3457,11 +3457,23 @@ Please check that you are sending a "data" parameter.`,
       },
       ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
         number: 90007,
-        messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.`,
+        messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.
+
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.
+
+Hardhat also rejects typed data that wouldn't reach the device as you sent it, so your Ledger can't sign something different from what you requested. The usual causes are a type or field named "__proto__", a field named only with digits (e.g. "123"), a number that JavaScript doesn't represent exactly (bigger than 9007199254740991, or not an integer), a string with an unpaired UTF-16 surrogate, and a domain "chainId" that isn't an integer.`,
         websiteTitle: `Invalid "data" param when calling eth_signTypedData_v4.`,
         websiteDescription: `You called "eth_signTypedData_v4" with incorrect parameters.
 
-Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.
+
+Hardhat also rejects typed data that wouldn't reach the device as you sent it, so your Ledger can't sign something different from what you requested. The usual causes are:
+
+- A type or a field named "__proto__", which is dropped instead of stored when the data is keyed by name.
+- A field named only with digits, like "123", which is moved ahead of every other field.
+- A number that JavaScript doesn't represent exactly, either bigger than 9007199254740991 or not an integer. Send big integers as strings.
+- A string containing an unpaired UTF-16 surrogate, which has no UTF-8 encoding.
+- A domain "chainId" that isn't an integer up to 9007199254740991, given as a number, a bigint, or a decimal or hexadecimal string.`,
       },
       LOCKED_DEVICE: {
         number: 90008,
@@ -3470,10 +3482,41 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         websiteDescription: `The ledger device is locked. Please unlock it and try again.`,
       },
       EIP_7702_TX_CURRENTLY_NOT_SUPPORTED: {
+        // [DEPRECATED]
         number: 90009,
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
+      },
+      ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH: {
+        number: 90010,
+        messageTemplate: `The Ledger did not sign the typed data you requested for {address}, so Hardhat discarded the signature. Check that the connected Ledger holds this account.`,
+        websiteTitle: `The Ledger did not sign the requested typed data`,
+        websiteDescription: `The signature returned by your Ledger is not a signature of the typed data you sent by the account you requested, so Hardhat discarded it.
+
+Check that the connected Ledger, and its passphrase if you use one, holds the account you are signing with.
+
+If it does, please [report it](https://github.com/NomicFoundation/hardhat/issues/new) with the typed data.`,
+      },
+      CONNECTION_CLOSED: {
+        number: 90011,
+        messageTemplate: `The network connection was closed. Create a new connection to keep using the Ledger.`,
+        websiteTitle: "Ledger connection closed",
+        websiteDescription: `A request reached the Ledger after its network connection was closed.
+
+Create a new connection to keep using the Ledger.`,
+      },
+      DEVICE_ACTION_FAILED: {
+        number: 90012,
+        messageTemplate: `The Ledger device did not complete the request: {message}`,
+        websiteTitle: "Ledger device action failed",
+        websiteDescription: `The Ledger device reported an error while signing.`,
+      },
+      REQUEST_REJECTED: {
+        number: 90013,
+        messageTemplate: `The request was rejected on the Ledger device.`,
+        websiteTitle: "Ledger request rejected",
+        websiteDescription: `The request was rejected on the Ledger device, so nothing was signed.`,
       },
     },
   },
