@@ -235,24 +235,11 @@ describe("solc-versions", () => {
       });
     });
 
-    describe("lessThan", () => {
-      it("should keep versions strictly below the bound", () => {
+    describe("unknown", () => {
+      it("should keep all configured versions", () => {
         assert.deepEqual(
-          filterVersionsByInferred(versions, {
-            type: "lessThan",
-            bound: [0, 4, 11],
-          }),
-          ["0.4.10"],
-        );
-      });
-
-      it("should exclude the bound itself", () => {
-        assert.deepEqual(
-          filterVersionsByInferred(["0.4.7", "0.4.6"], {
-            type: "lessThan",
-            bound: [0, 4, 7],
-          }),
-          ["0.4.6"],
+          filterVersionsByInferred(versions, { type: "unknown" }),
+          versions,
         );
       });
     });
@@ -304,10 +291,9 @@ describe("solc-versions", () => {
         );
         assert.deepEqual(
           filterVersionsByInferred(mixed, {
-            type: "lessThan",
-            bound: [0, 5, 0],
+            type: "unknown",
           }),
-          ["0.4.11"],
+          ["0.5.9", "0.4.11"],
         );
         assert.deepEqual(
           filterVersionsByInferred(mixed, {

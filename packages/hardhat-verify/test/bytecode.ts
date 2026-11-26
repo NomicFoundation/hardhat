@@ -19,7 +19,6 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import {
   Bytecode,
-  inferExecutableSection,
   nullifyBytecodeOffsets,
   getLibraryOffsets,
   getImmutableOffsets,
@@ -80,86 +79,29 @@ describe("bytecode", () => {
       });
     });
 
-    describe("hasVersionRange", () => {
-      it("should return true when no metadata can be decoded (lessThan fallback)", async () => {
-        const executableSection = "deadbeefcafebabe"; // dummy bytecode
-
-        const bytecode = buildBytecode(executableSection, "");
-
-        const provider = new MockEthereumProvider({
-          eth_getCode: getPrefixedHexString(bytecode),
-        });
-
-        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-          provider,
-          address,
-          networkName,
-        );
-
-        assert.deepEqual(deployedBytecode.solcVersion, {
-          type: "lessThan",
-          bound: [0, 4, 7],
-        });
-        assert.equal(deployedBytecode.hasVersionRange(), true);
-      });
-
-      it("should return true when metadata lacks a version field (between fallback)", async () => {
-        const metadata = {};
-        const encodedMetadata = encode(metadata);
-        const metadataSection = getUnprefixedHexString(
-          bytesToHexString(encodedMetadata),
-        );
-        const executableSection = "deadbeefcafebabe"; // dummy bytecode
-
-        const bytecode = buildBytecode(executableSection, metadataSection);
-
-        const provider = new MockEthereumProvider({
-          eth_getCode: getPrefixedHexString(bytecode),
-        });
-
-        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-          provider,
-          address,
-          networkName,
-        );
-
-        assert.deepEqual(deployedBytecode.solcVersion, {
-          type: "between",
-          min: [0, 4, 7],
-          max: [0, 5, 8],
-        });
-        assert.equal(deployedBytecode.hasVersionRange(), true);
-      });
-
-      it("should return false when the solc version is exact", async () => {
-        const metadata = { solc: new Uint8Array([0, 6, 0]) }; // [major, minor, patch]
-        const encodedMetadata = encode(metadata);
-        const metadataSection = getUnprefixedHexString(
-          bytesToHexString(encodedMetadata),
-        );
-        const executableSection = "deadbeefcafebabe"; // dummy bytecode
-
-        const bytecode = buildBytecode(executableSection, metadataSection);
-
-        const provider = new MockEthereumProvider({
-          eth_getCode: getPrefixedHexString(bytecode),
-        });
-
-        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-          provider,
-          address,
-          networkName,
-        );
-
-        assert.deepEqual(deployedBytecode.solcVersion, {
-          type: "exact",
-          version: [0, 6, 0],
-        });
-        assert.equal(deployedBytecode.hasVersionRange(), false);
-      });
-    });
-
     describe("compare", () => {
+      it("should compare the full bytecode when a CBOR suffix isn't Solidity metadata", async () => {
+        const bytecode = "6000a00001";
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        assert.equal(deployedBytecode.executableSection, bytecode);
+        assert.equal(
+          deployedBytecode.compare(buildCompilerOutputBytecode(bytecode)),
+          true,
+        );
+        assert.equal(
+          deployedBytecode.compare(buildCompilerOutputBytecode("6000800001")),
+          false,
+        );
+      });
+
       it("should return true when executable sections match exactly and metadata is the same", async () => {
         const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
         const encodedMetadata = encode(metadata);
@@ -205,8 +147,11 @@ describe("bytecode", () => {
           networkName,
         );
 
+        const differentMetadata = getUnprefixedHexString(
+          bytesToHexString(encode({ ...metadata, experimental: true })),
+        );
         const output = buildCompilerOutputBytecode(
-          buildBytecode(executableSection, ""),
+          buildBytecode(executableSection, differentMetadata),
         );
 
         assert.equal(deployedBytecode.compare(output), true);
@@ -232,9 +177,9 @@ describe("bytecode", () => {
           networkName,
         );
 
-        // compiler output with one extra hex char in executable section
+        // Compiler output with one extra byte in the executable section.
         const output = buildCompilerOutputBytecode(
-          buildBytecode(executableSection + "ae", ""),
+          buildBytecode(executableSection + "ae", metadataSection),
         );
 
         assert.equal(deployedBytecode.compare(output), false);
@@ -306,45 +251,6 @@ describe("bytecode", () => {
 
         assert.equal(deployedBytecode.compare(output), true);
       });
-    });
-  });
-
-  describe("inferExecutableSection", () => {
-    it("should strip the metadata section from the bytecode", () => {
-      const executableSection = "deadbeef";
-      const metadataSection = "cafebabe";
-      const bytecode = buildBytecode(executableSection, metadataSection);
-
-      assert.equal(inferExecutableSection(bytecode), executableSection);
-    });
-
-    it("should handle bytecode prefixed with 0x", () => {
-      const executableSection = "cafed00d";
-      const metadataSection = "112233";
-      const bytecode = getPrefixedHexString(
-        buildBytecode(executableSection, metadataSection),
-      );
-
-      assert.equal(inferExecutableSection(bytecode), executableSection);
-    });
-
-    it("should return the entire bytecode if it's less than the metadata length field size", () => {
-      const bytecode = "0xab"; // less than METADATA_LENGTH_FIELD_SIZE * 2 chars
-
-      assert.equal(
-        inferExecutableSection(bytecode),
-        getUnprefixedHexString(bytecode),
-      );
-    });
-
-    it("should return the entire bytecode if the metadata length field size is invalid", () => {
-      const fakeLength = "ffff"; // huge length
-      const bytecode = "0123" + fakeLength;
-
-      assert.equal(
-        inferExecutableSection(bytecode),
-        getUnprefixedHexString(bytecode),
-      );
     });
   });
 

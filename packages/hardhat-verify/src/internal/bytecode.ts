@@ -6,16 +6,9 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import {
-  getUnprefixedHexString,
-  hexStringToBytes,
-} from "@nomicfoundation/hardhat-utils/hex";
+import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import {
-  getMetadataSectionBytesLength,
-  inferSolcVersion,
-  METADATA_LENGTH_FIELD_SIZE,
-} from "./metadata.js";
+import { parseBytecodeMetadata } from "./metadata.js";
 
 interface ByteOffset {
   start: number;
@@ -28,18 +21,6 @@ export class Bytecode {
     public readonly solcVersion: InferredSolcVersion,
     public readonly executableSection: string,
   ) {}
-
-  static async #parse(bytecode: string): Promise<Bytecode> {
-    const bytecodeBytes = hexStringToBytes(bytecode);
-
-    const solcVersion = await inferSolcVersion(bytecodeBytes);
-    const executableSection = bytecode.slice(
-      0,
-      bytecode.length - getMetadataSectionBytesLength(bytecodeBytes) * 2,
-    );
-
-    return new Bytecode(bytecode, solcVersion, executableSection);
-  }
 
   public static async getDeployedContractBytecode(
     provider: EthereumProvider,
@@ -66,11 +47,9 @@ export class Bytecode {
       );
     }
 
-    return await Bytecode.#parse(deployedBytecode);
-  }
-
-  public hasVersionRange(): boolean {
-    return this.solcVersion.type !== "exact";
+    const { solcVersion, executableSection } =
+      parseBytecodeMetadata(deployedBytecode);
+    return new Bytecode(deployedBytecode, solcVersion, executableSection);
   }
 
   /**
@@ -91,9 +70,8 @@ export class Bytecode {
    * equivalent, `false` otherwise.
    */
   public compare(compilerOutputBytecode: CompilerOutputBytecode): boolean {
-    const unlinkedExecutableSection = inferExecutableSection(
-      compilerOutputBytecode.object,
-    );
+    const { executableSection: unlinkedExecutableSection } =
+      parseBytecodeMetadata(compilerOutputBytecode.object);
 
     // If the lengths differ, the bytecodes cannot match, so we can return early
     if (this.executableSection.length !== unlinkedExecutableSection.length) {
@@ -112,47 +90,6 @@ export class Bytecode {
 
     return normalizedBytecode === normalizedUnlinkedBytecode;
   }
-}
-
-/**
- * Extracts the executable portion of a contract's bytecode without
- * decoding it.
- *
- * Solidity appends metadata to the end of the bytecode. This metadata
- * includes a two-byte field indicating its total length. This function
- * removes that metadata segment and returns only the executable code.
- *
- * This approach avoids decoding issues that can occur if the bytecode
- * includes linker placeholders or non-hex characters.
- *
- * @param bytecode The full contract bytecode as a hex string
- * (with or without `0x` prefix).
- * @returns The hex string of the executable code, excluding metadata.
- */
-export function inferExecutableSection(bytecode: string): string {
-  const rawBytecode = getUnprefixedHexString(bytecode);
-
-  // Read the last 2 bytes (4 hex chars) that encode the length of
-  // the metadata section.
-  const metadataLengthBytes = hexStringToBytes(
-    rawBytecode.slice(-METADATA_LENGTH_FIELD_SIZE * 2),
-  );
-
-  // If the bytecode is too short to contain a metadata length field,
-  // return the entire bytecode.
-  if (metadataLengthBytes.length !== METADATA_LENGTH_FIELD_SIZE) {
-    return rawBytecode;
-  }
-
-  const metadataSectionLength =
-    getMetadataSectionBytesLength(metadataLengthBytes);
-
-  // invalid length (metadata + length field doesn't fit)
-  if (metadataSectionLength * 2 > rawBytecode.length) {
-    return rawBytecode;
-  }
-
-  return rawBytecode.slice(0, rawBytecode.length - metadataSectionLength * 2);
 }
 
 /**

@@ -117,9 +117,11 @@ export class ContractInformationResolver {
       const formattedSolcVersion = formatInferredSolcVersion(
         deployedBytecode.solcVersion,
       );
-      const versionDetails = deployedBytecode.hasVersionRange()
-        ? `a Solidity version in the range ${formattedSolcVersion}`
-        : `the Solidity version ${formattedSolcVersion}`;
+      const versionDetails = {
+        exact: `the Solidity version ${formattedSolcVersion}`,
+        between: `a Solidity version in the range ${formattedSolcVersion}`,
+        unknown: "an unknown Solidity version",
+      }[deployedBytecode.solcVersion.type];
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
