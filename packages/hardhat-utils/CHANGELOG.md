@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 5.2.0
+
+### Minor Changes
+
+- [#8834](https://github.com/NomicFoundation/hardhat/pull/8834) [`1f60b03`](https://github.com/NomicFoundation/hardhat/commit/1f60b034572b424e319f1d22bbb7e58afa4d4066) Thanks [@AliBaig-xD](https://github.com/AliBaig-xD)! - Added a `mode` option to `writeUtf8File` and `writeJsonFile` to set file permissions; the `flag` argument of `writeUtf8File` moved into an options object.
+
 ## 5.1.2
 
 ### Patch Changes

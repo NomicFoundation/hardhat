@@ -1,5 +1,48 @@
 # hardhat
 
+## 3.23.0
+
+### Minor Changes
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! BREAKING CHANGE: Removed the `failurePersistFile` Solidity fuzz option, and setting it is now a config error. When `failurePersistDir` is set, failures are persisted under `failures`.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! BREAKING CHANGE: `maxTestRejects: 0` now disables the `vm.assume` reject limit in Solidity fuzz tests, instead of failing on the first rejected input, and requires a fuzz `timeout`.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! Support parallel workers for Solidity fuzz tests.
+
+- [#8856](https://github.com/NomicFoundation/hardhat/pull/8856) [`382a84b`](https://github.com/NomicFoundation/hardhat/commit/382a84b5362a3908644a7c80608a2800bf305e3d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - The project templates have been updated to Solidity 0.8.39.
+
+### Patch Changes
+
+- [#8866](https://github.com/NomicFoundation/hardhat/pull/8866) [`3a4f851`](https://github.com/NomicFoundation/hardhat/commit/3a4f85177391be038db0498567747c156eb91918) Thanks [@hehuanlu](https://github.com/hehuanlu)! - Fixed built-in CLI options after `--` being interpreted by Hardhat instead of being passed to a task as positional arguments.
+
+- [#8847](https://github.com/NomicFoundation/hardhat/pull/8847) [`047d824`](https://github.com/NomicFoundation/hardhat/commit/047d8243a6c9d3c6b4159dc20691977ad3adb2fa) Thanks [@unixglo](https://github.com/unixglo)! - Fixed JSON-RPC server shutdown hanging when WebSocket clients remain connected.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) Thanks [@kanej](https://github.com/kanej)! - Upgraded EDR to v0.26.0.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @anaPerezGhiglia! Fixed `eth_estimateGas` over-estimating at historical blocks on forked chains whose hardfork differs from the configured one.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @anaPerezGhiglia! Fixed blocks mined on a fork using default blob and base fee parameters instead of the forked chain's when the configured `chainId` differs from the remote chain's.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! Changed Solidity fuzz inputs rejected by `vm.assume` to no longer count towards `runs`.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! Changed Solidity fuzz tests to report the logs of the failing run even without `showLogs`.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! Changed Solidity fuzz failures to persist as one JSON counterexample per test, which is replayed first on the next run.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @popescuoctavian! Fixed the `vm.random*` cheatcodes repeating the same sequence in every fuzz run under a fixed `seed`.
+
+- [#8879](https://github.com/NomicFoundation/hardhat/pull/8879) [`130d561`](https://github.com/NomicFoundation/hardhat/commit/130d561d93c8b5a7521248848d982ae80909ddb3) - Thanks @nebasuke! Added coverage support for Solidity 0.8.36, 0.8.37 and 0.8.38.
+
+- [#8843](https://github.com/NomicFoundation/hardhat/pull/8843) [`1f080e4`](https://github.com/NomicFoundation/hardhat/commit/1f080e4dcc0e0ca582ef4fd7f113d3ad0b8965f2) Thanks [@aelmanaa](https://github.com/aelmanaa)! - Fixed local accounts signing `"0x"` data and messages as the byte `0x00` when an older `@nomicfoundation/hardhat-zod-utils` was installed ([#8790](https://github.com/NomicFoundation/hardhat/issues/8790)).
+
+- [#8861](https://github.com/NomicFoundation/hardhat/pull/8861) [`07daa72`](https://github.com/NomicFoundation/hardhat/commit/07daa72ef9e3c21d89a4d6886ed65f392cc5aee7) Thanks [@WillXing](https://github.com/WillXing)! - Fixed Solidity files that define no contract, like a file with only a pragma, being recompiled on every build.
+
+- [#8836](https://github.com/NomicFoundation/hardhat/pull/8836) [`7a57fa3`](https://github.com/NomicFoundation/hardhat/commit/7a57fa3dff0c11c8d162c45d9ba14e405055d287) Thanks [@Iamsohungrynow](https://github.com/Iamsohungrynow)! - Fixed `paths.tests.solidity` not being validated, so a value that isn't a string is now reported as an `HHE15` config error.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@5.2.0
+
 ## 3.22.0
 
 ### Minor Changes
