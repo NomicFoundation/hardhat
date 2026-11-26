@@ -215,7 +215,7 @@ export default defineConfig({
             version: "0.8.26",
           },
           {
-            version: "0.8.33",
+            version: "0.8.39",
           },
         ],
         overrides: {
