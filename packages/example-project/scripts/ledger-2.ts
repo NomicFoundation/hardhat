@@ -40,8 +40,8 @@
  *
  *   - The origin token: the plugin has no setting for it (an open question in
  *     the doc), so there is nothing to run. Switching the network module off
- *     is now a setting, `useRemoteLedgerServices`, and the two scenarios
- *     around TEST NR 15 cover both of its positions.
+ *     is now a setting, `useRemoteLedgerServices`, and TEST NR 15 covers both
+ *     of its positions, read from `hardhat.config.ts`.
  */
 import type { TypedDataDomain, TypedDataField } from "ethers";
 import type { NetworkConnectionParams } from "hardhat/types/network";
@@ -196,10 +196,9 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // own: the plugin releases the device session at the end of every request.
 // await run(forgetToClose);
 
-// TEST NR 9 (approve on the device): a field named only with digits, which the
-// DMK encodes in the wrong order: after your approval the plugin refuses the
-// signature with ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH, because it does not
-// recover to your address.
+// TEST NR 9: a field named only with digits, which the DMK would encode in the
+// wrong order, is refused with ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+// before the device is asked for anything.
 // await run(typedDataDigitsFieldName);
 
 // TEST NR 10: nine malformed inputs (an integer above 2^53 as a JSON number, a
@@ -212,6 +211,13 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // TEST NR 11 (start with the device unplugged, plug it in when asked): the
 // "Device not connected" retry message, then a successful retry.
 // await run(deviceNotPluggedIn);
+
+// TEST NR 35 (numbered last so that the numbers above do not move, but worth
+// running with the rest of priority 1): three transactions in a row on one
+// connection, the ordinary deployment-script case now that every request
+// releases its device session: three approvals, no reconnection between them,
+// all three mined.
+// await run(threeTransactionsInSequence);
 
 // ===========================================================================
 // PRIORITY 2: run if time allows. Claims of the design doc that depend on the
@@ -232,18 +238,19 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // and amount instead of raw calldata.
 // await run(erc20TransferIsClearSigned);
 
-// TEST NR 15 (enable Blind signing in the Ethereum app's settings first, or
-// the device refuses the last two signatures): with the default config, where
-// `useRemoteLedgerServices` is off, nothing at all is sent to Ledger: no
-// [ledger-http] line for any of personal_sign, two transactions and typed
-// data, and the device shows everything raw.
-// await run(noRequestsWithRemoteServicesOff);
+// TEST NR 15 (run it twice, and enable Blind signing in the Ethereum app's
+// settings first, or the device refuses the last two signatures of the "off"
+// run): the setting is read from `hardhat.config.ts`, the way a user sets it.
+// Run it once as the config ships, with `networks.edrOp.ledgerOptions` unset:
+// nothing at all is sent to Ledger, and the device shows everything raw. Then
+// add `ledgerOptions: { useRemoteLedgerServices: true }` to `networks.edrOp`
+// and run it again: every request the DMK makes to Ledger's servers is
+// printed, none for personal_sign, metadata plus telemetry for the two
+// transactions and for typed data, all without an origin token.
+// await run(remoteLedgerServicesFromConfig);
 
-// TEST NR 16: the same run with `useRemoteLedgerServices` on, to compare it
-// against: every request the DMK makes to Ledger's servers is printed, none
-// for personal_sign, metadata plus telemetry for the transactions and for
-// typed data, all without an origin token.
-// await run(requestsWithRemoteServicesOn);
+// TEST NR 16: merged into TEST NR 15, which now reads the config instead of
+// overriding the setting on its connection. The numbers below are unchanged.
 
 // TEST NR 17: a contract call with no descriptor (a local Counter) is shown
 // raw, with the blind-signing warning, exactly as today.
@@ -267,7 +274,7 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // TEST NR 22: two concurrent requests run one at a time, each on its own
 // device session: a single "Connecting to Ledger..." line (only the first
 // connection is announced), two approvals, two valid signatures.
-// await run(concurrentRequestsShareOneSession);
+// await run(concurrentRequestsRunOneAtATime);
 
 // TEST NR 23 (forks mainnet for the second half): a recipient with an ENS name
 // is shown as the raw address on chain 10 and as "nick.eth" on chain 1.
@@ -300,9 +307,9 @@ if (LOG_REQUESTS_TO_LEDGER_SERVERS) {
 // TEST NR 29: typed data passed as an object instead of a JSON string.
 // await run(typedDataAsObject);
 
-// TEST NR 30 (approve on the device): a field named __proto__, whose value the
-// DMK loses: after your approval the plugin refuses the signature with
-// ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH.
+// TEST NR 30: a field named __proto__, whose value the DMK would lose, is
+// refused with ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM before the device is
+// asked for anything.
 // await run(typedDataProtoFieldName);
 
 // TEST NR 31: an ERC-20 approve is clear-signed like the transfer.
@@ -433,7 +440,41 @@ async function unplugAndReplugBetweenRequests(): Promise<void> {
   });
 }
 
-async function concurrentRequestsShareOneSession(): Promise<void> {
+/**
+ * The ordinary case for a deployment script: several Ledger-signed
+ * transactions in a row, each opening and releasing its own device session.
+ */
+async function threeTransactionsInSequence(): Promise<void> {
+  expected(
+    "'[hardhat-ledger] Connecting to Ledger...' and 'Connection successful' " +
+      "printed once, before the first transaction: the requests after it " +
+      "open their own device session silently, since only the first " +
+      "connection is announced. Three approvals on the device, one after " +
+      "the other, with no 'Reconnecting to Ledger...' and no retry message " +
+      "between them. All three are mined, so the account's nonce grows by " +
+      "three, and the process exits.",
+  );
+
+  await withConnection(async (ctx) => {
+    const nonceBefore = await ctx.ethers.provider.getTransactionCount(
+      ctx.ledgerAddress,
+    );
+
+    for (const index of [1, 2, 3]) {
+      step(`Transaction ${index} of 3. Approve it on the device.`);
+
+      await sendEth(ctx, ctx.hardhatAddress, BigInt(index) * 10n ** 12n);
+    }
+
+    assert.equal(
+      await ctx.ethers.provider.getTransactionCount(ctx.ledgerAddress),
+      nonceBefore + 3,
+      "The three transactions did not all land",
+    );
+  });
+}
+
+async function concurrentRequestsRunOneAtATime(): Promise<void> {
   expected(
     "'[hardhat-ledger] Connecting to Ledger...' printed once: the second " +
       "request waits for the first to finish, then opens its own session " +
@@ -621,44 +662,41 @@ async function twoConnectionsAtOnce(): Promise<void> {
 // Behaviors to be aware of: what the device shows, what goes to Ledger
 // ---------------------------------------------------------------------------
 
-async function noRequestsWithRemoteServicesOff(): Promise<void> {
+/**
+ * Reads `useRemoteLedgerServices` from `hardhat.config.ts`, the way a user
+ * sets it, instead of overriding it on the connection. Run it once with the
+ * setting absent and once with it on, and compare the two logs.
+ */
+async function remoteLedgerServicesFromConfig(): Promise<void> {
+  const enabled =
+    hre.config.networks.edrOp.ledgerOptions?.useRemoteLedgerServices ?? false;
+
   expected(
-    "not one [ledger-http] line, from connecting to the last signature: " +
-      "with `useRemoteLedgerServices` off, which is the default, the plugin " +
-      "never calls Ledger. The device showed raw data throughout: the ETH " +
-      "transfer without the 'Optimism' network name and with no Transaction " +
-      "Check prompt, the USDC transfer as raw calldata behind a " +
-      "blind-signing warning instead of 'Send 100 USDC', and the typed data " +
-      "as a single hash instead of its fields. The scenario fails if any " +
-      "request was made; `requestsWithRemoteServicesOn` is the same run with " +
-      "the setting on, to compare it against.",
+    enabled
+      ? "[ledger-http] lines for the two transactions and the typed data, " +
+          "and none for connecting, opening the app, deriving the path or " +
+          "personal_sign. The transactions fetched display metadata " +
+          "(Ledger's crypto-assets service, nft.api.live.ledger.com, " +
+          "metadata.api.live.ledger.com...), so the device showed 'Optimism' " +
+          "and 'Send 100 USDC', and each signature ended with a POST to " +
+          "blind-signing.api.ledger.com/ingest, the telemetry. Typed data " +
+          "did the same for the domain's chain id and verifying contract. " +
+          "Every line says 'no origin token': the plugin sends none. The " +
+          "scenario fails if nothing was sent."
+      : "not one [ledger-http] line, from connecting to the last signature: " +
+          "with `useRemoteLedgerServices` unset, which is the default, the " +
+          "plugin never calls Ledger. The device showed raw data " +
+          "throughout: the ETH transfer without the 'Optimism' network name " +
+          "and with no Transaction Check prompt, the USDC transfer as raw " +
+          "calldata behind a blind-signing warning instead of 'Send 100 " +
+          "USDC', and the typed data as a single hash instead of its " +
+          "fields. The scenario fails if any request was made.",
   );
 
-  recordRequestsToLedgerServers();
-
-  await withConnection(async (ctx) => {
-    await signOnEveryPath(ctx);
-
-    assert.deepEqual(
-      requestsToLedger,
-      [],
-      "The plugin contacted Ledger with useRemoteLedgerServices off",
-    );
-  });
-}
-
-async function requestsWithRemoteServicesOn(): Promise<void> {
-  expected(
-    "[ledger-http] lines for the two transactions and the typed data, and " +
-      "none for connecting, opening the app, deriving the path or " +
-      "personal_sign. The transactions fetched display metadata (Ledger's " +
-      "crypto-assets service, nft.api.live.ledger.com, " +
-      "metadata.api.live.ledger.com...), so the device showed 'Optimism' " +
-      "and 'Send 100 USDC', and each signature ended with a POST to " +
-      "blind-signing.api.ledger.com/ingest, the telemetry. Typed data did " +
-      "the same for the domain's chain id and verifying contract. Every " +
-      "line says 'no origin token': the plugin sends none. The scenario " +
-      "fails if nothing was sent.",
+  step(
+    enabled
+      ? "`networks.edrOp.ledgerOptions.useRemoteLedgerServices` is true in hardhat.config.ts."
+      : "`networks.edrOp.ledgerOptions` is unset in hardhat.config.ts, so the services are off.",
   );
 
   recordRequestsToLedgerServers();
@@ -668,11 +706,19 @@ async function requestsWithRemoteServicesOn(): Promise<void> {
 
     console.log(`\n>>> ${requestsToLedger.length} request(s) to Ledger`);
 
-    assert.ok(
-      requestsToLedger.length > 0,
-      "The plugin contacted nobody with useRemoteLedgerServices on",
-    );
-  }, withRemoteLedgerServices());
+    if (enabled) {
+      assert.ok(
+        requestsToLedger.length > 0,
+        "The plugin contacted nobody with useRemoteLedgerServices on",
+      );
+    } else {
+      assert.deepEqual(
+        requestsToLedger,
+        [],
+        "The plugin contacted Ledger with useRemoteLedgerServices off",
+      );
+    }
+  });
 }
 
 async function plainTransfer(): Promise<void> {
@@ -682,8 +728,8 @@ async function plainTransfer(): Promise<void> {
       "off and nothing is fetched from Ledger: check whether the network " +
       "name, 'Optimism', and its icon on Stax, Flex and Nano Gen5 still " +
       "appear without the network descriptor, and expect no Transaction " +
-      "Check prompt. `requestsWithRemoteServicesOn` is the same transfer " +
-      "with the setting on, where the name and the icon do appear and a " +
+      "Check prompt. TEST NR 15, run with the setting on in the config, is " +
+      "the same transfer, where the name and the icon do appear and a " +
       "touchscreen device may first ask whether to enable Transaction " +
       "Check, printed as '[hardhat-ledger] Answer the Web3 Checks prompt on " +
       "your Ledger device'; accepting it changes nothing either way, " +
@@ -1145,11 +1191,11 @@ async function typedDataRefusedBeforeDevice(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Typed data: refused after you approve on the device
+// Typed data: field names the signer kit cannot carry
 // ---------------------------------------------------------------------------
 
 async function typedDataDigitsFieldName(): Promise<void> {
-  await refusedAfterApproval(
+  await refusedBeforeDevice(
     "A field named `123`",
     (ctx) =>
       mail(ctx, {
@@ -1166,14 +1212,14 @@ async function typedDataDigitsFieldName(): Promise<void> {
           contents: undefined,
         },
       }),
-    "JavaScript orders digit-only keys first, so the DMK encodes the fields " +
-      "in a different order than declared, the device signs that, and the " +
-      "recovered address is not yours.",
+    "JavaScript orders digit-only keys first, so the DMK would encode the " +
+      "fields in a different order than declared, and the device would sign " +
+      "that.",
   );
 }
 
 async function typedDataProtoFieldName(): Promise<void> {
-  await refusedAfterApproval(
+  await refusedBeforeDevice(
     "A field named `__proto__`",
     (ctx) =>
       JSON.stringify(
@@ -1184,8 +1230,9 @@ async function typedDataProtoFieldName(): Promise<void> {
           message: { PROTO: "not an own property once parsed by the DMK" },
         }),
       ).replaceAll('"PROTO"', '"__proto__"'),
-    "the DMK loses the value on the way to the device (a `__proto__` key sets " +
-      "a prototype instead of a property), so the device signs something else.",
+    "the DMK would lose the value on the way to the device (a `__proto__` " +
+      "key sets a prototype instead of a property), so the device would sign " +
+      "something else.",
   );
 }
 
@@ -1579,30 +1626,30 @@ function recoverMail(
 }
 
 /**
- * Signs typed data the DMK is known to mis-encode and checks that the plugin
- * refuses the signature after the device produced it.
+ * Signs typed data whose field names the signer kit cannot carry, and checks
+ * that the plugin refuses it before the device is asked for anything.
  */
-async function refusedAfterApproval(
+async function refusedBeforeDevice(
   label: string,
   build: (ctx: Ctx) => string | object,
   why: string,
 ): Promise<void> {
   expected(
-    "'[hardhat-ledger] Review and approve the typed data on your Ledger " +
-      "device', your approval, '[hardhat-ledger] Confirmation success', " +
-      "and only then ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH ('The " +
-      "Ledger device signed different typed data than requested'): the " +
-      "signature was checked against the data you sent and did not " +
-      "recover to your address. Why: " +
-      why,
+    "ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM without a '[hardhat-ledger] " +
+      "Review and approve the typed data on your Ledger device' line: the " +
+      "device was connected but never asked to sign, so there is nothing to " +
+      "approve. Why: " +
+      why +
+      " The plugin would only notice once you had approved it, so it checks " +
+      "the field names first.",
   );
 
-  step(`${label}. Approve it on the device when asked.`);
+  step(label);
 
   await withConnection(async (ctx) => {
     await expectLedgerError(
       signTypedData(ctx, build(ctx)),
-      "ETH_SIGN_TYPED_DATA_V4_SIGNATURE_MISMATCH",
+      "ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM",
     );
   });
 }
