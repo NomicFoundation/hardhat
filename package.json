@@ -35,7 +35,7 @@
     "lint": "pnpm run --recursive --if-present lint && pnpm lint:scripts && pnpm lint:e2e && pnpm lint:workflows",
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix && pnpm lint:scripts:fix && pnpm lint:e2e:fix && pnpm lint:workflows:fix",
-    "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm -w install --lockfile-only",
+    "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm install --lockfile-only",
     "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)",
     "lint:file": "node ./scripts/lint-file.ts",
     "test:file": "node ./scripts/test-file.ts",
