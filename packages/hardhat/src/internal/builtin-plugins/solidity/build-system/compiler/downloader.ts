@@ -62,6 +62,20 @@ interface CompilerBuild {
   prerelease?: string;
 }
 
+/**
+ * Returns the version string that users have to configure to select `build`.
+ *
+ * Releases are selected by their plain version (e.g. `0.8.31`), while
+ * prereleases have to be selected explicitly, including their prerelease tag
+ * (e.g. `0.9.0-pre.1`). This way, a prerelease is never picked unless the user
+ * opts into it.
+ */
+function getBuildVersion(build: CompilerBuild): string {
+  return build.prerelease === undefined
+    ? build.version
+    : `${build.version}-${build.prerelease}`;
+}
+
 interface CompilerList {
   builds: CompilerBuild[];
   releases: { [version: string]: string };
@@ -293,9 +307,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const list = await this.#readCompilerList(listPath);
 
-    const build = list.builds.find(
-      (b) => b.version === version && b.prerelease === undefined,
-    );
+    const build = list.builds.find((b) => getBuildVersion(b) === version);
 
     if (build === undefined) {
       throw new HardhatError(
@@ -326,7 +338,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       return this.#getCompilerDownloadPathFromBuild(build);
     }
 
-    return path.join(this.#compilersDir, build.version, "solc.exe");
+    return path.join(this.#compilersDir, getBuildVersion(build), "solc.exe");
   }
 
   // some window builds are zipped, some are not
@@ -353,11 +365,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const list = await this.#readCompilerList(listPath);
 
-    const listVersions = new Set(
-      list.builds
-        .filter((b) => b.prerelease === undefined)
-        .map((b) => b.version),
-    );
+    const listVersions = new Set(list.builds.map(getBuildVersion));
 
     for (const version of versions) {
       if (!listVersions.has(version)) {
@@ -450,7 +458,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     const defaultUrl = `${COMPILER_REPOSITORY_URL}/${this.#platform}`;
     const url = `${build.url ?? defaultUrl}/${build.path}`;
 
-    log(`Downloading compiler ${build.version} from ${url}`);
+    log(`Downloading compiler ${getBuildVersion(build)} from ${url}`);
 
     // Download to a temporary path, we move into place after verifying the checksum
     const downloadPath = `${this.#getCompilerDownloadPathFromBuild(build)}.tmp`;
@@ -491,7 +499,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     downloadPath: string,
   ): Promise<boolean> {
     if (this.#isZippedWindowsBuild(build)) {
-      const solcFolder = path.join(this.#compilersDir, build.version);
+      const solcFolder = path.join(this.#compilersDir, getBuildVersion(build));
       await ensureDir(solcFolder);
 
       const zip = new AdmZip(downloadPath);

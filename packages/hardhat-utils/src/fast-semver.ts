@@ -10,22 +10,45 @@
 
 export type SemverVersion = [major: number, minor: number, patch: number];
 
-const VERSION_REGEX = /^(\d+)\.(\d+)\.(\d+)(?:\+[0-9A-Za-z.-]+)?$/;
+const VERSION_REGEX =
+  /^(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+
+export interface ParseVersionOptions {
+  /**
+   * If `true`, a `-prerelease` suffix is accepted and stripped, so that
+   * `1.2.3-rc.1` parses as `[1, 2, 3]`. Defaults to `false`.
+   *
+   * This is meant for callers that gate features on the `MAJOR.MINOR.PATCH`
+   * triple, where a prerelease is expected to behave like the release it
+   * precedes. It must not be used to order versions, as the prerelease
+   * information is lost.
+   */
+  allowPrerelease?: boolean;
+}
 
 /**
  * Parses a strict `MAJOR.MINOR.PATCH` version string into a `SemverVersion`
  * tuple.
  *
  * An optional `+build` suffix is accepted and stripped silently. A
- * `-prerelease` suffix is rejected.
+ * `-prerelease` suffix is rejected, unless `options.allowPrerelease` is set,
+ * in which case it is stripped too.
  *
  * @param version The version string to parse.
+ * @param options Parsing options.
  * @returns The parsed `SemverVersion`, or `undefined` if the input does not
  * match the strict `\d+\.\d+\.\d+` shape.
  */
-export function parseVersion(version: string): SemverVersion | undefined {
+export function parseVersion(
+  version: string,
+  options: ParseVersionOptions = {},
+): SemverVersion | undefined {
   const match = VERSION_REGEX.exec(version);
   if (match === null) {
+    return undefined;
+  }
+
+  if (match[4] !== undefined && options.allowPrerelease !== true) {
     return undefined;
   }
 

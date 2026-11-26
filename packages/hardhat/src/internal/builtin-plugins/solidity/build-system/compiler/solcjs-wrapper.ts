@@ -47,7 +47,7 @@ export type CompileWrapper = (input: string) => string;
 export default function wrapper(solc: Solc): SolcWrapper {
   const version = bindVersion(solc);
   const rawVersion = version();
-  const parsedVersion = parseVersion(rawVersion);
+  const parsedVersion = parseVersion(rawVersion, { allowPrerelease: true });
   assertHardhatInvariant(
     parsedVersion !== undefined,
     `Invalid solc version: ${rawVersion}`,

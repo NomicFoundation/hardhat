@@ -31,6 +31,19 @@ describe("fast-semver", () => {
       assert.equal(parseVersion("1.2.3-0"), undefined);
     });
 
+    it("Should strip a -prerelease suffix when allowPrerelease is set", () => {
+      const options = { allowPrerelease: true };
+      assert.deepEqual(parseVersion("1.2.3-rc.1", options), [1, 2, 3]);
+      assert.deepEqual(parseVersion("0.9.0-pre.1", options), [0, 9, 0]);
+      assert.deepEqual(
+        parseVersion("0.9.0-pre.1+commit.91c99213", options),
+        [0, 9, 0],
+      );
+      assert.deepEqual(parseVersion("1.2.3", options), [1, 2, 3]);
+      assert.equal(parseVersion("1.2.3-", options), undefined);
+      assert.equal(parseVersion("v1.2.3-rc.1", options), undefined);
+    });
+
     it("Should reject invalid inputs", () => {
       assert.equal(parseVersion("v1.2.3"), undefined);
       assert.equal(parseVersion("1.2"), undefined);

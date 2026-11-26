@@ -20,7 +20,7 @@ export const FIRST_ARM64_MIRROR_SOLC_VERSION: SemverVersion = [0, 5, 0];
  * Determines if a solc version has an official ARM64 Linux build.
  */
 export function hasOfficialArm64Build(version: string): boolean {
-  const parsed = parseVersion(version);
+  const parsed = parseVersion(version, { allowPrerelease: true });
   if (parsed === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
@@ -35,7 +35,7 @@ export function hasOfficialArm64Build(version: string): boolean {
  * in the community mirror (versions 0.5.0–0.8.30).
  */
 export function hasArm64MirrorBuild(version: string): boolean {
-  const parsed = parseVersion(version);
+  const parsed = parseVersion(version, { allowPrerelease: true });
   if (parsed === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
