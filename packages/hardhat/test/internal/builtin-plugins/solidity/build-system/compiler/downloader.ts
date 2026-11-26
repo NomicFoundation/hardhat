@@ -594,6 +594,30 @@ describe(
         assert.equal(compiler.version, "0.8.31");
         assert.equal(compiler.longVersion, "0.8.31+commit.fd3a2265");
       });
+
+      it("should not select a prerelease unless it is explicitly requested", async () => {
+        // 0.8.35-pre.1 is in the list, but `0.8.35` refers to the release
+        await downloader.updateCompilerListIfNeeded(new Set(["0.8.35"]));
+        await downloader.downloadCompiler("0.8.35");
+        const compiler = await downloader.getCompiler("0.8.35");
+
+        assert.ok(compiler !== undefined, "Compiler should be defined");
+        assert.equal(compiler.version, "0.8.35");
+        assert.ok(
+          !compiler.longVersion.includes("-pre"),
+          `Unexpected prerelease ${compiler.longVersion}`,
+        );
+      });
+
+      it("should download and get an explicitly requested prerelease", async () => {
+        await downloader.updateCompilerListIfNeeded(new Set(["0.9.0-pre.1"]));
+        await downloader.downloadCompiler("0.9.0-pre.1");
+        const compiler = await downloader.getCompiler("0.9.0-pre.1");
+
+        assert.ok(compiler !== undefined, "Compiler should be defined");
+        assert.equal(compiler.version, "0.9.0-pre.1");
+        assert.equal(compiler.longVersion, "0.9.0-pre.1+commit.91c99213");
+      });
     });
 
     describe("when on windows", function () {

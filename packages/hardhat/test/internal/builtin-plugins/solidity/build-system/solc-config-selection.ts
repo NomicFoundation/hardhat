@@ -534,6 +534,53 @@ describe("SolcConfigSelector", () => {
     });
   });
 
+  describe("Prerelease compilers", () => {
+    it("should select a configured prerelease that satisfies the version range", () => {
+      root.content.versionPragmas = [">=0.8.0"];
+      buildProfile.compilers.push({ version: "0.9.0-pre.1", settings: {} });
+
+      const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+      const config =
+        selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+      assert.deepEqual(config, {
+        success: true,
+        config: buildProfile.compilers[0],
+      });
+    });
+
+    it("should accept a prerelease override that satisfies the version range", () => {
+      root.content.versionPragmas = [">=0.8.0 <0.10.0"];
+      buildProfile.overrides[root.inputSourceName] = {
+        version: "0.9.0-pre.1",
+        settings: {},
+      };
+
+      const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+      const config =
+        selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+      assert.deepEqual(config, {
+        success: true,
+        config: buildProfile.overrides[root.inputSourceName],
+      });
+    });
+
+    it("should treat a prerelease as lower than its release, like solc does", () => {
+      buildProfile.compilers.push({ version: "0.9.0-pre.1", settings: {} });
+
+      for (const pragma of ["^0.8.0", ">=0.9.0", "^0.9.0"]) {
+        root.content.versionPragmas = [pragma];
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.equal(config.success, false, `${pragma} should not match`);
+      }
+    });
+  });
+
   describe("Edge cases", () => {
     it("Should still return an error in the presence of cycles", () => {
       const dependency1 = createProjectResolvedFile("dependency1.sol", [

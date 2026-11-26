@@ -170,7 +170,7 @@ export class NativeCompiler implements Compiler {
     // Logic to make sure that solc default import callback is not being used.
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
     if (this.version !== undefined) {
-      const parsed = parseVersion(this.version);
+      const parsed = parseVersion(this.version, { allowPrerelease: true });
       if (parsed === undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,

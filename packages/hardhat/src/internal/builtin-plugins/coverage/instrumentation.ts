@@ -43,7 +43,9 @@ export function instrumentSolidityFileForCompilationJob({
     `Invalid latest supported solidity version: ${latestSupportedVersion}`,
   );
   let instrumentationVersion = compilationJobSolcVersion;
-  const parsedInstrumentationVersion = parseVersion(instrumentationVersion);
+  const parsedInstrumentationVersion = parseVersion(instrumentationVersion, {
+    allowPrerelease: true,
+  });
   assertHardhatInvariant(
     parsedInstrumentationVersion !== undefined,
     `Invalid solc version: ${instrumentationVersion}`,

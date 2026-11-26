@@ -12,6 +12,16 @@ import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
 
+/**
+ * By default, `semver` never matches a prerelease against a range unless the
+ * range itself has a prerelease on the same `MAJOR.MINOR.PATCH`. Solc
+ * prereleases are only ever selected when the user explicitly configures one
+ * (e.g. `0.9.0-pre.1`), so we include them in the matching. This mirrors solc,
+ * which accepts a prerelease if its version satisfies the pragma, treating
+ * it as lower than the release it precedes.
+ */
+const SEMVER_OPTIONS = { includePrerelease: true };
+
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
   readonly #buildProfile: SolidityBuildProfileConfig;
@@ -66,7 +76,9 @@ export class SolcConfigSelector {
 
     // if there's an override, we only check that
     if (overriddenCompiler !== undefined) {
-      if (!satisfies(overriddenCompiler.version, versionRange)) {
+      if (
+        !satisfies(overriddenCompiler.version, versionRange, SEMVER_OPTIONS)
+      ) {
         return this.#getCompilationJobCreationError(
           root,
           subgraph,
@@ -80,7 +92,11 @@ export class SolcConfigSelector {
 
     // if there's no override, we find a compiler that matches the version range
     const compilerVersions = this.#buildProfile.compilers.map((x) => x.version);
-    const matchingVersion = maxSatisfying(compilerVersions, versionRange);
+    const matchingVersion = maxSatisfying(
+      compilerVersions,
+      versionRange,
+      SEMVER_OPTIONS,
+    );
 
     if (matchingVersion === null) {
       return this.#getCompilationJobCreationError(
@@ -129,7 +145,10 @@ export class SolcConfigSelector {
 
     if (overridden) {
       // The root may not be compatible with the override version
-      if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
+      if (
+        maxSatisfying(compilerVersions, rootVersionRange, SEMVER_OPTIONS) ===
+        null
+      ) {
         return {
           success: false,
           reason:
@@ -149,7 +168,9 @@ export class SolcConfigSelector {
         const depOwnRange =
           transitiveDependency.dependency.content.versionPragmas.join(" ");
 
-        if (maxSatisfying(compilerVersions, depOwnRange) === null) {
+        if (
+          maxSatisfying(compilerVersions, depOwnRange, SEMVER_OPTIONS) === null
+        ) {
           return {
             success: false,
             reason:
@@ -173,7 +194,9 @@ export class SolcConfigSelector {
 
     // Non-overridden case: we first check if the root is compatible with any
     // configured compiler
-    if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
+    if (
+      maxSatisfying(compilerVersions, rootVersionRange, SEMVER_OPTIONS) === null
+    ) {
       return {
         success: false,
         reason:
@@ -200,7 +223,9 @@ export class SolcConfigSelector {
 
       // A transitive dependency can have a pragma that's incompatible with
       // all the configured compilers
-      if (maxSatisfying(compilerVersions, depOwnRange) === null) {
+      if (
+        maxSatisfying(compilerVersions, depOwnRange, SEMVER_OPTIONS) === null
+      ) {
         return {
           success: false,
           reason:
@@ -214,7 +239,13 @@ export class SolcConfigSelector {
 
       // The root and the version ranges to get to this transitive dependency
       // may be contradictory, so no version ever can satisfy them.
-      if (!intersects(rootVersionRange, transitiveDependencyVersionRange)) {
+      if (
+        !intersects(
+          rootVersionRange,
+          transitiveDependencyVersionRange,
+          SEMVER_OPTIONS,
+        )
+      ) {
         return {
           success: false,
           reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE,
@@ -228,7 +259,9 @@ export class SolcConfigSelector {
       // The root and the version ranges to get to this transitive dependency
       // may not be compatible with any configured compiler.
       const combinedRange = `${rootVersionRange} ${transitiveDependencyVersionRange}`;
-      if (maxSatisfying(compilerVersions, combinedRange) === null) {
+      if (
+        maxSatisfying(compilerVersions, combinedRange, SEMVER_OPTIONS) === null
+      ) {
         return {
           success: false,
           reason:
