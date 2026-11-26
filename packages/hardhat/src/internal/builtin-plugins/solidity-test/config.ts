@@ -80,7 +80,9 @@ const solidityTestProfileUserConfigType = z.object({
   fuzz: z
     .object({
       failurePersistDir: z.string().optional(),
-      failurePersistFile: z.string().optional(),
+      failurePersistFile: incompatibleFieldType(
+        "This field was removed, as failures are now persisted as one file per test in `failurePersistDir`",
+      ),
       runs: z.number().optional(),
       maxTestRejects: z.number().optional(),
       seed: z.string().optional(),
@@ -89,6 +91,7 @@ const solidityTestProfileUserConfigType = z.object({
       includePushBytes: z.boolean().optional(),
       showLogs: z.boolean().optional(),
       timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
+      workers: z.number().int().positive().safe().optional(),
     })
     .optional(),
   forking: z
