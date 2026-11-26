@@ -3457,11 +3457,23 @@ Please check that you are sending a "data" parameter.`,
       },
       ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
         number: 90007,
-        messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.`,
+        messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.
+
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.
+
+Hardhat also rejects typed data that wouldn't reach the device as you sent it, so your Ledger can't sign something different from what you requested. The usual causes are a type or field named "__proto__", a field named only with digits (e.g. "123"), a number that JavaScript doesn't represent exactly (bigger than 9007199254740991, or not an integer), a string with an unpaired UTF-16 surrogate, and a domain "chainId" that isn't an integer.`,
         websiteTitle: `Invalid "data" param when calling eth_signTypedData_v4.`,
         websiteDescription: `You called "eth_signTypedData_v4" with incorrect parameters.
 
-Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.
+
+Hardhat also rejects typed data that wouldn't reach the device as you sent it, so your Ledger can't sign something different from what you requested. The usual causes are:
+
+- A type or a field named "__proto__", which is dropped instead of stored when the data is keyed by name.
+- A field named only with digits, like "123", which is moved ahead of every other field.
+- A number that JavaScript doesn't represent exactly, either bigger than 9007199254740991 or not an integer. Send big integers as strings.
+- A string containing an unpaired UTF-16 surrogate, which has no UTF-8 encoding.
+- A domain "chainId" that isn't an integer up to 9007199254740991, given as a number, a bigint, or a decimal or hexadecimal string.`,
       },
       LOCKED_DEVICE: {
         number: 90008,
