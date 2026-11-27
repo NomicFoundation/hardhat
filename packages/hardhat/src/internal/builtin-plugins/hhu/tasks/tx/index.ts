@@ -4,6 +4,7 @@ import type { UtilsTaskDefinition } from "../../types.js";
 import { ArgumentType } from "../../../../../types/arguments.js";
 import { emptyTask, task } from "../../../../core/config.js";
 import { JSON_VALUES_HINT } from "../abi/index.js";
+import { BLOCK_OPTION } from "../block-option.js";
 import { buildUtilsTask } from "../utils-task.js";
 
 export function tx(prefix: string[]): UtilsTaskDefinition[] {
@@ -67,10 +68,5 @@ function addCallRequestArguments(builder: NewTaskDefinitionBuilder) {
       type: ArgumentType.BIGINT,
       defaultValue: 0n,
     })
-    .addOption({
-      name: "block",
-      description:
-        "The block whose state to use: a number, a hash, latest, pending, earliest, safe or finalized",
-      defaultValue: "latest",
-    });
+    .addOption(BLOCK_OPTION);
 }

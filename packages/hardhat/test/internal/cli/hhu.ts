@@ -76,7 +76,11 @@ AVAILABLE SUBTASKS:
   convert pad                      Pad a hex string to a given byte length
   convert to-checksum-address      Convert an address to its EIP-55 checksummed representation
   convert to-hex                   Convert a non-negative integer to hex
+  fetch balance                    Print the balance of an address, in wei
   fetch block-number               Print the latest block number
+  fetch chain-id                   Print the chain ID
+  fetch gas-price                  Print the gas price, in wei
+  fetch nonce                      Print the nonce of an address
   hash keccak                      Print the keccak256 hash of 0x-hex bytes or a UTF-8 string
   tx call                          Call a contract without sending a transaction and print what it returns, decoded if the signature includes the return types, like "balanceOf(address)(uint256)"
   tx estimate                      Estimate the gas that a transaction would use

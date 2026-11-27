@@ -1,10 +1,7 @@
 import type { CallRequestArguments } from "./request.js";
 import type { NewUtilsTaskActionFunction } from "../../types.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { hexStringToBigInt } from "@nomicfoundation/hardhat-utils/hex";
-
-import { withConnection } from "../connection.js";
+import { requestQuantity } from "../connection.js";
 
 import { buildCallRequest } from "./request.js";
 
@@ -13,18 +10,9 @@ const txEstimateAction: NewUtilsTaskActionFunction<
 > = async (taskArguments, hre) => {
   const { params } = await buildCallRequest(taskArguments);
 
-  const gas = await withConnection(
-    hre,
-    async (connection) =>
-      await connection.provider.request({ method: "eth_estimateGas", params }),
+  console.log(
+    (await requestQuantity(hre, "eth_estimateGas", params)).toString(),
   );
-
-  assertHardhatInvariant(
-    typeof gas === "string",
-    "eth_estimateGas should return a string",
-  );
-
-  console.log(hexStringToBigInt(gas).toString());
 };
 
 export default txEstimateAction;
