@@ -6,19 +6,10 @@ inputs:
     description: Version of node to install
     required: false
     default: "24"
-  cache-save:
-    description: Whether to save the pnpm cache
-    required: false
-    default: "false"
   check-latest:
     description: Whether to ignore the runner's cached node and always install the latest release matching node-version
     required: false
     default: "false"
-outputs:
-  cache-hit:
-    description: Whether the cache was restored
-    value: ${{ steps.setup-node.outputs.cache-hit || steps.cache-restore.outputs.cache-hit }}
-
 runs:
   using: composite
   steps:
@@ -28,19 +19,7 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
-        cache-dependency-path: "**/pnpm-lock.yaml"
         registry-url: https://registry.npmjs.org
-    - id: pnpm
-      if: inputs.cache-save == 'false'
-      run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
-      shell: bash
-    - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      id: cache-restore
-      if: inputs.cache-save == 'false'
-      with:
-        path: ${{ steps.pnpm.outputs.path }}
-        key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
     # Needed for node-hid, which is used by @ledgerhq/hw-transport-node-hid
     # We need to install it because downloading the prebuilt binaries is not
     # reliable, so the CI sometimes falls back to building it from source,
@@ -51,6 +30,14 @@ runs:
     - name: Install Linux system dependencies
       if: runner.os == 'Linux'
       shell: bash
+      # The runner is discarded after the job, so skip the package triggers
+      # that prepare the next boot and index man pages. On ARM, libudev-dev
+      # pulls in a systemd upgrade whose initramfs rebuild alone took about
+      # 13 seconds a job.
       run: |
+        if [ -f /etc/initramfs-tools/update-initramfs.conf ]; then
+          echo 'update_initramfs=no' | sudo tee -a /etc/initramfs-tools/update-initramfs.conf > /dev/null
+        fi
+        sudo rm -f /var/lib/man-db/auto-update
         sudo apt-get update
-        sudo apt-get install -y libusb-1.0-0-dev libudev-dev time
+        sudo apt-get install -y --no-install-recommends libusb-1.0-0-dev libudev-dev time
