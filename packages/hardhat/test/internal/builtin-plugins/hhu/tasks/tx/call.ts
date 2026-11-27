@@ -12,7 +12,6 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import hhu from "../../../../../../src/internal/builtin-plugins/hhu/index.js";
 import { buildCallRequest } from "../../../../../../src/internal/builtin-plugins/hhu/tasks/tx/request.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
@@ -41,8 +40,6 @@ function word(value: bigint | string): string {
   return BigInt(value).toString(16).padStart(64, "0");
 }
 
-// The hhu plugin is unreleased and de-registered from the builtin plugins, so
-// it's injected explicitly to test the integrated (`hardhat utils ...`) path.
 // Decoding and printing are covered by the hardhat-utils and format tests;
 // these cover the request and the output.
 describe("hhu utils tx call task", () => {
@@ -51,11 +48,7 @@ describe("hhu utils tx call task", () => {
   const capture = captureConsole();
 
   before(async () => {
-    hre = await createHardhatRuntimeEnvironment(
-      { plugins: [hhu] },
-      {},
-      process.cwd(),
-    );
+    hre = await createHardhatRuntimeEnvironment({});
 
     // Each connection is a fresh chain, so the contracts are redeployed
     const networkHooks: Partial<NetworkHooks> = {
