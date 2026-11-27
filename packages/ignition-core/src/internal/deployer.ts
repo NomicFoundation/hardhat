@@ -176,7 +176,9 @@ export class Deployer {
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
-    await this._emitDeploymentBatchEvent(batches);
+    if (this._config.maxBatchSize === undefined || batches.length === 0) {
+      await this._emitDeploymentBatchEvent(batches);
+    }
 
     if (this._hasBatchesToExecute(batches)) {
       await this._emitRunStartEvent();
@@ -194,6 +196,7 @@ export class Deployer {
         this._config.disableFeeBumping,
         this._config.maxRetries,
         this._config.retryInterval,
+        this._config.maxBatchSize,
       );
 
       deploymentState = await executionEngine.executeModule(
