@@ -64,7 +64,6 @@
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@types/node": "^22.0.0",
-    "@types/prompts": "^2.4.2",
     "@types/sinon": "^22.0.0",
     "c8": "^12.0.0",
     "cross-env": "10.1.0",
@@ -82,8 +81,7 @@
     "@nomicfoundation/hardhat-utils": "workspace:^5.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.1.8",
     "@nomicfoundation/ignition-ui": "workspace:^3.1.2",
-    "json5": "^2.2.3",
-    "prompts": "^2.4.2"
+    "json5": "^2.2.3"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",

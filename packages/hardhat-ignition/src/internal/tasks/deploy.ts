@@ -19,12 +19,12 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { deploy } from "@nomicfoundation/ignition-core";
 import json5 from "json5";
-import Prompt from "prompts";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
 import { PrettyEventHandler } from "../../helpers/pretty-event-handler.js";
 import { readDeploymentParameters } from "../../helpers/read-deployment-parameters.js";
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
+import { PLUGIN_ID } from "../constants.js";
 import { getUserInterruptionsHandlers } from "../hook-handlers/user-interruptions.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
@@ -79,14 +79,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   if (chainId !== 31337) {
     if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
-      const prompt = await Prompt({
-        type: "confirm",
-        name: "networkConfirmation",
-        message: `Confirm deploy to network ${connection.networkName} (${chainId})?`,
-        initial: false,
-      });
+      const networkConfirmation = await confirm(
+        hre,
+        `Confirm deploy to network ${connection.networkName} (${chainId})?`,
+        "HARDHAT_IGNITION_CONFIRM_DEPLOYMENT",
+      );
 
-      if (prompt.networkConfirmation !== true) {
+      if (!networkConfirmation) {
         console.log("Deploy cancelled");
         process.exitCode = 1;
         return null;
@@ -94,14 +93,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     }
 
     if (reset && process.env.HARDHAT_IGNITION_CONFIRM_RESET === undefined) {
-      const resetPrompt = await Prompt({
-        type: "confirm",
-        name: "resetConfirmation",
-        message: `Confirm reset of deployment "${deploymentId}" on chain ${chainId}?`,
-        initial: false,
-      });
+      const resetConfirmation = await confirm(
+        hre,
+        `Confirm reset of deployment "${deploymentId}" on chain ${chainId}?`,
+        "HARDHAT_IGNITION_CONFIRM_RESET",
+      );
 
-      if (resetPrompt.resetConfirmation !== true) {
+      if (!resetConfirmation) {
         console.log("Deploy cancelled");
         process.exitCode = 1;
         return null;
@@ -304,6 +302,42 @@ async function resolveParametersString(
 
     throw e;
   }
+}
+
+/**
+ * Asks a yes/no question through Hardhat's user interruptions, which also
+ * read an answer piped through stdin. Fails with an error naming the env var
+ * that skips the question if stdin closes before an answer arrives.
+ */
+async function confirm(
+  hre: HardhatRuntimeEnvironment,
+  question: string,
+  envVarName: string,
+): Promise<boolean> {
+  let answer: string;
+  try {
+    answer = await hre.interruptions.requestInput(
+      PLUGIN_ID,
+      `${question} (y/N)`,
+    );
+  } catch (e) {
+    if (
+      HardhatError.isHardhatError(
+        e,
+        HardhatError.ERRORS.CORE.GENERAL.PROMPT_CLOSED_BEFORE_ANSWER,
+      )
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.DEPLOY.CONFIRMATION_NOT_ANSWERED,
+        { question, envVarName },
+        e,
+      );
+    }
+
+    throw e;
+  }
+
+  return ["y", "yes"].includes(answer.trim().toLowerCase());
 }
 
 export default taskDeploy;
