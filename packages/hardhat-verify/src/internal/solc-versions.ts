@@ -81,13 +81,13 @@ export function filterVersionsByInferred(
     switch (inferred.type) {
       case "exact":
         return equals(parsed, inferred.version);
-      case "lessThan":
-        return lowerThan(parsed, inferred.bound);
       case "between":
         return (
           greaterThanOrEqual(parsed, inferred.min) &&
           lowerThanOrEqual(parsed, inferred.max)
         );
+      case "unknown":
+        return true;
     }
   });
 }

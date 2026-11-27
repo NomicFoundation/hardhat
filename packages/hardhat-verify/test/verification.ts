@@ -64,6 +64,55 @@ describe("verification", () => {
         assert.ok(result, "Verification should return true");
       });
 
+      it("should verify a contract compiled without CBOR metadata", async () => {
+        const localHre = await createHardhatRuntimeEnvironment({
+          ...hardhatUserConfig,
+          paths: {
+            artifacts: "artifacts-no-metadata",
+            cache: "cache-no-metadata",
+          },
+          solidity: {
+            profiles: {
+              default: { version: "0.8.33" },
+              production: {
+                version: "0.8.33",
+                settings: { metadata: { appendCBOR: false } },
+              },
+            },
+          },
+        });
+        await localHre.tasks.getTask("build").run({
+          defaultBuildProfile: "production",
+        });
+        const { provider } = await localHre.network.create();
+        const address = await deployContract(
+          "Counter",
+          [],
+          {},
+          localHre,
+          provider,
+        );
+
+        const result = await verifyContract(
+          { address },
+          localHre,
+          () => {},
+          testDispatcher.dispatcher,
+          provider,
+        );
+
+        assert.ok(result, "Verification should return true");
+        const sourceCode = etherscanMock.verifyRequestBody?.get("sourceCode");
+        assert.ok(
+          typeof sourceCode === "string",
+          "Verification should submit the Solidity compiler input",
+        );
+        assert.equal(
+          JSON.parse(sourceCode).settings.metadata.appendCBOR,
+          false,
+        );
+      });
+
       it("should verify a contract with constructor arguments", async () => {
         const constructorArgs = [0, true];
         const { provider } = await hre.network.create();
