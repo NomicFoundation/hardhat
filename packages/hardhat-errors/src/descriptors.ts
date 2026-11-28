@@ -491,7 +491,8 @@ Please add the property "type" with the value "module" in your package.json to e
       },
       INVALID_CONFIG: {
         number: 15,
-        messageTemplate: `Invalid config:
+        messageTemplate: `Hardhat requires a valid hardhat.config.ts file to identify and execute all tasks.
+Hardhat couldn't run because the configuration is invalid:
 {errors}`,
         websiteTitle: "Invalid config",
         websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
