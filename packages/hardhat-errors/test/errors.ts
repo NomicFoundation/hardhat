@@ -167,6 +167,22 @@ describe("HardhatError", () => {
       );
     });
   });
+
+  describe("INVALID_CONFIG", () => {
+    it("Should explain that every task requires a valid config", () => {
+      const error = new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+        { errors: "\t* Config error in config.foo: foo is invalid" },
+      );
+
+      assert.equal(
+        error.message,
+        `HHE15: Hardhat requires a valid hardhat.config.ts file to identify and execute all tasks.
+Hardhat couldn't run because the configuration is invalid:
+\t* Config error in config.foo: foo is invalid`,
+      );
+    });
+  });
 });
 
 describe("HardhatPluginError", () => {
